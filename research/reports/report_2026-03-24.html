@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smoke & Honey — Morning Standup Report · March 24, 2026</title>
+<style>
+  :root {
+    --bg: #1a1a1a;
+    --surface: #242424;
+    --border: #333;
+    --amber: #C8860A;
+    --amber-lt: #E8A020;
+    --green: #5a8a3a;
+    --green-lt: #5acc88;
+    --red: #cc5544;
+    --blue: #3a6a8a;
+    --blue-lt: #668ab4;
+    --text: #e8dfc8;
+    --muted: #8a8070;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 14px; line-height: 1.7;
+    max-width: 900px; margin: 0 auto; padding: 40px 48px;
+  }
+
+  .report-header {
+    border-bottom: 2px solid var(--amber);
+    padding-bottom: 20px; margin-bottom: 32px;
+  }
+  .report-header h1 { font-size: 24px; color: var(--amber); }
+  .report-header .date { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .report-header .phase-badge {
+    display: inline-block; margin-top: 10px;
+    padding: 3px 12px; border-radius: 3px;
+    font-size: 11px; font-weight: bold;
+    background: #2a1a0a; color: var(--amber-lt);
+  }
+
+  .section { margin-bottom: 36px; }
+  .section h2 {
+    font-size: 16px; color: var(--amber);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px; margin-bottom: 16px;
+  }
+  .section h2 .icon { margin-right: 8px; }
+
+  .item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; padding: 12px 16px; margin-bottom: 10px;
+  }
+  .item .title { font-weight: bold; font-size: 13px; margin-bottom: 4px; }
+  .item .detail { color: var(--muted); font-size: 12px; }
+
+  .tag {
+    display: inline-block; padding: 1px 8px; border-radius: 2px;
+    font-size: 10px; font-weight: bold; margin-left: 8px;
+  }
+  .tag-done { background: #1a3a1a; color: #5acc88; }
+  .tag-risk { background: #3a1a1a; color: #cc5544; }
+  .tag-info { background: #1a1a2a; color: #668ab4; }
+  .tag-priority { background: #2a2a1a; color: #ccaa44; }
+
+  .priority-list { counter-reset: priority; }
+  .priority-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 4px solid var(--amber);
+    border-radius: 4px; padding: 14px 18px; margin-bottom: 12px;
+    display: flex; gap: 16px; align-items: flex-start;
+  }
+  .priority-num {
+    font-size: 24px; font-weight: bold; color: var(--amber);
+    min-width: 32px; text-align: center; line-height: 1;
+    padding-top: 2px;
+  }
+  .priority-content .title { font-weight: bold; font-size: 13px; margin-bottom: 4px; }
+  .priority-content .reason { color: var(--muted); font-size: 12px; }
+
+  .qa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .qa-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; padding: 12px 16px;
+  }
+  .qa-card h4 { color: var(--amber-lt); font-size: 12px; margin-bottom: 6px; }
+  .qa-card p { font-size: 12px; color: var(--text); }
+
+  .summary-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    margin-bottom: 32px;
+  }
+  .summary-stat {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; padding: 12px 16px; text-align: center;
+  }
+  .summary-stat .val { font-size: 22px; font-weight: bold; color: var(--amber); }
+  .summary-stat .label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 16px; margin-top: 40px;
+    color: var(--muted); font-size: 11px; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="report-header">
+  <h1>Morning Standup Report</h1>
+  <div class="date">Tuesday, March 24, 2026 &middot; Smoke &amp; Honey</div>
+  <span class="phase-badge">Phase 1 &rarr; Phase 2 Transition Day</span>
+</div>
+
+<!-- PROJECT SNAPSHOT -->
+<div class="summary-bar">
+  <div class="summary-stat">
+    <div class="val">4/4</div>
+    <div class="label">Phases 1 &amp; 4 Complete</div>
+  </div>
+  <div class="summary-stat">
+    <div class="val">~40</div>
+    <div class="label">Scripts</div>
+  </div>
+  <div class="summary-stat">
+    <div class="val">15+</div>
+    <div class="label">Scenes</div>
+  </div>
+  <div class="summary-stat">
+    <div class="val">48+</div>
+    <div class="label">Art Assets</div>
+  </div>
+</div>
+
+<!-- SECTION 1: YESTERDAY'S ACCOMPLISHMENTS -->
+<div class="section">
+  <h2><span class="icon">&#9989;</span> What Was Accomplished (March 20–24)</h2>
+
+  <div class="item">
+    <div class="title">Phase 1 Core Loop — Declared Complete <span class="tag tag-done">DONE</span></div>
+    <div class="detail">Full 10-script simulation pipeline wired and live in HiveSimulation.gd tick(). All Phase 1 exit criteria met: hive simulates 7 days autonomously, frame inspection view operational, queen lays eggs daily, HUD shows live stats, and day/season advancement works.</div>
+  </div>
+
+  <div class="item">
+    <div class="title">Phase 4 Polish — Save/Load &amp; Menus Complete <span class="tag tag-done">DONE</span></div>
+    <div class="detail">SaveManager autoload (~600 lines) with full JSON save/load and auto-save on sleep. MainMenu and PauseMenu scenes finalized. NotificationManager (layer 50) and DialogueUI (layer 40) autoloads in place.</div>
+  </div>
+
+  <div class="item">
+    <div class="title">Three Interior Scenes Built <span class="tag tag-done">DONE</span></div>
+    <div class="detail">Crossroads Diner (5 menu items, time-gated meals, NPC specials), Cedar Bend Feed &amp; Supply (11 shop items, seasonal availability, bulletin board), and Post Office (June NPC, package collection, LIVE BEES spring delivery) all completed with scripts and sprites.</div>
+  </div>
+
+  <div class="item">
+    <div class="title">Major Performance Optimization <span class="tag tag-done">DONE</span></div>
+    <div class="detail">HiveSimulation tick() collapsed from 7 passes to 2, reducing cell reads from ~245,000 to ~70,000 per tick (~3.5&times; faster). SnapshotWriter zero extra reads in hot path. HUD string cache, grid_overlay visibility guard, hive.gd player cache, QuestManager O(1) lookup.</div>
+  </div>
+
+  <div class="item">
+    <div class="title">TestEnvironment Expanded (21 &rarr; 72 nodes) <span class="tag tag-done">DONE</span></div>
+    <div class="detail">Added Uncle Bob at (380, 140), 5 hive spot markers, 4 garden beds, 14 wildflower patches, DandelionSpawner node, and 10 new pixel art environment sprites.</div>
+  </div>
+
+  <div class="item">
+    <div class="title">Dandelion Spring Mechanic Implemented <span class="tag tag-done">DONE</span></div>
+    <div class="detail">dandelion_spawner.gd (279 lines): annual bloom quality roll across 4 tiers (POOR/AVERAGE/GOOD/EXCEPTIONAL), edge-tile bias, mow API, and signals integrated into ForageManager nectar units. GDD &sect;14.8.4 documented.</div>
+  </div>
+
+  <div class="item">
+    <div class="title">GameData Extended for Economy <span class="tag tag-done">DONE</span></div>
+    <div class="detail">New fields: dollars tracking, meals_eaten dict, coffee_until_hour, xp_buff_until_day, pending_deliveries array with helper methods. Fully serialized by SaveManager.</div>
+  </div>
+</div>
+
+<!-- SECTION 2: BLOCKERS & RISKS -->
+<div class="section">
+  <h2><span class="icon">&#9888;&#65039;</span> Current Blockers &amp; Risks</h2>
+
+  <div class="item">
+    <div class="title">FrameRenderer.gd Not Yet Implemented <span class="tag tag-risk">BLOCKER</span></div>
+    <div class="detail">The on-demand cell renderer for the inspection view is still TODO. The InspectionOverlay.gd handles queen sighting and stats, but actual cell-grid visual rendering from PackedByteArray data is not yet in place. This blocks the full visual inspection experience and is a dependency for the harvest UI (Phase 5).</div>
+  </div>
+
+  <div class="item">
+    <div class="title">Player Beekeeper Sprite Missing <span class="tag tag-risk">ART BLOCKER</span></div>
+    <div class="detail">No player sprite sheet exists yet (needs 4-direction walk cycle, 3 frames each, 16&times;32px). Currently using placeholder. Required for any public-facing demo or vertical slice.</div>
+  </div>
+
+  <div class="item">
+    <div class="title">Uncle Bob NPC Sprite Missing <span class="tag tag-risk">ART BLOCKER</span></div>
+    <div class="detail">Uncle Bob's logic is fully coded, but he has no pixel art sprite. Needs 16&times;32px character sprite via Recraft.</div>
+  </div>
+
+  <div class="item">
+    <div class="title">Godot Editor Verification Needed <span class="tag tag-priority">MANUAL</span></div>
+    <div class="detail">Several scene wiring tasks require manual Godot editor verification: HiveSimulation child node attachment in hive.tscn, InspectionOverlay.tscn scene integrity, hud.gd daily summary connection to Z-key sleep flow, and TimeManager.current_season references.</div>
+  </div>
+
+  <div class="item">
+    <div class="title">Season Transitions Only Partial <span class="tag tag-info">RISK</span></div>
+    <div class="detail">Season enum exists but forage modifier updates on season change, temperature affecting bee activity, and nectar flow calendar integration are incomplete. This could cause simulation inaccuracies during Phase 2 harvest testing.</div>
+  </div>
+
+  <div class="item">
+    <div class="title">Sleep/Pass Day Action Not Implemented <span class="tag tag-info">RISK</span></div>
+    <div class="detail">No mechanism yet for player to advance to next day (Z key or enter house). This limits playtesting the simulation across multiple in-game days.</div>
+  </div>
+</div>
+
+<!-- SECTION 3: QA & TESTING RECOMMENDATIONS -->
+<div class="section">
+  <h2><span class="icon">&#128270;</span> QA &amp; Testing Recommendations</h2>
+
+  <div class="qa-grid">
+    <div class="qa-card">
+      <h4>Simulation Pipeline Regression</h4>
+      <p>Run the 10-script tick pipeline for 30+ simulated days and verify population curves (egg &rarr; larva &rarr; pupa &rarr; adult) follow expected biological timelines. Watch for population crashes or infinite growth after the optimization changes.</p>
+    </div>
+    <div class="qa-card">
+      <h4>Save/Load Round-Trip</h4>
+      <p>Save game state at Day 14 with active hive, load it back, and verify all snapshot data, GameData fields (dollars, meals_eaten, pending_deliveries), and quest progress are preserved correctly.</p>
+    </div>
+    <div class="qa-card">
+      <h4>Interior Scene Navigation</h4>
+      <p>Enter and exit all three new interiors (Diner, Feed &amp; Supply, Post Office) from Cedar Bend. Verify E-key interactions, shop purchases deduct dollars, meal time-gating works, and exiting returns to correct overworld position.</p>
+    </div>
+    <div class="qa-card">
+      <h4>Performance Benchmark</h4>
+      <p>Profile HiveSimulation.gd tick() with 3+ hives active. Confirm the 3.5&times; optimization holds. Check for frame drops in TestEnvironment now that it has 72 nodes. Monitor HUD for any per-frame allocation regressions.</p>
+    </div>
+    <div class="qa-card">
+      <h4>Uncle Bob Interaction Chain</h4>
+      <p>Walk to Uncle Bob, press E repeatedly. Verify 6 hints rotate correctly, XP awards +2 each time, speech bubble auto-dismisses, and no duplicate XP on rapid E presses.</p>
+    </div>
+    <div class="qa-card">
+      <h4>Dandelion Spawner Edge Cases</h4>
+      <p>Test across multiple years to verify annual quality re-roll. Check edge-tile bias distribution. Test mow API mid-bloom and verify nectar contribution stops. Confirm ForageManager receives updated NU values via signals.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4: TODAY'S PRIORITIES -->
+<div class="section">
+  <h2><span class="icon">&#127919;</span> Today's Top 5 Priorities</h2>
+
+  <div class="priority-list">
+    <div class="priority-item">
+      <div class="priority-num">1</div>
+      <div class="priority-content">
+        <div class="title">Implement FrameRenderer.gd</div>
+        <div class="reason"><strong>Why:</strong> This is the single biggest blocker. The entire inspection visual experience depends on it, and Phase 5's harvest flow requires the player to see frame data (honey % capped) to make harvest decisions. Spec is clear: stamp cell sprites at (col&times;26, row&times;20) + frame_origin, dirty-flag system for incremental redraw, LOD at zoom &lt;50%.</div>
+      </div>
+    </div>
+
+    <div class="priority-item">
+      <div class="priority-num">2</div>
+      <div class="priority-content">
+        <div class="title">Implement Sleep/Pass Day Action (Z key or enter house)</div>
+        <div class="reason"><strong>Why:</strong> Without day advancement, playtesting the simulation over multiple days is impractical. Needed to test harvest timing, season transitions, and dandelion bloom cycles. Should trigger all hive ticks for skipped time and show a brief transition (fade + day counter).</div>
+      </div>
+    </div>
+
+    <div class="priority-item">
+      <div class="priority-num">3</div>
+      <div class="priority-content">
+        <div class="title">Complete Godot Editor Quick Fixes (TASKS.md)</div>
+        <div class="reason"><strong>Why:</strong> Five manual editor tasks are pending: verifying HiveSimulation node attachment, InspectionOverlay scene integrity, HUD daily summary wiring, TimeManager references, and Uncle Bob placement. These are low-effort but critical for everything else to function end-to-end in the actual game.</div>
+      </div>
+    </div>
+
+    <div class="priority-item">
+      <div class="priority-num">4</div>
+      <div class="priority-content">
+        <div class="title">Begin Phase 5 Harvest Decision UI Design</div>
+        <div class="reason"><strong>Why:</strong> Phase 5 (Economy &amp; Harvest) is the next major milestone. Starting with the harvest decision UI—showing frame honey % capped and the warning system—creates the foundation for the full multi-step harvest flow (escape board &rarr; pull &rarr; uncap &rarr; extract &rarr; bottle). Can begin prototyping even before FrameRenderer is done.</div>
+      </div>
+    </div>
+
+    <div class="priority-item">
+      <div class="priority-num">5</div>
+      <div class="priority-content">
+        <div class="title">Generate Player Beekeeper Sprite</div>
+        <div class="reason"><strong>Why:</strong> The missing player sprite is the most visible placeholder in the game. A 4-direction, 3-frame walk cycle (16&times;32px) via Recraft would immediately make the game feel more complete and is needed before any demo or screenshot can be shared. Can be done in parallel with code work.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Auto-generated by Smoke &amp; Honey Morning Briefing &middot; March 24, 2026 &middot; Based on GDD v1.4 &amp; DevPlan
+</footer>
+
+</body>
+</html>

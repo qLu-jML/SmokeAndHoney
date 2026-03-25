@@ -1,0 +1,18 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# Claude worktrees
+.claude/worktrees/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Python
+__pycache__/
+*.pyc
+
+# Lock files
+.~lock.*

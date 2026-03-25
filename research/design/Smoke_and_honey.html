@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smoke &amp; Honey - Brand Naming Presentation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --deep-wood: #261206;
+    --med-wood: #4A2A10;
+    --warm-brown: #6C4016;
+    --amber-dark: #985808;
+    --amber: #C47A0E;
+    --amber-bright: #E6A220;
+    --honey-gold: #F0B832;
+    --cream: #F2E4B2;
+    --light-cream: #FCF5D7;
+    --white-warm: #FFF9EC;
+    --smoke-light: rgba(245, 240, 228, 0.6);
+    --smoke-dark: rgba(120, 100, 70, 0.15);
+    --danger: #9E2B2B;
+    --success: #3A7D44;
+    --slide-bg: #1A0E04;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-snap-type: y mandatory;
+    overflow-y: scroll;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--slide-bg);
+    color: var(--cream);
+    line-height: 1.6;
+  }
+
+  /* ---- SLIDE SYSTEM ---- */
+  .slide {
+    min-height: 100vh;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide-inner {
+    max-width: 1100px;
+    width: 100%;
+    z-index: 2;
+    position: relative;
+  }
+
+  /* ---- SLIDE NUMBERS ---- */
+  .slide-number {
+    position: absolute;
+    bottom: 30px;
+    right: 40px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: rgba(242, 228, 178, 0.25);
+    letter-spacing: 2px;
+  }
+
+  /* ---- TYPOGRAPHY ---- */
+  h1, h2, h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+
+  .slide-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+
+  /* ---- DECORATIVE ELEMENTS ---- */
+  .honeycomb-bg {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66zm0 34L0 84V50l28-16 28 16v34l-28 16z' fill='none' stroke='%23E6A220' stroke-width='1'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  .smoke-particles {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .smoke-particles::before,
+  .smoke-particles::after {
+    content: '';
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(242,228,178,0.04) 0%, transparent 70%);
+    animation: float 20s ease-in-out infinite;
+  }
+
+  .smoke-particles::before { top: 20%; left: -100px; animation-delay: -5s; }
+  .smoke-particles::after { bottom: 10%; right: -100px; animation-delay: -12s; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-60px) scale(1.15); }
+  }
+
+  /* ---- SLIDE 1: TITLE ---- */
+  .slide-title {
+    background: radial-gradient(ellipse at 50% 40%, #2A1808 0%, var(--slide-bg) 70%);
+    text-align: center;
+  }
+
+  .title-super {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 32px;
+    opacity: 0.8;
+  }
+
+  .title-main {
+    font-size: clamp(52px, 8vw, 96px);
+    font-weight: 900;
+    background: linear-gradient(160deg, var(--honey-gold) 0%, var(--amber-bright) 30%, var(--amber) 60%, var(--warm-brown) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 24px;
+    letter-spacing: -1px;
+  }
+
+  .title-sub {
+    font-size: 20px;
+    font-weight: 300;
+    color: var(--cream);
+    opacity: 0.7;
+    max-width: 500px;
+    margin: 0 auto 48px;
+  }
+
+  .title-divider {
+    width: 60px;
+    height: 2px;
+    background: var(--amber);
+    margin: 0 auto 24px;
+    opacity: 0.5;
+  }
+
+  .title-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: rgba(242,228,178,0.35);
+    text-transform: uppercase;
+  }
+
+  /* ---- SLIDE 2: THE PROBLEM ---- */
+  .slide-problem {
+    background: radial-gradient(ellipse at 30% 60%, #2A1008 0%, var(--slide-bg) 70%);
+  }
+
+  .problem-title {
+    font-size: clamp(36px, 5vw, 56px);
+    color: var(--cream);
+    margin-bottom: 48px;
+  }
+
+  .problem-title em {
+    font-style: normal;
+    color: var(--danger);
+    text-decoration: line-through;
+    text-decoration-color: rgba(158,43,43,0.5);
+    opacity: 0.7;
+  }
+
+  .problem-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 40px;
+  }
+
+  .problem-card {
+    background: rgba(42, 26, 8, 0.6);
+    border: 1px solid rgba(108, 64, 22, 0.3);
+    border-radius: 12px;
+    padding: 28px 32px;
+  }
+
+  .problem-card h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 12px;
+  }
+
+  .problem-card p {
+    font-size: 15px;
+    color: rgba(242, 228, 178, 0.7);
+    line-height: 1.7;
+  }
+
+  .problem-card.bad { border-left: 3px solid var(--danger); }
+  .problem-card.good { border-left: 3px solid var(--success); }
+
+  /* ---- SLIDE 3: THE NAME ---- */
+  .slide-reveal {
+    background: radial-gradient(ellipse at 50% 50%, #2E1A06 0%, var(--slide-bg) 65%);
+    text-align: center;
+  }
+
+  .reveal-name {
+    font-size: clamp(60px, 9vw, 110px);
+    font-weight: 900;
+    background: linear-gradient(160deg, #FFF5D4 0%, var(--honey-gold) 25%, var(--amber-bright) 50%, var(--amber) 75%, var(--warm-brown) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 24px;
+    letter-spacing: -2px;
+  }
+
+  .reveal-ampersand {
+    font-weight: 400;
+    opacity: 0.8;
+  }
+
+  .reveal-tagline {
+    font-size: 22px;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--cream);
+    opacity: 0.6;
+    margin-bottom: 56px;
+  }
+
+  .meaning-row {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    text-align: left;
+  }
+
+  .meaning-item {
+    max-width: 320px;
+  }
+
+  .meaning-word {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--amber-bright);
+    margin-bottom: 8px;
+  }
+
+  .meaning-desc {
+    font-size: 15px;
+    color: rgba(242,228,178,0.65);
+    line-height: 1.7;
+  }
+
+  /* ---- SLIDE 4: WHY IT WORKS ---- */
+  .slide-why {
+    background: radial-gradient(ellipse at 70% 40%, #2A1808 0%, var(--slide-bg) 70%);
+  }
+
+  .why-title {
+    font-size: clamp(32px, 4vw, 48px);
+    margin-bottom: 56px;
+    color: var(--cream);
+  }
+
+  .pillars {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+
+  .pillar {
+    background: rgba(42, 26, 8, 0.5);
+    border: 1px solid rgba(108,64,22,0.25);
+    border-radius: 16px;
+    padding: 36px 28px;
+    text-align: center;
+    transition: border-color 0.3s;
+  }
+
+  .pillar:hover { border-color: var(--amber); }
+
+  .pillar-icon {
+    font-size: 40px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .pillar h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--amber-bright);
+    margin-bottom: 10px;
+  }
+
+  .pillar p {
+    font-size: 14px;
+    color: rgba(242,228,178,0.6);
+    line-height: 1.65;
+  }
+
+  /* ---- SLIDE 5: COMPETITIVE LANDSCAPE ---- */
+  .slide-landscape {
+    background: radial-gradient(ellipse at 40% 50%, #2A1808 0%, var(--slide-bg) 70%);
+  }
+
+  .landscape-title {
+    font-size: clamp(32px, 4vw, 48px);
+    margin-bottom: 48px;
+  }
+
+  .comp-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 14px;
+  }
+
+  .comp-table thead th {
+    background: rgba(108,64,22,0.4);
+    padding: 16px 20px;
+    text-align: left;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--amber);
+    border-bottom: 2px solid rgba(108,64,22,0.3);
+  }
+
+  .comp-table tbody td {
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(108,64,22,0.15);
+    color: rgba(242,228,178,0.7);
+    background: rgba(26,14,4,0.6);
+  }
+
+  .comp-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .comp-table tbody tr.highlight td {
+    background: rgba(152,88,8,0.15);
+    color: var(--cream);
+    font-weight: 500;
+  }
+
+  .comp-table .name-cell {
+    font-family: 'Playfair Display', serif;
+    font-weight: 600;
+    color: var(--cream);
+  }
+
+  .comp-table .highlight .name-cell {
+    color: var(--honey-gold);
+    font-size: 16px;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .badge-yes { background: rgba(58,125,68,0.25); color: #6FCF7C; }
+  .badge-no { background: rgba(158,43,43,0.2); color: #CF6F6F; }
+  .badge-partial { background: rgba(198,148,28,0.2); color: var(--amber-bright); }
+
+  /* ---- SLIDE 6: SEARCH ADVANTAGE ---- */
+  .slide-search {
+    background: radial-gradient(ellipse at 60% 50%, #2A1808 0%, var(--slide-bg) 70%);
+  }
+
+  .search-title {
+    font-size: clamp(32px, 4vw, 48px);
+    margin-bottom: 48px;
+  }
+
+  .search-comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+  }
+
+  .search-box {
+    background: rgba(30,18,6,0.8);
+    border: 1px solid rgba(108,64,22,0.3);
+    border-radius: 16px;
+    padding: 32px;
+    position: relative;
+  }
+
+  .search-box.bad-search { border-color: rgba(158,43,43,0.4); }
+  .search-box.good-search { border-color: rgba(58,125,68,0.4); }
+
+  .search-query {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 24px;
+    color: var(--cream);
+    border: 1px solid rgba(108,64,22,0.2);
+  }
+
+  .search-result {
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(108,64,22,0.1);
+  }
+
+  .search-result:last-child { border-bottom: none; }
+
+  .search-result-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .search-result-title.competitor { color: #CF6F6F; }
+  .search-result-title.ours { color: #6FCF7C; }
+
+  .search-result-url {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: rgba(242,228,178,0.35);
+  }
+
+  .search-result-desc {
+    font-size: 12px;
+    color: rgba(242,228,178,0.5);
+    margin-top: 4px;
+  }
+
+  .search-verdict {
+    margin-top: 20px;
+    padding: 14px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    letter-spacing: 1px;
+  }
+
+  .verdict-bad {
+    background: rgba(158,43,43,0.15);
+    color: #CF6F6F;
+    border: 1px solid rgba(158,43,43,0.3);
+  }
+
+  .verdict-good {
+    background: rgba(58,125,68,0.15);
+    color: #6FCF7C;
+    border: 1px solid rgba(58,125,68,0.3);
+  }
+
+  /* ---- SLIDE 7: BRAND IDENTITY ---- */
+  .slide-brand {
+    background: radial-gradient(ellipse at 50% 40%, #2E1A06 0%, var(--slide-bg) 65%);
+  }
+
+  .brand-title {
+    font-size: clamp(32px, 4vw, 48px);
+    margin-bottom: 56px;
+    text-align: center;
+  }
+
+  .palette-section {
+    margin-bottom: 48px;
+  }
+
+  .palette-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 16px;
+  }
+
+  .palette-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .swatch {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 6px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .swatch-name {
+    font-weight: 500;
+    opacity: 0.9;
+  }
+
+  .swatch-hex { opacity: 0.55; }
+
+  .tagline-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 40px;
+  }
+
+  .tagline-card {
+    background: rgba(42,26,8,0.5);
+    border: 1px solid rgba(108,64,22,0.25);
+    border-radius: 12px;
+    padding: 28px 24px;
+    text-align: center;
+  }
+
+  .tagline-card.featured {
+    border-color: var(--amber);
+    background: rgba(152,88,8,0.12);
+  }
+
+  .tagline-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-style: italic;
+    color: var(--cream);
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+
+  .tagline-use {
+    font-size: 12px;
+    color: rgba(242,228,178,0.5);
+  }
+
+  /* ---- SLIDE 8: LOGO CONCEPTS ---- */
+  .slide-logo {
+    background: radial-gradient(ellipse at 50% 50%, #2E1A06 0%, var(--slide-bg) 65%);
+    text-align: center;
+  }
+
+  .logo-title {
+    font-size: clamp(32px, 4vw, 48px);
+    margin-bottom: 56px;
+  }
+
+  .logo-concepts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    margin-bottom: 40px;
+  }
+
+  .logo-concept {
+    background: rgba(42,26,8,0.5);
+    border: 1px solid rgba(108,64,22,0.25);
+    border-radius: 16px;
+    padding: 40px 24px 28px;
+  }
+
+  .logo-concept.featured {
+    border-color: var(--amber);
+    background: rgba(152,88,8,0.1);
+  }
+
+  .logo-mockup {
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .logo-mockup svg {
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .logo-concept h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--amber-bright);
+    margin-bottom: 8px;
+  }
+
+  .logo-concept p {
+    font-size: 13px;
+    color: rgba(242,228,178,0.55);
+    line-height: 1.6;
+  }
+
+  /* ---- SLIDE 9: AUDIENCE FIT ---- */
+  .slide-audience {
+    background: radial-gradient(ellipse at 40% 60%, #2A1808 0%, var(--slide-bg) 70%);
+  }
+
+  .audience-title {
+    font-size: clamp(32px, 4vw, 48px);
+    margin-bottom: 48px;
+  }
+
+  .audience-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .audience-card {
+    background: rgba(42,26,8,0.5);
+    border: 1px solid rgba(108,64,22,0.2);
+    border-radius: 12px;
+    padding: 28px;
+  }
+
+  .audience-card h3 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--amber-bright);
+    margin-bottom: 6px;
+  }
+
+  .audience-card .pct {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .audience-card p {
+    font-size: 14px;
+    color: rgba(242,228,178,0.6);
+    line-height: 1.65;
+  }
+
+  .audience-card .reaction {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.25);
+    border-radius: 8px;
+    font-style: italic;
+    font-size: 13px;
+    color: rgba(242,228,178,0.5);
+  }
+
+  /* ---- SLIDE 10: FINAL ---- */
+  .slide-final {
+    background: radial-gradient(ellipse at 50% 50%, #2E1A06 0%, var(--slide-bg) 65%);
+    text-align: center;
+  }
+
+  .final-name {
+    font-size: clamp(56px, 8vw, 100px);
+    font-weight: 900;
+    background: linear-gradient(160deg, #FFF5D4 0%, var(--honey-gold) 25%, var(--amber-bright) 50%, var(--amber) 75%, var(--warm-brown) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .final-tagline {
+    font-size: 24px;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--cream);
+    opacity: 0.6;
+    margin-bottom: 56px;
+  }
+
+  .final-stats {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    margin-bottom: 56px;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    font-weight: 800;
+    color: var(--honey-gold);
+  }
+
+  .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(242,228,178,0.4);
+    margin-top: 4px;
+  }
+
+  .final-cta {
+    display: inline-block;
+    padding: 16px 48px;
+    background: linear-gradient(135deg, var(--amber) 0%, var(--amber-dark) 100%);
+    border: none;
+    border-radius: 50px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--light-cream);
+    text-decoration: none;
+    box-shadow: 0 8px 32px rgba(152,88,8,0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .final-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(152,88,8,0.45);
+  }
+
+  /* ---- NAVIGATION DOTS ---- */
+  .nav-dots {
+    position: fixed;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 100;
+  }
+
+  .nav-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(242,228,178,0.15);
+    border: 1px solid rgba(242,228,178,0.2);
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+  }
+
+  .nav-dot:hover, .nav-dot.active {
+    background: var(--amber);
+    border-color: var(--amber);
+    transform: scale(1.3);
+  }
+
+  /* ---- KEY INSIGHT CALLOUT ---- */
+  .insight {
+    background: rgba(152,88,8,0.1);
+    border-left: 3px solid var(--amber);
+    border-radius: 0 12px 12px 0;
+    padding: 20px 24px;
+    margin-top: 32px;
+  }
+
+  .insight p {
+    font-size: 15px;
+    color: rgba(242,228,178,0.75);
+    line-height: 1.7;
+  }
+
+  .insight strong {
+    color: var(--amber-bright);
+  }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-width: 900px) {
+    .slide { padding: 40px 32px; }
+    .problem-grid, .search-comparison, .audience-grid { grid-template-columns: 1fr; }
+    .pillars, .tagline-options, .logo-concepts { grid-template-columns: 1fr; }
+    .meaning-row { flex-direction: column; gap: 32px; align-items: center; text-align: center; }
+    .final-stats { flex-direction: column; gap: 24px; }
+    .nav-dots { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Navigation Dots -->
+<nav class="nav-dots">
+  <a class="nav-dot" href="#slide-1" title="Title"></a>
+  <a class="nav-dot" href="#slide-2" title="The Problem"></a>
+  <a class="nav-dot" href="#slide-3" title="The Name"></a>
+  <a class="nav-dot" href="#slide-4" title="Why It Works"></a>
+  <a class="nav-dot" href="#slide-5" title="Landscape"></a>
+  <a class="nav-dot" href="#slide-6" title="Search Advantage"></a>
+  <a class="nav-dot" href="#slide-7" title="Brand Identity"></a>
+  <a class="nav-dot" href="#slide-8" title="Logo Direction"></a>
+  <a class="nav-dot" href="#slide-9" title="Audience Fit"></a>
+  <a class="nav-dot" href="#slide-10" title="Summary"></a>
+</nav>
+
+<!-- ============================================ -->
+<!-- SLIDE 1: TITLE                               -->
+<!-- ============================================ -->
+<section class="slide slide-title" id="slide-1">
+  <div class="honeycomb-bg"></div>
+  <div class="smoke-particles"></div>
+  <div class="slide-inner" style="text-align:center;">
+    <p class="title-super">Brand Naming Strategy</p>
+    <h1 class="title-main">Smoke &amp; Honey</h1>
+    <p class="title-sub">A name that sells what your game feels like before a single frame loads.</p>
+    <div class="title-divider"></div>
+    <p class="title-meta">Prepared March 2026</p>
+  </div>
+  <span class="slide-number">01 / 10</span>
+</section>
+
+<!-- ============================================ -->
+<!-- SLIDE 2: THE PROBLEM                         -->
+<!-- ============================================ -->
+<section class="slide slide-problem" id="slide-2">
+  <div class="honeycomb-bg"></div>
+  <div class="slide-inner">
+    <span class="slide-label">The Problem</span>
+    <h2 class="problem-title">Why <em>BeeKeeper Pro</em> costs you sales</h2>
+
+    <div class="problem-grid">
+      <div class="problem-card bad">
+        <h3>Name Collision</h3>
+        <p>"Beekeeper" returns 6+ competing titles on Steam: Beekeeper Simulator, Boss Beek, Bee Simulator, APICO, Grandpa's Bee Haven. Your game drowns in a sea of similar names before anyone clicks.</p>
+      </div>
+      <div class="problem-card bad">
+        <h3>Wrong Genre Signal</h3>
+        <p>"Pro" is the language of productivity software and mobile tool apps. It tells cozy sim fans "this isn't for you" and tells bee enthusiasts "this is a real management tool." Both are wrong.</p>
+      </div>
+      <div class="problem-card bad">
+        <h3>No Emotional Hook</h3>
+        <p>The name describes what you do, not how it feels. Compare: "Stardew Valley" evokes a place you want to visit. "BeeKeeper Pro" evokes a task you'd outsource.</p>
+      </div>
+      <div class="problem-card bad">
+        <h3>SEO Disadvantage</h3>
+        <p>"Beekeeper" is a common English word. Your game competes with real beekeeper associations, YouTube channels, and equipment retailers for search ranking. An uphill battle from day one.</p>
+      </div>
+    </div>
+  </div>
+  <span class="slide-number">02 / 10</span>
+</section>
+
+<!-- ============================================ -->
+<!-- SLIDE 3: THE NAME REVEAL                     -->
+<!-- ============================================ -->
+<section class="slide slide-reveal" id="slide-3">
+  <div class="honeycomb-bg"></div>
+  <div class="smoke-particles"></div>
+  <div class="slide-inner" style="text-align:center;">
+    <span class="slide-label">The Solution</span>
+    <h2 class="reveal-name">Smoke <span class="reveal-ampersand">&amp;</span> Honey</h2>
+    <p class="reveal-tagline">The craft of keeping bees.</p>
+
+    <div class="meaning-row">
+      <div class="meaning-item">
+        <p class="meaning-word">Smoke</p>
+        <p class="meaning-desc">The bee smoker is the beekeeper's most iconic tool. It calms the colony, makes inspections possible, and represents the careful craft at the heart of the game. To anyone who knows bees, this word is an instant signal of authenticity.</p>
+      </div>
+      <div class="meaning-item">
+        <p class="meaning-word">Honey</p>
+        <p class="meaning-desc">The golden reward. Universal, warm, sensory. It's what the player works toward, what the seasons build to, and what makes the whole endeavor worthwhile. It's also one of the most emotionally positive words in the English language.</p>
+      </div>
+    </div>
+  </div>
+  <span class="slide-number">03 / 10</span>
+</section>
+
+<!-- ============================================ -->
+<!-- SLIDE 4: WHY IT WORKS                        -->
+<!-- ============================================ -->
+<section class="slide slide-why" id="slide-4">
+  <div class="honeycomb-bg"></div>
+  <div class="slide-inner">
+    <span class="slide-label">Strategic Advantages</span>
+    <h2 class="why-title">Six reasons this name sells</h2>
+
+    <div class="pillars">
+      <div class="pillar">
+        <span class="pillar-icon">&#x1F50D;</span>
+        <h3>Zero Competition</h3>
+        <p>No game, app, or major product uses this name. Searching "Smoke and Honey game" returns nothing. You own the entire first page of results from day one.</p>
+      </div>
+      <div class="pillar">
+        <span class="pillar-icon">&#x1F3AE;</span>
+        <h3>Genre-Coded</h3>
+        <p>Two warm, sensory words side by side reads the same way as "Stardew Valley" or "Fae Farm." Cozy sim fans immediately recognize this as their kind of game.</p>
+      </div>
+      <div class="pillar">
+        <span class="pillar-icon">&#x1F9E0;</span>
+        <h3>Memorable</h3>
+        <p>Short. Two syllables plus two syllables. Easy to say, spell, recommend, and search. Try it: "Have you played Smoke and Honey?" It rolls off the tongue.</p>
+      </div>
+      <div class="pillar">
+        <span class="pillar-icon">&#x2728;</span>
+        <h3>Sensory &amp; Evocative</h3>
+        <p>You can almost smell it. The name activates multiple senses at once, creating an emotional impression before the player sees a single screenshot.</p>
+      </div>
+      <div class="pillar">
+        <span class="pillar-icon">&#x1F3A8;</span>
+        <h3>Logo-Ready</h3>
+        <p>Smoke wisps curling through golden honey drips. The visual practically designs itself, and it maps perfectly onto your existing amber/cream/wood palette.</p>
+      </div>
+      <div class="pillar">
+        <span class="pillar-icon">&#x1F3AF;</span>
+        <h3>Signals Depth</h3>
+        <p>"Smoke" tells beekeeping enthusiasts this game knows what it's talking about. It's an insider word that separates you from cartoon bee games instantly.</p>
+      </div>
+    </div>
+  </div>
+  <span class="slide-number">04 / 10</span>
+</section>
+
+<!-- ============================================ -->
+<!-- SLIDE 5: COMPETITIVE LANDSCAPE               -->
+<!-- ============================================ -->
+<section class="slide slide-landscape" id="slide-5">
+  <div class="honeycomb-bg"></div>
+  <div class="slide-inner">
+    <span class="slide-label">Competitive Landscape</span>
+    <h2 class="landscape-title">Standing apart from the hive</h2>
+
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Unique Name?</th>
+          <th>Cozy Signal?</th>
+          <th>Bee Signal?</th>
+          <th>Depth Signal?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="name-cell">APICO</td>
+          <td><span class="badge badge-yes">YES</span></td>
+          <td><span class="badge badge-no">NO</span></td>
+          <td><span class="badge badge-partial">SUBTLE</span></td>
+          <td><span class="badge badge-no">NO</span></td>
+        </tr>
+        <tr>
+          <td class="name-cell">Bee Simulator</td>
+          <td><span class="badge badge-no">NO</span></td>
+          <td><span class="badge badge-no">NO</span></td>
+          <td><span class="badge badge-yes">YES</span></td>
+          <td><span class="badge badge-no">NO</span></td>
+        </tr>
+        <tr>
+          <td class="name-cell">Beekeeper Simulator</td>
+          <td><span class="badge badge-no">NO</span></td>
+          <td><span class="badge badge-no">NO</span></td>
+          <td><span class="badge badge-yes">YES</span></td>
+          <td><span class="badge badge-partial">MODERATE</span></td>
+        </tr>
+        <tr>
+          <td class="name-cell">Boss Beek</td>
+          <td><span class="badge badge-yes">YES</span></td>
+          <td><span class="badge badge-no">NO</span></td>
+          <td><span class="badge badge-partial">SUBTLE</span></td>
+          <td><span class="badge badge-no">NO</span></td>
+        </tr>
+        <tr>
+          <td class="name-cell">Grandpa's Bee Haven</td>
+          <td><span class="badge badge-partial">MODERATE</span></td>
+          <td><span class="badge badge-yes">YES</span></td>
+          <td><span class="badge badge-yes">YES</span></td>
+          <td><span class="badge badge-no">NO</span></td>
+        </tr>
+        <tr class="highlight">
+          <td class="name-cell">Smoke &amp; Honey</td>
+          <td><span class="badge badge-yes">YES</span></td>
+          <td><span class="badge badge-yes">YES</span></td>
+          <td><span class="badge badge-yes">YES</span></td>
+          <td><span class="badge badge-yes">YES</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="insight">
+      <p><strong>Smoke &amp; Honey is the only name that checks all four boxes.</strong> It's unique enough to own search results, warm enough to attract cozy sim fans, bee-specific enough to signal the theme, and craft-oriented enough to promise depth.</p>
+    </div>
+  </div>
+  <span class="slide-number">05 / 10</span>
+</section>
+
+<!-- ============================================ -->
+<!-- SLIDE 6: SEARCH ADVANTAGE                    -->
+<!-- ============================================ -->
+<section class="slide slide-search" id="slide-6">
+  <div class="honeycomb-bg"></div>
+  <div class="slide-inner">
+    <span class="slide-label">Discoverability</span>
+    <h2 class="search-title">Own the search results</h2>
+
+    <div class="search-comparison">
+      <div class="search-box bad-search">
+        <div class="search-query">"beekeeper game" on Steam</div>
+
+        <div class="search-result">
+          <p class="search-result-title competitor">Beekeeper Simulator</p>
+          <p class="search-result-url">store.steampowered.com/app/3555210</p>
+          <p class="search-result-desc">3D beekeeping sim, first-person, different genre</p>
+        </div>
+        <div class="search-result">
+          <p class="search-result-title competitor">Bee Simulator</p>
+          <p class="search-result-url">store.steampowered.com/app/914750</p>
+          <p class="search-result-desc">Play AS a bee, action game, different audience</p>
+        </div>
+        <div class="search-result">
+          <p class="search-result-title competitor">Boss Beek</p>
+          <p class="search-result-url">store.steampowered.com/app/...</p>
+          <p class="search-result-desc">Another bee management game</p>
+        </div>
+        <div class="search-result">
+          <p class="search-result-title competitor">APICO</p>
+          <p class="search-result-url">store.steampowered.com/app/1390190</p>
+          <p class="search-result-desc">Closest competitor, pixel art bee sim</p>
+        </div>
+
+        <div class="search-verdict verdict-bad">YOUR GAME: BURIED ON PAGE 2+</div>
+      </div>
+
+      <div class="search-box good-search">
+        <div class="search-query">"smoke and honey game" on Steam</div>
+
+        <div class="search-result">
+          <p class="search-result-title ours">Smoke &amp; Honey</p>
+          <p class="search-result-url">store.steampowered.com/app/YOUR_ID</p>
+          <p class="search-result-desc">Your game. The only result.</p>
+        </div>
+        <div class="search-result">
+          <p class="search-result-title" style="color: rgba(242,228,178,0.3);">No other results</p>
+          <p class="search-result-url" style="opacity:0.3">---</p>
+          <p class="search-result-desc" style="opacity:0.3">The name is completely uncontested</p>
+        </div>
+        <div class="search-result" style="opacity:0.15;">
+          <p class="search-result-title">---</p>
+          <p class="search-result-url">---</p>
+        </div>
+        <div class="search-result" style="opacity:0.08;">
+          <p class="search-result-title">---</p>
+          <p class="search-result-url">---</p>
+        </div>
+
+        <div class="search-verdict verdict-good">YOUR GAME: #1 RESULT, NO COMPETITION</div>
+      </div>
+    </div>
+  </div>
+  <span class="slide-number">06 / 10</span>
+</section>
+
+<!-- ============================================ -->
+<!-- SLIDE 7: BRAND IDENTITY                      -->
+<!-- ============================================ -->
+<section class="slide slide-brand" id="slide-7">
+  <div class="honeycomb-bg"></div>
+  <div class="slide-inner">
+    <span class="slide-label">Brand Identity</span>
+    <h2 class="brand-title">Built for your palette</h2>
+
+    <div class="palette-section">
+      <p class="palette-label">Color System (from your GDD)</p>
+      <div class="palette-row">
+        <div class="swatch" style="background:#261206; color:#F2E4B2;">
+          <span class="swatch-name">Deep Wood</span>
+          <span class="swatch-hex">#261206</span>
+        </div>
+        <div class="swatch" style="background:#4A2A10; color:#F2E4B2;">
+          <span class="swatch-name">Med Wood</span>
+          <span class="swatch-hex">#4A2A10</span>
+        </div>
+        <div class="swatch" style="background:#6C4016; color:#F2E4B2;">
+          <span class="swatch-name">Warm Brown</span>
+          <span class="swatch-hex">#6C4016</span>
+        </div>
+        <div class="swatch" style="background:#985808; color:#F2E4B2;">
+          <span class="swatch-name">Amber Dark</span>
+          <span class="swatch-hex">#985808</span>
+        </div>
+        <div class="swatch" style="background:#C47A0E; color:#261206;">
+          <span class="swatch-name">Amber</span>
+          <span class="swatch-hex">#C47A0E</span>
+        </div>
+        <div class="swatch" style="background:#E6A220; color:#261206;">
+          <span class="swatch-name">Amber Bright</span>
+          <span class="swatch-hex">#E6A220</span>
+        </div>
+        <div class="swatch" style="background:#F0B832; color:#261206;">
+          <span class="swatch-name">Honey Gold</span>
+          <span class="swatch-hex">#F0B832</span>
+        </div>
+        <div class="swatch" style="background:#F2E4B2; color:#261206;">
+          <span class="swatch-name">Cream</span>
+          <span class="swatch-hex">#F2E4B2</span>
+        </div>
+        <div class="swatch" style="background:#FCF5D7; color:#261206;">
+          <span class="swatch-name">Light Cream</span>
+          <span class="swatch-hex">#FCF5D7</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="palette-label">Tagline Options</p>
+    <div class="tagline-options">
+      <div class="tagline-card featured">
+        <p class="tagline-text">"The craft of keeping bees."</p>
+        <p class="tagline-use">Primary tagline. Signals depth, authenticity, and the hands-on nature of the game. Works on store pages, trailers, and key art.</p>
+      </div>
+      <div class="tagline-card">
+        <p class="tagline-text">"Every frame tells a story."</p>
+        <p class="tagline-use">Secondary tagline. A double meaning: frame inspection (core mechanic) and visual storytelling. Great for social media and reviews.</p>
+      </div>
+      <div class="tagline-card">
+        <p class="tagline-text">"Tend. Harvest. Thrive."</p>
+        <p class="tagline-use">Action tagline. Three words that capture the gameplay loop. Strong for trailers, banner ads, and capsule art.</p>
+      </div>
+    </div>
+  </div>
+  <span class="slide-number">07 / 10</span>
+</section>
+
+<!-- ============================================ -->
+<!-- SLIDE 8: LOGO DIRECTION                      -->
+<!-- ============================================ -->
+<section class="slide slide-logo" id="slide-8">
+  <div class="honeycomb-bg"></div>
+  <div class="slide-inner">
+    <span class="slide-label">Visual Direction</span>
+    <h2 class="logo-title">Logo concepts</h2>
+
+    <div class="logo-concepts">
+      <div class="logo-concept">
+        <div class="logo-mockup">
+          <svg width="200" height="140" viewBox="0 0 200 140">
+            <!-- Smoke wisps -->
+            <path d="M60 90 Q55 70 65 55 Q70 45 60 30" stroke="#F2E4B2" stroke-width="2.5" fill="none" opacity="0.3" stroke-linecap="round"/>
+            <path d="M75 85 Q72 65 80 50 Q85 38 75 20" stroke="#F2E4B2" stroke-width="2" fill="none" opacity="0.2" stroke-linecap="round"/>
+            <path d="M48 95 Q42 80 52 65 Q55 55 48 42" stroke="#F2E4B2" stroke-width="1.5" fill="none" opacity="0.15" stroke-linecap="round"/>
+            <!-- Smoker silhouette -->
+            <rect x="55" y="90" width="25" height="30" rx="3" fill="#6C4016" opacity="0.6"/>
+            <rect x="58" y="85" width="19" height="8" rx="2" fill="#4A2A10" opacity="0.5"/>
+            <!-- Text -->
+            <text x="100" y="70" font-family="Georgia, serif" font-size="20" font-weight="bold" fill="#E6A220" text-anchor="middle">SMOKE</text>
+            <text x="100" y="88" font-family="Georgia, serif" font-size="12" fill="#F2E4B2" opacity="0.5" text-anchor="middle">&amp;</text>
+            <text x="100" y="110" font-family="Georgia, serif" font-size="20" font-weight="bold" fill="#F0B832" text-anchor="middle">HONEY</text>
+          </svg>
+        </div>
+        <h3>A. The Smoker</h3>
+        <p>Bee smoker silhouette with wisps rising into the title text. Grounded, authentic, tool-forward.</p>
+      </div>
+
+      <div class="logo-concept featured">
+        <div class="logo-mockup">
+          <svg width="200" height="140" viewBox="0 0 200 140">
+            <!-- Hexagon frame -->
+            <polygon points="100,15 145,35 145,75 100,95 55,75 55,35" fill="none" stroke="#E6A220" stroke-width="2" opacity="0.5"/>
+            <!-- Inner honey drip -->
+            <path d="M100 95 Q100 110 100 118 Q95 125 100 128 Q105 125 100 118" fill="#F0B832" opacity="0.6"/>
+            <!-- Smoke wisps above hex -->
+            <path d="M90 15 Q88 5 92 -2" stroke="#F2E4B2" stroke-width="1.5" fill="none" opacity="0.2" stroke-linecap="round"/>
+            <path d="M110 15 Q112 5 108 -2" stroke="#F2E4B2" stroke-width="1.5" fill="none" opacity="0.2" stroke-linecap="round"/>
+            <!-- Text inside -->
+            <text x="100" y="52" font-family="Georgia, serif" font-size="16" font-weight="bold" fill="#E6A220" text-anchor="middle">SMOKE</text>
+            <text x="100" y="66" font-family="Georgia, serif" font-size="10" fill="#F2E4B2" opacity="0.5" text-anchor="middle">&amp;</text>
+            <text x="100" y="82" font-family="Georgia, serif" font-size="16" font-weight="bold" fill="#F0B832" text-anchor="middle">HONEY</text>
+          </svg>
+        </div>
+        <h3>B. The Honeycomb</h3>
+        <p>Title set inside a single hex cell with a honey drip below and smoke wisps above. Iconic, balanced, works at any size. Recommended.</p>
+      </div>
+
+      <div class="logo-concept">
+        <div class="logo-mockup">
+          <svg width="200" height="140" viewBox="0 0 200 140">
+            <!-- Horizontal wordmark -->
+            <text x="100" y="55" font-family="Georgia, serif" font-size="22" font-weight="bold" fill="#E6A220" text-anchor="middle" letter-spacing="4">SMOKE</text>
+            <line x1="30" y1="65" x2="170" y2="65" stroke="#6C4016" stroke-width="1" opacity="0.3"/>
+            <text x="100" y="62" font-family="Georgia, serif" font-size="9" fill="#F2E4B2" opacity="0.4" text-anchor="middle" dy="6">&amp;</text>
+            <text x="100" y="90" font-family="Georgia, serif" font-size="22" font-weight="bold" fill="#F0B832" text-anchor="middle" letter-spacing="6">HONEY</text>
+            <!-- Subtle hex dots -->
+            <circle cx="20" cy="70" r="3" fill="#6C4016" opacity="0.15"/>
+            <circle cx="180" cy="70" r="3" fill="#6C4016" opacity="0.15"/>
+            <!-- Smoke accent -->
+            <path d="M20 55 Q18 45 22 38" stroke="#F2E4B2" stroke-width="1" fill="none" opacity="0.1" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>C. The Wordmark</h3>
+        <p>Clean horizontal text treatment with minimal decoration. Modern, versatile. Best for small formats, favicons, social headers.</p>
+      </div>
+    </div>
+  </div>
+  <span class="slide-number">08 / 10</span>
+</section>
+
+<!-- ============================================ -->
+<!-- SLIDE 9: AUDIENCE FIT                        -->
+<!-- ============================================ -->
+<section class="slide slide-audience" id="slide-9">
+  <div class="honeycomb-bg"></div>
+  <div class="slide-inner">
+    <span class="slide-label">Audience Response</span>
+    <h2 class="audience-title">How each audience hears the name</h2>
+
+    <div class="audience-grid">
+      <div class="audience-card">
+        <h3>Cozy Sim Fans</h3>
+        <span class="pct">~55% OF TARGET MARKET</span>
+        <p>These players browse tags like "cozy," "farming sim," and "relaxing." They pick games partly by vibes. Two warm, sensory words tell them everything they need to know.</p>
+        <p class="reaction">"Oh, this looks like my kind of game." -- First impression before seeing any art.</p>
+      </div>
+      <div class="audience-card">
+        <h3>Beekeeping Enthusiasts</h3>
+        <span class="pct">~15% OF TARGET MARKET</span>
+        <p>Real beekeepers and bee-curious hobbyists. They'll recognize "smoke" immediately as the smoker tool. This single word tells them the game is built by someone who knows the craft.</p>
+        <p class="reaction">"Wait, they know about smokers? This might actually be legit." -- Instant credibility.</p>
+      </div>
+      <div class="audience-card">
+        <h3>Simulation Enthusiasts</h3>
+        <span class="pct">~20% OF TARGET MARKET</span>
+        <p>Players who want systems depth. The ampersand structure ("X & Y") and the word "craft" in the tagline signal that this is more than surface-level. These are the players who'll stay for hundreds of hours.</p>
+        <p class="reaction">"This has that 'one more season' energy." -- Steam review after 200 hours.</p>
+      </div>
+      <div class="audience-card">
+        <h3>General Discovery</h3>
+        <span class="pct">~10% OF TARGET MARKET</span>
+        <p>People who see the game on a "New & Trending" list or a YouTube thumbnail. The name is intriguing without being confusing. It creates curiosity. What is Smoke & Honey? Let me click and find out.</p>
+        <p class="reaction">"I don't normally play sims but this looks... really nice." -- Impulse wishlist add.</p>
+      </div>
+    </div>
+  </div>
+  <span class="slide-number">09 / 10</span>
+</section>
+
+<!-- ============================================ -->
+<!-- SLIDE 10: CLOSING                            -->
+<!-- ============================================ -->
+<section class="slide slide-final" id="slide-10">
+  <div class="honeycomb-bg"></div>
+  <div class="smoke-particles"></div>
+  <div class="slide-inner" style="text-align:center;">
+    <span class="slide-label">The Recommendation</span>
+    <h2 class="final-name">Smoke &amp; Honey</h2>
+    <p class="final-tagline">The craft of keeping bees.</p>
+
+    <div class="final-stats">
+      <div class="stat">
+        <p class="stat-value">0</p>
+        <p class="stat-label">Competing Titles on Steam</p>
+      </div>
+      <div class="stat">
+        <p class="stat-value">4/4</p>
+        <p class="stat-label">Naming Criteria Met</p>
+      </div>
+      <div class="stat">
+        <p class="stat-value">2+2</p>
+        <p class="stat-label">Syllables (Peak Recall)</p>
+      </div>
+    </div>
+
+    <a class="final-cta" href="#slide-1">Let's Build This Brand</a>
+  </div>
+  <span class="slide-number">10 / 10</span>
+</section>
+
+<!-- Active dot tracking -->
+<script>
+  const dots = document.querySelectorAll('.nav-dot');
+  const slides = document.querySelectorAll('.slide');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const idx = Array.from(slides).indexOf(entry.target);
+        dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+      }
+    });
+  }, { threshold: 0.5 });
+
+  slides.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

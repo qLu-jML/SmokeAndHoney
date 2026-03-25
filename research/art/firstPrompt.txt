@@ -1,0 +1,18 @@
+You were interrupted by my usage limits while working on two separate tasks in this project. Please **do not start over** — pick up exactly where you left off on both tasks and continue from the last point you reached.
+
+**Task 1 – Flower beds / G-mode (Developer mode)**  
+Original request: Make sure that the labels for the flowers (and everything else) are only visible in G mode (developer mode). Also check layering and collision — the player should not get overlapped by the flower beds.
+
+**Task 2 – Hive frame generation & inspection**  
+Original request: We already have a sample hive frame and cell state sprites in the "generated" folder.  
+The frame should look like the attached reference image, but every cell must still exist (even if empty). Use the "cell atlas" to overlay the correct cell states on top of the base empty Langstroth frame.  
+When inspecting the frame, it should render as a realistic Langstroth hive frame with cells overwritten by their current status.  
+Important improvement: Make the final honeycomb look much more realistic — minimize black space between cells so they touch each other in a proper beehive honeycomb pattern (tight hexagonal layout).
+
+Last known state before interruption:  
+- For Task 1 you were adjusting visibility, layering order, and collision masks.  
+- For Task 2 you had started writing the code for frame inspections and cell rendering.
+
+Please resume both tasks now. Show me the updated code or next steps for each task, and let me know if you need any clarification to continue.
+
+Also remember to update the changelog file as appropriate.

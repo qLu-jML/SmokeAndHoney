@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://loadingscreen01"]
+
+[ext_resource type="Script" path="res://scripts/ui/loading_screen.gd" id="1_load"]
+
+[node name="LoadingScreen" type="Node"]
+script = ExtResource("1_load")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Overlay" type="ColorRect" parent="CanvasLayer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 320.0
+offset_bottom = 180.0
+color = Color(0, 0, 0, 1)
+mouse_filter = 2

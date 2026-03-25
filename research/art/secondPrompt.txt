@@ -1,0 +1,17 @@
+Please look at the attached screenshot.
+
+I want to fix the flower bed art issues you can see in the image:
+
+1. There are dark, unnatural "shadows" or outlines underneath the flower beds — please remove them completely.
+2. The grass color, brightness, and texture inside the flower bed areas look inconsistent with the surrounding background grass.
+3. The flower beds currently feel like obvious boxed/rectangular patches instead of natural flowers growing in the grass.
+
+**Goal / Desired look:**
+I would much rather the flowers spawn realistically. The flower sprites should blend naturally with the background grass, with parts of the flowers visibly sticking out and overlapping the grass in an organic way — exactly like the little sprite sections you can already see protruding from the grass in the screenshot. No artificial borders, no contained rectangles, no drop shadows.
+
+Please:
+- Remove all drop shadows and bottom outlines from the flower beds/flower areas.
+- Make the base grass inside flower areas match the main background grass perfectly in color, brightness, and style.
+- Update the flower spawning, rendering, layering, and/or sprites so the flowers integrate organically into the existing grass tiles instead of looking like separate planted patches.
+
+Show me the updated code, sprites, or changes you make, and let me know when it's ready to test.

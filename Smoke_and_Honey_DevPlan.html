@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smoke &amp; Honey — Development Plan</title>
+<style>
+  :root {
+    --bg:       #1a1a1a;
+    --surface:  #242424;
+    --border:   #333;
+    --amber:    #C8860A;
+    --amber-lt: #E8A020;
+    --green:    #5a8a3a;
+    --red:      #8a3a3a;
+    --blue:     #3a6a8a;
+    --text:     #e8dfc8;
+    --muted:    #8a8070;
+    --sidebar:  220px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Arial, sans-serif;
+         font-size: 14px; line-height: 1.65; display: flex; }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: var(--sidebar); min-height: 100vh; background: #1e1a14;
+    border-right: 1px solid var(--border); padding: 20px 0;
+    position: fixed; top: 0; left: 0; overflow-y: auto;
+  }
+  #sidebar h2 {
+    color: var(--amber-lt); font-size: 11px; letter-spacing: 2px;
+    text-transform: uppercase; padding: 0 16px 12px;
+    border-bottom: 1px solid var(--border); margin-bottom: 8px;
+  }
+  #sidebar ul { list-style: none; }
+  #sidebar li.h1 > a {
+    display: flex; align-items: baseline; gap: 6px;
+    color: var(--amber-lt); font-weight: bold; font-size: 12px;
+    padding: 7px 16px 4px; text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: color 0.15s, background 0.15s;
+  }
+  #sidebar li.h2 > a {
+    display: flex; align-items: baseline; gap: 5px;
+    color: var(--muted); font-size: 11px;
+    padding: 3px 16px 3px 28px; text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: color 0.15s, background 0.15s;
+  }
+  #sidebar li.h1 > a:hover,
+  #sidebar li.h2 > a:hover {
+    color: var(--text); border-left-color: var(--amber);
+    background: rgba(200,134,10,0.08);
+  }
+  .status-done    { color: #5acc88; font-size: 10px; flex-shrink: 0; }
+  .status-partial { color: #ccaa44; font-size: 10px; flex-shrink: 0; }
+  .status-todo    { color: #668ab4; font-size: 10px; flex-shrink: 0; }
+  .status-ref     { color: var(--muted); font-size: 10px; flex-shrink: 0; }
+
+  /* ── MAIN ── */
+  #main { margin-left: var(--sidebar); padding: 40px 48px; max-width: 1100px; width: 100%; }
+
+  /* ── HEADER ── */
+  .doc-header { border-bottom: 2px solid var(--amber); padding-bottom: 24px; margin-bottom: 36px; }
+  .doc-header h1 { font-size: 28px; color: var(--amber); }
+  .doc-header p  { color: var(--muted); margin-top: 6px; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 3px;
+           font-size: 11px; font-weight: bold; margin-right: 6px; }
+  .badge-godot  { background: #1a3a2a; color: #5acc88; }
+  .badge-gdscript { background: #1a2a3a; color: #5a9acc; }
+  .badge-phase  { background: #2a1a0a; color: var(--amber-lt); }
+
+  /* ── PHASES ── */
+  .phase { margin-bottom: 52px; }
+  .phase-header {
+    display: flex; align-items: center; gap: 16px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 4px solid var(--amber); padding: 16px 20px;
+    border-radius: 4px; margin-bottom: 24px;
+  }
+  .phase-num { font-size: 32px; font-weight: bold; color: var(--amber); line-height: 1; }
+  .phase-title { font-size: 20px; font-weight: bold; }
+  .phase-subtitle { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .phase-tag { margin-left: auto; }
+
+  /* ── MILESTONE CARDS ── */
+  .milestones { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .milestone {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; padding: 16px 18px;
+  }
+  .milestone h4 { color: var(--amber-lt); font-size: 13px; margin-bottom: 8px; }
+  .milestone ul { padding-left: 16px; }
+  .milestone li { color: var(--text); font-size: 13px; margin-bottom: 3px; }
+
+  /* ── TASK TABLE ── */
+  .task-section { margin-bottom: 28px; }
+  .task-section h3 { font-size: 14px; color: var(--amber); border-bottom: 1px solid var(--border);
+                     padding-bottom: 6px; margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #1e1a14; color: var(--amber); text-align: left;
+       padding: 8px 12px; border-bottom: 2px solid var(--amber); font-size: 11px;
+       letter-spacing: 1px; text-transform: uppercase; }
+  td { padding: 7px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: #2a2620; }
+  .tag { display: inline-block; padding: 1px 7px; border-radius: 2px;
+         font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .tag-exists  { background: #1a3a1a; color: #5acc88; }
+  .tag-wip     { background: #2a2a1a; color: #ccaa44; }
+  .tag-todo    { background: #1a1a2a; color: #668ab4; }
+  .tag-art     { background: #2a1a2a; color: #cc88cc; }
+  .tag-hard    { background: #3a1a1a; color: #cc5544; }
+  .dep { color: var(--muted); font-size: 11px; font-style: italic; }
+
+  /* ── CALLOUT BOXES ── */
+  .callout { border-left: 3px solid; padding: 12px 16px; border-radius: 2px;
+             margin: 16px 0; font-size: 13px; }
+  .callout-amber { border-color: var(--amber); background: #221a0a; }
+  .callout-green { border-color: var(--green); background: #0a1a0a; }
+  .callout-blue  { border-color: var(--blue);  background: #0a1020; }
+  .callout strong { display: block; margin-bottom: 4px; }
+
+  /* ── CURRENT STATE BANNER ── */
+  .state-banner {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; padding: 20px 24px; margin-bottom: 36px;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  }
+  .state-item h4 { color: var(--muted); font-size: 10px; letter-spacing: 1px;
+                    text-transform: uppercase; margin-bottom: 4px; }
+  .state-item p  { color: var(--text); font-size: 13px; }
+  .state-item .val { font-size: 20px; font-weight: bold; color: var(--amber); }
+
+  /* ── ARCHITECTURE DIAGRAM (ASCII) ── */
+  pre.arch { background: #111; border: 1px solid var(--border); padding: 16px;
+             font-size: 11px; color: #8ab888; overflow-x: auto; line-height: 1.5; }
+
+  h2.section { font-size: 18px; color: var(--amber); border-bottom: 1px solid var(--border);
+               padding-bottom: 8px; margin: 36px 0 20px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <h2>🐝 Smoke &amp; Honey</h2>
+  <ul>
+    <li class="h1"><a href="#current"><span class="status-ref">●</span> Current State</a></li>
+    <li class="h1"><a href="#architecture"><span class="status-ref">●</span> Architecture</a></li>
+    <li class="h1"><a href="#phase1"><span class="status-done">✓</span> Phase 1 — Core Loop</a></li>
+    <li class="h2"><a href="#p1-sim"><span class="status-done">✓</span> Simulation Pipeline</a></li>
+    <li class="h2"><a href="#p1-inspect"><span class="status-done">✓</span> Inspection &amp; Rendering</a></li>
+    <li class="h2"><a href="#p1-world"><span class="status-done">✓</span> World &amp; Characters</a></li>
+    <li class="h2"><a href="#p1-infra"><span class="status-done">✓</span> Infrastructure</a></li>
+    <li class="h1"><a href="#phase2"><span class="status-todo">☐</span> Phase 2 — Harvest Loop</a></li>
+    <li class="h2"><a href="#p2-harvest"><span class="status-todo">☐</span> Harvest System</a></li>
+    <li class="h2"><a href="#p2-economy"><span class="status-partial">◑</span> Economy &amp; Market</a></li>
+    <li class="h2"><a href="#p2-weather"><span class="status-partial">◑</span> Weather &amp; Day Cycle</a></li>
+    <li class="h2"><a href="#p2-smoke"><span class="status-todo">☐</span> Smoke &amp; Stings</a></li>
+    <li class="h1"><a href="#phase3"><span class="status-todo">☐</span> Phase 3 — Living World</a></li>
+    <li class="h2"><a href="#p3-quests"><span class="status-partial">◑</span> Quests &amp; Events</a></li>
+    <li class="h2"><a href="#p3-npc"><span class="status-partial">◑</span> NPC Relationships</a></li>
+    <li class="h2"><a href="#p3-knowledge"><span class="status-todo">☐</span> Knowledge Log</a></li>
+    <li class="h2"><a href="#p3-acquire"><span class="status-partial">◑</span> Bee Acquisition</a></li>
+    <li class="h1"><a href="#phase4"><span class="status-todo">☐</span> Phase 4 — Depth</a></li>
+    <li class="h2"><a href="#p4-disease"><span class="status-partial">◑</span> Disease Suite</a></li>
+    <li class="h2"><a href="#p4-queen"><span class="status-partial">◑</span> Queen Rearing</a></li>
+    <li class="h2"><a href="#p4-swarm"><span class="status-partial">◑</span> Swarm Management</a></li>
+    <li class="h2"><a href="#p4-locations"><span class="status-todo">☐</span> Multi-Apiary</a></li>
+    <li class="h2"><a href="#p4-craft"><span class="status-todo">☐</span> Crafting &amp; Structures</a></li>
+    <li class="h1"><a href="#phase5"><span class="status-todo">☐</span> Phase 5 — Polish &amp; Ship</a></li>
+    <li class="h1"><a href="#mvp-checklist"><span class="status-ref">●</span> MVP Checklist</a></li>
+  </ul>
+</nav>
+
+<!-- MAIN -->
+<main id="main">
+
+<div class="doc-header">
+  <h1>Smoke &amp; Honey — Development Plan</h1>
+  <p>Phased roadmap from current project state to shippable vertical slice and beyond.</p>
+  <p style="margin-top:4px;color:var(--muted);font-size:12px;">Last updated: March 25, 2026</p>
+  <p style="margin-top:8px">
+    <span class="badge badge-godot">Godot 4.6</span>
+    <span class="badge badge-gdscript">GDScript</span>
+    <span class="badge badge-phase">5 Phases</span>
+  </p>
+</div>
+
+<!-- ═════════════════════════════════════════════════════════════════════ -->
+<!-- CURRENT STATE                                                        -->
+<!-- ═════════════════════════════════════════════════════════════════════ -->
+<h2 class="section" id="current">Current Project State</h2>
+<div class="state-banner">
+  <div class="state-item">
+    <h4>Engine</h4>
+    <p>Godot 4.6<br>GL Compatibility</p>
+  </div>
+  <div class="state-item">
+    <h4>Scripts</h4>
+    <p class="val">50+</p>
+    <p>~14,000 lines across autoloads, simulation, UI, NPC, and world scripts. 8 autoloads registered. All scripts pure ASCII (Godot 4.6 compatible).</p>
+  </div>
+  <div class="state-item">
+    <h4>Scenes</h4>
+    <p class="val">22+</p>
+    <p>TestEnvironment (72+ nodes), player, hive, cedar_bend, 3 interiors, 3 NPC prefabs, inspection overlay, hive management UI, chest storage, 2 menus, map, shop, loading…</p>
+  </div>
+  <div class="state-item">
+    <h4>Art</h4>
+    <p>Cainos Village tileset, 38 Langstroth UI sprites, 25 item sprites (32x32), 7 modular hive sprites, cell atlas (14 states), 4 animated character sprite sets (120x120, 8-way movement), 12 queen-finder simulation images (5 breed palettes, species comparison sheet)</p>
+  </div>
+</div>
+
+<div class="callout callout-green">
+  <strong>✓ What's fully working (March 25, 2026)</strong>
+  Full 10-script simulation pipeline with two-sided frames (7,000 cells per hive). 3D ellipsoid geometry for comb drawing and queen laying. Forage-dependent comb drawing rate. Walled-in hex adjacency constraint for queen laying. Science-calibrated populations (24k bees), varroa model, nurse ratios.
+  Honeycomb hex-grid renderer with cell atlas (blend_rect alpha compositing), LOD palette, dirty-flag cache, runtime Image loading.
+  Multi-box inspection overlay: W/S navigate boxes, A/D frames, [F] flip Side A/B, cell tooltips (tier-gated), queen sighting (+15 XP, 60%+1%/level), Langstroth frame bars, energy cost. 5-tier Inspection Knowledge system.
+  Colony installation mechanic: empty hives require Package Bees + [E] to start. Package colony establishment (4-6 day laying delay, 7-day lockout, progressive comb drawing). Nuc hives inspectable immediately.
+  Hive Tool required for inspection. Gloves + HiveManagementUI for box operations (add deep/super/excluder, rotate deeps). Box rotation (R key). Context-sensitive prompts based on held item.
+  Storage Chest (50-slot, WASD/E UI). Starting inventory with chest overflow. 25 item sprites (32x32) in hotbar.
+  Modular hive sprites (7 components, bottom-up stacking, build-phase visuals).
+  FlowerLifecycleManager: 7 flower types, season quality ranking (S→F), bloom windows, spread mechanics.
+  ForageManager integrated with FlowerLifecycleManager. DandelionSpawner with annual quality roll.
+  Player: 8-way movement (walk/run), 4 modes (NORMAL/TILL/PLANT/HIVE), 20-slot inventory, animated 120×120 sprite.
+  NPCs: Uncle Bob (placed in world, 6 dialogue sets, +2 XP/talk), Ellen Harwick, Frank Fischbach (scripts + scenes ready, not yet placed).
+  Economy shells: Diner interior (5 meals, time-gated, energy restore), Feed &amp; Supply (11 items, seasonal), Post Office (deliveries, LIVE BEES).
+  Infrastructure: SaveManager (JSON + base64, auto-save on sleep), NotificationManager (toast stack), DialogueUI (speech bubbles + portrait box),
+  HUD (signal-driven, Langstroth-themed, 10-slot hotbar with item sprites), MainMenu + PauseMenu, TimeManager (8-month/224-day calendar), GameData (dollars, energy, XP, levels).
+  Varroa + AFB cell states implemented in simulation. Congestion detection with science-based thresholds. Nuc starting state (5 drawn + 5 foundation, 3D ellipsoid brood dome).
+</div>
+
+<div class="callout callout-amber">
+  <strong>⟶ Next priority: Phase 2 — Harvest &amp; Economy Loop</strong>
+  The simulation runs, the inspection works, flowers grow, and the bees do their thing. What's missing is the player's reason to care:
+  harvest the honey, grade it, sell it, buy supplies, and repeat. This is the farm-sim loop that turns observation into gameplay.
+</div>
+
+<!-- ═════════════════════════════════════════════════════════════════════ -->
+<!-- ARCHITECTURE                                                          -->
+<!-- ═════════════════════════════════════════════════════════════════════ -->
+<h2 class="section" id="architecture">Simulation Architecture</h2>
+<p style="color:var(--muted);margin-bottom:12px;font-size:13px">
+  The tick pipeline runs headlessly every in-game day. FrameRenderer only fires when the player opens inspection view.
+  Both sides (A + B) of each frame are processed per tick using a swap technique. UI reads from snapshot dict — never raw cell data.
+</p>
+<pre class="arch">
+  Daily Tick (HiveSimulation.tick)
+  ────────────────────────────────────────────────────────────────────────
+   1. CellStateTransition    — age cells, biology (egg→larva→pupa→adult), disease spread
+   2. PopulationCohortManager — age cohorts, mortality curves, role promotion
+   3. NurseSystem            — nurse:larva ratio, capping delay, royal jelly surplus
+   4. ForagerSystem          — weather gate, field trips, nectar/pollen deposit, ±20% variance
+   5. NectarProcessor        — cure nectar 5:1, deposit into both sides of frames
+   6. QueenBehavior          — lay budget × species × grade × age × stress × season, ellipse mask
+   7. CongestionDetector     — brood-bound / honey-bound / swarm_prep flag
+   8. HiveHealthCalculator   — composite health (pop 25% + brood 25% + stores 20% + queen 20% + disease 10%)
+   9. SnapshotWriter         — write read-only snapshot dict for UI (zero extra cell reads)
+  10. FrameRenderer          — (on-demand) hex-grid cell atlas render, LOD, side parameter
+  ────────────────────────────────────────────────────────────────────────
+  Data: PackedByteArray cells[70×50] × 2 sides × 10 frames = 70,000 cells/hive
+  Cell states: 0–13 (foundation, drawn, egg, larva, brood, drone, nectar, curing, honey,
+               premium, varroa, AFB, queen cell, vacated)
+  Nuc start: 5 drawn frames (2–6) with seeded brood on both sides, 5 empty foundation (0,1,7,8,9)
+</pre>
+
+<!-- ═════════════════════════════════════════════════════════════════════ -->
+<!--  PHASE 1 — COMPLETE                                                  -->
+<!-- ═════════════════════════════════════════════════════════════════════ -->
+<div class="phase" id="phase1">
+  <div class="phase-header" style="border-left-color:var(--green);background:#0e1a0e;">
+    <div class="phase-num" style="color:var(--green)">1</div>
+    <div>
+      <div class="phase-title">Core Loop — "Quarter Loop It's Alive"</div>
+      <div class="phase-subtitle">Open the game, place a hive, watch it tick, open the frame, see real bee biology happening on both sides.</div>
+    </div>
+    <div class="phase-tag"><span class="badge" style="background:#1a3a1a;color:#5acc88">✓ COMPLETE</span></div>
+  </div>
+
+  <div class="milestones">
+    <div class="milestone">
+      <h4>✓ Exit Criteria — ALL MET</h4>
+      <ul>
+        <li>✓ Hive simulates 7+ days autonomously (full 10-script pipeline)</li>
+        <li>✓ Frame inspection with honeycomb hex grid (cell atlas, 14 states)</li>
+        <li>✓ Two-sided frames: [F] flips Side A ↔ B, per-side stats</li>
+        <li>✓ Queen lays eggs in elliptical pattern, brood nest forms naturally</li>
+        <li>✓ Day advances, 8-month calendar, 4 seasons cycle</li>
+        <li>✓ Player walks around in animated beekeeper sprite (8-way, walk/run)</li>
+      </ul>
+    </div>
+    <div class="milestone">
+      <h4>✓ Also Completed</h4>
+      <ul>
+        <li>✓ Cedar Bend world scene + TestEnvironment (72+ nodes)</li>
+        <li>✓ Uncle Bob NPC — dialogue, +2 XP/talk, E-key interaction</li>
+        <li>✓ Ellen Harwick + Frank Fischbach — scripts, sprites, scenes (not placed)</li>
+        <li>✓ Queen sighting mechanic (60% + 1%/level, +15 XP)</li>
+        <li>✓ Save/load (SaveManager autoload, JSON + base64)</li>
+        <li>✓ NotificationManager + DialogueUI + HUD + MainMenu + PauseMenu</li>
+        <li>✓ FlowerLifecycleManager (7 types, season quality S→F, spread)</li>
+        <li>✓ Nuc starting state (10,200 bees, 8 lbs honey, 5 drawn/5 foundation, 3D ellipsoid brood dome)</li>
+        <li>✓ Diner, Feed &amp; Supply, Post Office interiors built</li>
+        <li>✓ 38 Langstroth-themed UI sprites + cell atlas + 25 item sprites (32x32)</li>
+        <li>✓ Package Bees colony installation mechanic + establishment (laying delay, lockout, comb drawing)</li>
+        <li>✓ Hive Tool, Gloves, Storage Chest items. HiveManagementUI for box operations</li>
+        <li>✓ Multi-box inspection (W/S navigate boxes), box rotation (R key)</li>
+        <li>✓ 3D ellipsoid comb drawing + forage-dependent rate + walled-in queen constraint</li>
+        <li>✓ Modular hive sprites (7 components, build-phase visuals, isometric stacking)</li>
+        <li>✓ Context-sensitive hive prompts based on held item</li>
+        <li>✓ Science-calibrated simulation (24k bees, exponential varroa, corrected ratios)</li>
+        <li>✓ Project-wide ASCII cleanup + type inference audit (Godot 4.6 compatibility)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="task-section" id="p1-sim">
+    <h3>Simulation Pipeline (all ✓)</h3>
+    <table>
+      <tr><th>Script</th><th>Lines</th><th>Status</th><th>Notes</th></tr>
+      <tr><td>HiveSimulation.gd</td><td>623</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Orchestrates all 10 steps. Two-sided tick via swap technique. Nuc seeding on both sides. Mite brood_avail baseline 16,000.</td></tr>
+      <tr><td>CellStateTransition.gd</td><td>396</td><td><span class="tag tag-exists">DONE ✓</span></td><td>14 cell states. Aggregates both sides in all counting methods. full_count_side() for per-side display.</td></tr>
+      <tr><td>PopulationCohortManager.gd</td><td>138</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Worker/drone lifecycle, seasonal mortality, diutinus winter bees.</td></tr>
+      <tr><td>NurseSystem.gd</td><td>74</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Nurse:larva ratio, capping delay when understaffed, IDEAL_NURSE_RATIO 1.2.</td></tr>
+      <tr><td>ForagerSystem.gd</td><td>75</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Weather gate, field trips, ±20% daily variance, congestion penalty.</td></tr>
+      <tr><td>NectarProcessor.gd</td><td>51</td><td><span class="tag tag-exists">DONE ✓</span></td><td>5:1 nectar→honey, deposits on both sides of each frame.</td></tr>
+      <tr><td>QueenBehavior.gd</td><td>71</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Elliptical laying (ratio 0.52), supersedure/swarm flags, grade modifiers.</td></tr>
+      <tr><td>CongestionDetector.gd</td><td>78</td><td><span class="tag tag-exists">DONE ✓</span></td><td>NORMAL/BROOD_BOUND/HONEY_BOUND/FULLY_CONGESTED, swarm_prep flag at 0.78.</td></tr>
+      <tr><td>HiveHealthCalculator.gd</td><td>111</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Composite health from 5 weighted components (0–100 scale).</td></tr>
+      <tr><td>SnapshotWriter.gd</td><td>93</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Reuses pre-computed counts, zero extra cell reads.</td></tr>
+      <tr><td>FrameRenderer.gd</td><td>217</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Hex-grid cell atlas (26×20 cells), blend_rect compositing, LOD palette, side param, dirty-flag cache.</td></tr>
+    </table>
+  </div>
+
+  <div class="task-section" id="p1-inspect">
+    <h3>Inspection &amp; Rendering (all ✓)</h3>
+    <table>
+      <tr><th>Feature</th><th>Status</th><th>Details</th></tr>
+      <tr><td>InspectionOverlay.gd (1003 lines)</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Full-screen overlay with Langstroth frame bars (top/bottom/sides in 3-tone wood palette), wax foundation tint, support wires. 5-tier Knowledge system: L1 no info, L2/3 cell name tooltip, L3 qualitative sidebar, L4 approximate sidebar, L5 dynamic %-based sidebar with qualitative population assessments. Progressive accumulation via _record_current_side(). Dev mode bypasses accumulation, shows full hive stats.</td></tr>
+      <tr><td>Frame navigation</td><td><span class="tag tag-exists">DONE ✓</span></td><td>[A] / [D] to cycle 10 frames. Header: "Frame N / 10  Side A".</td></tr>
+      <tr><td>Side flip</td><td><span class="tag tag-exists">DONE ✓</span></td><td>[F] toggles Side A ↔ B. Each flip records the new side via _record_current_side(), adding its cell counts to the session running total. Stats reflect all sides seen so far (progressive accumulation). Seen X/20 counter in sidebar.</td></tr>
+      <tr><td>Cell tooltip</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Hover → tier-gated: L1 = no tooltip, L2–5 = state name only (e.g. "Capped brood"), dev mode = full debug (coordinates + state + age). Reads correct side. Hex-offset mouse mapping for odd rows.</td></tr>
+      <tr><td>Queen sighting</td><td><span class="tag tag-exists">DONE ✓</span></td><td>60% base + 1%/level (capped 80%). Success: +15 XP, "👑 Queen confirmed!" toast.</td></tr>
+      <tr><td>Energy cost</td><td><span class="tag tag-exists">DONE ✓</span></td><td>10 energy per inspection. Deducted on overlay open.</td></tr>
+    </table>
+  </div>
+
+  <div class="task-section" id="p1-world">
+    <h3>World &amp; Characters (all ✓)</h3>
+    <table>
+      <tr><th>Feature</th><th>Status</th><th>Details</th></tr>
+      <tr><td>Player sprite (The_Beekeeper)</td><td><span class="tag tag-exists">DONE ✓</span></td><td>120×120 frames, 8-way idle/walk/run. Sprite2D (PlayerSprite) in player.tscn — runtime-loaded from beekeeper_spritesheet.png via Image.load_from_file() in player.gd _ready(). No .tres or import pipeline dependency.</td></tr>
+      <tr><td>Uncle Bob sprite + placement</td><td><span class="tag tag-exists">DONE ✓</span></td><td>120×120 frames, 8-way idle/walk/run. Sprite2D (BobSprite) in TestEnvironment at (380,140) — runtime-loaded from uncle_bob_spritesheet.png via Image.load_from_file(). uncle_bob.gd: 6 dialogue sets.</td></tr>
+      <tr><td>Ellen Harwick</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Script + scene + sprite frames created. 120×120, 8-way idle/walk. Disease-focused dialogue. Not placed in world.</td></tr>
+      <tr><td>Frank Fischbach</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Script + scene + sprite wired. FrankSprite Sprite2D in merchant.tscn, runtime-loaded from frank_spritesheet.png (SE walk uses east as fallback, run rows duplicate walk). Market dialogue. Not yet placed in world scene.</td></tr>
+      <tr><td>FlowerLifecycleManager</td><td><span class="tag tag-exists">DONE ✓</span></td><td>550 lines. 7 types, bloom windows (day 5–168), season quality S→F, daily spread, forage API.</td></tr>
+      <tr><td>DandelionSpawner</td><td><span class="tag tag-exists">DONE ✓</span></td><td>284 lines. Annual bloom quality roll (POOR→EXCEPTIONAL), density/timing/edge bias.</td></tr>
+      <tr><td>TestEnvironment</td><td><span class="tag tag-exists">DONE ✓</span></td><td>6-layer TileMap, 100% grass coverage, dirt path, flower clusters, Uncle Bob, willow tree.</td></tr>
+    </table>
+  </div>
+
+  <div class="task-section" id="p1-infra">
+    <h3>Infrastructure (all ✓)</h3>
+    <table>
+      <tr><th>System</th><th>Status</th><th>Details</th></tr>
+      <tr><td>SaveManager.gd (610 lines)</td><td><span class="tag tag-exists">DONE ✓</span></td><td>JSON + base64 cell data. Saves everything: time, GameData, player, hives, flowers, quests, NPC state. Auto-save on sleep.</td></tr>
+      <tr><td>TimeManager.gd (161 lines)</td><td><span class="tag tag-exists">DONE ✓</span></td><td>224-day year, 8 months, 4 seasons, 1 real min = 1 game hour. Day/midnight signals.</td></tr>
+      <tr><td>GameData.gd (225 lines)</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Dollars, energy, XP, level thresholds [2000/6000/13000/24000 cumulative XP, targeting 6–7 year arc], items, meals_eaten, coffee buff, pending deliveries, reputation float. Full block of named XP reward constants (core actions, quests, Year 1 activities — GDD §7.1 single source of truth). set_level_debug() helper for dev mode.</td></tr>
+      <tr><td>HiveManager.gd (44 lines)</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Hive registry, daily tick broadcaster.</td></tr>
+      <tr><td>ForageManager.gd (137 lines)</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Integrated with FlowerLifecycleManager. Weather/crop modifiers. Month-indexed levels.</td></tr>
+      <tr><td>DialogueUI.gd (372 lines)</td><td><span class="tag tag-exists">DONE ✓</span></td><td>MODE_BUBBLE (world-space) + MODE_BOX (screen-bottom with portrait).</td></tr>
+      <tr><td>NotificationManager.gd (225 lines)</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Layer 50. Max 5 stacked toasts, slide+fade. Used by InspectionOverlay, level-ups, season changes.</td></tr>
+      <tr><td>HUD (hud.gd, 555 lines)</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Programmatic top/bottom bars. Energy + XP fill bars. Signal-driven, no _process polling.</td></tr>
+      <tr><td>MainMenu + PauseMenu</td><td><span class="tag tag-exists">DONE ✓</span></td><td>New Game / Continue / Quit. Pause: Resume / Map / Save / Main Menu.</td></tr>
+      <tr><td>Interiors (Diner, Feed &amp; Supply, Post Office)</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Full implementations: meals/energy restore, 11 shop items, mail delivery with LIVE BEES mechanic.</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═════════════════════════════════════════════════════════════════════ -->
+<!--  PHASE 2 — HARVEST & ECONOMY LOOP                                    -->
+<!-- ═════════════════════════════════════════════════════════════════════ -->
+<div class="phase" id="phase2">
+  <div class="phase-header">
+    <div class="phase-num">2</div>
+    <div>
+      <div class="phase-title">Harvest &amp; Economy Loop — "Something to Sell"</div>
+      <div class="phase-subtitle">Goal: harvest honey, grade it, sell it at market, buy supplies. The core farm-sim loop becomes functional.</div>
+    </div>
+    <div class="phase-tag"><span class="badge badge-phase">NEXT UP</span></div>
+  </div>
+
+  <div class="milestones">
+    <div class="milestone">
+      <h4>Exit Criteria</h4>
+      <ul>
+        <li>Player harvests honey from capped frames</li>
+        <li>Honey graded by moisture (Premium / Standard / Economy)</li>
+        <li>Frank Fischbach buys honey at Saturday Market</li>
+        <li>Player earns dollars, buys equipment at Feed &amp; Supply</li>
+        <li>Weather affects forager activity and inspection safety</li>
+        <li>Sleep/day-advance action works (Z key or enter house)</li>
+        <li>Smoker mechanic modulates bee defensiveness and stings</li>
+      </ul>
+    </div>
+    <div class="milestone">
+      <h4>⚡ Build Order</h4>
+      <ul>
+        <li>1. Sleep/day-advance (unlocks the daily cycle)</li>
+        <li>2. Weather system (gates foraging and inspections)</li>
+        <li>3. Harvest UI (uncap → extract → grade → bottle)</li>
+        <li>4. Honey inventory with grade + jar tracking</li>
+        <li>5. Saturday Market scene (sell to Frank)</li>
+        <li>6. Smoke &amp; sting system (inspection risk/reward)</li>
+        <li>7. Community Standing (basic tier + price multiplier)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="task-section" id="p2-harvest">
+    <h3>Harvest System (GDD §6.6)</h3>
+    <table>
+      <tr><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>Harvest decision UI</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Show per-frame honey % capped. Warning if &lt;80% capped (fermentation risk). "Wait" or "Harvest now" choice. Only from super frames.</td>
+        <td>InspectionOverlay (done)</td>
+      </tr>
+      <tr>
+        <td>Uncapping step</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Mini-step: scratch roller or hot knife. Each frame costs 1 energy. Cappings → beeswax resource for later crafting (GDD §6.8).</td>
+        <td>Harvest decision</td>
+      </tr>
+      <tr>
+        <td>Extraction + grading</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Read moisture from capped honey cells. &lt;17% → Premium (+40% value). 17–18.5% → Standard. 18.6–20.5% → Economy (−20%). &gt;20.5% → Fermented (mead only). Each 10% uncapped adds ~+0.6% moisture. Feeding flag prevents varietal label.</td>
+        <td>Uncapping</td>
+      </tr>
+      <tr>
+        <td>Bottling UI</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Choose: jar (higher unit price, slower) or bulk bucket (faster, lower price). Add labeled jars to inventory.</td>
+        <td>Extraction</td>
+      </tr>
+      <tr>
+        <td>Beeswax collection</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Cappings accumulate beeswax resource. Track in GameData. Foundation for Phase 4 crafting.</td>
+        <td>Uncapping</td>
+      </tr>
+      <tr>
+        <td>Winter reserve warning</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>If honey_stores &lt;60 lbs approaching Reaping: orange tint on overworld hive. &lt;40 lbs: red tint. Prevents over-harvesting.</td>
+        <td>SnapshotWriter (done)</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="task-section" id="p2-economy">
+    <h3>Economy &amp; Market (GDD §6.7)</h3>
+    <table>
+      <tr><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>GameData wallet / economy</td><td><span class="tag tag-exists">DONE ✓</span></td>
+        <td>Dollars, meals_eaten, coffee_until_hour, xp_buff, pending_deliveries all tracked and serialized.</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td>Saturday Market scene</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Saturday-only location. Frank buys honey: $8/lb standard, $11.20/lb premium. Price scales with Community Standing tier. Sell up to 10 jars/week initially. Place Frank Fischbach NPC (script + sprite already done).</td>
+        <td>Harvest system, Frank NPC (done)</td>
+      </tr>
+      <tr>
+        <td>Equipment shop transactions</td><td><span class="tag tag-wip">PARTIAL</span></td>
+        <td>Feed &amp; Supply interior + shop_screen.gd exist. Wire actual purchase flow: smoker ($25), hive tool ($15), bee suit ($85), extractor ($200, Level 2), refractometer ($45, Level 2). Deduct dollars, add to inventory.</td>
+        <td>shop_screen.gd (done)</td>
+      </tr>
+      <tr>
+        <td>Community Standing</td><td><span class="tag tag-wip">STUB</span></td>
+        <td>GameData.reputation exists as float. Implement 5 tiers (GDD §1): Newcomer (0–99), Known (100–249), Trusted (250–499), Respected (500–749), Beloved (750–1000). Price multipliers: ×1.00→×1.02→×1.05→×1.10→×1.15. Award: +1/jar sold, +3/quest, +15–75/NPC quest.</td>
+        <td>GameData (done)</td>
+      </tr>
+      <tr>
+        <td>Diner / Feed &amp; Supply / Post Office</td><td><span class="tag tag-exists">DONE ✓</span></td>
+        <td>All three interiors fully implemented with meals, items, and deliveries.</td>
+        <td>—</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="task-section" id="p2-weather">
+    <h3>Weather &amp; Day Cycle (GDD §5, §6.9)</h3>
+    <table>
+      <tr><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>Sleep / day advance</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Z key or enter house → fade transition → advance to 6:00 AM next day → 100 energy restored. Show brief day counter. Trigger all hive ticks for elapsed time. Also: nap (2–3 hours, ~25% energy), time-skip to chosen hour (no energy restore).</td>
+        <td>TimeManager (done)</td>
+      </tr>
+      <tr>
+        <td>Weather system</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Daily weather roll: Sunny/Calm (best), Overcast, Rainy, Cold, Windy. Affects: forager activity (rain = no flights), inspection safety (cold/wind = risky), sting chance (evening ×1.25), mating flights (&gt;65°F). Drives ForagerSystem gate and dearth mortality modifiers (GDD §6.9).</td>
+        <td>TimeManager (done), ForagerSystem (done)</td>
+      </tr>
+      <tr>
+        <td>Season transition animation</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Brief visual when season changes (fade + new season name). Tie to FlowerLifecycleManager bloom shifts.</td>
+        <td>TimeManager signals (done)</td>
+      </tr>
+      <tr>
+        <td>Weather HUD display</td><td><span class="tag tag-wip">PARTIAL</span></td>
+        <td>Diner already has TV weather display. Add small weather icon to overworld HUD (top bar). Weather icons sprite exists in assets/sprites/ui/weather_icons.png.</td>
+        <td>Weather system, HUD (done)</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="task-section" id="p2-smoke">
+    <h3>Smoke &amp; Sting System (GDD §6.1)</h3>
+    <table>
+      <tr><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>Smoker mechanic</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Player applies smoke before inspection. Amount affects: bee calmness, inspection quality, bee stress. Over-smoking reduces observation accuracy. Smoker is an inventory item purchased at Feed &amp; Supply.</td>
+        <td>Equipment purchase</td>
+      </tr>
+      <tr>
+        <td>Sting probability</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Base sting chance per inspection step: calm colonies 10%, defensive 25%. Modifiers: bee suit ×0.20, smoker ×0.85, combined ~95% reduction. Evening (after 15:00) ×1.25. Each sting costs 5–8 energy. Creates real cost/reward tension for inspections.</td>
+        <td>Smoker, energy (done)</td>
+      </tr>
+      <tr>
+        <td>Bee suit equipment</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Purchased at Feed &amp; Supply ($85). When worn: sting probability ×0.20. Without suit: full sting chance. Track in inventory as equipped/not equipped.</td>
+        <td>Equipment purchase</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="callout callout-blue">
+    <strong>Art needed for Phase 2</strong>
+    Saturday Market stall sprite (~32×48px), honey jar inventory icon (16×16), smoker icon (16×16), hive tool icon (16×16), bee suit icon (16×16),
+    extractor sprite, weather overlay effects (rain particles, overcast tint). NPC portraits for Frank already exist (frank_portrait.png).
+    Animated character sprites for all NPCs already done.
+  </div>
+</div>
+
+<!-- ═════════════════════════════════════════════════════════════════════ -->
+<!--  PHASE 3 — LIVING WORLD                                              -->
+<!-- ═════════════════════════════════════════════════════════════════════ -->
+<div class="phase" id="phase3">
+  <div class="phase-header">
+    <div class="phase-num">3</div>
+    <div>
+      <div class="phase-title">Living World — "People &amp; Purpose"</div>
+      <div class="phase-subtitle">Goal: quests give direction, NPCs build relationships, events create surprises. The world feels alive and responsive.</div>
+    </div>
+    <div class="phase-tag"><span class="badge badge-phase">Depth</span></div>
+  </div>
+
+  <div class="milestones">
+    <div class="milestone">
+      <h4>Exit Criteria</h4>
+      <ul>
+        <li>Daily tasks and seasonal goals generate play variety</li>
+        <li>At least one NPC quest chain playable start-to-finish</li>
+        <li>Knowledge Log fills as player discovers phenomena</li>
+        <li>Player can order package bees or nucs via Post Office</li>
+        <li>At least 2 seasonal events fire (dandelion eval, honey competition)</li>
+        <li>Challenge events surprise the player (varroa spike, pesticide)</li>
+      </ul>
+    </div>
+    <div class="milestone">
+      <h4>⚡ Build Order</h4>
+      <ul>
+        <li>1. Quest system (definitions, tracking, rewards)</li>
+        <li>2. Daily tasks + seasonal goals</li>
+        <li>3. Uncle Bob quest chain (tutorial progression)</li>
+        <li>4. Knowledge Log UI panel</li>
+        <li>5. Bee acquisition (package/nuc ordering)</li>
+        <li>6. Seasonal events (dandelion eval, honey competition)</li>
+        <li>7. Challenge events (varroa outbreak, pesticide)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="task-section" id="p3-quests">
+    <h3>Quests &amp; Events (GDD §8)</h3>
+    <table>
+      <tr><th>Task</th><th>Status</th><th>Details</th></tr>
+      <tr>
+        <td>QuestManager expansion</td><td><span class="tag tag-wip">SKELETON</span></td>
+        <td>QuestManager.gd (60 lines) has start/complete/fail/is_active/is_complete API but zero quest definitions. Expand with quest type enum (Daily, Seasonal, NPC, Challenge, Mastery), reward dispatch, deadline tracking, and serialization hooks for SaveManager.</td>
+      </tr>
+      <tr>
+        <td>Daily tasks</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>10–30 XP, $5–25, +3 Standing. Examples: "Check all entrances for dead bees", "Test varroa load on Hive 3". Rotate from pool. New one each morning.</td>
+      </tr>
+      <tr>
+        <td>Seasonal goals</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>100–200 XP, $50–200, +20–50 Standing. Multi-step. Examples: "Complete spring equipment inventory", "Prepare hives for winter". One active per season. Failure: −10 Standing.</td>
+      </tr>
+      <tr>
+        <td>NPC quests</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>75–150 XP, unique rewards, +30–75 Standing. Uncle Bob: tutorial chain. Frank: "bring 10 jars clover honey". Dr. Harwick: disease diagnosis. Failure delays questline one season, −15 Standing.</td>
+      </tr>
+      <tr>
+        <td>Seasonal events</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>GDD §8.2: Dandelion Evaluation (spring), Spring Buildup Challenge, Midsummer Dearth, Swarm Season alerts, Goldenrod Evaluation (fall), Summer Honey Competition, Winter Preparation, Winter Survival Challenge.</td>
+      </tr>
+      <tr>
+        <td>Challenge events</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>GDD §8.3: Varroa Outbreak (mite spike → test/treat in 2 weeks), Colony Starvation (emergency feeding), Robbing Behavior (reduce entrances), AFB Scare (ropiness test → burn/treat decision), Pesticide Event (Harmon farm, dead foragers), Swarm Escaped (check for new queen).</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="task-section" id="p3-npc">
+    <h3>NPC Relationships (GDD §9)</h3>
+    <table>
+      <tr><th>NPC</th><th>Status</th><th>Phase 3 Scope</th></tr>
+      <tr>
+        <td>Uncle Bob</td><td><span class="tag tag-exists">DONE ✓</span> (Phase 1 dialogue)</td>
+        <td>Expand: tutorial quest chain, seasonal contextual advice, inspection tips tied to current hive state. Breakfast at diner Tuesdays. Dialogue tree branches based on player level and season.</td>
+      </tr>
+      <tr>
+        <td>Frank Fischbach</td><td><span class="tag tag-exists">DONE ✓</span> (script + sprite)</td>
+        <td>Place in Saturday Market. Quest: "Bring 10 jars of clover honey by end of Wide-Clover." Unlocks premium shelf at 5 consistent sales. Tracks quality history. Friendship → better prices.</td>
+      </tr>
+      <tr>
+        <td>Dr. Ellen Harwick</td><td><span class="tag tag-exists">DONE ✓</span> (script + sprite)</td>
+        <td>Place in world. Disease inspection quests. Called when AFB suspected. Diagnosis dialogue tree. Friendship → faster diagnosis, treatment advice.</td>
+      </tr>
+      <tr>
+        <td>Darlene (Mentor)</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>GDD §9: Coffee at diner Friday mornings. Teaches inspection technique. At friendship threshold: introduces Hartley's Apiary (premium bee supplier). Script + sprite needed.</td>
+      </tr>
+      <tr>
+        <td>June (Postmaster)</td><td><span class="tag tag-wip">PARTIAL</span></td>
+        <td>Post Office interior exists with delivery mechanic. Add dialogue progression, relationship tracking, package notification system.</td>
+      </tr>
+      <tr>
+        <td>Walt &amp; Kacey Harmon</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Farmer neighbors. Pesticide event source. Walt quest: convince him about cover crops. Kacey quest: friendship opens Harmon Farm as apiary location. Sprite files exist (kacey_harmon.png, walt_harmon.png).</td>
+      </tr>
+      <tr>
+        <td>NPC friendship system</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Per-NPC relationship score (0–100). Increments via: dialogue (+1), quests (+5–15), gifts (+3–5). Thresholds unlock questlines, locations, dialogue branches. Serialize in SaveManager.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="task-section" id="p3-knowledge">
+    <h3>Knowledge Log (GDD §7.3)</h3>
+    <table>
+      <tr><th>Task</th><th>Status</th><th>Details</th></tr>
+      <tr>
+        <td>Knowledge Log UI panel</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>In-game notebook. Fills as player discovers phenomena. Access from PauseMenu or dedicated key. Scrollable entries with categories (Brood, Disease, Forage, Equipment, Queen, Harvest).</td>
+      </tr>
+      <tr>
+        <td>Entry triggers</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>GDD §7.3: ~16 core entries. Auto-triggered: First Inspection, Reading Brood Pattern, Nectar Flow Begins, Swarm Impulse, Winter Bees, AFB Signs. Action-triggered: Eggs and Their Meaning, The Queen—First Contact, Varroa Treatment Windows, Splitting a Hive. Each awards +20 XP and unlocks a tooltip upgrade.</td>
+      </tr>
+      <tr>
+        <td>Late-game entries</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Deeper ecology/science/history entries that make the complete log an effective beekeeping primer. Reward for completionists.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="task-section" id="p3-acquire">
+    <h3>Bee Acquisition (GDD §6.3)</h3>
+    <table>
+      <tr><th>Task</th><th>Status</th><th>Details</th></tr>
+      <tr>
+        <td>Package bee ordering</td><td><span class="tag tag-wip">PARTIAL</span></td>
+        <td>Colony installation mechanic DONE: ITEM_PACKAGE_BEES + [E] to install in empty hive. Package establishment DONE: 8k bees, 4-6 day laying delay, 7-day lockout, progressive comb drawing. TODO: Post Office ordering flow, supplier selection, queen grade roll, cost deduction, delivery timing.</td>
+      </tr>
+      <tr>
+        <td>Nuc purchase</td><td><span class="tag tag-wip">PARTIAL</span></td>
+        <td>Nuc starting state exists (10,200 bees, 5 drawn frames). Post Office has LIVE BEES delivery mechanic. Wire: supplier selection (River Valley / Feed &amp; Supply / Hartley's), queen grade roll per supplier tier, cost deduction, delivery timing.</td>
+      </tr>
+      <tr>
+        <td>Supplier tiers</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>GDD §6.3: River Valley (mail, Year 1, D10/C35/B45/A10/S0, 5% DOA), Cedar Bend Feed &amp; Supply (local, Year 1, D0/C10/B50/A35/S5), Hartley's Apiary (Level 2 + Darlene friendship, C0/B15/A55/S30). Grade affects queen laying modifier.</td>
+      </tr>
+      <tr>
+        <td>Swarm traps</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Place trap at location. Spring/summer: chance wild swarm arrives (free colony). Uncertain genetics/health. Requires crafting or purchase.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="callout callout-blue">
+    <strong>Art needed for Phase 3</strong>
+    Darlene character sprite (120×120 8-way) + portrait. Knowledge Log page background (log_page.png exists in UI assets).
+    Swarm trap sprite. Quest notification icons. NPC relationship meter UI element.
+    Walt Harmon and Kacey Harmon sprites exist as small reference PNGs — need full 120×120 animated sets if placed in world.
+  </div>
+</div>
+
+<!-- ═════════════════════════════════════════════════════════════════════ -->
+<!--  PHASE 4 — DEPTH                                                     -->
+<!-- ═════════════════════════════════════════════════════════════════════ -->
+<div class="phase" id="phase4">
+  <div class="phase-header">
+    <div class="phase-num">4</div>
+    <div>
+      <div class="phase-title">Depth — "Now It Gets Real"</div>
+      <div class="phase-subtitle">Goal: full disease suite, queen rearing, swarm management, multiple apiary locations, crafting. The simulation earns its name.</div>
+    </div>
+    <div class="phase-tag"><span class="badge badge-phase">Simulation</span></div>
+  </div>
+
+  <div class="milestones">
+    <div class="milestone">
+      <h4>Exit Criteria</h4>
+      <ul>
+        <li>All 7+ diseases detectable and treatable (or fatal)</li>
+        <li>Player can rear queens from selected larvae</li>
+        <li>Swarm prevention, catch, and split all functional</li>
+        <li>At least 3 apiary locations unlockable via Standing</li>
+        <li>Crafting converts wax/pollen/honey into higher-value goods</li>
+        <li>Honey house and workshop structures buildable</li>
+      </ul>
+    </div>
+    <div class="milestone">
+      <h4>⚡ Build Order</h4>
+      <ul>
+        <li>1. Full disease suite (EFB, Nosema, Sacbrood, SHB, etc.)</li>
+        <li>2. Treatment UI &amp; mechanics</li>
+        <li>3. Queen rearing system (graft → develop → mate → grade)</li>
+        <li>4. Swarm management (prevention, catch, split)</li>
+        <li>5. Multi-apiary locations with Standing gates</li>
+        <li>6. Crafting system &amp; apiary structures</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="task-section" id="p4-disease">
+    <h3>Pests &amp; Disease (GDD §3.6)</h3>
+    <table>
+      <tr><th>System</th><th>Status</th><th>Details</th></tr>
+      <tr>
+        <td>Varroa destructor</td><td><span class="tag tag-exists">DONE ✓</span> (sim)</td>
+        <td>S_VARROA cell state, mite invasion rate, population tracking in simulation. TODO: treatment UI (oxalic acid $8, formic acid $15, synthetic strips $20). Sugar roll / sticky board test action. Mite count display in inspection. Threshold: 3% infestation = treatment required. Laying rate modifiers: &lt;1/100 = ×1.0 → &gt;8/100 = ×0.25.</td>
+      </tr>
+      <tr>
+        <td>American Foulbrood (AFB)</td><td><span class="tag tag-exists">DONE ✓</span> (sim)</td>
+        <td>S_AFB cell state, 8%/day spread to adjacent cells, 35-point health penalty. TODO: visual indicators in inspection (sunken caps, ropiness), player detection probability (40% at L1 → 95% at L5), burn/treat decision UI, Dr. Harwick quest trigger. ×0.40 laying modifier.</td>
+      </tr>
+      <tr>
+        <td>European Foulbrood (EFB)</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>4%/day spread. 30% natural recovery with strong forage/queen. Twisted discolored larvae. Treatment: nutrition + requeening + antibiotics (5-day course). Colony lost at 40% larvae infected. ×0.75 laying modifier.</td>
+      </tr>
+      <tr>
+        <td>Nosema</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Gut parasite. Dysentery streaks on landing board (spring sign). −15% spring buildup per infected winter. Treatment: reduce stress, Fumagillin. ×0.80 laying modifier. Not cell-to-cell — affects individual bees through fecal contact in winter cluster.</td>
+      </tr>
+      <tr>
+        <td>Sacbrood Virus</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>3%/day spread, usually self-limiting. Sac-shaped dead larvae. Colonies typically recover naturally, especially with requeening. ×0.85 laying modifier.</td>
+      </tr>
+      <tr>
+        <td>Small Hive Beetle (SHB)</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Warm/humid conditions. Larvae tunnel through comb, honey ferments. Strong colony polices beetles. Management: traps, strong populations.</td>
+      </tr>
+      <tr>
+        <td>Tracheal Mites, Chalkbrood, DWV, Wax Moths</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Secondary diseases. Each with detection symptoms, management options, and health impacts per GDD §3.6.</td>
+      </tr>
+      <tr>
+        <td>Treatment UI</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Treatment selection screen during inspection or from inventory. Shows treatment type, cost, timing window, effectiveness. Track treatment history per hive for Knowledge Log and quest triggers.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="task-section" id="p4-queen">
+    <h3>Queen Rearing &amp; Breeding (GDD §3.9, §6.4)</h3>
+    <table>
+      <tr><th>System</th><th>Status</th><th>Details</th></tr>
+      <tr>
+        <td>Queen age decline</td><td><span class="tag tag-wip">PARTIAL</span></td>
+        <td>QueenBehavior.gd has supersedure age/chance thresholds. TODO: observable decline in brood pattern quality, proactive requeening prompt, year tracking visible during inspection.</td>
+      </tr>
+      <tr>
+        <td>Queen rearing (Level 4 unlock)</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>GDD §3.9: Graft larvae into queen cups. 16-day development cycle. Virgin queen → DCA mating flight → laying queen. Grade from genetics + mating success. Mating success by location: Home 65%, County Road 50%, Timber 80%, River Bottom 85%. Modifiers: Timber/River nuc placement +10%, good drones +5%, calm weather +5%.</td>
+      </tr>
+      <tr>
+        <td>Queen marking system</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>International color-year: White (1/6), Yellow (2/7), Red (3/8), Green (4/9), Blue (5/0). Helps track queen age at a glance. Knowledge Log entry at Year 3 unlock.</td>
+      </tr>
+      <tr>
+        <td>Queen sales</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>S/A-grade queens listable for sale to Cedar Valley Beekeepers Assoc. or Uncle Bob's network. Premium income stream at high levels.</td>
+      </tr>
+      <tr>
+        <td>Requeening process</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>GDD §6.4: Multi-step. Confirm queenlessness → acquire queen → introduce with cage (3–5 day release) → monitor acceptance (workers accept or ball/kill queen) → open cage → laying resumes 1–2 weeks post-acceptance.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="task-section" id="p4-swarm">
+    <h3>Swarm Management (GDD §6.5)</h3>
+    <table>
+      <tr><th>System</th><th>Status</th><th>Details</th></tr>
+      <tr>
+        <td>Swarm triggers</td><td><span class="tag tag-wip">PARTIAL</span></td>
+        <td>CongestionDetector has swarm_prep flag at 0.78. TODO: full swarm event sequence — queen cells on bottom frames, increased drones, bearding. Old queen departs with 40–60% of bees.</td>
+      </tr>
+      <tr>
+        <td>Swarm prevention</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Player actions: add space (supers), perform split, clip queen wing (delays swarm), remove queen cells. Each has trade-offs and energy cost.</td>
+      </tr>
+      <tr>
+        <td>Colony splitting</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Divide strong colony in late spring/summer. Temporary strength loss to both halves. Requires new queen for queenless split. No cash cost but significant time/energy investment.</td>
+      </tr>
+      <tr>
+        <td>Post-swarm recovery</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Remaining colony with virgin queen takes 3–5 weeks to return to production. New queen must mate and begin laying. Honey production drops significantly.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="task-section" id="p4-locations">
+    <h3>Multi-Apiary Locations (GDD §12–13)</h3>
+    <table>
+      <tr><th>Location</th><th>Unlock</th><th>Forage Value</th><th>DCA Quality</th></tr>
+      <tr><td>Home Property (Uncle Bob's Backyard)</td><td>Start</td><td>Low — wildflowers, small garden</td><td>Moderate (65%)</td></tr>
+      <tr><td>Cedar Bend Town Center</td><td>Start</td><td>Town garden, diverse urban flora</td><td>—</td></tr>
+      <tr><td>County Road</td><td>Start</td><td>Open exposure, variable</td><td>Poor (50%)</td></tr>
+      <tr><td>Timber &amp; Woodlot</td><td>Trusted (Standing ≥250)</td><td>High — linden, sheltered</td><td>High (80%)</td></tr>
+      <tr><td>Harmon Farm (Clover Fields)</td><td>Trusted + Kacey quest</td><td>Very High — white clover</td><td>Moderate (65%)</td></tr>
+      <tr><td>River Bottomland</td><td>Respected (Standing ≥500)</td><td>Willows (spring), goldenrod (fall)</td><td>Very High (85%)</td></tr>
+      <tr><td>Cedar Valley Grange</td><td>Level 3 + Standing ≥400</td><td>Queen trades, bulk sales</td><td>—</td></tr>
+    </table>
+    <p style="color:var(--muted);font-size:12px;margin-top:8px;">
+      Each location has a shared forage pool (all hives draw from it). Overlapping apiaries compete for nectar. Forage radius ~1–2 miles. Water source required nearby.
+      map_overlay.gd (347 lines) and zone_manager.gd (73 lines) already exist with basic map pins and zone transition framework.
+    </p>
+  </div>
+
+  <div class="task-section" id="p4-craft">
+    <h3>Crafting &amp; Structures (GDD §6.8, §7.2)</h3>
+    <table>
+      <tr><th>System</th><th>Status</th><th>Details</th></tr>
+      <tr>
+        <td>Crafting system</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Convert raw resources to high-value goods. Beeswax → candles, lip balm, furniture polish (2–5× value). Pollen → supplements. Honey + water → mead (fermentation time). Honey + botanicals → infusions.</td>
+      </tr>
+      <tr>
+        <td>Honey house</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Required for extraction. Tiered extractors (2-frame manual → 4-frame electric). Settling tanks. Bottling station. Built on home property.</td>
+      </tr>
+      <tr>
+        <td>Workshop</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Craft frames, boxes, tools. Repair equipment. Wax foundation making.</td>
+      </tr>
+      <tr>
+        <td>Queen rearing station</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Level 3+ unlock. Required for controlled queen rearing. Mating nuc placement.</td>
+      </tr>
+      <tr>
+        <td>Storage / observation hive</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Increase inventory capacity. Observation hive for learning (Knowledge Log entries).</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═════════════════════════════════════════════════════════════════════ -->
+<!--  PHASE 5 — POLISH & SHIP                                             -->
+<!-- ═════════════════════════════════════════════════════════════════════ -->
+<div class="phase" id="phase5">
+  <div class="phase-header">
+    <div class="phase-num">5</div>
+    <div>
+      <div class="phase-title">Polish &amp; Ship — "Make It Shine"</div>
+      <div class="phase-subtitle">Goal: audio, visual polish, tutorials, balance, settings, and platform readiness. The game is shippable.</div>
+    </div>
+    <div class="phase-tag"><span class="badge badge-phase">Ship</span></div>
+  </div>
+
+  <div class="milestones">
+    <div class="milestone">
+      <h4>Audio &amp; Visual</h4>
+      <ul>
+        <li>Ambient hive hum (pitch shifts with health/activity)</li>
+        <li>Seasonal outdoor soundscape (birds, wind, rain)</li>
+        <li>Inspection audio (frame removal, bee movement, smoker puff)</li>
+        <li>Harvest audio (extractor spin, uncapping knife)</li>
+        <li>Music: seasonal themes with shared motifs</li>
+        <li>Seasonal transition animations</li>
+        <li>Particle effects (bee swarms, pollen, smoke)</li>
+      </ul>
+    </div>
+    <div class="milestone">
+      <h4>Systems &amp; Platform</h4>
+      <ul>
+        <li>Settings screen (volume, resolution, controls, accessibility)</li>
+        <li>Tutorial/onboarding flow (first-time player guidance)</li>
+        <li>Balance pass (XP curves, economy, difficulty scaling)</li>
+        <li>Localization framework</li>
+        <li>Steam Achievements integration</li>
+        <li>Controller support</li>
+        <li>Accessibility (colorblind modes, text sizing)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="task-section">
+    <h3>Already Complete (from earlier phases)</h3>
+    <table>
+      <tr><th>System</th><th>Status</th><th>Notes</th></tr>
+      <tr><td>Save/Load</td><td><span class="tag tag-exists">DONE ✓</span></td><td>SaveManager autoload, JSON + base64, auto-save on sleep, versioned schema.</td></tr>
+      <tr><td>Main Menu</td><td><span class="tag tag-exists">DONE ✓</span></td><td>New Game / Continue / Quit. Continue enabled only when save exists.</td></tr>
+      <tr><td>Pause Menu</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Resume / Map / Save / Main Menu.</td></tr>
+      <tr><td>Notification System</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Layer 50, max 5 stacked toasts, slide+fade.</td></tr>
+      <tr><td>Dialogue UI</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Speech bubbles (world-space) + portrait dialogue box (screen-bottom).</td></tr>
+      <tr><td>HUD</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Signal-driven, programmatic bars, energy + XP fill bars.</td></tr>
+      <tr><td>UI Art (38 sprites)</td><td><span class="tag tag-exists">DONE ✓</span></td><td>Full Langstroth frame theme: buttons, panels, bars, icons, map assets.</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═════════════════════════════════════════════════════════════════════ -->
+<!--  MVP CHECKLIST                                                        -->
+<!-- ═════════════════════════════════════════════════════════════════════ -->
+<h2 class="section" id="mvp-checklist">Vertical Slice Checklist</h2>
+<p style="color:var(--muted);margin-bottom:16px;font-size:13px">
+  The vertical slice target = Phase 1 ✓ + Phase 2 harvest/market loop. Once Phase 2 is complete, the game has a full play loop:
+  observe bees → manage hive → harvest honey → sell at market → buy supplies → repeat across seasons.
+  External playtesting can begin at this point.
+</p>
+<table>
+  <tr><th>Feature</th><th>Done?</th><th>Phase</th></tr>
+  <tr><td>Hive simulation ticks daily (10-script pipeline, two-sided frames)</td><td>✓</td><td>1</td></tr>
+  <tr><td>Honeycomb hex-grid renderer with cell atlas (14 states, LOD)</td><td>✓</td><td>1</td></tr>
+  <tr><td>Frame inspection: navigate, flip side, tooltips, queen sighting</td><td>✓</td><td>1</td></tr>
+  <tr><td>Queen lays eggs in elliptical pattern, brood nest forms naturally</td><td>✓</td><td>1</td></tr>
+  <tr><td>Player animated sprite (8-way walk/run, 120×120)</td><td>✓</td><td>1</td></tr>
+  <tr><td>NPCs with dialogue (Uncle Bob placed, Ellen + Frank ready)</td><td>✓</td><td>1</td></tr>
+  <tr><td>FlowerLifecycleManager (7 types, season quality, bloom, spread)</td><td>✓</td><td>1</td></tr>
+  <tr><td>Time system (8 months, 224 days, 4 seasons)</td><td>✓</td><td>1</td></tr>
+  <tr><td>Save/load, menus, HUD, notifications, dialogue</td><td>✓</td><td>1</td></tr>
+  <tr><td>Interiors: Diner, Feed &amp; Supply, Post Office</td><td>✓</td><td>1</td></tr>
+  <tr><td>Package Bees colony installation + establishment mechanics</td><td>✓</td><td>1</td></tr>
+  <tr><td>Hive Tool, Gloves, Storage Chest, HiveManagementUI</td><td>✓</td><td>1</td></tr>
+  <tr><td>Multi-box inspection + box rotation + modular hive sprites</td><td>✓</td><td>1</td></tr>
+  <tr><td>3D ellipsoid comb drawing, forage-dependent rates, walled-in constraint</td><td>✓</td><td>1</td></tr>
+  <tr><td>25 item sprites (32x32) + context-sensitive hive prompts</td><td>✓</td><td>1</td></tr>
+  <tr style="background:#1a1a2a"><td>Sleep / day advance action</td><td>☐</td><td>2</td></tr>
+  <tr style="background:#1a1a2a"><td>Weather system (gates foraging &amp; inspections)</td><td>☐</td><td>2</td></tr>
+  <tr style="background:#1a1a2a"><td>Harvest honey (uncap → extract → grade → bottle)</td><td>☐</td><td>2</td></tr>
+  <tr style="background:#1a1a2a"><td>Honey inventory with moisture grade</td><td>☐</td><td>2</td></tr>
+  <tr style="background:#1a1a2a"><td>Saturday Market — sell to Frank</td><td>☐</td><td>2</td></tr>
+  <tr style="background:#1a1a2a"><td>Equipment purchases at Feed &amp; Supply</td><td>☐</td><td>2</td></tr>
+  <tr style="background:#1a1a2a"><td>Smoke &amp; sting system</td><td>☐</td><td>2</td></tr>
+  <tr style="background:#1a1a2a"><td>Community Standing (5 tiers, price multipliers)</td><td>☐</td><td>2</td></tr>
+  <tr style="background:#1a1a2a"><td>One full season playable start to finish</td><td>☐</td><td>2</td></tr>
+</table>
+
+<div class="callout callout-blue" style="margin-top:32px">
+  <strong>💡 Development Tip</strong>
+  Phase 2 is the critical path. Everything else (quests, disease, queen rearing, locations, crafting, audio) layers on top of the
+  harvest→sell loop. Don't skip ahead — a working economy loop with weather and day advance gives every future system a reason to exist.
+  Art can lag behind code; use colored rectangles as placeholders for any missing sprites.
+</div>
+
+</main>
+</body>
+</html>

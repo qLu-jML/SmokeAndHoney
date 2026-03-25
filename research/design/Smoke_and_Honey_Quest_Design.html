@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smoke &amp; Honey &mdash; NPC Quest Design Document</title>
+<style>
+  :root {
+    --WD_DARKEST:   #261206;
+    --WD_DEEP:      #3B1F0B;
+    --WD_BASE:      #5C3A1E;
+    --WD_MID:       #7A5230;
+    --WD_LIGHT:     #A07850;
+    --HC_DARK:      #B8860B;
+    --HC_GOLD:      #DAA520;
+    --HC_BRIGHT:    #F0C040;
+    --HC_PALE:      #F5D76E;
+    --AM_DEEP:      #CC7000;
+    --AM_MAIN:      #E89020;
+    --AM_LIGHT:     #F0A848;
+    --AM_GLOW:      #F8C870;
+    --CRM_BASE:     #EDE0C8;
+    --CRM_LIGHT:    #F5ECD8;
+    --CRM_BRIGHT:   #FAF3E8;
+    --WAX_WHITE:    #FCF5D7;
+    --bg:           var(--WD_DARKEST);
+    --surface:      var(--WD_DEEP);
+    --card:         var(--WD_BASE);
+    --border:       var(--WD_MID);
+    --text:         var(--CRM_LIGHT);
+    --text-dim:     var(--WD_LIGHT);
+    --accent:       var(--HC_GOLD);
+    --accent-bright:var(--AM_GLOW);
+    --heading:      var(--HC_BRIGHT);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 0;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 32px;
+  }
+
+  h1 {
+    font-size: 2.2rem;
+    color: var(--heading);
+    border-bottom: 3px solid var(--HC_GOLD);
+    padding-bottom: 12px;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    margin-bottom: 40px;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+    color: var(--HC_BRIGHT);
+    margin-top: 48px;
+    margin-bottom: 6px;
+    border-left: 4px solid var(--AM_MAIN);
+    padding-left: 14px;
+  }
+  h2 .npc-tag {
+    display: inline-block;
+    background: var(--WD_BASE);
+    color: var(--AM_LIGHT);
+    font-size: 0.7em;
+    padding: 2px 10px;
+    border-radius: 12px;
+    margin-left: 10px;
+    vertical-align: middle;
+  }
+
+  h3 {
+    font-size: 1.15rem;
+    color: var(--AM_LIGHT);
+    margin-top: 28px;
+    margin-bottom: 8px;
+  }
+
+  p { margin-bottom: 12px; }
+
+  .quest-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin: 16px 0;
+  }
+  .quest-card .quest-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .quest-card .quest-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--WAX_WHITE);
+  }
+  .quest-card .quest-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .badge-level { background: var(--AM_DEEP); color: var(--WAX_WHITE); }
+  .badge-season { background: #2a5a2a; color: #8fbc8f; }
+  .badge-type { background: var(--WD_BASE); color: var(--HC_PALE); }
+  .badge-standing { background: #3a2a5a; color: #b8a0d8; }
+  .badge-prereq { background: #5a2a2a; color: #d8a0a0; }
+
+  .quest-desc {
+    color: var(--CRM_BASE);
+    margin-bottom: 10px;
+  }
+  .quest-objective {
+    color: var(--text-dim);
+    font-style: italic;
+    margin-bottom: 8px;
+  }
+  .quest-rewards {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--WD_MID);
+  }
+  .reward {
+    font-size: 0.85rem;
+    color: var(--HC_PALE);
+  }
+  .reward strong { color: var(--AM_GLOW); }
+
+  .design-note {
+    background: linear-gradient(135deg, rgba(218,165,32,0.08), rgba(218,165,32,0.03));
+    border-left: 3px solid var(--HC_GOLD);
+    padding: 14px 18px;
+    margin: 16px 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.92rem;
+    color: var(--CRM_BASE);
+  }
+  .design-note strong { color: var(--HC_GOLD); }
+
+  .chain-flow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 12px 0 20px;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+  }
+  .chain-step {
+    background: var(--WD_BASE);
+    color: var(--CRM_LIGHT);
+    padding: 4px 12px;
+    border-radius: 14px;
+    white-space: nowrap;
+  }
+  .chain-step.active {
+    background: var(--AM_DEEP);
+    color: var(--WAX_WHITE);
+  }
+  .chain-arrow { color: var(--WD_LIGHT); }
+
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 0.9rem;
+  }
+  .summary-table th {
+    background: var(--WD_BASE);
+    color: var(--HC_PALE);
+    padding: 10px 14px;
+    text-align: left;
+    border: 1px solid var(--border);
+  }
+  .summary-table td {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--CRM_BASE);
+    vertical-align: top;
+  }
+  .summary-table tr:hover td {
+    background: rgba(90,60,30,0.4);
+  }
+
+  .unlock-box {
+    background: rgba(0,80,0,0.15);
+    border: 1px solid #2a5a2a;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin: 8px 0;
+    font-size: 0.9rem;
+    color: #8fbc8f;
+  }
+  .unlock-box strong { color: #a0d8a0; }
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--WD_MID);
+    margin: 40px 0;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>NPC Quest Design</h1>
+<p class="subtitle">Smoke &amp; Honey &mdash; Complete quest lines for all 6 NPCs, mapped to the progression system, standing tiers, and location unlocks</p>
+
+<!-- ============================================================ -->
+<!-- OVERVIEW TABLE -->
+<!-- ============================================================ -->
+
+<h2>Quest Chain Overview</h2>
+
+<table class="summary-table">
+<tr>
+  <th>NPC</th>
+  <th>Total Quests</th>
+  <th>Level Range</th>
+  <th>Seasons</th>
+  <th>Major Unlock</th>
+</tr>
+<tr>
+  <td>Uncle Bob</td>
+  <td>8 (chain) + recurring mentorship</td>
+  <td>1 &ndash; 3</td>
+  <td>Year 1 &ndash; Year 3</td>
+  <td>Timber &amp; Woodlot apiary (Level 2)</td>
+</tr>
+<tr>
+  <td>Darlene Kowalski</td>
+  <td>6 (chain) + seasonal advice</td>
+  <td>1 &ndash; 4</td>
+  <td>Year 1 &ndash; Year 4</td>
+  <td>Queen genetics knowledge, emergency queen sourcing</td>
+</tr>
+<tr>
+  <td>Frank Fischbach</td>
+  <td>5 (chain) + weekly market</td>
+  <td>1 &ndash; 4</td>
+  <td>Year 1 &ndash; Year 4</td>
+  <td>Premium shelf space, bulk orders, county fair entry</td>
+</tr>
+<tr>
+  <td>Dr. Ellen Harwick</td>
+  <td>5 (chain) + lab services</td>
+  <td>2 &ndash; 5</td>
+  <td>Year 2 &ndash; Year 5</td>
+  <td>Advanced diagnostics, mastery quests, IPM certification</td>
+</tr>
+<tr>
+  <td>Walt &amp; Kacey Harmon</td>
+  <td>6 (chain through Kacey)</td>
+  <td>2 &ndash; 4</td>
+  <td>Year 2 &ndash; Year 4</td>
+  <td>Harmon Farm / Orchard apiary location</td>
+</tr>
+<tr>
+  <td>Cedar Valley BKA</td>
+  <td>4 (chain) + monthly meetings</td>
+  <td>2 &ndash; 4</td>
+  <td>Year 2 &ndash; Year 4</td>
+  <td>River Bottom location (Level 3 + Standing 500)</td>
+</tr>
+</table>
+
+<div class="design-note">
+  <strong>Design Note &mdash; Quest Pacing:</strong> No NPC dumps their full quest chain at once. Quests are gated by level, season, standing, and prerequisite completion. A player who focuses only on one NPC will hit natural walls that push them toward other characters. This creates organic exploration of the full cast without forced branching.
+</div>
+
+<!-- ============================================================ -->
+<!-- UNCLE BOB -->
+<!-- ============================================================ -->
+<hr>
+<h2>Uncle Bob <span class="npc-tag">Mentor</span></h2>
+
+<p>Bob's quest chain is the backbone of Year 1. It doubles as the game's extended tutorial without ever feeling like one. Each quest teaches a core mechanic through a concrete task Bob needs help with. His chain unlocks the Timber &amp; Woodlot apiary via Lloyd Petersen (introduced through Bob).</p>
+
+<div class="chain-flow">
+  <span class="chain-step active">Q1: First Light</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q2: Reading the Room</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q3: Sugar Water Days</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q4: The Girls Are Building</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q5: First Pull</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q6: Battening Down</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q7: Lloyd's Lot</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q8: Spring Count</span>
+</div>
+
+<!-- Bob Q1 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q1: First Light</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 1</span>
+      <span class="badge badge-season">Early Spring Y1</span>
+      <span class="badge badge-type">Tutorial</span>
+    </div>
+  </div>
+  <p class="quest-desc">Uncle Bob hands Eli the smoker, veil, and hive tool. Together they open the surviving hive for the first time. Bob walks Eli through lighting the smoker, approaching the hive, and pulling the first frame.</p>
+  <p class="quest-objective">Objective: Light the smoker, open the surviving hive, pull and inspect 3 frames, identify the queen or fresh eggs.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+25 XP</strong></span>
+    <span class="reward"><strong>+15 Standing</strong></span>
+    <span class="reward">Unlocks: Smoker, Veil, Hive Tool (permanent equipment)</span>
+    <span class="reward">Knowledge Log: "Opening a Hive"</span>
+  </div>
+</div>
+
+<!-- Bob Q2 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q2: Reading the Room</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 1</span>
+      <span class="badge badge-season">Spring Y1</span>
+      <span class="badge badge-type">Tutorial</span>
+      <span class="badge badge-prereq">After Q1</span>
+    </div>
+  </div>
+  <p class="quest-desc">Bob asks Eli to do a full inspection solo while he watches from the tailgate. "Tell me what you see. Don't tell me what you think&mdash;tell me what you see." Teaches the observation-over-stats philosophy.</p>
+  <p class="quest-objective">Objective: Complete a full 10-frame inspection unassisted. Correctly identify brood pattern quality (good/patchy/failing), estimate bee population (small/medium/strong), note any anomalies.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+25 XP</strong></span>
+    <span class="reward"><strong>+15 Standing</strong></span>
+    <span class="reward">Knowledge Log: "Reading a Brood Pattern"</span>
+    <span class="reward">Unlocks: Weekly inspection reminders in journal</span>
+  </div>
+</div>
+
+<!-- Bob Q3 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q3: Sugar Water Days</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 1</span>
+      <span class="badge badge-season">Spring Y1</span>
+      <span class="badge badge-type">Tutorial</span>
+      <span class="badge badge-prereq">After Q2</span>
+    </div>
+  </div>
+  <p class="quest-desc">The surviving colony is weak and stores are thin. Bob shows Eli how to mix 1:1 sugar syrup and set up a feeder. "You're not feeding them forever. You're buying them time until the dandelions open."</p>
+  <p class="quest-objective">Objective: Purchase sugar from Tanner's Supply. Mix syrup at the workbench. Install the feeder on the surviving hive. Check and refill the feeder 3 times over the next 2 weeks.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+25 XP</strong></span>
+    <span class="reward"><strong>+15 Standing</strong></span>
+    <span class="reward">Knowledge Log: "Emergency Feeding"</span>
+    <span class="reward">Unlocks: Feeder crafting recipe at workbench</span>
+  </div>
+</div>
+
+<!-- Bob Q4 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q4: The Girls Are Building</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 1</span>
+      <span class="badge badge-season">Late Spring Y1</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q3 + colony reaches medium strength</span>
+    </div>
+  </div>
+  <p class="quest-desc">The colony is growing. Bob notices they're running out of room. "See how they're building burr comb on top? That's them telling you they need space." Time to add the first super.</p>
+  <p class="quest-objective">Objective: Clean and prep one of the dead hive supers at the workbench. Install it on the surviving hive. Verify within 1 week that bees are drawing comb on the new frames.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+50 XP</strong></span>
+    <span class="reward"><strong>+20 Standing</strong></span>
+    <span class="reward">Knowledge Log: "When to Add Space"</span>
+    <span class="reward">Unlocks: Equipment cleaning/repair at workbench</span>
+  </div>
+</div>
+
+<!-- Bob Q5 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q5: First Pull</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 1</span>
+      <span class="badge badge-season">Summer Y1</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q4 + at least 3 capped honey frames</span>
+    </div>
+  </div>
+  <p class="quest-desc">The first honey harvest. Bob brings out the hand-crank extractor. "This is the part everyone thinks they're here for. But the honey's not the point&mdash;the honey is proof the bees are doing well." He lets Eli do the uncapping.</p>
+  <p class="quest-objective">Objective: Select frames with &ge;80% capping. Uncap, extract, and strain at least 5 lbs of honey. Jar the harvest. Bring one jar to Uncle Bob.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+75 XP</strong></span>
+    <span class="reward"><strong>+30 Standing</strong></span>
+    <span class="reward">Cash: First honey sale value</span>
+    <span class="reward">Knowledge Log: "Harvest &amp; Extraction"</span>
+    <span class="reward">Unlocks: Saturday Market selling (Frank Fischbach introduction)</span>
+  </div>
+</div>
+
+<!-- Bob Q6 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q6: Battening Down</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 1</span>
+      <span class="badge badge-season">Fall Y1</span>
+      <span class="badge badge-type">Seasonal / NPC</span>
+      <span class="badge badge-prereq">After Q5</span>
+    </div>
+  </div>
+  <p class="quest-desc">Fall is coming. Bob teaches winter preparation: mite treatment, weight estimation, mouse guards, moisture management. "Beekeeping isn't about summer. Any fool can keep bees in July. The real work is getting them to March."</p>
+  <p class="quest-objective">Objective: Complete varroa treatment on all hives. Install mouse guards. Verify stores are &ge;60 lbs per hive (or feed to target). Add ventilation board. Report readiness to Bob.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+100 XP</strong></span>
+    <span class="reward"><strong>+30 Standing</strong></span>
+    <span class="reward">Knowledge Log: "Winterization"</span>
+    <span class="reward">Unlocks: Bob mentions his friend Lloyd Petersen who has timber land</span>
+  </div>
+</div>
+
+<!-- Bob Q7 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q7: Lloyd's Lot</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 2</span>
+      <span class="badge badge-season">Spring Y2</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q6 + Level 2 reached + surviving winter</span>
+    </div>
+  </div>
+  <p class="quest-desc">Bob introduces Eli to Lloyd Petersen, an old friend who owns timber and woodlot acreage. Lloyd's amenable to hives on his land but needs the clearing prepped. Bob can't do the work himself anymore&mdash;"My back says I'm fifty-eight. My heart says maybe not even that."</p>
+  <p class="quest-objective">Objective: Visit Lloyd's property with Bob. Walk the site. Pay the $200 clearing fee to Lloyd. Clear and prep the apiary site (3 in-game tasks over 1 week). Place first hive at Timber &amp; Woodlot.</p>
+  <div class="unlock-box">
+    <strong>Major Unlock: Timber &amp; Woodlot Apiary</strong> &mdash; New forage zone with basswood, tulip poplar, and wildflower access. Up to 4 hive slots.
+  </div>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+100 XP</strong></span>
+    <span class="reward"><strong>+40 Standing</strong></span>
+    <span class="reward">Cost: $200 site clearing fee</span>
+    <span class="reward">Knowledge Log: "Apiary Site Selection"</span>
+  </div>
+</div>
+
+<!-- Bob Q8 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q8: Spring Count</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 2&ndash;3</span>
+      <span class="badge badge-season">Spring Y3</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q7 + 2nd winter survived</span>
+    </div>
+  </div>
+  <p class="quest-desc">Two years in. Bob and Eli walk the apiaries together. Bob lets Eli lead the inspection while he watches. At the end he says: "I think you know more than I did at this point. Don't tell anyone I said that." This is the capstone&mdash;the student surpassing the mentor.</p>
+  <p class="quest-objective">Objective: Inspect all hives across both apiaries. Report winter survival rate to Bob. If &ge;80% survived: Bob's chain completes with full dialogue. If &lt;80%: Bob gives encouragement and the quest completes with modified dialogue.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+150 XP</strong></span>
+    <span class="reward"><strong>+50 Standing</strong></span>
+    <span class="reward">Bob's chain complete &mdash; unlocks recurring mentorship visits (bi-weekly, +20 XP each, indefinite)</span>
+    <span class="reward">Knowledge Log: "The Mentor's Approval"</span>
+  </div>
+</div>
+
+<div class="design-note">
+  <strong>Design Note &mdash; Bob's Recurring Presence:</strong> After the chain completes, Bob doesn't vanish. He remains available for bi-weekly visits (+20&ndash;25 XP), appears at the Crossroads Diner on Tuesdays, and has seasonal dialogue that reflects his health and the weather. His presence is permanent and evolving. He just stops being the quest driver and becomes the emotional anchor.
+</div>
+
+
+<!-- ============================================================ -->
+<!-- DARLENE KOWALSKI -->
+<!-- ============================================================ -->
+<hr>
+<h2>Darlene Kowalski <span class="npc-tag">Master Beekeeper</span></h2>
+
+<p>Darlene is the safety net and the standard. Her quests focus on quality, queen management, and the deeper craft of beekeeping. She's visible from the start (fence line neighbor) but her quest chain activates through observation and need&mdash;the player comes to her when something goes wrong, or when they're ready to go deeper.</p>
+
+<div class="chain-flow">
+  <span class="chain-step active">Q1: Over the Fence</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q2: The Marked Queen</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q3: When Good Queens Go Bad</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q4: Three Hive Walk</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q5: The Old Way</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q6: Passing It Forward</span>
+</div>
+
+<!-- Darlene Q1 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q1: Over the Fence</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 1</span>
+      <span class="badge badge-season">Spring Y1</span>
+      <span class="badge badge-type">NPC Quest</span>
+    </div>
+  </div>
+  <p class="quest-desc">Eli notices Darlene working her hives on the adjacent property. She waves him over. "You're Bob's nephew? He told me you were coming. Let me show you something." She demonstrates how her established hives look compared to Eli's recovering colony&mdash;the contrast is educational.</p>
+  <p class="quest-objective">Objective: Visit Darlene's property. Observe her inspect one of her hives. Answer 3 observation questions correctly (brood pattern, population estimate, queen status).</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+50 XP</strong></span>
+    <span class="reward"><strong>+20 Standing</strong></span>
+    <span class="reward">Knowledge Log: "What a Healthy Hive Looks Like"</span>
+    <span class="reward">Unlocks: Can visit Darlene's property anytime for dialogue</span>
+  </div>
+</div>
+
+<!-- Darlene Q2 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q2: The Marked Queen</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 1&ndash;2</span>
+      <span class="badge badge-season">Summer Y1</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q1 + spotted queen 3 times</span>
+    </div>
+  </div>
+  <p class="quest-desc">Darlene teaches queen marking. "You need to know who's in charge. And more importantly, you need to know when she's been replaced." She provides a marking pen and demonstrates on one of her queens.</p>
+  <p class="quest-objective">Objective: Find and mark the queen in your surviving hive using the international color system. Must complete within a single inspection without losing her.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+75 XP</strong></span>
+    <span class="reward"><strong>+25 Standing</strong></span>
+    <span class="reward">Item: Queen marking pen (permanent tool)</span>
+    <span class="reward">Knowledge Log: "Queen Identification &amp; Marking"</span>
+  </div>
+</div>
+
+<!-- Darlene Q3 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q3: When Good Queens Go Bad</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 2</span>
+      <span class="badge badge-season">Y2 (triggered by queen failure event)</span>
+      <span class="badge badge-type">NPC Quest / Challenge</span>
+      <span class="badge badge-prereq">After Q2 + queen failure in any hive</span>
+    </div>
+  </div>
+  <p class="quest-desc">A queen fails&mdash;poor brood pattern, multiple eggs per cell, or she's simply gone. Darlene walks Eli through emergency requeening. "Every beekeeper loses a queen. It's what you do in the next 48 hours that separates the hobbyists from the beekeepers."</p>
+  <p class="quest-objective">Objective: Identify the failing/missing queen. Order a replacement through Tanner's Supply (or accept one from Darlene if standing &ge;250). Install the new queen. Verify acceptance after 3 days (check for released cage, no queen cells built).</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+100 XP</strong></span>
+    <span class="reward"><strong>+30 Standing</strong></span>
+    <span class="reward">Knowledge Log: "Emergency Requeening"</span>
+    <span class="reward">Unlocks: Queen sourcing from Darlene at high relationship</span>
+  </div>
+</div>
+
+<!-- Darlene Q4 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q4: Three Hive Walk</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 2&ndash;3</span>
+      <span class="badge badge-season">Spring Y2 or Y3</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q3 + managing &ge;4 hives</span>
+    </div>
+  </div>
+  <p class="quest-desc">Darlene invites Eli to help inspect all three of her hives in one session. She grades his technique and observation skills. "You're looking, but are you seeing? Tell me which hive you'd split and why."</p>
+  <p class="quest-objective">Objective: Inspect all 3 of Darlene's hives. For each, record: queen status, brood quality, population strength, varroa load estimate, and stores estimate. Correctly identify which hive is the best split candidate.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+100 XP</strong></span>
+    <span class="reward"><strong>+35 Standing</strong></span>
+    <span class="reward">Knowledge Log: "Comparative Hive Assessment"</span>
+    <span class="reward">Unlocks: Darlene's advanced dialogue on queen genetics</span>
+  </div>
+</div>
+
+<!-- Darlene Q5 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q5: The Old Way</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 3&ndash;4</span>
+      <span class="badge badge-season">Y3&ndash;Y4</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q4 + Level 3</span>
+    </div>
+  </div>
+  <p class="quest-desc">Darlene shares her grandmother's approach to queen selection&mdash;observational genetics before there were testing kits. "We didn't have DNA analysis. We had eyes, patience, and three generations of notes." She teaches Eli to evaluate queen quality by observable brood traits.</p>
+  <p class="quest-objective">Objective: Over 4 inspections across 2 months, evaluate queen performance in 3+ hives using Darlene's criteria: brood compactness, pattern consistency, temperament during inspection, honey production rate. Rank your queens and present your assessment to Darlene.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+125 XP</strong></span>
+    <span class="reward"><strong>+40 Standing</strong></span>
+    <span class="reward">Knowledge Log: "Observational Queen Assessment"</span>
+    <span class="reward">Unlocks: Preferred queen traits visible in inspection UI</span>
+  </div>
+</div>
+
+<!-- Darlene Q6 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q6: Passing It Forward</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 4</span>
+      <span class="badge badge-season">Y4+</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q5 + Level 4 + queen rearing unlocked</span>
+    </div>
+  </div>
+  <p class="quest-desc">Darlene is slowing down. She asks Eli to raise a queen from her best colony's genetics&mdash;one she can put in her hive, so her grandmother's line continues. "I can't do the grafting anymore. My hands aren't steady enough. But you can."</p>
+  <p class="quest-objective">Objective: Graft queen cells from Darlene's best colony. Successfully raise a mated queen. Install her in one of Darlene's hives. Verify laying within 2 weeks.</p>
+  <div class="unlock-box">
+    <strong>Darlene's Chain Complete</strong> &mdash; Darlene defers to Eli on technique questions going forward. Permanent: emergency queen sourcing from Darlene at no cost (once per season).
+  </div>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+150 XP</strong></span>
+    <span class="reward"><strong>+60 Standing</strong></span>
+    <span class="reward">Knowledge Log: "The Legacy of a Line"</span>
+    <span class="reward">Unlocks: Darlene's queen line available for grafting (premium genetics)</span>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- FRANK FISCHBACH -->
+<!-- ============================================================ -->
+<hr>
+<h2>Frank Fischbach <span class="npc-tag">Market Vendor</span></h2>
+
+<p>Frank is the economic backbone. His quests teach the market side of beekeeping: presentation, consistency, reputation, and scaling. He's the first NPC who treats Eli like a business partner, not a student. His approval unlocks premium pricing and county fair access.</p>
+
+<div class="chain-flow">
+  <span class="chain-step active">Q1: First Jar</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q2: The Saturday Regulars</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q3: Label and Shelf</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q4: Bulk Order</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q5: County Fair</span>
+</div>
+
+<!-- Frank Q1 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q1: First Jar</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 1</span>
+      <span class="badge badge-season">Summer Y1</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Bob Q5 (First Pull)</span>
+    </div>
+  </div>
+  <p class="quest-desc">Bob sends Eli to the Saturday Market with a few jars. Frank takes one look and gives honest feedback: "Honey's good. Presentation needs work. Come back next week with a label and I'll give you a spot."</p>
+  <p class="quest-objective">Objective: Bring at least 3 jars of honey to the Saturday Market. Speak with Frank. Sell at least 1 jar (any price).</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+50 XP</strong></span>
+    <span class="reward"><strong>+15 Standing</strong></span>
+    <span class="reward">Cash: Market price for sold jars</span>
+    <span class="reward">Unlocks: Regular Saturday Market attendance</span>
+  </div>
+</div>
+
+<!-- Frank Q2 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q2: The Saturday Regulars</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 1&ndash;2</span>
+      <span class="badge badge-season">Late Summer Y1</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q1 + attended 4 markets</span>
+    </div>
+  </div>
+  <p class="quest-desc">Frank notices Eli's been consistent. "People are asking for you. That's worth more than the honey." He teaches the market economy: how regulars build baseline income, how variety increases average sale, and why showing up matters more than having the best product.</p>
+  <p class="quest-objective">Objective: Attend 4 consecutive Saturday Markets. Sell at least 2 different products (honey + one wax product or herb bundle). Total revenue &ge;$50 across the 4 markets.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+75 XP</strong></span>
+    <span class="reward"><strong>+25 Standing</strong></span>
+    <span class="reward">Unlocks: Frank's premium pricing dialogue (+2% base price ongoing)</span>
+    <span class="reward">Knowledge Log: "Market Economics"</span>
+  </div>
+</div>
+
+<!-- Frank Q3 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q3: Label and Shelf</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 2</span>
+      <span class="badge badge-season">Y2</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q2 + Standing &ge;100 (Known)</span>
+    </div>
+  </div>
+  <p class="quest-desc">Frank offers Eli a permanent shelf spot at the market&mdash;not just a folding table. "Real shelf. Your name on it. But I need consistent supply: minimum 6 jars every Saturday through the season. Can you do that?"</p>
+  <p class="quest-objective">Objective: Maintain &ge;6 jars of honey stocked at Frank's shelf for 6 consecutive market weeks. No gaps.</p>
+  <div class="unlock-box">
+    <strong>Premium Shelf Space</strong> &mdash; Permanent market presence. +5% sale prices. Products sell even if Eli doesn't attend in person.
+  </div>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+100 XP</strong></span>
+    <span class="reward"><strong>+35 Standing</strong></span>
+    <span class="reward">Permanent +5% market price bonus</span>
+    <span class="reward">Knowledge Log: "Building a Brand"</span>
+  </div>
+</div>
+
+<!-- Frank Q4 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q4: Bulk Order</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 3</span>
+      <span class="badge badge-season">Y3</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q3 + Level 3 + Honey House built</span>
+    </div>
+  </div>
+  <p class="quest-desc">Frank comes to Eli with a proposition: the Cedar Bend General Store wants to stock local honey year-round. "They want 20 lbs a month, minimum. Steady contract. Real money. But you miss a delivery and they find someone else."</p>
+  <p class="quest-objective">Objective: Fulfill a contract for 20 lbs of honey per month for 3 consecutive months. Honey must be &le;18% moisture (quality standard).</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+125 XP</strong></span>
+    <span class="reward"><strong>+45 Standing</strong></span>
+    <span class="reward">Ongoing contract: Guaranteed monthly income</span>
+    <span class="reward">Knowledge Log: "Wholesale &amp; Contracts"</span>
+  </div>
+</div>
+
+<!-- Frank Q5 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q5: County Fair</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 3&ndash;4</span>
+      <span class="badge badge-season">Summer Y3&ndash;Y4</span>
+      <span class="badge badge-type">NPC Quest / Challenge</span>
+      <span class="badge badge-prereq">After Q4 + Standing &ge;500 (Respected)</span>
+      <span class="badge badge-standing">Standing 500+</span>
+    </div>
+  </div>
+  <p class="quest-desc">Frank sponsors Eli's entry in the Millhaven County Fair honey competition. "Time to see how you stack up against the whole county. I've been entering my pickles for twelve years. Never won. But the trying&mdash;that's the point."</p>
+  <p class="quest-objective">Objective: Submit your best honey for judging. Entry judged on: clarity, moisture (&le;17.8%), flavor profile, and presentation. Placement depends on actual honey quality stats.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+150 XP</strong></span>
+    <span class="reward">Standing: +50 (1st), +25 (2nd), +10 (3rd), +5 (participation)</span>
+    <span class="reward">1st Place: Rare queen voucher + county recognition</span>
+    <span class="reward">Knowledge Log: "Competition Honey"</span>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- DR. ELLEN HARWICK -->
+<!-- ============================================================ -->
+<hr>
+<h2>Dr. Ellen Harwick <span class="npc-tag">Extension Agent</span></h2>
+
+<p>Ellen is the science. She enters the story when things go wrong and stays for mastery-level depth. Her quests are the most technically demanding and represent the transition from practical beekeeper to scientifically literate apiarist. She gates the late-game mastery content.</p>
+
+<div class="chain-flow">
+  <span class="chain-step active">Q1: The County Call</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q2: Under the Microscope</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q3: The IPM Protocol</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q4: Sentinel Hive</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q5: The Certification</span>
+</div>
+
+<!-- Ellen Q1 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q1: The County Call</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 2</span>
+      <span class="badge badge-season">Y2 (triggered by first disease/pest event)</span>
+      <span class="badge badge-type">NPC Quest / Challenge</span>
+    </div>
+  </div>
+  <p class="quest-desc">A varroa spike or suspicious brood triggers a visit from Dr. Harwick. She doesn't sugarcoat it. "I'm Dr. Harwick, extension service. Your mite count is above threshold. Let's talk about what that means and what we're going to do about it."</p>
+  <p class="quest-objective">Objective: Perform an alcohol wash mite count with Dr. Harwick observing. Record the result. Follow her treatment recommendation. Recount after treatment to verify efficacy.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+75 XP</strong></span>
+    <span class="reward"><strong>+20 Standing</strong></span>
+    <span class="reward">Knowledge Log: "Varroa Threshold Management"</span>
+    <span class="reward">Unlocks: Can request lab analysis from Dr. Harwick anytime</span>
+  </div>
+</div>
+
+<!-- Ellen Q2 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q2: Under the Microscope</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 2&ndash;3</span>
+      <span class="badge badge-season">Y2&ndash;Y3</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q1 + 2nd pest/disease event</span>
+    </div>
+  </div>
+  <p class="quest-desc">Dr. Harwick invites Eli to the extension office to see lab analysis firsthand. "You're past the point where 'the bees look sick' is good enough. Let me show you what sick actually looks like." She teaches diagnostic sampling.</p>
+  <p class="quest-objective">Objective: Collect samples from 3 hives (bee samples + brood samples). Deliver to Dr. Harwick's office. Review results together. Correctly identify which hive has the issue and propose a treatment plan.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+100 XP</strong></span>
+    <span class="reward"><strong>+30 Standing</strong></span>
+    <span class="reward">Knowledge Log: "Laboratory Diagnostics"</span>
+    <span class="reward">Unlocks: Sample collection kit (permanent tool), disease detail in inspection UI</span>
+  </div>
+</div>
+
+<!-- Ellen Q3 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q3: The IPM Protocol</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 3</span>
+      <span class="badge badge-season">Y3</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q2 + Level 3</span>
+    </div>
+  </div>
+  <p class="quest-desc">Dr. Harwick proposes a structured Integrated Pest Management protocol for Eli's operation. "You're big enough now that reactive treatment isn't sufficient. I want you running a calendar: monitor, threshold, treat, verify. Every hive, every month."</p>
+  <p class="quest-objective">Objective: Implement a full IPM season: monthly mite counts on all hives, treatment when above threshold, post-treatment verification. Maintain records for one full active season (spring through fall). No hive should exceed 3% mite load at any monthly check.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+125 XP</strong></span>
+    <span class="reward"><strong>+40 Standing</strong></span>
+    <span class="reward">Knowledge Log: "Integrated Pest Management"</span>
+    <span class="reward">Unlocks: IPM calendar overlay in journal, treatment reminder system</span>
+  </div>
+</div>
+
+<!-- Ellen Q4 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q4: Sentinel Hive</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 4</span>
+      <span class="badge badge-season">Y4</span>
+      <span class="badge badge-type">Mastery Quest</span>
+      <span class="badge badge-prereq">After Q3 + Level 4 + Observation Hive built</span>
+    </div>
+  </div>
+  <p class="quest-desc">Dr. Harwick asks Eli to designate one hive as a sentinel&mdash;an untreated monitoring hive that provides early warning data for the county. "It's risky. You'll lose the colony if mites spike. But the data you generate helps every beekeeper in Millhaven."</p>
+  <p class="quest-objective">Objective: Designate a hive as a sentinel. Perform weekly mite counts without treating. Report data to Dr. Harwick monthly. Maintain the sentinel for one full season. If mite counts exceed 5%, Dr. Harwick will advise whether to terminate the experiment or continue.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+200 XP</strong></span>
+    <span class="reward"><strong>+50 Standing</strong></span>
+    <span class="reward">Knowledge Log: "Sentinel Monitoring &amp; Regional Data"</span>
+    <span class="reward">Unlocks: County mite forecast data in journal (regional context for your counts)</span>
+  </div>
+</div>
+
+<!-- Ellen Q5 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q5: The Certification</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 5</span>
+      <span class="badge badge-season">Y5+</span>
+      <span class="badge badge-type">Mastery Quest</span>
+      <span class="badge badge-prereq">After Q4 + Level 5</span>
+    </div>
+  </div>
+  <p class="quest-desc">Dr. Harwick recommends Eli for the state's Master Beekeeper certification program. "I don't recommend people lightly. You've earned this." The exam covers everything: biology, management, diseases, economics, and a practical demonstration.</p>
+  <p class="quest-objective">Objective: Pass a multi-part assessment: written knowledge check (15 questions from Knowledge Log), practical inspection observed by Dr. Harwick (must identify 5 specific conditions), and present a season management plan for a 15+ hive operation.</p>
+  <div class="unlock-box">
+    <strong>Dr. Harwick's Chain Complete</strong> &mdash; Master Beekeeper certification. Permanent: advanced diagnostic detail in all inspections. Dr. Harwick refers other beekeepers to Eli for advice (new dialogue encounters).
+  </div>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+200 XP</strong></span>
+    <span class="reward"><strong>+75 Standing</strong></span>
+    <span class="reward">Title: "Certified Master Beekeeper"</span>
+    <span class="reward">Knowledge Log: "Master Certification"</span>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- WALT & KACEY HARMON -->
+<!-- ============================================================ -->
+<hr>
+<h2>Walt &amp; Kacey Harmon <span class="npc-tag">Farm Neighbors</span></h2>
+
+<p>The Harmon chain is primarily through Kacey, who bridges the gap between agriculture and beekeeping. This chain unlocks the Harmon Farm / Orchard apiary&mdash;a major forage zone expansion. It also explores the tension between conventional farming and pollinator-friendly practices. Walt comes around slowly; the player earns his respect through results, not arguments.</p>
+
+<div class="chain-flow">
+  <span class="chain-step active">Q1: The Dead Bees</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q2: Kacey's Idea</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q3: The Test Strip</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q4: Pollination Deal</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q5: Cover Crop Season</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q6: Walt Comes Around</span>
+</div>
+
+<!-- Harmon Q1 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q1: The Dead Bees</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 2</span>
+      <span class="badge badge-season">Summer Y2 (pesticide event trigger)</span>
+      <span class="badge badge-type">Challenge / NPC Quest</span>
+    </div>
+  </div>
+  <p class="quest-desc">Eli finds a carpet of dead bees in front of a hive after the Harmon Farm sprays during bloom. This is the pesticide event&mdash;the first time Eli confronts the reality that his bees don't exist in isolation. Bob suggests talking to the Harmons, but warns: "Don't go angry. Go informed."</p>
+  <p class="quest-objective">Objective: Document the dead bees (inspection record). Visit the Harmon Farm. Speak with Walt (initially dismissive). Meet Kacey, who's sympathetic. Provide evidence of the bee kill.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+75 XP</strong></span>
+    <span class="reward"><strong>+15 Standing</strong></span>
+    <span class="reward">Knowledge Log: "Pesticide Impact on Pollinators"</span>
+    <span class="reward">Unlocks: Kacey Harmon as an interactable NPC</span>
+  </div>
+</div>
+
+<!-- Harmon Q2 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q2: Kacey's Idea</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 2</span>
+      <span class="badge badge-season">Fall Y2</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q1</span>
+    </div>
+  </div>
+  <p class="quest-desc">Kacey reaches out. She studied agronomy and has been pushing Walt toward pollinator-safe spray timing. "My dad's not a bad guy. He just farms the way his dad farmed. Help me show him there's a better way that doesn't cost him yield."</p>
+  <p class="quest-objective">Objective: Meet with Kacey at the farm. Review the spray schedule together. Propose a modified timing (spray at dusk, not dawn; avoid bloom windows). Present the plan to Walt. He agrees to try it for one season.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+75 XP</strong></span>
+    <span class="reward"><strong>+25 Standing</strong></span>
+    <span class="reward">Knowledge Log: "Working with Conventional Farmers"</span>
+    <span class="reward">Unlocks: Modified spray schedule (reduced pesticide events on Harmon Farm)</span>
+  </div>
+</div>
+
+<!-- Harmon Q3 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q3: The Test Strip</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 2&ndash;3</span>
+      <span class="badge badge-season">Spring Y3</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q2</span>
+    </div>
+  </div>
+  <p class="quest-desc">Kacey convinces Walt to let her plant a test strip of cover crops along the south fence&mdash;clover and buckwheat between the corn rows. She needs Eli's help. "If we can show Dad the bees use it and his yield doesn't drop, he'll let us do more."</p>
+  <p class="quest-objective">Objective: Help Kacey plant the cover crop test strip (3 in-game tasks). Monitor bee activity on the strip over 2 months. Document forage visits from your hives (entrance observation sessions). Report findings to Kacey.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+100 XP</strong></span>
+    <span class="reward"><strong>+30 Standing</strong></span>
+    <span class="reward">Knowledge Log: "Cover Crops &amp; Pollinator Forage"</span>
+    <span class="reward">Kacey friendship level 2</span>
+  </div>
+</div>
+
+<!-- Harmon Q4 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q4: Pollination Deal</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 2&ndash;3</span>
+      <span class="badge badge-season">Late Spring Y3</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q3 (Kacey friendship level 3)</span>
+    </div>
+  </div>
+  <p class="quest-desc">The test strip worked. Kacey proposes a formal arrangement: Eli places hives on the Harmon Farm for pollination services, and in exchange gets access to the orchard and field edges as a forage zone. No money changes hands&mdash;it's a service swap.</p>
+  <p class="quest-objective">Objective: Negotiate terms with Kacey (and Walt, who's now cautiously interested). Move 2&ndash;3 hives to the Harmon Farm apiary site. Verify bees are foraging on farm crops within 2 weeks.</p>
+  <div class="unlock-box">
+    <strong>Major Unlock: Harmon Farm / Orchard Apiary</strong> &mdash; New forage zone with orchard bloom, field flowers, and cover crop access. Up to 4 hive slots. Free (service exchange).
+  </div>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+125 XP</strong></span>
+    <span class="reward"><strong>+40 Standing</strong></span>
+    <span class="reward">Harmon Farm apiary unlocked</span>
+    <span class="reward">Knowledge Log: "Pollination Services"</span>
+  </div>
+</div>
+
+<!-- Harmon Q5 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q5: Cover Crop Season</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 3</span>
+      <span class="badge badge-season">Y3&ndash;Y4</span>
+      <span class="badge badge-type">Seasonal / NPC Quest</span>
+      <span class="badge badge-prereq">After Q4</span>
+    </div>
+  </div>
+  <p class="quest-desc">With the pollination deal working, Kacey pushes to expand cover crops across more of the farm. She needs Eli to demonstrate the economic value: more bees, more pollination, higher crop yield. It's a season-long experiment.</p>
+  <p class="quest-objective">Objective: Maintain hives at Harmon Farm for a full growing season. Track honey production from farm-adjacent hives separately. Provide Kacey with a season summary: pollination coverage, honey yield, crop proximity data.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+100 XP</strong></span>
+    <span class="reward"><strong>+35 Standing</strong></span>
+    <span class="reward">Expanded cover crops on Harmon Farm (improved forage quality permanently)</span>
+    <span class="reward">Knowledge Log: "Agriculture-Apiculture Symbiosis"</span>
+  </div>
+</div>
+
+<!-- Harmon Q6 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q6: Walt Comes Around</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 3&ndash;4</span>
+      <span class="badge badge-season">Y4</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q5</span>
+    </div>
+  </div>
+  <p class="quest-desc">Walt seeks Eli out at the market. He doesn't say much&mdash;he's not that kind of man&mdash;but he says enough. "Kacey's crop numbers are up 12% on the fields where your girls are working. I'm not going to pretend I understand it. But I understand 12%." He offers to expand the apiary on his land.</p>
+  <p class="quest-objective">Objective: Accept Walt's offer. Expand the Harmon Farm apiary to its full capacity. Place additional hives. Walt provides site improvements at his own cost.</p>
+  <div class="unlock-box">
+    <strong>Harmon Chain Complete</strong> &mdash; Full Harmon Farm apiary (expanded to 6 hive slots). Permanent: no pesticide events on Harmon Farm land. Walt becomes a background ally&mdash;occasional dialogue, seasonal crop updates.
+  </div>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+150 XP</strong></span>
+    <span class="reward"><strong>+50 Standing</strong></span>
+    <span class="reward">Expanded apiary: 6 hive slots at Harmon Farm</span>
+    <span class="reward">Knowledge Log: "Earning Trust Through Results"</span>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- CEDAR VALLEY BKA -->
+<!-- ============================================================ -->
+<hr>
+<h2>Cedar Valley Beekeepers Association <span class="npc-tag">Community</span></h2>
+
+<p>The CVBA chain is the community track. It builds standing steadily and unlocks the River Bottom apiary&mdash;the premium late-game forage location. These quests require sustained community engagement rather than individual skill.</p>
+
+<div class="chain-flow">
+  <span class="chain-step active">Q1: The New Kid</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q2: Show and Tell</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q3: The Equipment Swap</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">Q4: River Bottom</span>
+</div>
+
+<!-- CVBA Q1 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q1: The New Kid</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 1&ndash;2</span>
+      <span class="badge badge-season">Any (after first meeting)</span>
+      <span class="badge badge-type">NPC Quest</span>
+    </div>
+  </div>
+  <p class="quest-desc">Eli attends his first CVBA meeting at the Grange Hall. He's the youngest person there by decades. Some members are welcoming, some skeptical. The president asks everyone to introduce themselves and share their biggest beekeeping challenge this season.</p>
+  <p class="quest-objective">Objective: Attend 3 CVBA monthly meetings. Listen to the speaker at each. Introduce yourself at the first meeting. Share an observation or question at the third meeting.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+75 XP</strong></span>
+    <span class="reward"><strong>+25 Standing</strong></span>
+    <span class="reward">Knowledge Log entries: 3 (one per speaker topic)</span>
+    <span class="reward">Unlocks: CVBA bulletin board quests (small community tasks)</span>
+  </div>
+</div>
+
+<!-- CVBA Q2 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q2: Show and Tell</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 2&ndash;3</span>
+      <span class="badge badge-season">Y2&ndash;Y3</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q1 + Standing &ge;250 (Trusted)</span>
+      <span class="badge badge-standing">Standing 250+</span>
+    </div>
+  </div>
+  <p class="quest-desc">The CVBA president asks Eli to present at a meeting. "The members want to hear from someone who started from scratch. Tell them about your first year." Public speaking&mdash;a different kind of challenge.</p>
+  <p class="quest-objective">Objective: Prepare a presentation (select 3 topics from your Knowledge Log to present). Deliver it at the monthly meeting. Answer 2 questions from members.</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+100 XP</strong></span>
+    <span class="reward"><strong>+40 Standing</strong></span>
+    <span class="reward">Knowledge Log: "Teaching What You Know"</span>
+    <span class="reward">Unlocks: Queen trades and equipment exchanges at CVBA meetings</span>
+  </div>
+</div>
+
+<!-- CVBA Q3 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q3: The Equipment Swap</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 3</span>
+      <span class="badge badge-season">Y3</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q2</span>
+    </div>
+  </div>
+  <p class="quest-desc">The CVBA organizes an annual equipment swap and honey tasting. Members bring surplus equipment, queens, and honey. Eli can trade, buy, and sell&mdash;and the event builds the community connections needed for the River Bottom proposal.</p>
+  <p class="quest-objective">Objective: Donate or trade at least 2 items at the equipment swap. Bring honey for the tasting. Network with 3 CVBA members (specific dialogue interactions).</p>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+100 XP</strong></span>
+    <span class="reward"><strong>+45 Standing</strong></span>
+    <span class="reward">Equipment acquired at swap prices (40% below retail)</span>
+    <span class="reward">Unlocks: River Bottom proposal discussion with CVBA leadership</span>
+  </div>
+</div>
+
+<!-- CVBA Q4 -->
+<div class="quest-card">
+  <div class="quest-header">
+    <span class="quest-title">Q4: River Bottom</span>
+    <div class="quest-meta">
+      <span class="badge badge-level">Level 3</span>
+      <span class="badge badge-season">Y3&ndash;Y4</span>
+      <span class="badge badge-type">NPC Quest</span>
+      <span class="badge badge-prereq">After Q3 + Standing &ge;500 (Respected) + Level 3</span>
+      <span class="badge badge-standing">Standing 500+</span>
+    </div>
+  </div>
+  <p class="quest-desc">The CVBA has access to River Bottom land&mdash;premium bottomland forage with willow, sycamore, and wild meadow. It's been fallow since the last beekeeper retired. The association votes to offer Eli the site, contingent on a seasonal lease and site prep commitment.</p>
+  <p class="quest-objective">Objective: Attend the CVBA vote meeting. Accept the River Bottom lease ($500 for site prep + seasonal fee). Prepare the site (3 tasks over 2 weeks). Place first hive at River Bottom. Maintain at least 2 hives there through the first season.</p>
+  <div class="unlock-box">
+    <strong>Major Unlock: River Bottom Apiary</strong> &mdash; Premium forage zone. Wildflower meadow, riparian corridor, bottomland diversity. Up to 6 hive slots. Best varietal honey potential in the game.
+  </div>
+  <div class="quest-rewards">
+    <span class="reward"><strong>+150 XP</strong></span>
+    <span class="reward"><strong>+60 Standing</strong></span>
+    <span class="reward">Cost: $500 site prep + seasonal lease</span>
+    <span class="reward">River Bottom apiary unlocked</span>
+    <span class="reward">Knowledge Log: "Community Land Stewardship"</span>
+  </div>
+</div>
+
+<div class="design-note">
+  <strong>Design Note &mdash; CVBA Recurring Content:</strong> Beyond the quest chain, CVBA monthly meetings continue indefinitely. Each meeting has a unique speaker topic drawn from the Knowledge Log system. Attending provides +30 XP and a Knowledge Log entry. The meetings also serve as a social hub where other NPCs occasionally appear with one-off dialogue.
+</div>
+
+
+<!-- ============================================================ -->
+<!-- QUEST INTERCONNECTION MAP -->
+<!-- ============================================================ -->
+<hr>
+<h2>Quest Interconnection Map</h2>
+
+<p>No quest chain exists in isolation. The design creates natural cross-NPC dependencies that encourage the player to engage with the full cast without forced branching.</p>
+
+<table class="summary-table">
+<tr>
+  <th>Trigger</th>
+  <th>Source NPC</th>
+  <th>Feeds Into</th>
+  <th>How</th>
+</tr>
+<tr>
+  <td>Bob Q5 (First Pull)</td>
+  <td>Uncle Bob</td>
+  <td>Frank Q1 (First Jar)</td>
+  <td>Bob sends Eli to the market with honey</td>
+</tr>
+<tr>
+  <td>Bob Q6 (Battening Down)</td>
+  <td>Uncle Bob</td>
+  <td>Bob Q7 (Lloyd's Lot)</td>
+  <td>Bob mentions Lloyd during winterization talk</td>
+</tr>
+<tr>
+  <td>First pest/disease event</td>
+  <td>System event</td>
+  <td>Dr. Harwick Q1 (County Call)</td>
+  <td>Extension agent triggered by disease detection</td>
+</tr>
+<tr>
+  <td>Pesticide event on Harmon land</td>
+  <td>System event</td>
+  <td>Harmon Q1 (Dead Bees)</td>
+  <td>Dead bees at hive entrance trigger investigation</td>
+</tr>
+<tr>
+  <td>CVBA Q1 meetings</td>
+  <td>CVBA</td>
+  <td>Various NPCs</td>
+  <td>Meetings introduce Darlene, Dr. Harwick, and other characters</td>
+</tr>
+<tr>
+  <td>Darlene Q3 (Queen Failure)</td>
+  <td>Darlene</td>
+  <td>Dr. Harwick Q2 (Microscope)</td>
+  <td>Persistent health issues lead to extension involvement</td>
+</tr>
+<tr>
+  <td>Frank Q4 (Bulk Order)</td>
+  <td>Frank</td>
+  <td>Harmon Q4 (Pollination Deal)</td>
+  <td>Scaling production requires more forage &rarr; farm access</td>
+</tr>
+<tr>
+  <td>Harmon Q4 (Pollination Deal)</td>
+  <td>Kacey Harmon</td>
+  <td>Frank Q5 (County Fair)</td>
+  <td>Farm honey enables varietal entries in competition</td>
+</tr>
+<tr>
+  <td>CVBA Q4 (River Bottom)</td>
+  <td>CVBA</td>
+  <td>Dr. Harwick Q4 (Sentinel)</td>
+  <td>River Bottom hives ideal for sentinel monitoring</td>
+</tr>
+</table>
+
+<div class="design-note">
+  <strong>Design Note &mdash; Failure as Progression:</strong> Quest failures don't lock the player out permanently. A failed seasonal goal delays progression by one season and costs standing, but the quest reappears. NPC quest failures delay the specific chain by one season and reduce standing with that NPC. The design ensures the player always has a path forward&mdash;just a slower one. This mirrors real beekeeping: a bad year sets you back, but it doesn't end you.
+</div>
+
+
+<!-- ============================================================ -->
+<!-- TOTAL QUEST ECONOMY -->
+<!-- ============================================================ -->
+<hr>
+<h2>Total Quest Economy</h2>
+
+<table class="summary-table">
+<tr>
+  <th>Category</th>
+  <th>Quest Count</th>
+  <th>Total XP</th>
+  <th>Total Standing</th>
+</tr>
+<tr>
+  <td>Uncle Bob chain</td>
+  <td>8</td>
+  <td>575 XP</td>
+  <td>215</td>
+</tr>
+<tr>
+  <td>Darlene Kowalski chain</td>
+  <td>6</td>
+  <td>600 XP</td>
+  <td>210</td>
+</tr>
+<tr>
+  <td>Frank Fischbach chain</td>
+  <td>5</td>
+  <td>500 XP</td>
+  <td>145</td>
+</tr>
+<tr>
+  <td>Dr. Ellen Harwick chain</td>
+  <td>5</td>
+  <td>700 XP</td>
+  <td>215</td>
+</tr>
+<tr>
+  <td>Walt &amp; Kacey Harmon chain</td>
+  <td>6</td>
+  <td>625 XP</td>
+  <td>195</td>
+</tr>
+<tr>
+  <td>Cedar Valley BKA chain</td>
+  <td>4</td>
+  <td>425 XP</td>
+  <td>170</td>
+</tr>
+<tr style="font-weight:700; background:rgba(218,165,32,0.1);">
+  <td>TOTAL (all NPC chains)</td>
+  <td>34</td>
+  <td>3,425 XP</td>
+  <td>1,150</td>
+</tr>
+</table>
+
+<div class="design-note">
+  <strong>Design Note &mdash; XP Balance:</strong> The 3,425 XP from all NPC quest chains represents roughly 14% of the 24,000 XP needed for Master Beekeeper. This is intentional. NPC quests are impactful milestones but the majority of XP comes from the steady rhythms of beekeeping itself: inspections, harvests, mite counts, market days, and the quiet accumulation of showing up. The quests provide structure and narrative. The bees provide the progression.
+</div>
+
+<p style="text-align:center; color: var(--text-dim); margin-top: 60px; font-size: 0.85rem;">
+  Smoke &amp; Honey &mdash; NPC Quest Design Document &mdash; v1.0 &mdash; March 25, 2026
+</p>
+
+</div>
+</body>
+</html>

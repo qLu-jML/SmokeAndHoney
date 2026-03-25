@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smoke &amp; Honey — Morning Report — March 25, 2026</title>
+<style>
+  :root {
+    --bg: #0F0A04;
+    --surface: #1A1208;
+    --border: rgba(108,64,22,0.3);
+    --amber: #C8820C;
+    --amber-lt: #E6A220;
+    --honey: #F4CC6E;
+    --wax: #F2E4B2;
+    --green: #5acc88;
+    --red: #cc5544;
+    --blue: #5a9acc;
+    --muted: rgba(242,228,178,0.55);
+    --text: #F2E4B2;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Arial, sans-serif;
+         font-size: 14px; line-height: 1.7; padding: 40px; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 28px; color: var(--amber-lt); margin-bottom: 4px; }
+  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 32px; }
+  h2 { font-size: 20px; color: var(--amber); margin: 36px 0 16px; padding-bottom: 8px;
+       border-bottom: 1px solid var(--border); }
+  h3 { font-size: 15px; color: var(--honey); margin: 20px 0 8px; }
+  p { margin-bottom: 12px; opacity: 0.85; }
+  ul { padding-left: 20px; margin-bottom: 14px; }
+  li { margin-bottom: 6px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+          padding: 18px 22px; margin-bottom: 16px; }
+  .card-amber { border-left: 4px solid var(--amber); }
+  .card-green { border-left: 4px solid var(--green); }
+  .card-blue { border-left: 4px solid var(--blue); }
+  .card-red { border-left: 4px solid var(--red); }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px;
+         font-weight: bold; margin-right: 4px; }
+  .tag-done { background: #1a3a1a; color: #5acc88; }
+  .tag-wip { background: #2a2a1a; color: #ccaa44; }
+  .tag-next { background: #1a1a2a; color: #668ab4; }
+  .tag-urgent { background: #3a1a1a; color: #cc5544; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: var(--surface); color: var(--amber); text-align: left; padding: 8px 12px;
+       border-bottom: 2px solid var(--amber); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+  td { padding: 7px 12px; border-bottom: 1px solid var(--border); }
+  tr:hover td { background: rgba(200,134,10,0.05); }
+  .priority-num { display: inline-block; width: 24px; height: 24px; line-height: 24px;
+                  text-align: center; border-radius: 50%; background: var(--amber);
+                  color: var(--bg); font-weight: bold; font-size: 12px; margin-right: 8px; }
+  .stat { font-size: 24px; font-weight: bold; color: var(--amber-lt); }
+  .stat-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 16px 0; }
+  .stat-card { text-align: center; }
+  .highlight { color: var(--amber-lt); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>Smoke &amp; Honey — Morning Report</h1>
+<p class="subtitle">Tuesday, March 25, 2026 — Evening Update</p>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- CLAUDE WORK BLOCKS                                         -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>Recommended Claude Work Blocks (Next 24 Hours)</h2>
+<div class="card card-amber">
+  <h3>Optimal Session Windows</h3>
+  <table>
+    <tr><th>Window</th><th>Duration</th><th>Focus</th><th>Why</th></tr>
+    <tr>
+      <td><strong>Tonight 8–11 PM</strong></td>
+      <td>3 hrs</td>
+      <td>Sleep/Day-Advance + Weather System</td>
+      <td>These are the first two items in Phase 2 build order and unblock everything else. Evening sessions tend to be your most productive.</td>
+    </tr>
+    <tr>
+      <td><strong>Wed Morning 7–9 AM</strong></td>
+      <td>2 hrs</td>
+      <td>Harvest UI (Uncap + Extract + Grade)</td>
+      <td>Fresh context from last night's weather system. Harvest is the core loop — get it started early.</td>
+    </tr>
+    <tr>
+      <td><strong>Wed Afternoon 1–4 PM</strong></td>
+      <td>3 hrs</td>
+      <td>Bottling + Saturday Market + Frank placement</td>
+      <td>Completes the sell loop. Long session for wiring economy together.</td>
+    </tr>
+    <tr>
+      <td><strong>Wed Evening 8–10 PM</strong></td>
+      <td>2 hrs</td>
+      <td>QA + Bug fixes + Smoke system start</td>
+      <td>Play-test the full harvest loop, fix issues, then start smoke/stings if time.</td>
+    </tr>
+  </table>
+  <p style="margin-top:12px;font-size:12px;color:var(--muted);">
+    <strong>Token/Credit Reset:</strong> Claude Pro resets on a rolling basis. If you're on a daily limit, expect a fresh allocation around midnight or early morning. Opus sessions are heavier on credits — consider using Sonnet for repetitive code tasks (sprite generation, boilerplate wiring) and saving Opus for architecture decisions and complex simulation logic.
+  </p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- YESTERDAY'S ACCOMPLISHMENTS                                -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>1. Yesterday's Accomplishments</h2>
+
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat">111</div><div class="stat-label">Changelog Entries</div></div>
+  <div class="stat-card"><div class="stat">50+</div><div class="stat-label">GDScript Files</div></div>
+  <div class="stat-card"><div class="stat">Phase 1</div><div class="stat-label">Fully Complete</div></div>
+  <div class="stat-card"><div class="stat">Phase 2</div><div class="stat-label">Next Up</div></div>
+</div>
+
+<p>March 24–25 was an extraordinarily productive 24-hour period. Here's what was accomplished:</p>
+
+<div class="card card-green">
+  <h3>Major Systems Built / Completed</h3>
+  <ul>
+    <li><span class="tag tag-done">DONE</span> <strong>Queen Finder Sub-GDD</strong> — Full 12-section design document created from scratch. Covers probability model, visual tells, breed difficulty, sprite specs, density model (1:100 nurse-to-visible ratio), bee movement algorithm, rendering pipeline, player interaction, inspection difficulty ranks, and implementation order. Located at <code>research/queenFinder/_Queen_Finder_GDD.html</code>.</li>
+    <li><span class="tag tag-done">DONE</span> <strong>Queen Finder Asset Overhaul</strong> — 12 simulation images generated across easy/medium/hard tiers, queen species comparison sheet, dimmed wing colors, fixed abdomen cutoff (60x42 cells).</li>
+    <li><span class="tag tag-done">DONE</span> <strong>Item Sprite Upgrade</strong> — All 20 item sprites regenerated at 32x32 (was 16x16). Hooked into hotbar with TextureRect icon layer.</li>
+    <li><span class="tag tag-done">DONE</span> <strong>Box Management Overhaul</strong> — Gloves item + HiveManagementUI overlay. Add deep/super/excluder, rotate deeps. All box actions now fire before colony-install checks.</li>
+    <li><span class="tag tag-done">DONE</span> <strong>Inspection Difficulty Ranks</strong> — Easy/Medium/Hard with density multipliers (0.33/0.67/1.0), XP scaling per rank.</li>
+    <li><span class="tag tag-done">DONE</span> <strong>NPC Quest Chain Design</strong> — 34 quests across 6 NPCs documented in GDD Section 8.4 and standalone <code>Smoke_and_Honey_Quest_Design.html</code>. 3,425 total XP, 1,150 Standing.</li>
+    <li><span class="tag tag-done">DONE</span> <strong>Full Project Rebrand</strong> — "BeeKeeper Pro" renamed to "Smoke &amp; Honey" across all code, docs, save paths, project.godot, and art asset files. Fresh git repo created.</li>
+  </ul>
+</div>
+
+<div class="card card-green">
+  <h3>Simulation &amp; Gameplay Fixes</h3>
+  <ul>
+    <li><span class="tag tag-done">FIX</span> <strong>Nuc hive inspection lockout</strong> — Nuc hives now bypass 7-day establishment lockout.</li>
+    <li><span class="tag tag-done">FIX</span> <strong>Honey/wax visual progression</strong> — Replaced destructive _sync_honey_to_frames() with incremental sync. Nectar-to-curing-to-capped progression now visible.</li>
+    <li><span class="tag tag-done">FIX</span> <strong>Red hive glow during establishment</strong> — Winter warning now skips during 7-day lockout.</li>
+    <li><span class="tag tag-done">FIX</span> <strong>Game freeze on day advance</strong> — Fixed TimeManager.current_month (non-existent property) to current_month_index().</li>
+    <li><span class="tag tag-done">FIX</span> <strong>Hive sprite "0 pixels"</strong> — 3-tier texture loading fallback.</li>
+    <li><span class="tag tag-done">TUNE</span> <strong>Wax drawing rate</strong> — Now scales with nectar stores (strongest), forager count, hive health, and forage. Draws ~5% more cells/day than queen lays.</li>
+    <li><span class="tag tag-done">TUNE</span> <strong>Dev HUD grade display</strong> — Separated month grade and season roll into two distinct labels with color coding.</li>
+    <li><span class="tag tag-done">REMOVED</span> <strong>Winter warning system</strong> — Red/orange glow on hives for low stores removed entirely. Health tint still works.</li>
+  </ul>
+</div>
+
+<div class="card card-green">
+  <h3>Art &amp; Visual</h3>
+  <ul>
+    <li>Redrawn all 7 hive component sprites multiple iterations — final version: clean off-white Langstroth style, 45-degree overhead angle, matching overworld_hive.png aesthetic.</li>
+    <li>Darkened foundation cells dramatically for unmistakable contrast against drawn comb.</li>
+    <li>Starting inventory tuned: player gets essentials in hotbar, overflow goes to storage chest.</li>
+    <li>Hive tool moved to first slot (far left, default selected).</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- CURRENT PROJECT STATE                                      -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>2. Current Project State</h2>
+
+<div class="card card-blue">
+  <h3>Phase Status Overview</h3>
+  <table>
+    <tr><th>Phase</th><th>Status</th><th>Summary</th></tr>
+    <tr>
+      <td>Phase 1 — Core Loop</td>
+      <td><span class="tag tag-done">COMPLETE</span></td>
+      <td>Full 10-script simulation pipeline, inspection overlay, colony installation, modular hives, NPCs, flowers, UI. All working.</td>
+    </tr>
+    <tr>
+      <td>Phase 2 — Harvest &amp; Economy</td>
+      <td><span class="tag tag-next">NEXT UP</span></td>
+      <td>Economy shell exists (GameData wallet, shop, diner, post office). Need: sleep/day-advance, weather, harvest UI, grading, bottling, Saturday Market, smoke/stings.</td>
+    </tr>
+    <tr>
+      <td>Phase 3 — Living World</td>
+      <td><span class="tag tag-wip">PARTIAL</span></td>
+      <td>Quest design documented (34 quests, 6 NPCs). QuestManager exists but quests not implemented. Knowledge Log TODO.</td>
+    </tr>
+    <tr>
+      <td>Phase 4 — Depth</td>
+      <td><span class="tag tag-wip">PARTIAL</span></td>
+      <td>Varroa + AFB cell states in sim. Congestion detection done. Queen Finder fully designed. Queen rearing, swarm management, multi-apiary TODO.</td>
+    </tr>
+    <tr>
+      <td>Phase 5 — Polish &amp; Ship</td>
+      <td><span class="tag tag-next">FUTURE</span></td>
+      <td>Not started.</td>
+    </tr>
+  </table>
+</div>
+
+<div class="card card-amber">
+  <h3>Honest Assessment</h3>
+  <p><strong>Strengths:</strong> The simulation foundation is rock-solid. The 10-script pipeline, 3D ellipsoid geometry, science-calibrated populations, and two-sided frame inspection are all working well. The codebase has been thoroughly audited for Godot 4.6 compatibility (ASCII-only, explicit types). The GDD and DevPlan are detailed and well-maintained.</p>
+  <p><strong>Risks:</strong></p>
+  <ul>
+    <li><span class="tag tag-urgent">RISK</span> <strong>No gameplay loop yet</strong> — The player can observe bees but can't DO anything with the honey. Phase 2 is critical for making this feel like a game.</li>
+    <li><span class="tag tag-urgent">RISK</span> <strong>Art pipeline debt</strong> — Many sprites have been redrawn 3-5 times. Consider freezing art iteration and moving to gameplay.</li>
+    <li><span class="tag tag-wip">WATCH</span> <strong>Script complexity</strong> — 50+ scripts, 14,000+ lines. Keeping everything in sync as new systems are added requires discipline.</li>
+    <li><span class="tag tag-wip">WATCH</span> <strong>No sleep/day-advance</strong> — Players can't advance time meaningfully yet. This blocks testing any multi-day gameplay.</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- QA & TESTING                                               -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>3. QA &amp; Testing Recommendations</h2>
+
+<div class="card card-red">
+  <h3>Critical Tests for Today</h3>
+  <table>
+    <tr><th>#</th><th>Test</th><th>What to Check</th><th>Why</th></tr>
+    <tr>
+      <td>1</td>
+      <td><strong>Game Launch</strong></td>
+      <td>Press Play in Godot. Verify no parse errors in Output panel. Player appears, can walk. HUD renders correctly.</td>
+      <td>After yesterday's massive Unicode cleanup and type inference fixes, a clean launch is essential.</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><strong>Hive Build Sequence</strong></td>
+      <td>Place stand, add deep body, add frames, add lid. Verify modular sprites stack correctly at each phase. Check prompt text matches held item.</td>
+      <td>Hive sprites were redrawn 5+ times. Stacking logic changed. Need to verify final result.</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><strong>Colony Installation</strong></td>
+      <td>Select Package Bees, press E near completed hive. Colony should install. Verify 7-day lockout message. After day 7, inspect.</td>
+      <td>Multiple changes to colony init, lockout logic, and simulation start.</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><strong>Inspection Overlay</strong></td>
+      <td>Open inspection on a colonized hive. Navigate frames (A/D), flip sides (F), navigate boxes (W/S). Verify honey cell visual progression. Check queen sighting fires.</td>
+      <td>Multi-box inspection was added. Honey sync was completely rewritten.</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><strong>Box Management</strong></td>
+      <td>Equip gloves, press E near colonized hive. Add super, add excluder, rotate deeps. Verify items consumed from inventory.</td>
+      <td>New HiveManagementUI overlay + gloves system. First real test.</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td><strong>Storage Chest</strong></td>
+      <td>Walk to pre-placed chest (near player start). Press E. Navigate grid (WASD). Transfer items (E/Shift+E). Close (Q/ESC). Items persist.</td>
+      <td>Chest scripts were rewritten for ASCII compatibility. UI wiring is new.</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td><strong>Dev Mode (G key)</strong></td>
+      <td>Toggle G. Verify dev labels appear (month grade, season roll, hive stats). NextDayButton visible only in dev mode. Press it — day advances, simulation ticks.</td>
+      <td>Dev HUD was enhanced with dual grade display. NextDayButton visibility fixed.</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td><strong>Uncle Bob NPC</strong></td>
+      <td>Walk to Uncle Bob (380, 140). Press E. Dialogue appears. +2 XP awarded.</td>
+      <td>player.gd interaction chain was restructured. Verify NPC talk still works.</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- TODAY'S PRIORITIES                                          -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>4. Today's Prioritized Task List</h2>
+
+<div class="card card-amber">
+  <table>
+    <tr><th>Priority</th><th>Task</th><th>Reason</th><th>Est. Time</th></tr>
+    <tr>
+      <td><span class="priority-num">1</span></td>
+      <td><strong>Full QA Pass — Launch &amp; Play</strong></td>
+      <td>Yesterday had 110+ changes. Before building anything new, verify the game actually launches and core interactions work. Fix any blockers found.</td>
+      <td>30–60 min</td>
+    </tr>
+    <tr>
+      <td><span class="priority-num">2</span></td>
+      <td><strong>Sleep / Day-Advance System</strong></td>
+      <td>This is item #1 in Phase 2 build order. It unblocks the daily gameplay cycle — without it, you can't test multi-day flows like honey curing, comb drawing progress, or colony establishment timelines. Z key or enter house to sleep, fade transition, advance to next morning.</td>
+      <td>1.5–2 hrs</td>
+    </tr>
+    <tr>
+      <td><span class="priority-num">3</span></td>
+      <td><strong>Weather System (Basic)</strong></td>
+      <td>Item #2 in build order. Gates forager activity and inspection safety. Start with simple daily weather roll (clear/cloudy/rain/storm) affecting ForagerSystem gate and inspection risk. Can expand later.</td>
+      <td>1.5–2 hrs</td>
+    </tr>
+    <tr>
+      <td><span class="priority-num">4</span></td>
+      <td><strong>Harvest Decision UI (Start)</strong></td>
+      <td>The core of Phase 2. Begin with the "show per-frame honey % capped" and "Harvest Now / Wait" choice from the inspection overlay. Even a basic version makes the game feel purposeful.</td>
+      <td>2–3 hrs</td>
+    </tr>
+    <tr>
+      <td><span class="priority-num">5</span></td>
+      <td><strong>Place Frank &amp; Ellen in World</strong></td>
+      <td>Both NPCs have scripts, sprites, and scenes ready but aren't placed in TestEnvironment. Quick win that makes the world feel more alive. Frank is needed for Saturday Market (upcoming).</td>
+      <td>20–30 min</td>
+    </tr>
+  </table>
+</div>
+
+<div class="card card-blue">
+  <h3>Stretch Goals (If Time Permits)</h3>
+  <ul>
+    <li>Wire Equipment Shop purchase flow in Feed &amp; Supply (deduct dollars, add items).</li>
+    <li>Start the uncapping + extraction step (mini-step after harvest decision).</li>
+    <li>Implement Community Standing tiers (the reputation float already exists).</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                     -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<hr style="border:none;border-top:1px solid var(--border);margin:48px 0 24px;">
+<p style="font-size:11px;color:var(--muted);text-align:center;">
+  Generated by Claude — March 25, 2026 (Evening Update)<br>
+  Smoke &amp; Honey — Godot 4.6 — GDScript — Phase 2 Incoming
+</p>
+
+</body>
+</html>

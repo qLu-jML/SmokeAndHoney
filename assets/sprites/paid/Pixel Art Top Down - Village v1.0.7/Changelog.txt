@@ -1,0 +1,26 @@
+Pixel Art Top Down - Village
+
+1.0.7
+- Add terrain shadow.
+- Add stone bridge in vertical direction.
+
+1.0.6
+- Fix some minor issues with the [Top Down Pixel Water Renderer Feature].
+
+1.0.5
+- Add Unity 6.3 support.
+
+1.0.4
+- Add PSD files.
+
+1.0.3
+- Some minor issues fixed.
+
+1.0.2
+- Fix water renderer feature glitch when game view and scene view are active at the same time.
+
+1.0.1
+- Add Unity 6 support.
+
+1.0.0
+- First release.

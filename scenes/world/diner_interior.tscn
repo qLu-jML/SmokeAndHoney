@@ -1,0 +1,331 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/diner_interior.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/interiors/diner_counter.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/interiors/diner_booth.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/interiors/diner_tv.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/sprites/interiors/chalkboard_menu.png" id="5"]
+[ext_resource type="Texture2D" path="res://assets/sprites/interiors/pie_case.png" id="6"]
+[ext_resource type="Texture2D" path="res://assets/sprites/interiors/diner_stool.png" id="7"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/rose_waitress.png" id="8"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/uncle_bob.png" id="9"]
+[ext_resource type="Texture2D" path="res://assets/sprites/interiors/diner_floor.png" id="10"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/weather_icons.png" id="11"]
+
+[node name="DinerInterior" type="Node2D"]
+script = ExtResource("1")
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="Floor" type="Node2D" parent="World"]
+
+[node name="FloorBase" type="ColorRect" parent="World/Floor"]
+offset_left = -320.0
+offset_top = -90.0
+offset_right = 320.0
+offset_bottom = 80.0
+color = Color(0.22, 0.18, 0.14, 1)
+
+[node name="FloorTile1" type="Sprite2D" parent="World/Floor"]
+position = Vector2(-288, -40)
+texture = ExtResource("10")
+
+[node name="FloorTile2" type="Sprite2D" parent="World/Floor"]
+position = Vector2(-256, -40)
+texture = ExtResource("10")
+
+[node name="FloorTile3" type="Sprite2D" parent="World/Floor"]
+position = Vector2(-224, -40)
+texture = ExtResource("10")
+
+[node name="FloorTile4" type="Sprite2D" parent="World/Floor"]
+position = Vector2(-192, -40)
+texture = ExtResource("10")
+
+[node name="FloorTile5" type="Sprite2D" parent="World/Floor"]
+position = Vector2(-160, -40)
+texture = ExtResource("10")
+
+[node name="FloorTile6" type="Sprite2D" parent="World/Floor"]
+position = Vector2(-128, -40)
+texture = ExtResource("10")
+
+[node name="FloorTile7" type="Sprite2D" parent="World/Floor"]
+position = Vector2(-96, -40)
+texture = ExtResource("10")
+
+[node name="FloorTile8" type="Sprite2D" parent="World/Floor"]
+position = Vector2(-64, -40)
+texture = ExtResource("10")
+
+[node name="FloorTile9" type="Sprite2D" parent="World/Floor"]
+position = Vector2(-32, -40)
+texture = ExtResource("10")
+
+[node name="FloorTile10" type="Sprite2D" parent="World/Floor"]
+position = Vector2(0, -40)
+texture = ExtResource("10")
+
+[node name="FloorTile11" type="Sprite2D" parent="World/Floor"]
+position = Vector2(32, -40)
+texture = ExtResource("10")
+
+[node name="FloorTile12" type="Sprite2D" parent="World/Floor"]
+position = Vector2(64, -40)
+texture = ExtResource("10")
+
+[node name="FloorTile13" type="Sprite2D" parent="World/Floor"]
+position = Vector2(96, -40)
+texture = ExtResource("10")
+
+[node name="FloorTile14" type="Sprite2D" parent="World/Floor"]
+position = Vector2(128, -40)
+texture = ExtResource("10")
+
+[node name="FloorTile15" type="Sprite2D" parent="World/Floor"]
+position = Vector2(160, -40)
+texture = ExtResource("10")
+
+[node name="FloorTile16" type="Sprite2D" parent="World/Floor"]
+position = Vector2(192, -40)
+texture = ExtResource("10")
+
+[node name="FloorTile17" type="Sprite2D" parent="World/Floor"]
+position = Vector2(224, -40)
+texture = ExtResource("10")
+
+[node name="FloorTile18" type="Sprite2D" parent="World/Floor"]
+position = Vector2(256, -40)
+texture = ExtResource("10")
+
+[node name="FloorTile19" type="Sprite2D" parent="World/Floor"]
+position = Vector2(288, -40)
+texture = ExtResource("10")
+
+[node name="Walls" type="Node2D" parent="World"]
+
+[node name="BackWall" type="ColorRect" parent="World/Walls"]
+offset_left = -320.0
+offset_top = -90.0
+offset_right = 320.0
+offset_bottom = -48.0
+color = Color(0.88, 0.83, 0.72, 1)
+
+[node name="WallTrimTop" type="ColorRect" parent="World/Walls"]
+offset_left = -320.0
+offset_top = -52.0
+offset_right = 320.0
+offset_bottom = -48.0
+color = Color(0.62, 0.48, 0.32, 1)
+
+[node name="DoorLeft" type="ColorRect" parent="World/Walls"]
+offset_left = -300.0
+offset_top = -48.0
+offset_right = -272.0
+offset_bottom = 30.0
+color = Color(0.52, 0.38, 0.22, 1)
+
+[node name="DoorGlass" type="ColorRect" parent="World/Walls"]
+offset_left = -296.0
+offset_top = -44.0
+offset_right = -276.0
+offset_bottom = -8.0
+color = Color(0.65, 0.78, 0.88, 0.55)
+
+[node name="ExitLabel" type="Label" parent="World/Walls/DoorLeft"]
+offset_left = -14.0
+offset_top = 32.0
+offset_right = 20.0
+offset_bottom = 44.0
+text = "[B] Exit"
+theme_override_font_sizes/font_size = 6
+theme_override_colors/font_color = Color(0.9, 0.82, 0.6, 1)
+horizontal_alignment = 1
+
+[node name="DinerFurniture" type="Node2D" parent="World"]
+
+[node name="Counter" type="Sprite2D" parent="World/DinerFurniture"]
+position = Vector2(40, -20)
+texture = ExtResource("2")
+z_index = 1
+
+[node name="Stool1" type="Sprite2D" parent="World/DinerFurniture"]
+position = Vector2(-40, -4)
+texture = ExtResource("7")
+
+[node name="Stool2" type="Sprite2D" parent="World/DinerFurniture"]
+position = Vector2(-22, -4)
+texture = ExtResource("7")
+
+[node name="Stool3" type="Sprite2D" parent="World/DinerFurniture"]
+position = Vector2(-4, -4)
+texture = ExtResource("7")
+
+[node name="Stool4" type="Sprite2D" parent="World/DinerFurniture"]
+position = Vector2(14, -4)
+texture = ExtResource("7")
+
+[node name="Stool5" type="Sprite2D" parent="World/DinerFurniture"]
+position = Vector2(32, -4)
+texture = ExtResource("7")
+
+[node name="Stool6" type="Sprite2D" parent="World/DinerFurniture"]
+position = Vector2(50, -4)
+texture = ExtResource("7")
+
+[node name="Stool7" type="Sprite2D" parent="World/DinerFurniture"]
+position = Vector2(68, -4)
+texture = ExtResource("7")
+
+[node name="Stool8" type="Sprite2D" parent="World/DinerFurniture"]
+position = Vector2(86, -4)
+texture = ExtResource("7")
+
+[node name="PieCase" type="Sprite2D" parent="World/DinerFurniture"]
+position = Vector2(130, -26)
+texture = ExtResource("6")
+z_index = 1
+
+[node name="Booth1" type="Sprite2D" parent="World/DinerFurniture"]
+position = Vector2(-190, -22)
+texture = ExtResource("3")
+z_index = 1
+
+[node name="Booth2" type="Sprite2D" parent="World/DinerFurniture"]
+position = Vector2(-140, -22)
+texture = ExtResource("3")
+z_index = 1
+
+[node name="Booth3" type="Sprite2D" parent="World/DinerFurniture"]
+position = Vector2(-90, -22)
+texture = ExtResource("3")
+z_index = 1
+
+[node name="Booth4" type="Sprite2D" parent="World/DinerFurniture"]
+position = Vector2(-40, -22)
+texture = ExtResource("3")
+z_index = 1
+
+[node name="ChalkboardMenu" type="Sprite2D" parent="World/DinerFurniture"]
+position = Vector2(190, -66)
+texture = ExtResource("5")
+z_index = 1
+
+[node name="TVArea" type="Node2D" parent="World/DinerFurniture"]
+
+[node name="DinerTV" type="Sprite2D" parent="World/DinerFurniture/TVArea"]
+position = Vector2(240, -62)
+texture = ExtResource("4")
+z_index = 2
+
+[node name="WeatherLabel" type="Label" parent="World/DinerFurniture/TVArea"]
+offset_left = 208.0
+offset_top = -80.0
+offset_right = 280.0
+offset_bottom = -55.0
+text = "SUNNY\nHigh 72°"
+theme_override_font_sizes/font_size = 4
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
+horizontal_alignment = 1
+
+[node name="Photos" type="Node2D" parent="World/DinerFurniture"]
+
+[node name="Photo1" type="ColorRect" parent="World/DinerFurniture/Photos"]
+offset_left = 160.0
+offset_top = -84.0
+offset_right = 180.0
+offset_bottom = -66.0
+color = Color(0.82, 0.78, 0.70, 1)
+
+[node name="Photo2" type="ColorRect" parent="World/DinerFurniture/Photos"]
+offset_left = 185.0
+offset_top = -84.0
+offset_right = 205.0
+offset_bottom = -68.0
+color = Color(0.78, 0.74, 0.66, 1)
+
+[node name="Photo3" type="ColorRect" parent="World/DinerFurniture/Photos"]
+offset_left = 210.0
+offset_top = -85.0
+offset_right = 228.0
+offset_bottom = -67.0
+color = Color(0.80, 0.76, 0.68, 1)
+
+[node name="WindowsLeft" type="Node2D" parent="World"]
+
+[node name="Window1" type="ColorRect" parent="World/WindowsLeft"]
+offset_left = -260.0
+offset_top = -88.0
+offset_right = -220.0
+offset_bottom = -54.0
+color = Color(0.65, 0.80, 0.90, 0.50)
+
+[node name="WindowSill1" type="ColorRect" parent="World/WindowsLeft"]
+offset_left = -264.0
+offset_top = -54.0
+offset_right = -216.0
+offset_bottom = -50.0
+color = Color(0.62, 0.48, 0.32, 1)
+
+[node name="Window2" type="ColorRect" parent="World/WindowsLeft"]
+offset_left = -200.0
+offset_top = -88.0
+offset_right = -160.0
+offset_bottom = -54.0
+color = Color(0.65, 0.80, 0.90, 0.50)
+
+[node name="WindowSill2" type="ColorRect" parent="World/WindowsLeft"]
+offset_left = -204.0
+offset_top = -54.0
+offset_right = -156.0
+offset_bottom = -50.0
+color = Color(0.62, 0.48, 0.32, 1)
+
+[node name="NPCs" type="Node2D" parent="World"]
+z_index = 3
+
+[node name="RoseWaitress" type="Sprite2D" parent="World/NPCs"]
+position = Vector2(100, -8)
+texture = ExtResource("8")
+z_index = 3
+
+[node name="InteractHint" type="Label" parent="World/NPCs/RoseWaitress"]
+offset_left = -36.0
+offset_top = -28.0
+offset_right = 36.0
+offset_bottom = -18.0
+text = "[E] Order"
+theme_override_font_sizes/font_size = 6
+theme_override_colors/font_color = Color(0.9, 0.82, 0.6, 1)
+horizontal_alignment = 1
+visible = false
+
+[node name="RoseLabel" type="Label" parent="World/NPCs/RoseWaitress"]
+offset_left = -28.0
+offset_top = 18.0
+offset_right = 28.0
+offset_bottom = 28.0
+text = "Rose"
+theme_override_font_sizes/font_size = 5
+theme_override_colors/font_color = Color(0.70, 0.60, 0.42, 1)
+horizontal_alignment = 1
+
+[node name="UncleBoB" type="Sprite2D" parent="World/NPCs"]
+position = Vector2(-30, -6)
+texture = ExtResource("9")
+z_index = 3
+visible = false
+
+[node name="UncleBobLabel" type="Label" parent="World/NPCs/UncleBoB"]
+offset_left = -30.0
+offset_top = 18.0
+offset_right = 30.0
+offset_bottom = 28.0
+text = "Uncle Bob"
+theme_override_font_sizes/font_size = 5
+theme_override_colors/font_color = Color(0.70, 0.60, 0.42, 1)
+horizontal_alignment = 1
+
+[node name="MenuUI" type="CanvasLayer" parent="."]
+layer = 10
+visible = false

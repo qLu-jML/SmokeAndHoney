@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://b1beifh2xohy4"]
+
+[ext_resource type="Script" uid="uid://cixdkd3ovbmgp" path="res://scripts/core/flower.gd" id="1_idgqj"]
+
+[node name="Flower" type="Node2D" unique_id=1992611820 groups=["flowers"]]
+y_sort_origin = 8
+script = ExtResource("1_idgqj")
+
+[node name="Placeholder" type="ColorRect" parent="." unique_id=1054087275]
+offset_left = -8.0
+offset_top = -8.0
+offset_right = 8.0
+offset_bottom = 8.0
+color = Color(0.73553485, 0.56288195, 0.09318047, 1)
+
+[node name="StageLabel" type="Label" parent="Placeholder" unique_id=2056060674]
+layout_mode = 0
+offset_right = 48.0
+offset_bottom = 48.0
+scale = Vector2(0.333, 0.333)
+text = "Seed"
+horizontal_alignment = 1
+vertical_alignment = 1

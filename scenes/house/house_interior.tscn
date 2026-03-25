@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://houseinterior01"]
+
+[ext_resource type="Script" path="res://scripts/world/house_interior.gd" id="1_int"]
+[ext_resource type="PackedScene" uid="uid://d3qdbfmsmyqoa" path="res://scenes/player/player.tscn" id="2_int"]
+
+[node name="HouseInterior" type="Node2D"]
+script = ExtResource("1_int")
+
+[node name="player" parent="." instance=ExtResource("2_int")]
+position = Vector2(80, 24)

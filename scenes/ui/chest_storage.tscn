@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cheststorage01"]
+
+[ext_resource type="Script" path="res://scripts/ui/chest_storage.gd" id="1_chest_storage"]
+
+[node name="ChestStorage" type="CanvasLayer"]
+script = ExtResource("1_chest_storage")

@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smoke &amp; Honey — Pixel Art Learning Guide</title>
+<style>
+  :root {
+    --bg:         #1a1a1a;
+    --surface:    #242424;
+    --surface2:   #2a2620;
+    --border:     #333;
+    --amber:      #C8860A;
+    --amber-lt:   #E8A020;
+    --amber-dk:   #985808;
+    --text:       #e8dfc8;
+    --muted:      #8a8070;
+    --sidebar:    230px;
+    --wd-dark:    #46260C;
+    --wd-mid:     #6C4016;
+    --wd-light:   #94602A;
+    --wax-white:  #FCF5D7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    display: flex;
+  }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: var(--sidebar);
+    min-height: 100vh;
+    background: #1e1a14;
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    position: fixed;
+    top: 0; left: 0;
+    overflow-y: auto;
+  }
+  #sidebar .logo {
+    color: var(--amber-lt);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 0 16px 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  #sidebar ul { list-style: none; }
+  #sidebar li.section > a {
+    display: block;
+    color: var(--amber-lt);
+    font-weight: bold;
+    font-size: 11px;
+    padding: 7px 16px 4px;
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: color 0.15s, background 0.15s;
+    letter-spacing: 0.5px;
+  }
+  #sidebar li.sub > a {
+    display: block;
+    color: var(--muted);
+    font-size: 10.5px;
+    padding: 3px 16px 3px 28px;
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: color 0.15s, background 0.15s;
+  }
+  #sidebar li a:hover {
+    color: var(--text);
+    border-left-color: var(--amber);
+    background: rgba(200,134,10,0.08);
+  }
+
+  /* ── MAIN ── */
+  #main {
+    margin-left: var(--sidebar);
+    padding: 48px 56px;
+    max-width: 1120px;
+    width: 100%;
+  }
+
+  /* ── HEADER ── */
+  .doc-header {
+    border-bottom: 2px solid var(--amber);
+    padding-bottom: 28px;
+    margin-bottom: 44px;
+  }
+  .doc-header h1 {
+    font-size: 30px;
+    color: var(--amber);
+    line-height: 1.2;
+  }
+  .doc-header .subtitle {
+    color: var(--muted);
+    margin-top: 8px;
+    font-size: 13px;
+  }
+  .doc-header .tagline {
+    margin-top: 14px;
+    color: var(--text);
+    font-size: 14px;
+    font-style: italic;
+    border-left: 3px solid var(--amber-dk);
+    padding-left: 14px;
+  }
+
+  /* ── SECTIONS ── */
+  .section { margin-bottom: 60px; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .section-num {
+    font-size: 36px;
+    font-weight: bold;
+    color: var(--amber);
+    line-height: 1;
+    opacity: 0.5;
+    min-width: 40px;
+  }
+  h1.sec-title {
+    font-size: 22px;
+    color: var(--amber-lt);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+    flex: 1;
+  }
+  h2.sub-title {
+    font-size: 16px;
+    color: var(--amber);
+    border-bottom: 1px solid #2a2620;
+    padding-bottom: 6px;
+    margin: 28px 0 14px;
+  }
+  h3.mini-title {
+    font-size: 13px;
+    color: var(--amber-lt);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 20px 0 8px;
+  }
+
+  /* ── PROSE ── */
+  p { margin-bottom: 14px; }
+  p:last-child { margin-bottom: 0; }
+  strong { color: var(--amber-lt); }
+  em { color: #c8c0a8; }
+  code {
+    background: #111;
+    color: #8ab888;
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-size: 12px;
+    font-family: 'Consolas', 'Courier New', monospace;
+  }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-left: 3px solid var(--amber);
+    background: #221a0a;
+    padding: 12px 18px;
+    border-radius: 2px;
+    margin: 18px 0;
+    font-size: 13px;
+  }
+  .callout.tip  { border-color: #5a8a3a; background: #0e1a0a; }
+  .callout.warn { border-color: #8a3a3a; background: #1a0a0a; }
+  .callout.note { border-color: var(--amber-dk); background: #1a140a; }
+  .callout strong { display: block; margin-bottom: 4px; }
+
+  /* ── TABLES ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 16px 0 24px;
+  }
+  th {
+    background: #1e1a14;
+    color: var(--amber);
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--amber);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  td {
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:hover td { background: #2a2620; }
+  td.label { color: var(--amber-lt); font-weight: bold; white-space: nowrap; }
+  td.dim { color: #7ab8e8; font-weight: bold; white-space: nowrap; }
+  td code { font-size: 11px; }
+
+  /* ── PALETTE SWATCHES ── */
+  .palette-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 18px 20px;
+    margin: 16px 0 24px;
+  }
+  .palette-block h4 {
+    color: var(--amber-lt);
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .palette-block .palette-desc {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+  .swatch-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+  .swatch {
+    width: 36px;
+    height: 36px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.3);
+    position: relative;
+    cursor: default;
+    transition: transform 0.1s;
+  }
+  .swatch:hover { transform: scale(1.2); z-index: 10; }
+  .swatch-labeled {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+  }
+  .swatch-labeled .sw {
+    width: 44px;
+    height: 44px;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .swatch-labeled .sw-name {
+    font-size: 9px;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.2;
+    max-width: 50px;
+  }
+  .swatch-labeled .sw-hex {
+    font-size: 9px;
+    color: #667;
+    font-family: monospace;
+  }
+  .labeled-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+
+  /* ── EXERCISES ── */
+  .exercise-list { list-style: none; counter-reset: ex; }
+  .exercise-list li {
+    counter-increment: ex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 18px 14px 52px;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  .exercise-list li::before {
+    content: counter(ex);
+    position: absolute;
+    left: 16px;
+    top: 14px;
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--amber);
+    opacity: 0.6;
+    line-height: 1;
+  }
+  .exercise-list li strong { display: block; font-size: 13px; margin-bottom: 4px; }
+  .exercise-list li span { color: var(--muted); font-size: 12.5px; }
+  .difficulty {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 2px;
+    font-size: 10px;
+    font-weight: bold;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .diff-1 { background: #1a3a1a; color: #5acc88; }
+  .diff-2 { background: #2a2a1a; color: #ccaa44; }
+  .diff-3 { background: #3a1a1a; color: #cc6644; }
+
+  /* ── RESOURCE LIST ── */
+  .resource-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .resource-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+  }
+  .resource-card h4 {
+    color: var(--amber-lt);
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .resource-card p {
+    color: var(--muted);
+    font-size: 12px;
+    margin: 0;
+  }
+  .resource-card .tag-type {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-size: 10px;
+    font-weight: bold;
+    margin-bottom: 6px;
+  }
+  .tag-free    { background: #1a3a1a; color: #5acc88; }
+  .tag-paid    { background: #2a1a3a; color: #aa88cc; }
+  .tag-youtube { background: #3a1a1a; color: #cc6644; }
+  .tag-web     { background: #1a2a3a; color: #5a9acc; }
+
+  /* ── MISTAKE CARDS ── */
+  .mistake-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .mistake-card {
+    background: var(--surface);
+    border: 1px solid #3a1a1a;
+    border-left: 3px solid #8a3a3a;
+    border-radius: 3px;
+    padding: 14px 16px;
+  }
+  .mistake-card h4 { color: #cc6655; font-size: 13px; margin-bottom: 6px; }
+  .mistake-card p  { color: var(--muted); font-size: 12.5px; margin: 0; }
+
+  /* ── DITHERING DEMO ── */
+  .dither-demo {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin: 16px 0;
+  }
+  .dither-pattern {
+    text-align: center;
+  }
+  .dither-pattern canvas {
+    display: block;
+    image-rendering: pixelated;
+    width: 64px;
+    height: 64px;
+    border: 1px solid var(--border);
+    margin-bottom: 6px;
+  }
+  .dither-pattern p {
+    font-size: 11px;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  /* ── SPEC BADGE ── */
+  .spec-badge {
+    display: inline-block;
+    background: #1a2535;
+    color: #7ab8e8;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: bold;
+    font-family: monospace;
+  }
+
+  @media (max-width: 900px) {
+    #sidebar { display: none; }
+    #main { margin-left: 0; padding: 24px 20px; }
+    .resource-grid, .mistake-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<nav id="sidebar">
+  <div class="logo">&#x1F41D; Smoke &amp; Honey</div>
+  <ul>
+    <li class="section"><a href="#s1">1. What Is Pixel Art?</a></li>
+    <li class="sub"><a href="#s1-philosophy">Philosophy &amp; constraint</a></li>
+    <li class="sub"><a href="#s1-tools">Tools (Aseprite etc.)</a></li>
+    <li class="section"><a href="#s2">2. Core Concepts</a></li>
+    <li class="sub"><a href="#s2-grid">Pixels &amp; the grid</a></li>
+    <li class="sub"><a href="#s2-aa">Anti-aliasing</a></li>
+    <li class="sub"><a href="#s2-indexing">Indexing &amp; transparency</a></li>
+    <li class="section"><a href="#s3">3. Color Theory</a></li>
+    <li class="sub"><a href="#s3-hsv">HSV basics</a></li>
+    <li class="sub"><a href="#s3-pillow">Pillow shading</a></li>
+    <li class="sub"><a href="#s3-hue">Hue shifting</a></li>
+    <li class="sub"><a href="#s3-palette">Palette design</a></li>
+    <li class="sub"><a href="#s3-palettes">Suggested palettes</a></li>
+    <li class="section"><a href="#s4">4. Shading &amp; Lighting</a></li>
+    <li class="sub"><a href="#s4-lightsource">Light source</a></li>
+    <li class="sub"><a href="#s4-3val">3-value rule</a></li>
+    <li class="sub"><a href="#s4-dither">Dithering</a></li>
+    <li class="sub"><a href="#s4-rim">Rim &amp; specular</a></li>
+    <li class="section"><a href="#s5">5. Sprite Construction</a></li>
+    <li class="sub"><a href="#s5-specs">Technical specs table</a></li>
+    <li class="sub"><a href="#s5-anim">Animation guide</a></li>
+    <li class="sub"><a href="#s5-char">Character tips</a></li>
+    <li class="section"><a href="#s6">6. Common Mistakes</a></li>
+    <li class="section"><a href="#s7">7. Practice Exercises</a></li>
+    <li class="section"><a href="#s8">8. Resources</a></li>
+    <li class="section"><a href="#s9">9. Style Consistency</a></li>
+    <li class="sub"><a href="#s9">Locked palette system</a></li>
+    <li class="sub"><a href="#s9">Light source rules</a></li>
+    <li class="sub"><a href="#s9">Outline style rules</a></li>
+    <li class="sub"><a href="#s9">Resolution rules table</a></li>
+    <li class="sub"><a href="#s9">Per-session checklist</a></li>
+  </ul>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<main id="main">
+
+<div class="doc-header">
+  <h1>Smoke &amp; Honey<br>Pixel Art Learning Guide</h1>
+  <p class="subtitle">For the developer of BeeKeeper Pro &mdash; from scratch to game-ready sprites</p>
+  <p class="tagline">
+    "Pixel art is not about working small. It is about working deliberately.
+    Every pixel you place is a decision. That constraint is the whole point."
+  </p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 1: WHAT IS PIXEL ART?                                     -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s1">
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h1 class="sec-title" id="s1-philosophy">What Is Pixel Art?</h1>
+</div>
+
+<h2 class="sub-title">Constraint as a Creative Tool</h2>
+<p>
+Pixel art is the practice of creating images at extremely low resolution, where every individual pixel is placed with intention. Unlike photography or high-resolution digital painting, pixel art derives its power from limitation: limited canvas size, limited colors, limited space. These constraints are not handicaps &mdash; they are the entire creative vocabulary.
+</p>
+<p>
+When you only have 16 pixels of height to represent a human figure, you cannot be vague. You must decide: does that pixel represent the collar of his shirt, or the shadow under his chin? You become a problem solver, not just an illustrator. That forced decision-making is why pixel art has such a distinctive look &mdash; it is art that has been <em>edited</em> down to its essence.
+</p>
+<p>
+This is also why pixel art scales beautifully in games. A well-crafted 120&times;120 character sprite reads as a complete, expressive character because every pixel is doing work. Nothing is accidental.
+</p>
+
+<div class="callout note">
+  <strong>Why this matters for Smoke &amp; Honey specifically</strong>
+  The Cainos Village asset pack &mdash; your art foundation &mdash; is the gold standard of this philosophy in action. Olive grass tiles, timber-framed buildings, muted earthy colors. Nothing is wasted. Everything is chosen. Your job is to produce new assets that feel like they were drawn by the same invisible hand.
+</div>
+
+<h2 class="sub-title">Why Pixel Art Works for Indie Games</h2>
+<p>
+Pixel art scales perfectly to any screen resolution using integer scaling &mdash; you just multiply every pixel by 2x, 3x, 4x and it looks crisp everywhere. It is also computationally trivial: thousands of small sprites with transparent backgrounds are far cheaper to render than 3D geometry. For a solo developer, it is achievable; a single motivated person can produce a complete game's worth of pixel art in a year. High-fidelity 3D takes entire studios.
+</p>
+<p>
+Beyond the practical: pixel art reads clearly at a glance. In a game like Smoke &amp; Honey, where the player needs to identify a bee particle sprite, a honey jar icon, a grass tile, and an NPC character all in the same moment, visual clarity is essential. Pixel art, when done well, is among the most legible visual styles in games.
+</p>
+
+<h2 class="sub-title">The Difference Between "Small Image" and Actual Pixel Art Craft</h2>
+<p>
+A photograph resized to 16x16 pixels is not pixel art. A 3D render exported at low resolution is not pixel art. Pixel art is made pixel by pixel, at zoom, with deliberate placement. The hallmarks of actual craft vs. lazy downsizing:
+</p>
+<table>
+  <tr><th>Craft</th><th>Not pixel art craft</th></tr>
+  <tr><td>Pixel-perfect outlines &mdash; each edge pixel is placed individually</td><td>Blurry anti-aliased edges from resize algorithms</td></tr>
+  <tr><td>A deliberate, limited palette where every color is chosen</td><td>Hundreds of colors from JPEG artifacts or gradient smoothing</td></tr>
+  <tr><td>Hue-shifted shading (shadows lean warm or cool)</td><td>Colors that are simply darkened or lightened with no hue shift</td></tr>
+  <tr><td>Readable at 1x scale &mdash; the silhouette communicates the subject</td><td>Requires zooming to understand what it is</td></tr>
+  <tr><td>Consistent light source across all sprites in a scene</td><td>Each sprite lit differently, inconsistent with the world</td></tr>
+</table>
+
+<h2 class="sub-title" id="s1-tools">Tools to Use</h2>
+<p>
+<strong>Aseprite</strong> is the industry standard for pixel art creation, and for good reason. It was built specifically for pixel art and animation, with features no general image editor matches: indexed color palettes, onion skinning for animation, sprite sheet export with configurable frame layouts, a pixel-perfect pen that eliminates stray diagonal pixels, and a timeline that shows every frame of every animation tag at once. It costs roughly $20 and is well worth it.
+</p>
+<p>
+Aseprite is open-source, which means you can also build it from source for free &mdash; but the $20 price pays for the convenience of a prebuilt installer, and directly supports the developer who maintains what is arguably the best purpose-built pixel art tool ever made.
+</p>
+<p>
+<strong>LibreSprite</strong> is a free, community-maintained fork of an older version of Aseprite. It is feature-complete enough to do everything in this guide. If cost is a barrier, start here. The workflow is nearly identical.
+</p>
+<p>
+<strong>GraphicsGale</strong> is a Windows-only free alternative with strong animation support. Slightly dated interface but beloved by long-time pixel artists.
+</p>
+<p>
+<strong>Do not use Photoshop or GIMP for pixel art.</strong> They can technically do it, but they were not designed for it. The workflow is painful: you must disable anti-aliasing everywhere manually, palette management is poor, and the animation workflow is non-existent. Use a dedicated tool.
+</p>
+
+<div class="callout tip">
+  <strong>Recommendation for Smoke &amp; Honey</strong>
+  Buy Aseprite. Your sprite sheet is 960&times;2880 pixels (8 cols &times; 24 rows at 120&times;120 per frame). Aseprite handles this natively: set the canvas, define your frame size, and it manages the animation grid for you. Its palette tools will let you lock to the exact Langstroth UI tokens and world palette colors defined in your style guide.
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 2: CORE CONCEPTS                                          -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s2">
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h1 class="sec-title">Core Concepts Every Pixel Artist Must Learn</h1>
+</div>
+
+<h2 class="sub-title" id="s2-grid">Pixels and Resolution &mdash; What "16&times;32" Means</h2>
+<p>
+When you see "16&times;32" in this guide, it means a canvas that is 16 pixels wide by 32 pixels tall. A single pixel at game resolution is one tiny square dot. In Smoke &amp; Honey, the base tile is 16&times;16 pixels. That is a square of 256 individual dots. A character is 120&times;120 &mdash; 14,400 dots &mdash; which sounds like a lot until you realize a single 1080p game frame is over 2 million pixels. Your character is 0.7% of the screen. Every pixel matters.
+</p>
+<p>
+Resolution is measured in physical pixels, not in display size. A 16&times;16 sprite displayed at 4x zoom (64&times;64 display pixels) is still a 16&times;16 sprite. The game engine scales it up. You always work at the raw resolution.
+</p>
+<p>
+Smoke &amp; Honey uses a mixed resolution system: ground tiles and items are 16&times;16, characters (player and NPCs) are 120&times;120, buildings are 48&ndash;96px wide, and the hive inspection frame is 320&times;192. Each has a different resolution because each serves a different visual role. Tiles need to tile seamlessly at small size; characters need to be expressive and animated; the inspection view needs to show individual comb cells legibly.
+</p>
+
+<h2 class="sub-title">The Pixel Grid &mdash; Always Zoom In</h2>
+<p>
+Professional pixel artists work at 8x to 16x zoom almost exclusively. At 1x, you cannot see individual pixels clearly enough to place them intentionally. At 32x zoom, you lose the ability to read the overall shape. The sweet spot is 8x&ndash;16x: close enough to see every pixel, far enough to read the composition.
+</p>
+<p>
+In Aseprite, use the zoom shortcuts (<kbd>+</kbd> and <kbd>-</kbd>) constantly. Develop the habit of zooming out to 1x or 2x every few minutes to check readability &mdash; a sprite can look fine at 16x and turn into an unreadable blob at 1x. This "zoom check" is not optional. It is how you catch problems early.
+</p>
+<p>
+Enable the grid overlay (<code>View &gt; Grid &gt; Show Grid</code>) when working on tiles. For 16&times;16 tiles, set the grid to 16px. This helps you see tile boundaries and ensure your tile edges are seamless.
+</p>
+
+<h2 class="sub-title" id="s2-aa">Anti-Aliasing &mdash; Why You Usually Avoid It</h2>
+<p>
+Anti-aliasing is the technique of adding semi-transparent pixels along edges to smooth out the "staircase" look of diagonal lines at low resolution. In high-resolution work, this is invisible and desirable. In pixel art, it is almost always wrong.
+</p>
+<p>
+Here is why: pixel art embraces the staircase. The "jaggies" of a diagonal line at 16x16 are part of the visual language. Adding semi-transparent blending pixels between them creates a mushy, inconsistent look that belongs in neither the crisp pixel art world nor the smooth high-res world. It looks unfinished in both directions.
+</p>
+<p>
+Aseprite's default pencil tool places single-color pixels with no anti-aliasing. This is correct. If you are using any brush that produces partially transparent pixels along edges, turn it off.
+</p>
+<p>
+<em>The exception:</em> Some experienced pixel artists use a technique called "manual anti-aliasing" or "selout" where they deliberately place mid-tone pixels at certain curve transitions to smooth them out. This is done pixel by pixel, with full color control, by hand. It is an advanced technique &mdash; ignore it while learning.
+</p>
+
+<h2 class="sub-title" id="s2-indexing">Indexing &mdash; Working With a Fixed Palette</h2>
+<p>
+An indexed image has a fixed palette: a list of allowed colors (e.g., 16 colors, 32 colors, 64 colors). Every pixel in the image must be one of those exact colors. No blending, no gradients, no colors outside the list.
+</p>
+<p>
+Working indexed is powerful discipline. When you can only use 16 colors for a character, you cannot waste them. You think carefully about which 4 tones to use for skin, which 3 for hair, which 2 for the suit. The constraint produces cohesion: all the colors in the character are visually related because they were chosen together, not accumulated accidentally.
+</p>
+<p>
+In Aseprite: <code>Sprite &gt; Color Mode &gt; Indexed</code>. This locks your canvas to the current palette. In practice, many artists work in RGB mode but maintain a strict palette manually, adding new colors only deliberately. Either approach works &mdash; the important thing is the habit of intention.
+</p>
+
+<h2 class="sub-title" id="s2-aa">Transparency &mdash; When and How</h2>
+<p>
+Pixel art sprites for games almost always use transparent backgrounds (PNG with alpha channel). The background around the character is invisible; only the sprite itself is opaque. In Godot, you import these as Texture2D resources and the engine composites them over whatever is below.
+</p>
+<p>
+<strong>When to use transparency within a sprite:</strong> For objects with holes (like the mesh veil on Uncle Bob's beekeeper hat, or the spaces between a fence's pickets). These are interior transparency areas, not just the background.
+</p>
+<p>
+<strong>Do not use semi-transparency (partial alpha) in sprite pixels.</strong> A pixel is either fully opaque (alpha 255) or fully transparent (alpha 0). Semi-transparent pixels cause color-blending issues when the sprite is placed over different backgrounds, and they create the blurry anti-aliased look described above. The one exception is drop shadow sprites, which the style guide defines as separate shadow layers with soft alpha.
+</p>
+<p>
+In Aseprite, use the eraser to create transparency. The background color swatch shows a checkerboard pattern when transparency is active &mdash; make sure that is set before erasing.
+</p>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 3: COLOR THEORY                                           -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s3">
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h1 class="sec-title">Color Theory for Pixel Art</h1>
+</div>
+
+<h2 class="sub-title" id="s3-hsv">3a. The Basics &mdash; Hue, Saturation, Value</h2>
+<p>
+Forget RGB for a moment. Pixel artists think in HSV: <strong>Hue</strong> (what color family it belongs to &mdash; red, yellow, green, blue), <strong>Saturation</strong> (how vivid it is &mdash; 0% is gray, 100% is fully vivid), and <strong>Value</strong> (how bright or dark it is &mdash; 0% is black, 100% is white).
+</p>
+<p>
+Hue is the easy part &mdash; you look at something and say "that's orange." Saturation and value are where most beginners go wrong. They pick colors that are too saturated (too vivid, too loud) and they shade by only adjusting value (just making things darker).
+</p>
+<p>
+<strong>Why pixel art favors muted, desaturated colors:</strong> Highly saturated colors fight each other on screen. A scene full of vivid reds and greens and yellows is visually exhausting to look at for more than a few seconds. Real-world objects are rarely fully saturated &mdash; grass is not pure chroma green, it is muted and somewhat yellow-olive. Dirt is not vivid orange, it is dull sandy tan. Desaturated colors coexist peacefully and create a cohesive, readable scene.
+</p>
+<p>
+Look at the Smoke &amp; Honey palette: the deepest amber is <code>#985808</code> &mdash; orange-brown, fairly desaturated. The grass is olive. The wood is warm brown, not screaming red. The whole palette breathes. Nothing shouts.
+</p>
+
+<div class="callout">
+  <strong>The Practical Test</strong>
+  In Aseprite's color picker, when you drag a new color, try reducing its saturation by 20&ndash;40% from where it "naturally" wants to land. Then check if it still reads as the color you wanted. If yes (and it usually will), use the desaturated version. Your scene will thank you.
+</div>
+
+<h2 class="sub-title" id="s3-pillow">The Pillow Shading Mistake</h2>
+<p>
+Pillow shading is the most common beginner error in pixel art. It occurs when you shade a sprite by adding shadows toward all edges equally &mdash; as if the object were lit from the center, from the inside. The result looks like a stuffed pillow: darkened around every edge, bright in the middle, with no sense of a real light source.
+</p>
+<p>
+The fix is simple but requires discipline: <strong>always pick one light source and shade only from that direction.</strong> In Smoke &amp; Honey, the style guide specifies "soft ambient lighting from upper-left." That means upper-left faces are brighter, lower-right faces are in shadow. The bottom-right edge of a character sprite gets the darkest values. The upper-left shoulder gets the lightest highlight.
+</p>
+<p>
+Not <em>all</em> edges get dark. Not the lit edges. Only the shadowed ones.
+</p>
+
+<h2 class="sub-title" id="s3-hue">Hue Shifting &mdash; The Secret to Non-Boring Shading</h2>
+<p>
+If you shade by only adjusting value &mdash; taking your base color and making it darker or lighter &mdash; the result looks flat and uniform. It is technically correct but aesthetically dull. The technique that separates intermediate from advanced pixel art is hue shifting.
+</p>
+<p>
+The idea: as you shade toward shadow, shift the hue slightly toward a cooler color (blues, purples). As you shade toward highlight, shift the hue slightly toward a warmer color (yellows, oranges). This mimics how real light works &mdash; shadows in outdoor scenes receive cool skylight, while lit surfaces receive warm sunlight.
+</p>
+<p>
+In practice with the Smoke &amp; Honey palette, here is a worked example for shading wood:
+</p>
+<table>
+  <tr><th>Level</th><th>Role</th><th>Hex</th><th>HSV Description</th></tr>
+  <tr><td>Highlight</td><td>Lit face of top bar</td><td><code style="color:#BA8A48">#BA8A48</code></td><td>Hue ~35&deg; (orange-yellow), sat ~60%, val ~73% &mdash; warm shift</td></tr>
+  <tr><td>Light</td><td>Side rail lit face</td><td><code style="color:#94602A">#94602A</code></td><td>Hue ~32&deg;, sat ~72%, val ~58%</td></tr>
+  <tr><td>Mid (base)</td><td>Primary wood face</td><td><code style="color:#6C4016">#6C4016</code></td><td>Hue ~28&deg;, sat ~80%, val ~42%</td></tr>
+  <tr><td>Dark</td><td>Frame outer body</td><td><code style="color:#46260C">#46260C</code></td><td>Hue ~25&deg;, sat ~83%, val ~27% &mdash; slight cool shift</td></tr>
+  <tr><td>Darkest</td><td>Shadow edge</td><td><code style="color:#261206">#261206</code></td><td>Hue ~22&deg;, sat ~85%, val ~15% &mdash; cooler, darker</td></tr>
+</table>
+<p>
+Notice the hue walking from ~35&deg; at the highlight down to ~22&deg; at the shadow. That is hue shifting in action. The shadows lean cooler (toward red-brown) while the highlights lean warmer (toward golden yellow). The result is a material that reads as warm wood without being monotonous.
+</p>
+
+<h2 class="sub-title" id="s3-palette">3b. Palette Design</h2>
+<p>
+<strong>Fewer colors means better pixel art.</strong> This is counterintuitive but true. A 16-color sprite looks more intentional than a 64-color one because every color was chosen rather than accumulated. With fewer colors, each one does more work, and the relationships between colors &mdash; which is what makes a palette feel cohesive &mdash; are easier to manage.
+</p>
+<p>
+The rule of 4 is a useful starting framework: for any distinct color area on a character (their hair, their shirt, their skin), you get 4 tones maximum: a deep shadow, a base/mid color, a light highlight, and occasionally a specular or "pop" highlight for shiny surfaces. If you find yourself needing 6 tones of brown for a wooden object, you are either working at too large a scale or not trusting the constraint.
+</p>
+<p>
+<strong>How to create a palette that reads well at small sizes:</strong> Pick colors with sufficient value contrast between shadow and highlight. Two neighboring tones that are close in value blend together at small sizes &mdash; the shading disappears. Rule of thumb: your shadow should be at least 30% darker in value than your highlight. If you cannot see the depth at 1x zoom, add contrast.
+</p>
+<p>
+<strong>Warm vs. cool palettes:</strong> Smoke &amp; Honey uses a warm palette &mdash; ambers, earth tones, olive greens, warm grays. This is appropriate for a pastoral summer-afternoon game. A cool palette (blues, grays, purples) would suit an undersea game or a winter night scene. The style guide specifies that cool blues and grays are <em>reserved for the winter world palette</em> &mdash; a seasonal tint layer &mdash; and should not appear in the core UI or character design.
+</p>
+
+<h2 class="sub-title" id="s3-palettes">3c. Suggested Palettes</h2>
+<p>All palettes are available on <strong>lospec.com/palette-list</strong> where you can download Aseprite-compatible <code>.pal</code> files directly.</p>
+
+<!-- PALETTE 1: BeeKeeper Pro -->
+<div class="palette-block">
+  <h4>1. BeeKeeper Pro Working Palette &mdash; Smoke &amp; Honey (Official)</h4>
+  <p class="palette-desc">Derived directly from the PIXELLAB_STYLE_GUIDE.md UI token system. These are the exact Langstroth Frame UI colors. Use these for all UI elements, hive frames, and anywhere the game's interface appears. The world palette (grass, dirt, stone) is described in prose and matched from the Cainos Village asset pack.</p>
+  <h3 class="mini-title">Langstroth Frame Tokens &mdash; Wood Tones</h3>
+  <div class="labeled-row">
+    <div class="swatch-labeled"><div class="sw" style="background:#261206"></div><span class="sw-name">WD_DARKEST Shadow Edge</span><span class="sw-hex">#261206</span></div>
+    <div class="swatch-labeled"><div class="sw" style="background:#46260C"></div><span class="sw-name">WD_DARK Outer Body</span><span class="sw-hex">#46260C</span></div>
+    <div class="swatch-labeled"><div class="sw" style="background:#6C4016"></div><span class="sw-name">WD_MID Primary Face</span><span class="sw-hex">#6C4016</span></div>
+    <div class="swatch-labeled"><div class="sw" style="background:#94602A"></div><span class="sw-name">WD_LIGHT Highlight</span><span class="sw-hex">#94602A</span></div>
+    <div class="swatch-labeled"><div class="sw" style="background:#BA8A48"></div><span class="sw-name">WD_PALE Aged Highlight</span><span class="sw-hex">#BA8A48</span></div>
+  </div>
+  <h3 class="mini-title">Amber / Honey Tones</h3>
+  <div class="labeled-row">
+    <div class="swatch-labeled"><div class="sw" style="background:#985808"></div><span class="sw-name">AMBER_DARK Deep Shadow</span><span class="sw-hex">#985808</span></div>
+    <div class="swatch-labeled"><div class="sw" style="background:#C8820C"></div><span class="sw-name">AMBER_MID Main Honey</span><span class="sw-hex">#C8820C</span></div>
+    <div class="swatch-labeled"><div class="sw" style="background:#E6A220"></div><span class="sw-name">AMBER_LIGHT Bright Honey</span><span class="sw-hex">#E6A220</span></div>
+    <div class="swatch-labeled"><div class="sw" style="background:#F4CC6E"></div><span class="sw-name">HONEY_PALE Soft Accent</span><span class="sw-hex">#F4CC6E</span></div>
+  </div>
+  <h3 class="mini-title">Wax / Cell Interior Tones</h3>
+  <div class="labeled-row">
+    <div class="swatch-labeled"><div class="sw" style="background:#F2E4B2"></div><span class="sw-name">WAX_CREAM Button Interior</span><span class="sw-hex">#F2E4B2</span></div>
+    <div class="swatch-labeled"><div class="sw" style="background:#FCF5D7"></div><span class="sw-name">WAX_WHITE Text Areas</span><span class="sw-hex">#FCF5D7</span></div>
+    <div class="swatch-labeled"><div class="sw" style="background:#E4D498"></div><span class="sw-name">CELL_EMPTY Empty Comb</span><span class="sw-hex">#E4D498</span></div>
+    <div class="swatch-labeled"><div class="sw" style="background:#D49E28"></div><span class="sw-name">CELL_HONEY Capped Cell</span><span class="sw-hex">#D49E28</span></div>
+    <div class="swatch-labeled"><div class="sw" style="background:#B48430"></div><span class="sw-name">CELL_WALL Dividers</span><span class="sw-hex">#B48430</span></div>
+    <div class="swatch-labeled"><div class="sw" style="background:#94681C"></div><span class="sw-name">CELL_DARK Cell Shadow</span><span class="sw-hex">#94681C</span></div>
+  </div>
+  <h3 class="mini-title">World / Character Tones (approximations from style guide)</h3>
+  <div class="labeled-row">
+    <div class="swatch-labeled"><div class="sw" style="background:#7A8A3A"></div><span class="sw-name">Grass Muted Olive</span><span class="sw-hex">~#7A8A3A</span></div>
+    <div class="swatch-labeled"><div class="sw" style="background:#5A6A2A"></div><span class="sw-name">Grass Dark</span><span class="sw-hex">~#5A6A2A</span></div>
+    <div class="swatch-labeled"><div class="sw" style="background:#9AAA52"></div><span class="sw-name">Grass Highlight</span><span class="sw-hex">~#9AAA52</span></div>
+    <div class="swatch-labeled"><div class="sw" style="background:#B89A5C"></div><span class="sw-name">Dirt Sandy Tan</span><span class="sw-hex">~#B89A5C</span></div>
+    <div class="swatch-labeled"><div class="sw" style="background:#907040"></div><span class="sw-name">Dirt Mid</span><span class="sw-hex">~#907040</span></div>
+    <div class="swatch-labeled"><div class="sw" style="background:#5A5A6A"></div><span class="sw-name">Slate Roof Dark</span><span class="sw-hex">~#5A5A6A</span></div>
+    <div class="swatch-labeled"><div class="sw" style="background:#7A7A8A"></div><span class="sw-name">Slate Mid</span><span class="sw-hex">~#7A7A8A</span></div>
+    <div class="swatch-labeled"><div class="sw" style="background:#E8E0C8"></div><span class="sw-name">Beekeeper Suit</span><span class="sw-hex">~#E8E0C8</span></div>
+  </div>
+  <p class="palette-desc" style="margin-top:10px;">World color approximations are derived from style guide descriptions; match them visually to the Cainos Village asset pack tiles in-engine.</p>
+</div>
+
+<!-- PALETTE 2: ENDESGA 32 -->
+<div class="palette-block">
+  <h4>2. ENDESGA 32</h4>
+  <p class="palette-desc">A well-loved 32-color earthy palette popular in indie jam games. Strong browns, warm reds, rich greens. Good for practice since it has enough variety to represent any subject while staying cohesive. Many Lospec top-rated games use this palette. Search "endesga-32" on lospec.com.</p>
+  <div class="swatch-row">
+    <div class="swatch" style="background:#be4a2f" title="#be4a2f"></div>
+    <div class="swatch" style="background:#d77643" title="#d77643"></div>
+    <div class="swatch" style="background:#ead4aa" title="#ead4aa"></div>
+    <div class="swatch" style="background:#e4a672" title="#e4a672"></div>
+    <div class="swatch" style="background:#b86f50" title="#b86f50"></div>
+    <div class="swatch" style="background:#733e39" title="#733e39"></div>
+    <div class="swatch" style="background:#3e2731" title="#3e2731"></div>
+    <div class="swatch" style="background:#a22633" title="#a22633"></div>
+    <div class="swatch" style="background:#e43b44" title="#e43b44"></div>
+    <div class="swatch" style="background:#f77622" title="#f77622"></div>
+    <div class="swatch" style="background:#feae34" title="#feae34"></div>
+    <div class="swatch" style="background:#fee761" title="#fee761"></div>
+    <div class="swatch" style="background:#63c74d" title="#63c74d"></div>
+    <div class="swatch" style="background:#3e8948" title="#3e8948"></div>
+    <div class="swatch" style="background:#265c42" title="#265c42"></div>
+    <div class="swatch" style="background:#193c3e" title="#193c3e"></div>
+    <div class="swatch" style="background:#124e89" title="#124e89"></div>
+    <div class="swatch" style="background:#0099db" title="#0099db"></div>
+    <div class="swatch" style="background:#2ce8f5" title="#2ce8f5"></div>
+    <div class="swatch" style="background:#ffffff" title="#ffffff"></div>
+    <div class="swatch" style="background:#c0cbdc" title="#c0cbdc"></div>
+    <div class="swatch" style="background:#8b9bb4" title="#8b9bb4"></div>
+    <div class="swatch" style="background:#5a6988" title="#5a6988"></div>
+    <div class="swatch" style="background:#3a4466" title="#3a4466"></div>
+    <div class="swatch" style="background:#262b44" title="#262b44"></div>
+    <div class="swatch" style="background:#181425" title="#181425"></div>
+    <div class="swatch" style="background:#ff0044" title="#ff0044"></div>
+    <div class="swatch" style="background:#68386c" title="#68386c"></div>
+    <div class="swatch" style="background:#b55088" title="#b55088"></div>
+    <div class="swatch" style="background:#f6757a" title="#f6757a"></div>
+    <div class="swatch" style="background:#e8b796" title="#e8b796"></div>
+    <div class="swatch" style="background:#c28569" title="#c28569"></div>
+  </div>
+  <p class="palette-desc">Best for: practice exercises, learning shading, and building confidence with a complete versatile palette before switching to your game-specific one.</p>
+</div>
+
+<!-- PALETTE 3: Sweetie 16 -->
+<div class="palette-block">
+  <h4>3. Sweetie 16</h4>
+  <p class="palette-desc">A beautiful 16-color palette &mdash; the best choice for pure learning. With only 16 colors, every shading decision is forced and deliberate. Warm, slightly saturated, great range from dark to light. The constraint of 16 colors teaches palette discipline faster than any other approach. Search "sweetie-16" on lospec.com.</p>
+  <div class="swatch-row">
+    <div class="swatch" style="background:#1a1c2c" title="#1a1c2c"></div>
+    <div class="swatch" style="background:#5d275d" title="#5d275d"></div>
+    <div class="swatch" style="background:#b13e53" title="#b13e53"></div>
+    <div class="swatch" style="background:#ef7d57" title="#ef7d57"></div>
+    <div class="swatch" style="background:#ffcd75" title="#ffcd75"></div>
+    <div class="swatch" style="background:#a7f070" title="#a7f070"></div>
+    <div class="swatch" style="background:#38b764" title="#38b764"></div>
+    <div class="swatch" style="background:#257179" title="#257179"></div>
+    <div class="swatch" style="background:#29366f" title="#29366f"></div>
+    <div class="swatch" style="background:#3b5dc9" title="#3b5dc9"></div>
+    <div class="swatch" style="background:#41a6f6" title="#41a6f6"></div>
+    <div class="swatch" style="background:#73eff7" title="#73eff7"></div>
+    <div class="swatch" style="background:#f4f4f4" title="#f4f4f4"></div>
+    <div class="swatch" style="background:#94b0c2" title="#94b0c2"></div>
+    <div class="swatch" style="background:#566c86" title="#566c86"></div>
+    <div class="swatch" style="background:#333c57" title="#333c57"></div>
+  </div>
+  <p class="palette-desc">Best for: your very first sprites. Draw the 16&times;16 grass tile and dandelion exercises (Section 7) using only this palette. The limitation will force better decisions.</p>
+</div>
+
+<!-- PALETTE 4: Nostalgia -->
+<div class="palette-block">
+  <h4>4. Nostalgia</h4>
+  <p class="palette-desc">A warm, muted 8-color palette evoking vintage Game Boy Color output. Heavy on warm browns, muted yellows, and deep greens &mdash; tones that feel close to the Smoke &amp; Honey world palette. Excellent for practicing within extreme constraint. Search "nostalgia" on lospec.com.</p>
+  <div class="swatch-row">
+    <div class="swatch" style="background:#d0d058" title="#d0d058"></div>
+    <div class="swatch" style="background:#a0a840" title="#a0a840"></div>
+    <div class="swatch" style="background:#708028" title="#708028"></div>
+    <div class="swatch" style="background:#405010" title="#405010"></div>
+    <div class="swatch" style="background:#c8b090" title="#c8b090"></div>
+    <div class="swatch" style="background:#a07850" title="#a07850"></div>
+    <div class="swatch" style="background:#785030" title="#785030"></div>
+    <div class="swatch" style="background:#402010" title="#402010"></div>
+  </div>
+  <p class="palette-desc">Best for: understanding how few colors can carry a full scene. Draw a grass tile with a flower using only these 8 colors. The yellowed greens and warm browns are very close to the Smoke &amp; Honey world feel.</p>
+</div>
+
+<!-- PALETTE 5: Zughy 32 -->
+<div class="palette-block">
+  <h4>5. Zughy 32</h4>
+  <p class="palette-desc">A muted, desaturated 32-color professional palette popular in the indie dev community. Every color feels considered &mdash; there are no "loud" or obviously wrong choices. The muted quality makes it forgiving to work with and teaches good color discipline. Search "zughy-32" on lospec.com.</p>
+  <div class="swatch-row">
+    <div class="swatch" style="background:#212123" title="#212123"></div>
+    <div class="swatch" style="background:#3a3d49" title="#3a3d49"></div>
+    <div class="swatch" style="background:#535572" title="#535572"></div>
+    <div class="swatch" style="background:#7a7fa4" title="#7a7fa4"></div>
+    <div class="swatch" style="background:#a8adc4" title="#a8adc4"></div>
+    <div class="swatch" style="background:#d4d6e5" title="#d4d6e5"></div>
+    <div class="swatch" style="background:#f0f2ff" title="#f0f2ff"></div>
+    <div class="swatch" style="background:#e8c35d" title="#e8c35d"></div>
+    <div class="swatch" style="background:#c89a2a" title="#c89a2a"></div>
+    <div class="swatch" style="background:#9b6c18" title="#9b6c18"></div>
+    <div class="swatch" style="background:#6b4413" title="#6b4413"></div>
+    <div class="swatch" style="background:#3d2206" title="#3d2206"></div>
+    <div class="swatch" style="background:#f5c9a4" title="#f5c9a4"></div>
+    <div class="swatch" style="background:#d9945a" title="#d9945a"></div>
+    <div class="swatch" style="background:#b06428" title="#b06428"></div>
+    <div class="swatch" style="background:#7a3c0f" title="#7a3c0f"></div>
+    <div class="swatch" style="background:#4d1828" title="#4d1828"></div>
+    <div class="swatch" style="background:#9dd0c4" title="#9dd0c4"></div>
+    <div class="swatch" style="background:#66b0a8" title="#66b0a8"></div>
+    <div class="swatch" style="background:#3b8880" title="#3b8880"></div>
+    <div class="swatch" style="background:#1d5e5a" title="#1d5e5a"></div>
+    <div class="swatch" style="background:#073a38" title="#073a38"></div>
+    <div class="swatch" style="background:#b8e0a4" title="#b8e0a4"></div>
+    <div class="swatch" style="background:#8bc46c" title="#8bc46c"></div>
+    <div class="swatch" style="background:#5c9c40" title="#5c9c40"></div>
+    <div class="swatch" style="background:#2e6c20" title="#2e6c20"></div>
+    <div class="swatch" style="background:#0a3e10" title="#0a3e10"></div>
+    <div class="swatch" style="background:#f0686e" title="#f0686e"></div>
+    <div class="swatch" style="background:#a83848" title="#a83848"></div>
+    <div class="swatch" style="background:#702030" title="#702030"></div>
+    <div class="swatch" style="background:#3e1020" title="#3e1020"></div>
+    <div class="swatch" style="background:#f0a860" title="#f0a860"></div>
+  </div>
+  <p class="palette-desc">Best for: intermediate practice after Sweetie 16. Has warm browns and golden yellows that map well to wood and honey tones &mdash; useful for practicing BeeKeeper Pro style art before transitioning to the official palette.</p>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 4: SHADING AND LIGHTING                                   -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s4">
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h1 class="sec-title">Shading and Lighting</h1>
+</div>
+
+<h2 class="sub-title" id="s4-lightsource">Light Source Consistency</h2>
+<p>
+Before placing a single shading pixel, decide where your light is coming from &mdash; and never change it. In Smoke &amp; Honey, the style guide is explicit: <strong>soft ambient lighting from upper-left.</strong> This means every sprite in the game is lit from the upper-left. The top-left corners of objects are brightest. The bottom-right faces are in shadow.
+</p>
+<p>
+Light source consistency is what makes a scene feel like a real place. When you look at the Cainos Village pack, every building, every tree, every prop is lit from the same direction. They feel like they exist in the same world because the light tells you they do. If you draw a beehive sprite where the left side is bright and a fence sprite where the right side is bright, they will look like they came from different games &mdash; because visually, they did.
+</p>
+<p>
+Write your light source on a sticky note above your monitor if you need to: <em>Upper-left. Always.</em>
+</p>
+
+<h2 class="sub-title" id="s4-3val">The 3-Value Rule</h2>
+<p>
+For any color surface in the game, you use exactly three brightness levels: a <strong>highlight</strong>, a <strong>midtone (base)</strong>, and a <strong>shadow</strong>. The midtone is your base color &mdash; the "true" color of the object in neutral light. The highlight is applied where light directly strikes, the shadow where it does not reach.
+</p>
+<p>
+Most of the surface area of a sprite should be midtone. Highlights cover the lit edges and top-facing surfaces. Shadows cover the unlit edges and undercut areas. A 60/25/15 split (mid/shadow/highlight) is a reasonable starting point &mdash; you are not painting half the sprite in shadow.
+</p>
+<p>
+The Smoke &amp; Honey style guide specifies 2&ndash;3 tones per color family: "mid &rarr; light highlight &rarr; dark shadow." Start with 2 and add the third only when a surface has enough visual complexity to need it. Ground tiles use 2 tones (mid + dithered texture). Characters use 3 (mid + shadow + highlight). Deep shadow areas on corners may use a 4th darkest value.
+</p>
+
+<div class="callout tip">
+  <strong>Working with the Langstroth wood palette</strong>
+  The wood tokens give you 5 tones from WD_DARKEST to WD_PALE. In practice, use only 3 of them for most wooden elements: WD_MID (base), WD_LIGHT (highlight), and WD_DARK (shadow). Add WD_DARKEST only at the outermost shadow edge. Reserve WD_PALE for the single-pixel lit top edge of a top rail. This 3+1 approach gives you all the depth you need without overworking the shading.
+</div>
+
+<h2 class="sub-title" id="s4-dither">Dithering</h2>
+<p>
+Dithering is the technique of mixing two colors at the pixel level to simulate a tone between them. Instead of placing a hard edge between your midtone and shadow, you alternate pixels of each color in a pattern &mdash; the eye averages them and perceives an intermediate value.
+</p>
+<p>
+In Smoke &amp; Honey, dithering is used on ground tiles for texture, not for character shading. The style guide is explicit: "no heavy dithering on characters or buildings." This is an important constraint &mdash; dithering on a character at 120&times;120 is appropriate only in specific areas like clothing texture. Overuse makes characters look noisy and unreadable.
+</p>
+
+<h3 class="mini-title">Common dithering patterns:</h3>
+
+<canvas id="dither50" width="8" height="8" style="display:none"></canvas>
+<canvas id="ditherH" width="8" height="8" style="display:none"></canvas>
+<canvas id="ditherD" width="8" height="8" style="display:none"></canvas>
+
+<p><strong>50% Checkerboard</strong> &mdash; Alternating pixels of two colors in a checkerboard grid. Produces a 50/50 blend. The most common dithering pattern. On ground tiles in this game, it creates subtle texture variation between two grass tones without visible hard edges.</p>
+
+<p><strong>Horizontal lines</strong> &mdash; Alternating rows of two colors. Produces a striped texture. Useful for suggesting horizontal surface grain (like a wooden plank's annual rings) or water ripple texture.</p>
+
+<p><strong>Diagonal / Bayer ordered dithering</strong> &mdash; A mathematical pattern (2x2 or 4x4 Bayer matrix) that distributes pixels evenly to simulate a smooth gradient. Produces a fine-grained texture. More sophisticated than checkerboard; some pixel artists use it for subtle fabric texture on character clothing.</p>
+
+<p>For ground tile dithering in Smoke &amp; Honey: use the 50% checkerboard between your two grass tones to suggest texture variation. Keep dithered patches small (2&ndash;4 pixels wide) so they read as texture, not as noise. A full tile of 50% dithering looks busy; a 3-pixel dithered border between a dirt patch and grass looks natural.</p>
+
+<h2 class="sub-title" id="s4-rim">Rim Lighting and Specular Highlights</h2>
+<p>
+<strong>Rim lighting</strong> is the 1-pixel bright edge that wraps around the secondary lit face of a sprite &mdash; the edge that catches scattered light from the environment even though it is not directly facing the light source. It is the technique that makes game sprites "pop" off the background.
+</p>
+<p>
+In practice: after placing your main shading (highlight from upper-left, shadow at lower-right), add a single row of light pixels along the lower-right edge of the sprite. Use your lightest highlight tone, or even a slightly warmer color than your main highlight. This creates the impression of a faint backlight or environmental bounce light. Uncle Bob's silhouette will read clearly against a busy background because of this single pixel.
+</p>
+<p>
+Use it sparingly &mdash; one or two pixels per edge, only on important character contours, not on every interior detail.
+</p>
+<p>
+<strong>Specular highlights</strong> are the tiny bright pixel or pixels that appear on shiny surfaces to sell the material quality. A glass honey jar needs one &mdash; the PIXELLAB_STYLE_GUIDE.md notes "subtle highlight pixel on jar surface" for the honey jar. A bald or closely-cropped head needs one bright pixel near the top to read as skin rather than fabric. A metal smoker cylinder needs one bright highlight pixel to read as metal.
+</p>
+<p>
+The specular pixel is usually placed near the light source direction (upper-left), is your brightest available color or even a near-white, and is exactly 1&ndash;2 pixels. More than that and it becomes a white smear. The single bright pixel, surrounded by the regular highlight tone, gives the impression of a glint &mdash; the whole surface reads as shiny even though only 1 pixel changes.
+</p>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 5: SPRITE CONSTRUCTION FOR BEEKEEPER PRO                  -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s5">
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h1 class="sec-title">Sprite Construction for Smoke &amp; Honey</h1>
+</div>
+
+<div class="callout">
+  <strong>Source of truth for this section</strong>
+  All dimensions are pulled directly from the GDD (Section 10.1.1 Visual Style &mdash; Technical Specifications) and the PIXELLAB_STYLE_GUIDE.md. Cross-reference these when in doubt. The GDD is the authority if anything in this guide conflicts.
+</div>
+
+<h2 class="sub-title" id="s5-specs">Technical Specifications Table</h2>
+<table>
+  <tr>
+    <th>Asset</th>
+    <th>Size</th>
+    <th>Sheet Format</th>
+    <th>Notes</th>
+  </tr>
+  <tr>
+    <td class="label">Player character (Eli / Beekeeper)</td>
+    <td class="dim">120&times;120 px/frame</td>
+    <td><code>960&times;2880 px<br>8 cols &times; 24 rows</code></td>
+    <td>8 directions; idle (1 frame/dir), walk (8 frames/dir), run (8 frames/dir). White beekeeping suit with mesh veil. Runtime-loaded via <code>Image.load_from_file()</code>.</td>
+  </tr>
+  <tr>
+    <td class="label">Uncle Bob (NPC)</td>
+    <td class="dim">120&times;120 px/frame</td>
+    <td><code>960&times;2880 px<br>8 cols &times; 24 rows</code></td>
+    <td>Same spritesheet layout as player. Older man, denim overalls, plaid flannel shirt, gray hair. Must have a distinctly different silhouette than the player character.</td>
+  </tr>
+  <tr>
+    <td class="label">Other NPCs (Darlene, Walt, Terri, Lloyd, etc.)</td>
+    <td class="dim">120&times;120 px/frame</td>
+    <td><code>960&times;2880 px<br>8 cols &times; 24 rows</code></td>
+    <td>Same layout. Each needs a silhouette distinct from all others &mdash; height, build, and clothing shape are the primary differentiators at this resolution.</td>
+  </tr>
+  <tr>
+    <td class="label">NPC portrait (DialogueUI)</td>
+    <td class="dim">64&times;64 px</td>
+    <td>Single image</td>
+    <td>Front-facing close-up. Used in the dialogue box portrait area with its own wooden sub-frame. Uncle Bob's placeholder is included; all portraits follow GDD &sect;10.1.3 PixelLab guidelines.</td>
+  </tr>
+  <tr>
+    <td class="label">Base ground tile</td>
+    <td class="dim">16&times;16 px</td>
+    <td>Tileset sheet</td>
+    <td>Matches Cainos Village asset pack grid. Grass: muted olive yellow-green. Dirt path: sandy tan. Must tile seamlessly. 2&ndash;3 tone shading; subtle dithering for texture.</td>
+  </tr>
+  <tr>
+    <td class="label">Wildflower forage tile overlay</td>
+    <td class="dim">16&times;16 px</td>
+    <td>Single sprite</td>
+    <td>Layered over grass tile. Clover (white/pink) and dandelion (yellow) pixel clusters, 2&ndash;3 pixels per flower. Transparent background.</td>
+  </tr>
+  <tr>
+    <td class="label">Langstroth beehive (overworld)</td>
+    <td class="dim">16&times;24 px</td>
+    <td>Single sprite per state</td>
+    <td>Stacked white-painted wooden supers. Top-down slight north-tilt. Modular: each box is a separate sprite layer stacked vertically as player adds supers.</td>
+  </tr>
+  <tr>
+    <td class="label">Hive stand</td>
+    <td class="dim">16&times;8 px</td>
+    <td>Single sprite</td>
+    <td>Simple wooden stand, weathered brown wood tones. Base of each hive stack.</td>
+  </tr>
+  <tr>
+    <td class="label">Honey jar (inventory icon)</td>
+    <td class="dim">16&times;16 px</td>
+    <td>Single sprite</td>
+    <td>Rounded amber glass jar, gold lid, 1-pixel specular highlight on jar surface. Warm amber: <code>#C8860A</code> range. No black outlines.</td>
+  </tr>
+  <tr>
+    <td class="label">Smoker tool (inventory icon)</td>
+    <td class="dim">16&times;16 px</td>
+    <td>Single sprite</td>
+    <td>Tin cylinder body (dark gray metal), brown leather bellows, smoke wisps from top. Stardew Valley item icon style.</td>
+  </tr>
+  <tr>
+    <td class="label">Hotbar item sprites (general)</td>
+    <td class="dim">32&times;32 px</td>
+    <td>Individual PNGs</td>
+    <td>All 25 inventory items render at 32&times;32 in hotbar slots. Items include: raw_honey, pollen, seeds, frames, super_box, beehive, hive_stand, deep_body, hive_lid, treatments, syrup_feeder, queen_cage, etc.</td>
+  </tr>
+  <tr>
+    <td class="label">Bee swarm particle</td>
+    <td class="dim">8&times;8 px</td>
+    <td>Single sprite</td>
+    <td>Single bee for particle system. Warm golden-yellow body, black stripe, tiny wing detail. 1&ndash;2px motion blur suggestion optional.</td>
+  </tr>
+  <tr>
+    <td class="label">Hive frame (inspection UI)</td>
+    <td class="dim">~320&times;192 px</td>
+    <td>Front-facing view</td>
+    <td>Not top-down &mdash; portrait/front-facing orientation. Individual cells visible at 3&ndash;4px per cell. Color-coded: pale yellow (empty), golden (capped honey), tan (capped brood), white curled larvae, egg dots.</td>
+  </tr>
+  <tr>
+    <td class="label">Buildings (small: diner, feed store)</td>
+    <td class="dim">~80&times;64 px</td>
+    <td>Single sprite + shadow layer</td>
+    <td>Slight north-tilt perspective &mdash; roof dominant, front facade below roofline. Shadow is separate sprite layer offset south-east. Must match Cainos Village building style exactly.</td>
+  </tr>
+  <tr>
+    <td class="label">Saturday Market stall</td>
+    <td class="dim">32&times;48 px</td>
+    <td>Single sprite</td>
+    <td>2-tile wide prop. Wooden counter, tan/green striped canvas awning, honey jars displayed on counter top.</td>
+  </tr>
+  <tr>
+    <td class="label">UI fill bar (XP, energy, honey)</td>
+    <td class="dim">Variable width &times; 4&ndash;8 px</td>
+    <td>3 sprites: bg, fill, rail</td>
+    <td>Langstroth Frame Aesthetic: row of honeycomb cells in wooden rail. Empty cells: <code>#E4D498</code>. Filled: <code>#C8820C</code> with <code>#E6A220</code> highlight row. No gradients &mdash; discrete cell fill only.</td>
+  </tr>
+  <tr>
+    <td class="label">UI button</td>
+    <td class="dim">Variable &times; 14 px</td>
+    <td>3 states: normal, hover, pressed</td>
+    <td>Wooden outer border (<code>#46260C</code>/<code>#6C4016</code>). Normal: wax-cream interior (<code>#F2E4B2</code>). Hover: <code>#F4CC6E</code>. Pressed: <code>#D49E28</code>, inverted shadow.</td>
+  </tr>
+  <tr>
+    <td class="label">Inventory slot</td>
+    <td class="dim">32&times;32 px interior</td>
+    <td>2 states: normal, new-item</td>
+    <td>Wood-framed edges, empty-comb interior (<code>#E4D498</code>). New-item variant glows amber.</td>
+  </tr>
+</table>
+
+<h2 class="sub-title" id="s5-anim">Animation Guide</h2>
+
+<h3 class="mini-title">Idle Animation (2 frames)</h3>
+<p>
+The idle is the animation that plays when the player is standing still. It exists to make the character feel alive rather than frozen. The movement is extremely subtle: a slight downward body shift (1&ndash;2 pixels) on frame 2, simulating a gentle weight shift or breathing. The head may dip 1 pixel. The arms do not swing. The feet do not move.
+</p>
+<p>
+In a 120&times;120 sprite, 1 pixel of movement is enough. More than 2 pixels of shift looks like the character is bouncing aggressively. Think of it as the character quietly breathing &mdash; barely perceptible, but unmistakably alive.
+</p>
+
+<h3 class="mini-title">Walk Cycle (8 frames per direction)</h3>
+<p>
+The walk cycle is the most technically demanding animation for a character. The Smoke &amp; Honey player spec calls for 8 frames per direction. The classical walk cycle keyframes are:
+</p>
+<table>
+  <tr><th>Frame</th><th>Pose Name</th><th>What's Happening</th></tr>
+  <tr><td>1</td><td>Contact</td><td>Heel strikes ground. Right foot forward, left foot back. Arms at their widest swing.</td></tr>
+  <tr><td>2</td><td>Recoil / Down</td><td>Body lowers slightly as weight transfers. Both feet near ground level. Body at its lowest point.</td></tr>
+  <tr><td>3</td><td>Passing</td><td>Body rises. Back foot passes the planted foot. One foot on ground, one in air mid-pass.</td></tr>
+  <tr><td>4</td><td>High</td><td>Body at its highest. Passing foot about to land. This is the "float" moment.</td></tr>
+  <tr><td>5&ndash;8</td><td>(Mirror)</td><td>Frames 5&ndash;8 repeat the Contact-Recoil-Passing-High cycle with the left/right feet swapped.</td></tr>
+</table>
+<p>
+With 8 frames, you have 2 frames for each key pose. Use the extra frame for in-betweens &mdash; the position between Contact and Down (Frame 1.5), etc. This creates a smoother, less mechanical feel.
+</p>
+<p>
+<strong>Preventing stiff walk cycles:</strong> The single most common problem in beginner walk animations is the "wooden soldier" &mdash; the character marches with straight legs, no body bob, no arm swing, just legs moving. Fix it by exaggerating the stride. Push the forward foot further forward than feels natural. Push the body bob further than feels natural. Then pull back 20% &mdash; what remains is usually exactly right. Under-animation always reads more mechanical than over-animation.
+</p>
+<p>
+For a top-down perspective, the walk cycle reads differently than a side-view walk. The feet appear to extend north and south rather than front and back. The body bob (vertical movement) is still present. Arm swing is implied by the shoulder width changing slightly.
+</p>
+
+<h3 class="mini-title">Talk / Gesture Animation (2 frames)</h3>
+<p>
+When an NPC is speaking, a 2-frame talking animation plays: mouth shape shifts (even at this resolution, 1&ndash;2 pixels of change in the lower face area suggests speech) and arms may shift slightly. This is not a full lip-sync &mdash; it is a "talking" indicator that loops while dialogue text displays. Keep it simple: two distinct positions, loop at roughly 8fps.
+</p>
+
+<h2 class="sub-title" id="s5-char">Character Construction Tips &mdash; Smoke &amp; Honey Specific</h2>
+
+<h3 class="mini-title">Start With the Silhouette</h3>
+<p>
+Before adding any interior detail, color, or shading, block in your character as a solid dark shape. This is the silhouette. The silhouette is what the player reads first &mdash; it communicates the character instantly, even before the player's eye processes the details.
+</p>
+<p>
+Uncle Bob needs a different silhouette than the player character. If both are medium-height human figures with similar proportions, players will mix them up in the busy overworld. Make Bob slightly stockier (wider shoulders relative to height), give him a more rounded posture (slight forward hunch), and ensure his hat (or lack of veil) distinguishes his head shape immediately.
+</p>
+
+<h3 class="mini-title">Read at Game Resolution (Zoom Out Constantly)</h3>
+<p>
+After every 5 minutes of work at 16x zoom, press <kbd>-</kbd> to drop to 1x or 2x zoom and look at your sprite as it will appear in-game. This is the only view that matters for gameplay. A carefully detailed sprite that turns into visual noise at 1x is a failed sprite.
+</p>
+
+<h3 class="mini-title">Drawing an Older Character &mdash; Uncle Bob</h3>
+<p>
+Age reads in pixel art through shape, posture, and a few key details rather than through fine-line wrinkles (which are invisible at 120px). For Uncle Bob:
+</p>
+<p>
+His silhouette should have slightly rounded shoulders &mdash; a subtle forward hunch that reads as "years of outdoor work." His hair is gray: use a light cool gray (not white &mdash; pure white at this scale reads as a visual glitch). Keep hair pixels sparse on top. His face, if you include detail at 120px, should have a slightly softer jaw than a young character &mdash; less defined edge, more relaxed. His build is "working man who hasn't done hard physical labor in a few years" &mdash; not thin, not heavy, but settled and comfortable.
+</p>
+
+<h3 class="mini-title">The Monk Baldness Technique for Uncle Bob</h3>
+<p>
+The PIXELLAB style guide describes Bob as gray-haired. If you want to suggest thinning hair (the "working beekeeper who doesn't wear his veil enough" look), use a sparse pixel technique: instead of a solid hair color covering the top of the head, use isolated pixels of hair color with skin color showing through. At 120px, 3&ndash;4 isolated hair pixels against a skin background reads immediately as thin, white hair over a tanned scalp. Add a specular highlight pixel on the bare scalp area &mdash; that single bright pixel sells the "bald-ish" read instantly.
+</p>
+
+<h3 class="mini-title">Drawing Plaid at Small Scale</h3>
+<p>
+Uncle Bob wears a plaid flannel shirt. At 120&times;120, you cannot realistically render true plaid geometry. The technique is dithered checkerboard for texture. Pick two closely-related shirt colors (e.g., a muted dark red and a muted dark blue-gray). Apply them in a small checkerboard pattern (2&times;2 alternating blocks) over the shirt area. The eye reads this as textured fabric rather than a solid color. Then add a few single-pixel horizontal or vertical lines in a third, darker tone to suggest the plaid grid. This creates the impression of plaid without attempting impossible geometry at small scale.
+</p>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 6: COMMON MISTAKES                                        -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s6">
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h1 class="sec-title">Common Mistakes to Avoid</h1>
+</div>
+
+<div class="mistake-grid">
+  <div class="mistake-card">
+    <h4>Pillow Shading</h4>
+    <p>Shading toward the center of a sprite from all edges equally, as if the object is self-lit from the inside. There is no light source &mdash; just darkness radiating inward from every edge. Fix: always pick one light direction and shade only from there. See Section 3.</p>
+  </div>
+  <div class="mistake-card">
+    <h4>Too Many Colors Per Character</h4>
+    <p>Accumulating colors accidentally &mdash; a slightly different shadow brown here, a marginally warmer highlight there &mdash; until a character has 40 unique colors that should be 12. Each similar-but-different color wastes a palette slot and creates visual noise. Work indexed, or audit your palette frequently.</p>
+  </div>
+  <div class="mistake-card">
+    <h4>Inconsistent Light Source</h4>
+    <p>Shading the beekeeper sprite as if lit from the upper-left, then drawing the honey jar icon lit from the upper-right. They will look like they belong to different games. Decide once: upper-left. Put it on a sticky note. Never violate it.</p>
+  </div>
+  <div class="mistake-card">
+    <h4>Banding</h4>
+    <p>Parallel lines of shading &mdash; long unbroken horizontal or diagonal stripes of shadow color following the edge of a surface. It reads as a drawn line rather than a shaded surface. Break bands by nudging individual pixels, making the edge jagged at 1&ndash;2 pixel intervals. Banding is caused by following the outline too slavishly when shading.</p>
+  </div>
+  <div class="mistake-card">
+    <h4>Outline Too Thin or Pure Black</h4>
+    <p>A 1-pixel pure black (#000000) outline on a 16&times;16 sprite is one pixel &mdash; 6% of the width. It disappears at small scale and looks pasted-on. The Smoke &amp; Honey style guide is explicit: no pure black outlines. Use the darkest tone of each color area as its own outline. The outline becomes part of the shading, not a separate ring.</p>
+  </div>
+  <div class="mistake-card">
+    <h4>Mismatched Pixel Scale</h4>
+    <p>Copying the 1-pixel detail density of a 16&times;16 sprite into a 120&times;120 sprite. At 120px, you have room for 2&ndash;3px lines, 4px facial features, and genuine fabric detail. A character drawn with 1px everything looks "scratchy" and low-effort at that scale. The detail density must match the canvas size.</p>
+  </div>
+  <div class="mistake-card">
+    <h4>Heavy Dithering on Characters</h4>
+    <p>The Smoke &amp; Honey style guide is clear: dithering on ground tiles only, not characters or buildings. A dithered character in a scene with clean-shaded tiles looks like it belongs in a different game. Reserve dithering for grass texture and dirt paths.</p>
+  </div>
+  <div class="mistake-card">
+    <h4>Copying Without Understanding</h4>
+    <p>Looking at a reference sprite and tracing pixel positions without understanding why each pixel is there. You will produce a copy that works for the reference pose but breaks as soon as you try to animate or modify it. Study references by asking: "Why did they put this shadow here? What does this dark edge represent?" Then draw from understanding, not from tracing.</p>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 7: PRACTICE EXERCISES                                     -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s7">
+<div class="section-header">
+  <span class="section-num">7</span>
+  <h1 class="sec-title">Practice Exercises</h1>
+</div>
+
+<p>These exercises are ordered from beginner to advanced, specifically designed for Smoke &amp; Honey. Complete them in order. Each one builds on skills from the previous. Time estimates assume you are drawing in Aseprite for the first time &mdash; they will drop rapidly as you build muscle memory.</p>
+
+<ul class="exercise-list">
+  <li>
+    <strong>Single 16&times;16 grass tile with 2 variants <span class="difficulty diff-1">BEGINNER</span></strong>
+    <span>Draw one base grass tile using 3 tones of muted olive green. Then draw a second variant with slightly different pixel placement &mdash; not a color change, just a different arrangement of the same 3 tones. Tiles should look related but not identical. Use Aseprite's tile preview to see how they repeat. Focus: working on a tiny canvas, color selection from a limited palette, understanding tileability. Do not add any detail beyond the 3-tone gradient; just getting comfortable with the canvas and zoom workflow is the whole point.</span>
+  </li>
+  <li>
+    <strong>16&times;16 dandelion <span class="difficulty diff-1">BEGINNER</span></strong>
+    <span>Draw a dandelion over a transparent background at 16&times;16. Use 2&ndash;3 pixels for the flower head (bright yellow, yellow-orange center, tiny highlight), a 1-pixel stem (dark green), and 2 small leaf pixels at the base. The constraint of 16px forces you to make the dandelion instantly recognizable in 5&ndash;6 pixels total. Focus: achieving readability with extreme constraint &mdash; this is the core pixel art challenge distilled.</span>
+  </li>
+  <li>
+    <strong>16&times;16 clover patch <span class="difficulty diff-1">BEGINNER</span></strong>
+    <span>Draw a small clover patch as a tile overlay. 3 clover leaves (each 2&ndash;3 pixels, round, dark to mid green) and optionally a tiny white flower head (1&ndash;2 pixels). This goes over a grass tile in-game &mdash; check that it reads clearly against your grass tile from Exercise 1. Focus: placing detail that reads at 1x scale, working with the transparent background, understanding foreground vs. background layer relationships.</span>
+  </li>
+  <li>
+    <strong>32&times;32 honey jar icon <span class="difficulty diff-2">INTERMEDIATE</span></strong>
+    <span>Scale up to 32&times;32 and draw the honey jar inventory icon. Rounded glass body in warm amber (<code>#C8820C</code> range), gold lid, and &mdash; critical &mdash; a single specular highlight pixel near the upper-left of the jar body. The jar should read as transparent glass containing honey, not an opaque orange rectangle. Use 4 amber tones: deep shadow at the lower right, base amber through the middle, lighter amber on the lit side, near-white specular pixel. No black outlines &mdash; use the darkest amber as your edge. Focus: specular highlights, material quality, shading curved surfaces.</span>
+  </li>
+  <li>
+    <strong>120&times;120 player character, down-facing idle pose <span class="difficulty diff-2">INTERMEDIATE</span></strong>
+    <span>Draw a single frame of the beekeeper character facing down (south), standing still. White beekeeping suit with warm off-white cast &mdash; not pure white. Mesh veil over head &mdash; a darker grid pattern over the face area. Use the silhouette-first approach: block in the body shape, confirm it reads as a beekeeper at 1x zoom, then add shading and detail. You have 14,400 pixels to work with. Use them deliberately. Focus: human proportions at larger scale, reading a complex costume in pixel art, light source discipline.</span>
+  </li>
+  <li>
+    <strong>Walk cycle for your player character (8 frames) <span class="difficulty diff-2">INTERMEDIATE</span></strong>
+    <span>Animate your idle frame from Exercise 5 into an 8-frame walk cycle. Use Aseprite's animation timeline and onion skinning. Start with the Contact pose (frame 1) and High pose (frame 4) as your keyframes &mdash; get those right before filling in the in-betweens. Play it back at 12fps and check for jitter, floating pixels, and wooden-soldier stiffness. Exaggerate the stride. Focus: the mechanics of animation, using Aseprite's timeline, the discipline of consistent pixel positions across frames.</span>
+  </li>
+  <li>
+    <strong>16&times;32 NPC with a different silhouette from the player <span class="difficulty diff-2">INTERMEDIATE</span></strong>
+    <span>Draw a second character at a smaller resolution (this is an alternate NPC sketch exercise at the older 16&times;32 scale for speed). This character must be immediately distinguishable from the player at 1x zoom based on silhouette alone: different height, different build, different clothing shape. Do not start with any reference to the player sprite &mdash; draw the new character fresh and only compare at the end. Focus: silhouette-driven character design, differentiation through shape.</span>
+  </li>
+  <li>
+    <strong>Uncle Bob's 64&times;64 portrait <span class="difficulty diff-2">INTERMEDIATE</span></strong>
+    <span>Draw Uncle Bob's NPC portrait for the DialogueUI &mdash; front-facing, 64&times;64 pixels. At 64px you have enough room for readable facial features: eyes (2&times;2 pixel blocks each), nose (1&ndash;2 pixels), mouth (2&ndash;3 pixels). Gray hair, warm tanned skin tone, slight smile. Reference the "monk baldness" technique and "drawing an older character" guidance from Section 5. The portrait must fit inside the dialogue box's wooden sub-frame &mdash; leave a 2-pixel transparent margin on all sides. Focus: faces in pixel art, working at 64px resolution, character expression.</span>
+  </li>
+  <li>
+    <strong>4-frame hive box idle animation (bees flying in/out) <span class="difficulty diff-3">ADVANCED</span></strong>
+    <span>Draw the Langstroth beehive overworld sprite (16&times;24 base) and animate it with a 4-frame idle: small bee particles (1&ndash;2 pixels each) moving in and out of the hive entrance. This requires drawing the static hive correctly first (stacked white supers, slight north-tilt, no black outlines), then adding the animation as a particle system &mdash; 2&ndash;3 bee dots at different positions each frame, creating the impression of flight without true motion blur. Focus: multi-layer sprite construction, particle animation, the beehive's specific visual style.</span>
+  </li>
+  <li>
+    <strong>3-tile floor set (grass, dirt, path) that tiles seamlessly <span class="difficulty diff-3">ADVANCED</span></strong>
+    <span>Draw three 16&times;16 tiles: a grass tile (olive green, 3 tones, subtle dithered texture), a dirt tile (sandy tan, warm, 2&ndash;3 tones), and a path tile (packed dirt with a slightly different color and texture than loose dirt). All three must tile seamlessly with themselves <em>and</em> transition naturally when placed adjacent to each other. The grass-dirt transition in particular must not have a jarring hard edge &mdash; consider a 1-pixel dithered boundary zone. Focus: seamless tiling, multi-tile color system consistency, edge handling between different materials.</span>
+  </li>
+</ul>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 8: RESOURCES AND NEXT STEPS                              -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s8">
+<div class="section-header">
+  <span class="section-num">8</span>
+  <h1 class="sec-title">Resources and Next Steps</h1>
+</div>
+
+<p>These are the resources that will actually move you forward, sorted by how immediately useful they are. Start with the free tutorials before spending money on courses.</p>
+
+<div class="resource-grid">
+  <div class="resource-card">
+    <span class="tag-type tag-free">FREE</span>
+    <h4>Saint11 Pixel Art Tutorials</h4>
+    <p>Pedro Medeiros (Saint11) releases monthly pixel art tutorials covering everything from animation basics to character polish. Among the best free pixel art education available anywhere. Start with his "Pixel Art Tutorials" Patreon archive &mdash; many are free. Topics include walk cycles, particle effects, and tile design that maps directly to Smoke &amp; Honey needs.</p>
+  </div>
+  <div class="resource-card">
+    <span class="tag-type tag-youtube">YOUTUBE</span>
+    <h4>Mortmort</h4>
+    <p>Prolific pixel art educator on YouTube with videos covering color theory, shading, and practical sprite creation. His color theory series is particularly relevant &mdash; covers hue shifting, palette selection, and the muted-color philosophy in practical terms. Search "Mortmort pixel art" for the channel.</p>
+  </div>
+  <div class="resource-card">
+    <span class="tag-type tag-youtube">YOUTUBE</span>
+    <h4>Brandon James Greer</h4>
+    <p>Excellent for character sprite creation specifically. His videos walk through building NPCs and player characters from silhouette to finished animation, with strong focus on the design decisions behind each pixel. His "how to make pixel art characters" series is directly applicable to Smoke &amp; Honey NPC work.</p>
+  </div>
+  <div class="resource-card">
+    <span class="tag-type tag-free">FREE</span>
+    <h4>Lospec Palette Database</h4>
+    <p>lospec.com/palette-list &mdash; the definitive repository of curated pixel art palettes. Every palette in Section 3 of this guide is available here as a downloadable Aseprite <code>.pal</code> file. Also has tutorials, a pixel editor, and community showcases. Search by palette name, color count, or aesthetic tag.</p>
+  </div>
+  <div class="resource-card">
+    <span class="tag-type tag-free">FREE</span>
+    <h4>Aseprite Documentation</h4>
+    <p>dacap.github.io/aseprite/docs &mdash; thorough official docs covering every tool. Priority reading: the Layers article (essential for shadow layer workflow), the Timeline article (walk cycle animation), and the Palette article (indexed mode and palette management). The script docs are useful later for automated sprite sheet generation.</p>
+  </div>
+  <div class="resource-card">
+    <span class="tag-type tag-youtube">YOUTUBE</span>
+    <h4>GDQuest Pixel Art for Games</h4>
+    <p>GDQuest produces high-quality game development education with strong Godot integration. Their pixel art courses address game-specific concerns (sprite sheets, animation in-engine, tile map setup) rather than pure art theory. Particularly useful for understanding how Aseprite exports connect to Godot's AnimatedSprite2D and TileMap nodes.</p>
+  </div>
+  <div class="resource-card">
+    <span class="tag-type tag-free">FREE</span>
+    <h4>Adam Saltsman Color Guides</h4>
+    <p>Adam Saltsman (creator of Canabalt and Overland) has written extensively about color palette design for small games. His insights on why constraint produces better work and how to derive a full game palette from a small seed set are highly practical. Search "Adam Saltsman pixel art color" &mdash; his essays are scattered across game dev blogs and are worth hunting down.</p>
+  </div>
+  <div class="resource-card">
+    <span class="tag-type tag-paid">PAID (~$20)</span>
+    <h4>Aseprite</h4>
+    <p>aseprite.org &mdash; buy this. It is the single best investment in your pixel art workflow. $20 as of 2026. Available on Steam or directly from the developer's site. The Steam version gives you automatic updates; the direct purchase gives you a DRM-free binary. Either is fine. Also on itch.io.</p>
+  </div>
+</div>
+
+<h2 class="sub-title">A Suggested Learning Path</h2>
+<p>
+If you are starting from zero, here is a concrete week-by-week approach calibrated to the Smoke &amp; Honey sprint schedule:
+</p>
+<p>
+<strong>Week 1 &mdash; Get the feel:</strong> Install Aseprite. Load the Sweetie 16 palette. Do Exercises 1, 2, and 3 from Section 7. Watch one Mortmort color theory video. Your goal is not to produce good sprites &mdash; it is to stop feeling lost in the tool.
+</p>
+<p>
+<strong>Week 2 &mdash; Learn shading:</strong> Switch to the BeeKeeper Pro palette (copy the UI tokens from PIXELLAB_STYLE_GUIDE.md into an Aseprite palette file). Do Exercise 4 (honey jar). Re-read Section 4 (Shading and Lighting) after completing it. Watch a Brandon James Greer video on shading. Your goal is one sprite with correct light source and hue-shifted shadows.
+</p>
+<p>
+<strong>Week 3 &mdash; First character:</strong> Do Exercise 5 (player idle frame). This will take longer than expected. Give it 3&ndash;5 hours. Zoom check constantly. Show it to someone and ask "what is this character wearing?" without telling them &mdash; if they say "beekeeper," you succeeded.
+</p>
+<p>
+<strong>Week 4 &mdash; Animation:</strong> Do Exercise 6 (walk cycle). Watch Saint11's walk cycle tutorial first. Expect to redraw frames multiple times. Play back at different speeds. This is the hardest exercise in this guide &mdash; a good walk cycle takes professional artists hours. Be patient.
+</p>
+<p>
+After these four weeks, you will have the foundation to produce production-quality assets for Smoke &amp; Honey. The exercises after that (Exercises 7&ndash;10) build game-specific skills on top of that foundation. And remember: every sprite you draw for the actual game is also practice. The best learning is shipping.
+</p>
+
+<div class="callout tip">
+  <strong>On getting stuck</strong>
+  If a sprite looks wrong and you cannot figure out why: zoom out to 1x, make a note of what reads incorrectly (shape? lighting direction? too many colors?), and start fresh on a new layer. Do not keep adding pixels to a broken base &mdash; identify the root error and rebuild from there. The ability to scrap and restart is a skill, not a failure.
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 9: STYLE CONSISTENCY                                      -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s9">
+<div class="section-header">
+  <span class="section-num">9</span>
+  <h1 class="sec-title">Keeping Your Art Style Consistent Across All Sprites</h1>
+</div>
+
+<p>
+A single beautiful sprite is an achievement. A game full of sprites that all feel like they were drawn by the same hand, in the same world, with the same light &mdash; that is the real skill. Style consistency is what separates a polished game from a patchwork of individually-nice assets that never quite cohere. This section is your system for achieving it.
+</p>
+
+<div class="callout">
+  <strong>The Cainos Benchmark Test</strong>
+  For Smoke &amp; Honey, every new sprite has one ultimate consistency check: does it look like it belongs in the Cainos Village asset pack scene? Load the Cainos tileset overview in Aseprite beside your new sprite. If your asset could blend into that scene without standing out as foreign, it passes. If it looks pasted in, it fails &mdash; even if it looks good in isolation.
+</div>
+
+<h2 class="sub-title">1. Lock the Color Palette in Aseprite</h2>
+<p>
+The single highest-leverage habit you can build is working from a <em>locked palette file</em>. In Aseprite, save your complete game palette as a <code>.pal</code> file and load it at the start of every session. Lock the palette so you cannot accidentally add new colors.
+</p>
+<p>
+Create a master palette file that contains both the Langstroth UI tokens and your world color approximations (grass, dirt, stone, beekeeper suit, etc.). Call it <code>smoke_and_honey_master.pal</code> and keep it in your project root alongside the style guide. When you start a new sprite, the first thing you do is load this palette.
+</p>
+<p>
+<strong>In Aseprite:</strong> <code>Window &gt; Palettes</code> to open the palette panel. Load your <code>.pal</code> file. Then set the sprite to Indexed color mode (<code>Sprite &gt; Color Mode &gt; Indexed</code>). Now you physically cannot use a color outside the palette &mdash; the tool enforces the constraint for you.
+</p>
+<p>
+When you feel tempted to add a new color, ask this question first: which existing palette color is closest, and can I use that instead? Nine times out of ten, the existing palette is sufficient and the temptation to add colors is really a symptom of not understanding the existing palette well enough yet. Only add a new color if there is a genuinely new visual need &mdash; a new material type, a new character with genuinely different skin tone &mdash; and when you do, add it to the master palette file so all future sprites can access it.
+</p>
+
+<table>
+  <tr><th>Habit</th><th>How to Enforce It</th></tr>
+  <tr><td>Always start from <code>smoke_and_honey_master.pal</code></td><td>Keep it pinned in Aseprite's recent palettes list. Load it first, before drawing anything.</td></tr>
+  <tr><td>Never add a color mid-session without updating the master</td><td>If you add a color to a sprite's palette, immediately add it to <code>smoke_and_honey_master.pal</code> too. Or don't add it at all.</td></tr>
+  <tr><td>Audit palettes on completed sprites</td><td>Once a sprite is "done," use Aseprite's <code>Sprite &gt; Color Mode &gt; Indexed</code> re-quantize to count how many unique colors are actually in use. Trim any that crept in accidentally.</td></tr>
+</table>
+
+<h2 class="sub-title">2. One Light Source. Always. Without Exception.</h2>
+<p>
+<strong>Smoke &amp; Honey light source: soft ambient from the upper-left.</strong>
+</p>
+<p>
+This applies to every sprite in the game: tiles, characters, buildings, props, inventory icons, and UI elements. Not "usually upper-left." Not "upper-left for outdoor sprites but something else for icons." Always upper-left. Always.
+</p>
+<p>
+The only exception is the hive frame inspection view, which has a slightly different perspective (front-facing rather than top-down), and may have a front-and-slightly-above light source to illuminate the honeycomb cells &mdash; but even here, the light should feel consistent with the game's warm Iowa afternoon mood.
+</p>
+<p>
+To keep this concrete during a session: before shading any sprite, place a small marker in Aseprite (an off-canvas pixel or a guide line) indicating upper-left. Look at it before placing every shadow pixel.
+</p>
+
+<h2 class="sub-title">3. Consistent Outline Weight and Style</h2>
+<p>
+The Smoke &amp; Honey style has a specific outline approach: <strong>no pure black outlines, ever</strong>. The edge of every sprite is formed by the darkest tone of that sprite's local color. The bottom-right edge of a wooden post uses <code>WD_DARKEST</code> (#261206). The bottom-right edge of a green leaf uses the darkest green in your leaf palette. The edge of the beekeeper suit uses the darkest warm off-white.
+</p>
+<p>
+This approach creates a soft, painterly edge that feels like the Cainos pack rather than like a generic sprite outlined with a black pen. When you look at the Cainos buildings, notice: there is no black line anywhere. Objects are defined entirely by value contrast between adjacent colors.
+</p>
+<p>
+<strong>Outline weight consistency:</strong> All edges in this game are 1 pixel wide. Not 2 pixels. Not 0.5 (anti-aliased). Every edge pixel is exactly one pixel of the darkened hue. This applies at every sprite resolution: a 16x16 tile has 1-pixel edges; a 120x120 character has 1-pixel edges. The larger canvas does not mean thicker outlines.
+</p>
+
+<h2 class="sub-title">4. Pixel Scale and Resolution Rules</h2>
+<p>
+Every asset type in the game has a defined resolution. Do not deviate. Drawing a 64x64 grass tile when every other tile is 16x16 will break the tile system. Drawing a 200x200 character when every other character is 120x120 will break animation compositing in Godot.
+</p>
+<p>
+The resolution rules also define the <em>level of detail</em> you work at. A 16x16 tile uses 1-pixel detail: individual grass blades are single pixels, a flower is 2-3 pixels, a stone is 4-5 pixels. A 120x120 character uses 2-4 pixel detail: eyes are 3x3 blocks, shirt buttons are 2 pixels, hair strands are 2-pixel-wide groups. Trying to add 1-pixel "eyelash" detail to a 16x16 face, or drawing a character at 120x120 with 1-pixel-thin limbs that snap between positions, both break scale discipline.
+</p>
+<table>
+  <tr><th>Asset Type</th><th>Defined Size</th><th>Detail Scale</th><th>Do Not Use</th></tr>
+  <tr><td>Ground tiles</td><td class="dim">16&times;16</td><td>1px features, 2px max</td><td>Any detail smaller than 1px or larger than 3px elements</td></tr>
+  <tr><td>Item / inventory icons</td><td class="dim">16&times;16 or 32&times;32</td><td>1px at 16px; 2px at 32px</td><td>Anti-aliased edges, gradients</td></tr>
+  <tr><td>Player / NPC characters</td><td class="dim">120&times;120</td><td>2&ndash;4px features</td><td>1px-thin limbs, 1px facial features</td></tr>
+  <tr><td>NPC portraits (dialogue)</td><td class="dim">64&times;64</td><td>2&ndash;3px features</td><td>Resolution other than 64&times;64</td></tr>
+  <tr><td>Hive overworld</td><td class="dim">16&times;24</td><td>1px</td><td>Per-box sizes other than 16px wide</td></tr>
+  <tr><td>Buildings (small)</td><td class="dim">~80&times;64</td><td>2&ndash;3px</td><td>Black outlines, gradients, non-north-tilt perspective</td></tr>
+  <tr><td>UI elements</td><td class="dim">Variable (see GDD)</td><td>1px wood grain, 1px cell walls</td><td>Gradients (use discrete pixel steps only)</td></tr>
+</table>
+
+<h2 class="sub-title">5. Shading Depth Consistency</h2>
+<p>
+Every sprite in the game uses 2&ndash;3 tones per color family. Not 5. Not 1 (flat). If you shade a shirt with 4 tones and every other shirt in the game uses 3, that shirt will look over-worked and inconsistent.
+</p>
+<p>
+The consistency rule: match the shading depth of the Cainos Village pack. Pull up a Cainos building or character sprite and count how many tones they use on each color area. Two or three is the answer. Match it.
+</p>
+<p>
+The exception is the hive frame inspection view (&sect;5, Technical Specifications), which deliberately uses higher fidelity shading (individual cell walls, capping detail, brood pattern variation) because it is a close-up inspection tool, not an overworld element.
+</p>
+
+<h2 class="sub-title">6. Shadow Layer Rule</h2>
+<p>
+In Smoke &amp; Honey, <strong>drop shadows are always separate sprite layers</strong>, never baked into the base sprite. This is a technical consistency rule as much as an art one: Godot composites the shadow layer separately so it can be toggled, recolored for seasonal tint, and offset dynamically.
+</p>
+<p>
+Every object sprite you draw should have a companion shadow sprite: the same rough silhouette, offset 2&ndash;3 pixels south-east, filled with a darkened desaturated version of the ground color beneath it (not the object's own color). In Aseprite, keep the shadow on its own layer and export it separately.
+</p>
+<p>
+Ground tiles are the exception &mdash; they do not cast shadows. Only objects above the ground plane (characters, props, hives, buildings, trees) need shadow sprites.
+</p>
+
+<h2 class="sub-title">7. Per-Session Style Checklist</h2>
+<p>Print this out. Put it beside your monitor. Check every box before calling a sprite "done."</p>
+
+<table>
+  <tr><th>#</th><th>Check</th><th>Smoke &amp; Honey Specific Rule</th></tr>
+  <tr>
+    <td style="color:var(--amber); font-weight:bold; text-align:center;">1</td>
+    <td class="label">Palette loaded from master?</td>
+    <td>Loaded <code>smoke_and_honey_master.pal</code> at session start. No colors outside the palette.</td>
+  </tr>
+  <tr>
+    <td style="color:var(--amber); font-weight:bold; text-align:center;">2</td>
+    <td class="label">No pure black (#000000)?</td>
+    <td>Every dark edge pixel uses the darkened hue of the local color, not #000000. Use <code>WD_DARKEST</code> (#261206) as absolute darkest for wood. Match for other color families.</td>
+  </tr>
+  <tr>
+    <td style="color:var(--amber); font-weight:bold; text-align:center;">3</td>
+    <td class="label">Light source from upper-left?</td>
+    <td>Brightest pixels on upper-left faces. Shadow pixels on lower-right. No exceptions for this game.</td>
+  </tr>
+  <tr>
+    <td style="color:var(--amber); font-weight:bold; text-align:center;">4</td>
+    <td class="label">Hue-shifted shadows?</td>
+    <td>Shadow tones lean slightly cooler/warmer than a simple value-only darkening. Check in Aseprite's HSV picker: shadow hue should be 5&ndash;15 degrees shifted from the midtone.</td>
+  </tr>
+  <tr>
+    <td style="color:var(--amber); font-weight:bold; text-align:center;">5</td>
+    <td class="label">2&ndash;3 tones per color area?</td>
+    <td>Count the unique tones in each color region. If any area has 4+ tones, consider merging the closest two. If any area is flat (1 tone), add a shadow or highlight.</td>
+  </tr>
+  <tr>
+    <td style="color:var(--amber); font-weight:bold; text-align:center;">6</td>
+    <td class="label">Correct resolution for asset type?</td>
+    <td>Cross-check against the Technical Specifications table (&sect;5). Canvas size must match exactly.</td>
+  </tr>
+  <tr>
+    <td style="color:var(--amber); font-weight:bold; text-align:center;">7</td>
+    <td class="label">No anti-aliasing?</td>
+    <td>Every pixel is either fully opaque or fully transparent. No semi-transparent pixels in the sprite body. Check in Aseprite by temporarily painting over a flat-color background and looking for blurry edges.</td>
+  </tr>
+  <tr>
+    <td style="color:var(--amber); font-weight:bold; text-align:center;">8</td>
+    <td class="label">Dithering on ground tiles only?</td>
+    <td>If this is a character or building, no dithering. If this is a ground tile, dithering is allowed for texture &mdash; but only between two tones, not as a shading technique.</td>
+  </tr>
+  <tr>
+    <td style="color:var(--amber); font-weight:bold; text-align:center;">9</td>
+    <td class="label">Readable at 1x zoom?</td>
+    <td>Zoom out to 100% (actual pixel size) and ask: can I tell what this is? Does the silhouette communicate the subject? For characters: is this person identifiable as different from other characters?</td>
+  </tr>
+  <tr>
+    <td style="color:var(--amber); font-weight:bold; text-align:center;">10</td>
+    <td class="label">Passes the Cainos Benchmark?</td>
+    <td>Place this sprite beside a Cainos Village asset. Does it feel like it belongs in the same world? Same palette mood, same lighting direction, same level of saturation, same outline style?</td>
+  </tr>
+  <tr>
+    <td style="color:var(--amber); font-weight:bold; text-align:center;">11</td>
+    <td class="label">Shadow sprite exported separately?</td>
+    <td>For above-ground objects: is there a companion shadow sprite layer ready for export? Shadow is a separate PNG, never baked into the base sprite.</td>
+  </tr>
+  <tr>
+    <td style="color:var(--amber); font-weight:bold; text-align:center;">12</td>
+    <td class="label">Transparent background confirmed?</td>
+    <td>Export with alpha channel. Background around the sprite is fully transparent (alpha 0), not white or any solid fill. Check in Aseprite's Export dialog: PNG format, no background fill.</td>
+  </tr>
+</table>
+
+<div class="callout tip">
+  <strong>When to break the checklist</strong>
+  The checklist is a floor, not a ceiling. Following it will produce consistent assets that belong in Smoke &amp; Honey. Breaking any item on the list is a deliberate design decision, not an accident &mdash; and it should be documented in the style guide if you decide a specific exception is permanent. For example: if you decide that a specific NPC's portrait uses a different light source for narrative effect, write that into PIXELLAB_STYLE_GUIDE.md so future sprites can reference it.
+</div>
+
+<h2 class="sub-title">8. Keeping a Style Reference Sheet</h2>
+<p>
+As you produce sprites, maintain a single "style reference" image in Aseprite: a canvas that shows one example of every asset type side by side at correct resolution. Grass tile, dirt tile, honey jar, character idle frame, NPC portrait, hive overworld sprite, one UI button. This is your north star.
+</p>
+<p>
+Every new sprite gets compared to this reference sheet before shipping. If a new grass tile variant looks different from the reference grass tile &mdash; different greenness, different shading depth &mdash; one of them is wrong. Either the reference sheet is outdated (update it) or the new sprite missed the mark (fix it).
+</p>
+<p>
+Keep this file at <code>assets/sprites/STYLE_REFERENCE.aseprite</code> (or <code>.png</code> for easy access). It is the most valuable consistency tool in your project after the palette file itself.
+</p>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<div style="border-top:1px solid var(--border); margin-top:60px; padding-top:20px; color:var(--muted); font-size:12px;">
+  <p>Smoke &amp; Honey &mdash; Pixel Art Learning Guide &mdash; Internal development document. Last updated: March 25, 2026.</p>
+  <p style="margin-top:4px;">Color palette data sourced from <code>research/PIXELLAB_STYLE_GUIDE.md</code> and <code>Smoke_and_Honey_GDD.html</code> &sect;10.1.1.</p>
+</div>
+
+</main>
+</body>
+</html>

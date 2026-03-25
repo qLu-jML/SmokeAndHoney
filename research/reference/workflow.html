@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smoke & Honey — Dev Workflow</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --amber: #F5A623;
+    --amber-dark: #C47D0A;
+    --amber-glow: rgba(245,166,35,0.18);
+    --amber-dim: rgba(245,166,35,0.07);
+    --honey: #FFD060;
+    --bg: #0D0B07;
+    --bg2: #13100A;
+    --bg3: #1A1508;
+    --border: rgba(245,166,35,0.2);
+    --text: #F0E6CC;
+    --muted: rgba(240,230,204,0.45);
+    --cowork: #4ECDC4;
+    --cowork-dim: rgba(78,205,196,0.12);
+    --code: #FF6B6B;
+    --code-dim: rgba(255,107,107,0.12);
+    --both: #A78BFA;
+    --both-dim: rgba(167,139,250,0.12);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(245,166,35,0.12) 0%, transparent 60%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V18L28 2l28 16v32z' fill='none' stroke='rgba(245,166,35,0.05)' stroke-width='1'/%3E%3Cpath d='M28 100L0 84V52l28-16 28 16v32z' fill='none' stroke='rgba(245,166,35,0.05)' stroke-width='1'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  header {
+    padding: 60px 0 48px;
+    text-align: center;
+  }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--amber);
+    opacity: 0.7;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: var(--honey);
+    text-shadow: 0 0 60px rgba(245,166,35,0.35);
+    margin-bottom: 16px;
+  }
+
+  h1 span { color: var(--amber); }
+
+  .subtitle {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 480px;
+    margin: 0 auto 32px;
+    line-height: 1.6;
+    font-weight: 400;
+  }
+
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 52px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.8;
+  }
+
+  .pip {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .pip.cowork { background: var(--cowork); box-shadow: 0 0 8px var(--cowork); }
+  .pip.code   { background: var(--code);   box-shadow: 0 0 8px var(--code); }
+  .pip.both   { background: var(--both);   box-shadow: 0 0 8px var(--both); }
+
+  .note-banner {
+    background: var(--amber-dim);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    margin-bottom: 40px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--amber);
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  .note-banner strong { font-weight: 500; }
+
+  .phase { margin-bottom: 48px; }
+
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .phase-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--amber);
+    background: var(--amber-dim);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+  }
+
+  .phase-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .phase-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .feature {
+    display: grid;
+    grid-template-columns: 3px 1fr;
+    gap: 0 20px;
+    margin-bottom: 12px;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .feature:nth-child(1) { animation-delay: 0.05s; }
+  .feature:nth-child(2) { animation-delay: 0.10s; }
+  .feature:nth-child(3) { animation-delay: 0.15s; }
+  .feature:nth-child(4) { animation-delay: 0.20s; }
+  .feature:nth-child(5) { animation-delay: 0.25s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .feature-bar { border-radius: 4px; align-self: stretch; }
+  .feature-bar.cowork { background: var(--cowork); }
+  .feature-bar.code   { background: var(--code); }
+  .feature-bar.both   { background: var(--both); }
+
+  .feature-body {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .feature-body:hover {
+    background: var(--bg3);
+    border-color: rgba(245,166,35,0.4);
+  }
+
+  .feature-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    justify-content: space-between;
+  }
+
+  .feature-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+    flex: 1;
+  }
+
+  .tool-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .tool-tag.cowork { background: var(--cowork-dim); color: var(--cowork); border: 1px solid rgba(78,205,196,0.3); }
+  .tool-tag.code   { background: var(--code-dim);   color: var(--code);   border: 1px solid rgba(255,107,107,0.3); }
+  .tool-tag.both   { background: var(--both-dim);   color: var(--both);   border: 1px solid rgba(167,139,250,0.3); }
+
+  .feature-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.55;
+    margin-top: 8px;
+    font-weight: 400;
+  }
+
+  .steps {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    list-style: none;
+  }
+
+  .steps.open { display: block; }
+
+  .steps li {
+    display: flex;
+    gap: 10px;
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.5;
+    padding: 4px 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .steps li::before {
+    content: attr(data-n);
+    color: var(--amber);
+    font-weight: 500;
+    flex-shrink: 0;
+    width: 18px;
+  }
+
+  .toggle-icon {
+    font-size: 11px;
+    color: var(--amber);
+    opacity: 0.6;
+    font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+    align-self: center;
+    transition: transform 0.2s;
+  }
+
+  .feature-body.open .toggle-icon { transform: rotate(180deg); }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 48px 0;
+  }
+
+  .tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+
+  .tip {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+
+  .tip-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 8px;
+  }
+
+  .tip p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.55;
+    font-weight: 400;
+  }
+
+  .footer-note {
+    margin-top: 52px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    opacity: 0.5;
+    letter-spacing: 0.08em;
+  }
+
+  .section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    margin-bottom: 16px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Development Workflow</div>
+    <h1>Beekeeper <span>Pro</span></h1>
+    <p class="subtitle">Feature-by-feature guide for using Cowork and Claude Code — paste your GDD &amp; dev plan into Claude to personalize this.</p>
+  </header>
+
+  <div class="legend">
+    <div class="legend-item"><span class="pip cowork"></span> Cowork</div>
+    <div class="legend-item"><span class="pip code"></span> Claude Code</div>
+    <div class="legend-item"><span class="pip both"></span> Both</div>
+  </div>
+
+  <div class="note-banner">
+    <strong>📋 This is a general template.</strong> Share your <code>gdd.html</code> and <code>development plan.html</code> to get a version tailored to your exact features and milestones.
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-num">Phase 01</span>
+      <span class="phase-title">Project Setup &amp; Architecture</span>
+      <div class="phase-line"></div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-bar both"></div>
+      <div class="feature-body" onclick="toggle(this)">
+        <div class="feature-top">
+          <div class="feature-name">Scaffold project structure</div>
+          <span class="tool-tag both">Both</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="feature-desc">Set up folders, config files, engine choice, and repo. Cowork organizes your local files; Code initializes the project.</div>
+        <ul class="steps">
+          <li data-n="1.">Open Cowork → point it at your project folder → ask it to create the folder structure from your dev plan</li>
+          <li data-n="2.">Switch to Claude Code → run init commands (npm init, git init, etc.) and install dependencies</li>
+          <li data-n="3.">Cowork: generate a README.md and .gitignore from your GDD details</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-bar cowork"></div>
+      <div class="feature-body" onclick="toggle(this)">
+        <div class="feature-top">
+          <div class="feature-name">Asset pipeline planning</div>
+          <span class="tool-tag cowork">Cowork</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="feature-desc">Organize sprite sheets, audio files, and fonts into a structured /assets directory.</div>
+        <ul class="steps">
+          <li data-n="1.">Cowork: "Scan my assets folder and organize files by type — sprites, audio, fonts, maps"</li>
+          <li data-n="2.">Cowork: generate a manifest.json listing all assets with paths</li>
+          <li data-n="3.">Cowork: flag any duplicate or suspiciously named files</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-num">Phase 02</span>
+      <span class="phase-title">Core Gameplay Systems</span>
+      <div class="phase-line"></div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-bar code"></div>
+      <div class="feature-body" onclick="toggle(this)">
+        <div class="feature-top">
+          <div class="feature-name">Hive management mechanics</div>
+          <span class="tool-tag code">Claude Code</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="feature-desc">Core loops: bee population, honey production, hive health, queen bee logic.</div>
+        <ul class="steps">
+          <li data-n="1.">Claude Code: paste your GDD's mechanics section → "implement the hive state machine"</li>
+          <li data-n="2.">Claude Code: write unit tests for population growth and honey yield formulas</li>
+          <li data-n="3.">Claude Code: run tests, fix failures, iterate until green</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-bar code"></div>
+      <div class="feature-body" onclick="toggle(this)">
+        <div class="feature-top">
+          <div class="feature-name">Season &amp; weather system</div>
+          <span class="tool-tag code">Claude Code</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="feature-desc">Time progression, seasonal modifiers on bee behavior and flower availability.</div>
+        <ul class="steps">
+          <li data-n="1.">Claude Code: implement a game clock and season enum</li>
+          <li data-n="2.">Claude Code: wire season modifiers into hive production rates</li>
+          <li data-n="3.">Claude Code: add weather events (rain, drought) with probability tables from your GDD</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-bar both"></div>
+      <div class="feature-body" onclick="toggle(this)">
+        <div class="feature-top">
+          <div class="feature-name">Balance tuning &amp; data tables</div>
+          <span class="tool-tag both">Both</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="feature-desc">Numeric values for production rates, costs, upgrades. Cowork manages the spreadsheets; Code consumes them.</div>
+        <ul class="steps">
+          <li data-n="1.">Cowork: extract all numeric constants from your GDD into a balance.xlsx spreadsheet</li>
+          <li data-n="2.">Adjust values in the spreadsheet by hand or with Cowork's help</li>
+          <li data-n="3.">Claude Code: read balance.xlsx (or export to JSON) and wire values into game config</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-num">Phase 03</span>
+      <span class="phase-title">UI &amp; Player Progression</span>
+      <div class="phase-line"></div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-bar code"></div>
+      <div class="feature-body" onclick="toggle(this)">
+        <div class="feature-top">
+          <div class="feature-name">HUD &amp; info panels</div>
+          <span class="tool-tag code">Claude Code</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="feature-desc">Honey counter, bee population display, season indicator, alert system.</div>
+        <ul class="steps">
+          <li data-n="1.">Claude Code: build HUD component wired to game state</li>
+          <li data-n="2.">Claude Code: implement reactive updates when hive values change</li>
+          <li data-n="3.">Claude Code: add tooltip system for hoverable stats</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-bar both"></div>
+      <div class="feature-body" onclick="toggle(this)">
+        <div class="feature-top">
+          <div class="feature-name">Upgrade tree</div>
+          <span class="tool-tag both">Both</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="feature-desc">Research or upgrade paths from your GDD — structure in Cowork, implement in Code.</div>
+        <ul class="steps">
+          <li data-n="1.">Cowork: convert your GDD's upgrade table into a structured upgrades.json</li>
+          <li data-n="2.">Claude Code: implement the unlock system and prerequisite checks</li>
+          <li data-n="3.">Claude Code: build the upgrade UI panel consuming upgrades.json</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-bar cowork"></div>
+      <div class="feature-body" onclick="toggle(this)">
+        <div class="feature-top">
+          <div class="feature-name">Dialogue &amp; tutorial copy</div>
+          <span class="tool-tag cowork">Cowork</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="feature-desc">Write, organize, and export all in-game text — tutorial prompts, tooltips, flavor text.</div>
+        <ul class="steps">
+          <li data-n="1.">Cowork: draft all tutorial dialogue based on the GDD's onboarding flow</li>
+          <li data-n="2.">Cowork: export to a strings.json file keyed by ID</li>
+          <li data-n="3.">Claude Code: hook strings.json into your dialogue system</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-num">Phase 04</span>
+      <span class="phase-title">Content &amp; Polish</span>
+      <div class="phase-line"></div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-bar code"></div>
+      <div class="feature-body" onclick="toggle(this)">
+        <div class="feature-top">
+          <div class="feature-name">Save &amp; load system</div>
+          <span class="tool-tag code">Claude Code</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="feature-desc">Serializing game state, versioning saves, autosave trigger points.</div>
+        <ul class="steps">
+          <li data-n="1.">Claude Code: define save schema matching your game state structure</li>
+          <li data-n="2.">Claude Code: implement serialize/deserialize with migration support</li>
+          <li data-n="3.">Claude Code: add autosave on key events (season change, upgrade purchased)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-bar cowork"></div>
+      <div class="feature-body" onclick="toggle(this)">
+        <div class="feature-top">
+          <div class="feature-name">Level &amp; scenario content</div>
+          <span class="tool-tag cowork">Cowork</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="feature-desc">Author scenario files, map configs, and event scripts from your dev plan's content list.</div>
+        <ul class="steps">
+          <li data-n="1.">Cowork: generate all scenario JSON files from the dev plan's level list</li>
+          <li data-n="2.">Cowork: cross-reference each scenario against GDD requirements and flag gaps</li>
+          <li data-n="3.">Cowork: write a CONTENT_STATUS.md tracking what's done vs. pending</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-bar both"></div>
+      <div class="feature-body" onclick="toggle(this)">
+        <div class="feature-top">
+          <div class="feature-name">Bug triage &amp; QA pass</div>
+          <span class="tool-tag both">Both</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="feature-desc">Systematic review of issues, test coverage, and final polish before release.</div>
+        <ul class="steps">
+          <li data-n="1.">Cowork: read your bug log / notes and produce a prioritized fix list</li>
+          <li data-n="2.">Claude Code: work through the list — fix, commit, repeat</li>
+          <li data-n="3.">Cowork: update CHANGELOG.md and bump version in package.json after each session</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-title">Rules of thumb</div>
+  <div class="tips-grid">
+    <div class="tip">
+      <div class="tip-label">Use Cowork when</div>
+      <p>You need to read, write, or reorganize files — docs, JSON configs, spreadsheets, markdown. Also for research, drafting copy, and any task where you want to walk away and come back to a finished artifact.</p>
+    </div>
+    <div class="tip">
+      <div class="tip-label">Use Claude Code when</div>
+      <p>You're writing or debugging actual source code, running builds/tests, executing terminal commands, or doing anything that requires a live runtime environment.</p>
+    </div>
+    <div class="tip">
+      <div class="tip-label">Handoff pattern</div>
+      <p>Cowork produces structured data (JSON, XLSX, markdown). Claude Code consumes it. Think of Cowork as your "producer" and Claude Code as your "builder."</p>
+    </div>
+    <div class="tip">
+      <div class="tip-label">One task at a time</div>
+      <p>Give each tool a single clear deliverable per session. "Build the hive state machine and write tests" works. "Build the whole game" doesn't.</p>
+    </div>
+  </div>
+
+  <p class="footer-note">Smoke & Honey · Workflow Template · Personalize by sharing your GDD &amp; dev plan</p>
+
+</div>
+
+<script>
+  function toggle(el) {
+    el.classList.toggle('open');
+    const steps = el.querySelector('.steps');
+    if (steps) steps.classList.toggle('open');
+  }
+</script>
+</body>
+</html>

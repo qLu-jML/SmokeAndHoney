@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smoke &amp; Honey — Story &amp; Backstory</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --wd-darkest: #261206;
+    --wd-mid: #6C4016;
+    --amber-dark: #985808;
+    --amber-mid: #C8820C;
+    --amber-light: #E6A220;
+    --honey-pale: #F4CC6E;
+    --wax-cream: #F2E4B2;
+    --wax-white: #FCF5D7;
+    --bg: #0F0A04;
+    --text: #F2E4B2;
+    --text-dim: rgba(242,228,178,0.55);
+    --text-faint: rgba(242,228,178,0.3);
+    --border: rgba(108,64,22,0.3);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+
+  main {
+    max-width: 760px;
+    padding: 80px 48px 120px;
+  }
+
+  @media (max-width: 700px) {
+    main { padding: 40px 20px 80px; }
+  }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding-bottom: 64px;
+    margin-bottom: 48px;
+    position: relative;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--amber-mid), transparent);
+    opacity: 0.3;
+  }
+  .hero-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--amber-mid);
+    margin-bottom: 20px;
+  }
+  .hero-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(40px, 6vw, 60px);
+    font-weight: 900;
+    background: linear-gradient(160deg, var(--wax-white) 0%, var(--honey-pale) 25%, var(--amber-light) 50%, var(--amber-mid) 75%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.15;
+    margin-bottom: 12px;
+  }
+  .hero-sub {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 18px;
+    font-style: italic;
+    color: var(--text);
+    opacity: 0.5;
+  }
+
+  /* Section labels */
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--amber-mid);
+    margin-bottom: 12px;
+    margin-top: 64px;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(26px, 3.5vw, 34px);
+    font-weight: 700;
+    color: var(--wax-cream);
+    line-height: 1.25;
+    margin-bottom: 20px;
+  }
+
+  h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--amber-light);
+    margin: 36px 0 12px;
+  }
+
+  p {
+    font-size: 15px;
+    line-height: 1.85;
+    color: var(--text);
+    opacity: 0.78;
+    margin-bottom: 14px;
+  }
+  p strong {
+    color: var(--amber-light);
+    font-weight: 600;
+    opacity: 1;
+  }
+
+  /* Callout block */
+  .callout {
+    background: linear-gradient(135deg, rgba(152,88,8,0.08) 0%, rgba(108,64,22,0.04) 100%);
+    border-left: 3px solid var(--amber-mid);
+    border-radius: 0 12px 12px 0;
+    padding: 24px 28px;
+    margin: 28px 0;
+  }
+  .callout p { font-size: 16px; line-height: 1.85; opacity: 0.85; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* Vibe quote */
+  .vibe {
+    text-align: center;
+    padding: 44px 24px;
+    margin: 40px 0;
+    position: relative;
+  }
+  .vibe::before, .vibe::after {
+    content: '';
+    position: absolute;
+    left: 15%; right: 15%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--amber-mid), transparent);
+    opacity: 0.15;
+  }
+  .vibe::before { top: 0; }
+  .vibe::after { bottom: 0; }
+  .vibe p {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(17px, 2.3vw, 22px);
+    font-style: italic;
+    line-height: 1.65;
+    color: var(--text);
+    opacity: 0.6;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  /* Screenplay-style beat */
+  .beat {
+    background: rgba(14,11,5,0.5);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin: 24px 0;
+  }
+  .beat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--amber-mid);
+    margin-bottom: 12px;
+  }
+  .beat p {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .beat .dialogue {
+    font-style: italic;
+    opacity: 0.7;
+    padding-left: 20px;
+    border-left: 2px solid rgba(108,64,22,0.2);
+    margin: 12px 0;
+  }
+  .beat .direction {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+    margin: 8px 0;
+  }
+
+  /* Character card */
+  .char-card {
+    background: rgba(26,18,8,0.5);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin: 20px 0;
+  }
+  .char-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--amber-light);
+    margin-bottom: 4px;
+  }
+  .char-role {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 10px;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 56px 0;
+  }
+
+  /* Table */
+  .data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 20px 0;
+    font-size: 13px;
+  }
+  .data-table thead th {
+    background: rgba(108,64,22,0.25);
+    padding: 10px 16px;
+    text-align: left;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--amber-mid);
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table tbody td {
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(108,64,22,0.1);
+    color: var(--text);
+    opacity: 0.7;
+    background: rgba(14,11,5,0.4);
+    line-height: 1.6;
+  }
+  .data-table tbody td:first-child {
+    font-weight: 600;
+    color: var(--amber-light);
+    opacity: 1;
+    white-space: nowrap;
+  }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+
+  /* Footer */
+  .footer {
+    margin-top: 80px;
+    text-align: center;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .footer p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-faint);
+  }
+</style>
+</head>
+<body>
+
+<main>
+
+<!-- HERO -->
+<header class="hero">
+  <p class="hero-label">Narrative Design Document</p>
+  <h1 class="hero-title">The World Got Loud.<br>The Bees Got Quiet.</h1>
+  <p class="hero-sub">Backstory &amp; narrative framework for Smoke &amp; Honey</p>
+</header>
+
+<!-- ============================================================
+     THE HOOK
+     ============================================================ -->
+<p class="section-label">01 / The Hook</p>
+<h2>Why the player picks up the controller</h2>
+
+<div class="callout">
+  <p>A twelve-year-old kid who can't stop thinking about the end of the world finds one living thing that needs him to show up tomorrow.</p>
+</div>
+
+<p>That's the entire engine of the story. Everything else — Uncle Bob, the hives, Cedar Bend, the seasons — is built to make that sentence hit harder and land deeper.</p>
+
+<p>The reason this works commercially is the same reason it works emotionally: <strong>it's the player's own feeling, given back to them as a character.</strong> Every person who buys a cozy game in 2026 is, on some level, looking for the same thing this kid is looking for — something real, something slow, something that doesn't need Wi-Fi to matter. The backstory doesn't just set up the game. It tells the player: <em>we know why you're here.</em></p>
+
+<div class="divider"></div>
+
+<!-- ============================================================
+     THE KID
+     ============================================================ -->
+<p class="section-label">02 / The Kid</p>
+<h2>Eli</h2>
+
+<p>Twelve years old. Eldest of three — a younger brother (8) and a younger sister (5). Good family. Mom's a dental hygienist, Dad drives for a regional freight company. Lower middle class, small suburban house, decent school. Nothing is broken. Nobody is cruel.</p>
+
+<p>But Eli is the oldest, and the oldest always hears more than they're supposed to.</p>
+
+<p>He hears the news his parents leave on in the kitchen. He reads the things his classmates share in group chats — headlines about AI replacing jobs, wars escalating overseas, climate reports that read like countdown clocks. He's twelve, so he doesn't have the context to sort signal from noise. He just has all of it, all the time, vibrating at a frequency that grown-ups have learned to tune out but kids haven't.</p>
+
+<div class="callout">
+  <p>The specific fear isn't "robots will kill us" — it's something quieter and worse. It's the feeling that the future is <strong>unsettled</strong>. That the adults are making it up as they go. That nobody actually knows if things are going to be okay, and the people who say they do are just louder, not more right.</p>
+  <p>Eli doesn't have the vocabulary for "existential dread." He just knows that doing his homework feels pointless when an AI can do it better, that saving his allowance feels pointless when money might not work the same way in ten years, and that making plans feels like drawing on water.</p>
+</div>
+
+<p>He hasn't told anyone this. His parents would say "you're too young to worry about that" — which he knows is a non-answer, because the world doesn't check your age before it changes. His younger siblings are still in the uncomplicated part. His friends are either oblivious or performing calmness they don't feel.</p>
+
+<p>So Eli does what a lot of smart, anxious twelve-year-olds do: he retreats into screens. Not because he loves them, but because they're <strong>numbing</strong>. Scrolling is easier than sitting with the feeling. Games are easier than thinking. The blue light is a painkiller for a kind of pain nobody taught him to name.</p>
+
+<p>His parents notice. They're not sure what to do. He's not in trouble. His grades are fine. He's just... dimmer than he used to be. Quieter. Present in the room but absent from the conversation. They talk about it at night when the kids are asleep, and they don't have answers either.</p>
+
+<h3>Why this character sells the game</h3>
+<p>Every parent who reads this description will feel a chill of recognition. Every teenager and young adult will feel seen. Every thirty-something will remember being twelve and scared. <strong>Eli is not a power fantasy. He's a mirror.</strong> And the game's promise is: this kid finds his way out. Not through fighting, not through escaping into another screen, but through showing up for something alive.</p>
+
+<div class="divider"></div>
+
+<!-- ============================================================
+     THE CALL
+     ============================================================ -->
+<p class="section-label">03 / The Call</p>
+<h2>Uncle Bob's phone call</h2>
+
+<p>It happens on an ordinary Tuesday in late winter. Eli is on the couch, earbuds in, watching something he won't remember. His mom answers the phone in the kitchen. He hears her voice change — not panicked, but the specific kind of careful-gentle that adults use when someone they love is hurting.</p>
+
+<p>She hangs up. She sits down across from Eli and takes one earbud out.</p>
+
+<div class="beat">
+  <p class="beat-label">The Call — Kitchen Scene</p>
+  <p class="dialogue">"That was Uncle Bob."</p>
+  <p class="direction">Eli knows Uncle Bob. Dad's older brother. Lives alone on a small property out in Millhaven County, Iowa. Keeps bees. Always smells like wood smoke and sends jars of honey at Christmas that are better than anything in a store. He's a quiet man who knows how to fix things and doesn't say much he doesn't mean.</p>
+  <p class="dialogue">"He had some heart trouble this winter. He's okay — he's okay — but he can't do the heavy work right now. And..." She pauses. "The winter got most of his hives. He's down to one."</p>
+  <p class="direction">Eli doesn't know much about bees. But he knows what Uncle Bob's voice sounds like when he talks about them — the only time the quiet man isn't quiet. And he knows that "down to one" means something was lost that mattered.</p>
+  <p class="dialogue">"He asked if maybe you'd want to come out for the summer. Help him get back on his feet. He said he could teach you."</p>
+  <p class="direction">And here is the moment. Not dramatic. Not cinematic. Just a twelve-year-old on a couch in a suburban house, earbuds dangling, looking at his mom, and feeling — for the first time in months — something that isn't dread.</p>
+  <p class="dialogue">"Yeah. I want to go."</p>
+  <p class="direction">He says it fast. Before he can think about it. Before the part of his brain that's been running worst-case scenarios for six months can weigh in. He says yes because Uncle Bob needs him, and needing is concrete, and concrete is the thing he's been starving for.</p>
+</div>
+
+<h3>Why Eli says yes so fast</h3>
+<p>This is the narrative crux and it needs to land emotionally in the first five minutes of gameplay. Eli doesn't say yes because he loves bees. He doesn't say yes because he's brave. He says yes because <strong>someone asked him for something real.</strong></p>
+
+<p>The AI can't help Uncle Bob. The wars don't matter in Millhaven County. The algorithms don't know how to read a brood frame. For the first time in months, Eli is looking at a problem that is physical, present, and solvable by a person who shows up and pays attention. The future is terrifying because it's abstract. Uncle Bob's hive is terrifying because it's <em>alive</em>, and alive things can die, and that kind of fear has a shape you can hold.</p>
+
+<p>He doesn't know any of this consciously. He's twelve. He just knows his stomach unclenched for the first time since October.</p>
+
+<div class="divider"></div>
+
+<!-- ============================================================
+     UNCLE BOB
+     ============================================================ -->
+<p class="section-label">04 / Uncle Bob</p>
+<h2>The man who called</h2>
+
+<div class="char-card">
+  <p class="char-name">Robert "Bob" Whitfield</p>
+  <p class="char-role">Uncle / Mentor / Beekeeper — 20 years experience</p>
+  <p>Late 50s. Dad's older brother. A man who has lived alone since his wife passed eight years ago and filled the silence with bees. He's not sad — he's settled. He chose this life deliberately. A small property, a workshop, a dozen hives, a truck that starts on the third try, and a conviction that the world makes more sense at the pace of seasons than at the pace of headlines.</p>
+  <p>He had a cardiac event in December — a minor heart attack that scared him more than he'll admit. He spent three weeks recovering while the temperature dropped to negative fifteen. When he finally got out to the apiary, eleven of his twelve hives were dead. Frozen. Silent boxes in the snow. One hive survived — the strongest colony, the one with the queen he'd been most proud of.</p>
+  <p>Bob is not a man who asks for help. Calling his brother's family was the hardest phone call he's made since the funeral. He didn't ask for a farmhand. He asked for Eli specifically, because he sees something in the kid — the same restless intelligence that Bob had at twelve, before he found the bees and the bees found him.</p>
+</div>
+
+<h3>Bob's role in the narrative</h3>
+<p>Uncle Bob is not a quest-giver. He is a <strong>philosophy delivered through action</strong>. He never lectures Eli about screens or anxiety or the news cycle. He just hands him a hive tool and says "let's see what the girls are up to."</p>
+
+<p>Everything Bob teaches about bees is also, quietly, about living:</p>
+
+<table class="data-table">
+  <thead>
+    <tr><th>What Bob says about bees</th><th>What Eli hears about life</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>"You can't rush an inspection. The bees know if you're anxious."</td><td>Slow down. Be present. Anxiety is contagious.</td></tr>
+    <tr><td>"A good beekeeper doesn't control the hive. He reads it."</td><td>You can't control the future. You can learn to read what's in front of you.</td></tr>
+    <tr><td>"Winter kills hives. That's not failure. That's winter."</td><td>Loss is part of the deal. Surviving it isn't about prevention — it's about preparation.</td></tr>
+    <tr><td>"The queen doesn't know she's important. She just does her work."</td><td>Purpose isn't something you find. It's something you do.</td></tr>
+    <tr><td>"Eleven hives died. One made it. We start from the one."</td><td>You don't need the whole world to be okay. You need one thing that's alive and worth tending.</td></tr>
+  </tbody>
+</table>
+
+<div class="vibe">
+  <p>Uncle Bob doesn't save Eli from existential dread. The bees do. Bob just opens the hive and steps back.</p>
+</div>
+
+<h3>Bob's health as a narrative thread</h3>
+<p>Bob's heart condition doesn't disappear. It's present throughout the game as a <strong>quiet background pressure</strong> — not a ticking clock, not a tragedy engine, but a persistent reminder that people you love are mortal and time with them is not guaranteed.</p>
+
+<p>Bob gets tired more easily. He sits on the tailgate while Eli does the heavy lifting. Some weeks he's great — cracking jokes, working alongside the kid, showing him queen cells with boyish excitement. Other weeks he's slower, quieter, taking his pills with his morning coffee and waving off questions.</p>
+
+<p>The player never gets a "Bob's health meter." They just notice. The same way Eli notices. And the noticing is the point.</p>
+
+<div class="divider"></div>
+
+<!-- ============================================================
+     THE SURVIVING HIVE
+     ============================================================ -->
+<p class="section-label">05 / The Surviving Hive</p>
+<h2>One box in the snow</h2>
+
+<div class="callout">
+  <p>When Eli arrives at Uncle Bob's property for the first time, he sees the apiary: twelve hive stands in two rows of six, arranged in a gentle arc near the tree line. Eleven are empty. The lids are off. The boxes are hollow and still. One hive — the one at the far left, closest to the morning sun — has a small cluster of bees moving at the entrance.</p>
+  <p>That's the whole game. That's the starting condition. One living hive in a graveyard of boxes.</p>
+</div>
+
+<p>The surviving hive is not a gameplay convenience. It is the <strong>central metaphor of the entire game</strong>. Eleven things died. One thing lived. And the question is not "why did this happen" — the question is "what do you do with the one that made it?"</p>
+
+<p>Eli's existential crisis is the same shape: the world feels like it's full of dead hives. Things that were working stopped working. Certainties that were alive went cold. But one thing is still here, still humming, still alive. And it needs him.</p>
+
+<h3>The first inspection</h3>
+<p>The game's opening tutorial is built around the first time Eli opens this hive with Uncle Bob standing behind him. It's early spring — Quickening. The colony is small, maybe 8,000 bees (down from a healthy 40,000+). The queen is laying, but slowly. The stores are thin. The brood pattern is patchy but present.</p>
+
+<p>Uncle Bob doesn't sugarcoat it:</p>
+
+<div class="beat">
+  <p class="beat-label">First Inspection — Tutorial Moment</p>
+  <p class="dialogue">"She's alive. That's more than I had any right to expect. But she's weak. She needs room, she needs food, and she needs somebody checking on her every week. Think you can do that?"</p>
+  <p class="direction">Eli nods. He's holding a frame for the first time. His hands are shaking — he's not sure if it's the bees or the feeling that something real is depending on him for the first time.</p>
+  <p class="dialogue">"Good. Then let's get to work."</p>
+</div>
+
+<div class="divider"></div>
+
+<!-- ============================================================
+     THE ARC
+     ============================================================ -->
+<p class="section-label">06 / The Arc</p>
+<h2>What the story is actually about</h2>
+
+<p>Smoke &amp; Honey is not a story about bees. It's a story about <strong>what happens when a person who feels powerless discovers that attention is a form of power.</strong></p>
+
+<p>Eli starts the game believing — in the way twelve-year-olds believe things, without articulating them — that nothing he does matters. The world is too big, too fast, too broken. What can one kid do?</p>
+
+<p>The bees teach him the answer: <strong>one kid can keep one hive alive.</strong> And from one hive, if you're patient and careful and willing to learn, you can build something that wasn't there before.</p>
+
+<h3>The emotional arc by year</h3>
+
+<table class="data-table">
+  <thead>
+    <tr><th>Year</th><th>Eli's internal state</th><th>What the bees teach him</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Year 1</td><td>Anxious, uncertain, present only because Uncle Bob needs him. Still checking his phone in the evenings. Still carrying the weight of a world that feels like it's ending.</td><td>Living things need you to show up whether you feel like it or not. The hive doesn't care about your mood. It needs food, space, and attention. And the act of giving those things makes you feel less empty, not more.</td></tr>
+    <tr><td>Year 2</td><td>Growing confidence. Starting to notice things before Bob tells him. The phone stays in his pocket longer. He has calluses. He sleeps better.</td><td>Knowledge is earned, not downloaded. An AI could list the symptoms of American Foulbrood, but Eli learned to <em>smell</em> it. The difference between information and understanding is your hands in the hive.</td></tr>
+    <tr><td>Year 3</td><td>Ownership. This isn't Bob's apiary anymore — it's theirs. Eli makes decisions without asking. He disagrees with Bob sometimes and is right. He's teaching his younger brother to hold a smoker on a summer visit.</td><td>You can build something real in a world that feels unreal. The honey in the jars came from flowers Eli planted, in hives Eli built, from bees Eli kept alive through a winter everyone said would be too hard. That's not abstract. That's a shelf of golden jars with his handwriting on the labels.</td></tr>
+    <tr><td>Year 4</td><td>The dread is still there — the world didn't get less scary. But Eli holds it differently now. It's not the whole sky. It's weather. And he's learned that you don't control weather. You prepare for it, you endure it, and you check the hives in the morning.</td><td>Mastery doesn't mean the fear goes away. It means you have something to do with your hands while you carry it.</td></tr>
+    <tr><td>Year 5</td><td>Eli is seventeen. He's breeding queens. The apiary has fifteen hives. Uncle Bob sits on the porch more than he works the yard. When Eli's little sister asks him if he's scared about the future, he says: "Yeah. But I've got work to do in the morning."</td><td>One surviving hive became fifteen. One scared kid became a beekeeper. The world is still loud. The bees are still quiet. And quiet things, tended well, outlast the noise.</td></tr>
+  </tbody>
+</table>
+
+<div class="vibe">
+  <p>The game doesn't cure Eli's anxiety. It gives him a craft, a place, and a reason to get up. That's not a small thing. That's everything.</p>
+</div>
+
+<div class="divider"></div>
+
+<!-- ============================================================
+     NARRATIVE DESIGN RULES
+     ============================================================ -->
+<p class="section-label">07 / Narrative Design Rules</p>
+<h2>How the story lives inside the gameplay</h2>
+
+<p>Smoke &amp; Honey is a simulation first and a narrative second. The story is <strong>never told through cutscenes that interrupt gameplay</strong>. It is told through the gameplay itself, and through small, earned moments between tasks.</p>
+
+<h3>Rules for narrative delivery</h3>
+
+<table class="data-table">
+  <thead>
+    <tr><th>Rule</th><th>Rationale</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>No opening cinematic longer than 90 seconds</td><td>The phone call, the arrival, the first look at the apiary. That's all the player needs before they're holding a hive tool. The backstory fills in through dialogue and observation over weeks, not a front-loaded info dump.</td></tr>
+    <tr><td>Bob's dialogue is earned, not triggered</td><td>Bob talks when Eli (the player) does something worth talking about — a good inspection, a bad decision, a first harvest. He doesn't monologue. His best lines happen while he's doing something else.</td></tr>
+    <tr><td>Eli's internal state is shown, never told</td><td>No narration boxes saying "Eli felt less anxious." Instead: Eli stops checking his phone during inspections. His journal entries get longer and more observant. His walking animation gradually shifts from hunched to upright. The player feels the change because they made it happen.</td></tr>
+    <tr><td>The existential theme is subtext, not text</td><td>The game never says "the bees cured my anxiety about AI." Eli's fear of the future is established in the opening, referenced occasionally in dialogue, and quietly resolved through the act of playing. The player draws the connection themselves.</td></tr>
+    <tr><td>The surviving hive is the player's hive</td><td>The metaphor only works if the player has emotional ownership of the hive. If they lose it, that has to hurt. If they grow it to ten colonies, that has to feel like a personal victory, not a progression bar filling up.</td></tr>
+    <tr><td>Uncle Bob can have bad weeks</td><td>Some weeks, Bob is slower. He sits instead of standing. He forgets something he told the player last week. These moments are uncommented — no health bar, no quest notification. The player just notices, the way you notice with people you love.</td></tr>
+  </tbody>
+</table>
+
+<h3>The phone as a narrative device</h3>
+<p>Eli has a phone. In the first weeks of the game, he checks it during inspections (a subtle idle animation — his hand drifts to his pocket, he glances down). As the game progresses, this animation becomes less frequent and eventually stops. The player never triggers this. It just happens, week by week, as Eli becomes more present.</p>
+
+<p>If the player opens Eli's phone in the pause menu, the notifications are real: news headlines about AI breakthroughs, economic uncertainty, geopolitical tension. The same noise the player sees in their own life. Over time, the notifications are still there — but Eli's responses to them change. Early game: doom-scrolling. Mid game: a quick glance and back to work. Late game: the phone stays on the nightstand.</p>
+
+<p><strong>The phone is not the enemy.</strong> It's a window into the noise that Eli is learning to live alongside, not escape from. The game's message is not "technology bad, nature good." It's: <em>you need something that roots you, so the noise becomes weather instead of the whole sky.</em></p>
+
+<div class="divider"></div>
+
+<!-- ============================================================
+     THE ELEVEN DEAD HIVES
+     ============================================================ -->
+<p class="section-label">08 / The Eleven Dead Hives</p>
+<h2>Loss as setting, not backstory</h2>
+
+<p>When Eli arrives, the eleven dead hives are physically present. Empty Langstroth boxes with the lids removed, stacked on their stands, slowly weathering. They are the first thing the player sees in the apiary and they never fully go away — even as the player fills them with new colonies, the memory of what was lost is baked into the landscape.</p>
+
+<h3>Why the dead hives matter</h3>
+
+<p>They serve three functions simultaneously:</p>
+
+<p><strong>Narrative function:</strong> They are the visible evidence of what happened while Bob was recovering. Each empty box is a colony that was alive in October and dead by January. The player doesn't see this loss happen — they see the aftermath. It's more powerful that way. Loss that's already happened is quieter and heavier than loss you watch unfold.</p>
+
+<p><strong>Gameplay function:</strong> The empty equipment is usable. The player doesn't have to buy eleven hive bodies — they're already there, waiting to be cleaned, repaired, and filled with new bees. The dead hives become the infrastructure for the rebuild. What killed becomes what carries forward.</p>
+
+<p><strong>Thematic function:</strong> Eleven dead, one alive. The world Eli came from is full of things that feel dead or dying — certainties, institutions, plans. Uncle Bob's apiary is the same, in miniature. And the game's answer is the same too: you don't mourn the eleven forever. You start with the one. You rebuild from what survived.</p>
+
+<div class="vibe">
+  <p>The empty boxes are not a tragedy. They're an invitation. Every one of them is a future hive, waiting for a kid who shows up and does the work.</p>
+</div>
+
+<div class="divider"></div>
+
+<!-- ============================================================
+     MARKETING ANGLE
+     ============================================================ -->
+<p class="section-label">09 / Marketing Angle</p>
+<h2>How this story sells the game</h2>
+
+<p>The backstory is designed to function on three levels simultaneously, each targeting a different slice of the audience:</p>
+
+<table class="data-table">
+  <thead>
+    <tr><th>Audience</th><th>What they see</th><th>Why they buy</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Young players (12-18)</td><td>A kid their age who feels the way they feel — overwhelmed, uncertain, quietly scared about the future — who finds something real and slow and meaningful.</td><td>Representation. "This character is me." The rare game that takes a young person's existential anxiety seriously without being preachy or depressing.</td></tr>
+    <tr><td>Adults (25-40)</td><td>A meditation on attention, craft, and what it means to tend something in a world that rewards speed and disruption. Also: a kid who reminds them of themselves at twelve.</td><td>Resonance. The same reason adults watch Miyazaki films. The emotional core is universal — the fear that the world is moving too fast and the hope that something small and real can anchor you.</td></tr>
+    <tr><td>Parents</td><td>A game their kid can play that models healthy coping — not through therapy-speak or self-help mechanics, but through craft, mentorship, and showing up for something alive.</td><td>Trust. "This is the game I actually WANT my kid playing." In a market saturated with dopamine-loop extractors, a game that rewards patience and attention is a parenting win.</td></tr>
+    <tr><td>Cozy game fans</td><td>A warm, beautiful pixel art sim with a protagonist and backstory that gives it more emotional weight than "you inherited a farm."</td><td>Depth. This isn't "Stardew with bees." The story gives every season, every hive, every harvest a reason to matter beyond the progression system.</td></tr>
+  </tbody>
+</table>
+
+<h3>The trailer hook</h3>
+<div class="callout">
+  <p><strong>Open on:</strong> A phone screen. Headlines scrolling. AI. War. Climate. Markets. The blue glow reflected in a kid's face, late at night.</p>
+  <p><strong>Cut to:</strong> A phone ringing. A mother's voice: <em>"Uncle Bob needs some help this summer."</em></p>
+  <p><strong>Cut to:</strong> A gravel road. A truck. A farmstead. Twelve hive stands. Eleven empty. One humming.</p>
+  <p><strong>Cut to:</strong> Hands in a hive. Bees on a frame. Sunlight through golden honey. A quiet man and a quiet kid, working side by side.</p>
+  <p><strong>Title card:</strong> SMOKE &amp; HONEY</p>
+  <p><strong>Tagline:</strong> <em>The craft of keeping bees.</em></p>
+</div>
+
+<div class="divider"></div>
+
+<!-- ============================================================
+     SUMMARY
+     ============================================================ -->
+<div class="vibe" style="margin-top:48px;">
+  <p>The world got loud. The bees got quiet. A twelve-year-old showed up. And one surviving hive became an apiary, a livelihood, and a life.</p>
+</div>
+
+<div class="footer">
+  <p>Smoke &amp; Honey — Narrative Design — Living Document</p>
+</div>
+
+</main>
+
+</body>
+</html>

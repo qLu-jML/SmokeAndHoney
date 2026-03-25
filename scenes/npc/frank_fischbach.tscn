@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://frank_fischbach_scene"]
+
+[ext_resource type="Script" path="res://scripts/npc/frank_fischbach.gd" id="1_script"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/npc/Frank_Fischbach/frank_fischbach_sprite_frames.tres" id="2_sprframes"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_frank"]
+size = Vector2(14, 10)
+
+[node name="FrankFischbach" type="Node2D"]
+y_sort_origin = 16
+script = ExtResource("1_script")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -16)
+sprite_frames = ExtResource("2_sprframes")
+animation = &"idle_south"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 0)
+shape = SubResource("RectangleShape2D_frank")

@@ -1,0 +1,49 @@
+[gd_scene format=3 uid="uid://d66jla5610ht"]
+
+[ext_resource type="Script" path="res://scripts/world/hive.gd" id="1_6p62y"]
+[ext_resource type="Script" uid="uid://csd1enu0ujmm2" path="res://scripts/core/HiveSimulation.gd" id="2_hivesim"]
+
+; Collision for click/interaction -- covers full sprite bounding box
+; Size updated dynamically by hive.gd _update_collision_for_height()
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_interact"]
+size = Vector2(24, 36)
+
+; Collision for physical blocking -- just the ground footprint (24x16)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(24, 16)
+
+[node name="Hive" type="Node2D" groups=["hives"]]
+; y_sort_origin at the base of the hive (ground level = 0)
+y_sort_origin = 0
+script = ExtResource("1_6p62y")
+
+; NOTE: No Sprite2D node here -- hive.gd creates modular sprites dynamically
+; via _rebuild_sprite_stack(). The legacy sprite for build-phase is also
+; created in code. This keeps the scene file clean and avoids stale texture refs.
+
+[node name="Area2D" type="Area2D" parent="."]
+; Interaction area -- collision shape sized dynamically to match sprite stack height
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(0, -18)
+shape = SubResource("RectangleShape2D_interact")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+; Physical blocker -- only the bottom portion (hive stand + base)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(0, -8)
+shape = SubResource("RectangleShape2D_body")
+
+[node name="HiveSimulation" type="Node" parent="."]
+script = ExtResource("2_hivesim")
+
+[node name="Label" type="Label" parent="."]
+offset_left = -20.0
+offset_top = -22.0
+offset_right = 20.0
+offset_bottom = -10.0
+horizontal_alignment = 1
+scale = Vector2(0.5, 0.5)
+
+[connection signal="input_event" from="Area2D" to="." method="_on_area_2d_input_event"]

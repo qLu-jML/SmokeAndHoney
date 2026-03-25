@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://d3qdbfmsmyqoa"]
+
+[ext_resource type="Script" uid="uid://bbegc1ohu8088" path="res://scripts/core/player.gd" id="1_dovo2"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dovo2"]
+size = Vector2(14, 10)
+
+[node name="player" type="CharacterBody2D" unique_id=1424082801]
+z_index = 1
+y_sort_origin = 30
+script = ExtResource("1_dovo2")
+
+[node name="PlayerSprite" type="Sprite2D" parent="."]
+
+[node name="PlayerAnimatedSprite" type="AnimatedSprite2D" parent="." unique_id=2071966950]
+visible = false
+
+[node name="Player" type="Node2D" parent="." unique_id=1551162531]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1569042348]
+position = Vector2(0, 30)
+shape = SubResource("RectangleShape2D_dovo2")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(0.5, 0.5)
+limit_left = -580
+limit_top = -350
+limit_right = 2087
+limit_bottom = 1285
+position_smoothing_enabled = true
+position_smoothing_speed = 5.0
+drag_horizontal_enabled = true
+drag_vertical_enabled = true
+drag_left_margin = 0.2
+drag_top_margin = 0.2
+drag_right_margin = 0.2
+drag_bottom_margin = 0.2

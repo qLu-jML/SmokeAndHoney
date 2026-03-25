@@ -1,0 +1,2003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smoke &amp; Honey -- Queen Finder Sub-GDD</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --wd-darkest:    #261206;
+      --wd-dark:       #46260C;
+      --wd-mid:        #6C4016;
+      --wd-light:      #94602A;
+      --wd-pale:       #BA8A48;
+      --amber-dark:    #985808;
+      --amber-mid:     #C8820C;
+      --amber-light:   #E6A220;
+      --honey-pale:    #F4CC6E;
+      --wax-cream:     #F2E4B2;
+      --wax-white:     #FCF5D7;
+      --cell-empty:    #E4D498;
+      --cell-honey:    #D49E28;
+      --cell-wall:     #B48430;
+      --bg:            #0F0A04;
+      --bg-warm:       #1A1208;
+      --text:          #F2E4B2;
+      --text-dim:      rgba(242,228,178,0.55);
+      --text-faint:    rgba(242,228,178,0.3);
+      --border:        rgba(108,64,22,0.3);
+      --glow:          rgba(230,162,32,0.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ============================================
+       SIDEBAR NAVIGATION
+       ============================================ */
+    #sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 260px;
+      height: 100vh;
+      overflow-y: auto;
+      background: rgba(14,11,5,0.97);
+      border-right: 1px solid rgba(108,64,22,0.2);
+      padding: 32px 0 60px;
+      z-index: 100;
+    }
+
+    #sidebar::-webkit-scrollbar { width: 4px; }
+    #sidebar::-webkit-scrollbar-thumb { background: var(--wd-mid); border-radius: 2px; }
+
+    .sidebar-brand {
+      padding: 0 24px 20px;
+      border-bottom: 1px solid rgba(108,64,22,0.2);
+      margin-bottom: 16px;
+    }
+
+    .sidebar-brand h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 18px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--honey-pale) 0%, var(--amber-light) 50%, var(--amber-mid) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 0.5px;
+    }
+
+    .sidebar-brand .sub {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-top: 2px;
+    }
+
+    #sidebar nav ul { list-style: none; }
+
+    #sidebar nav ul li a {
+      display: block;
+      padding: 5px 24px;
+      font-size: 12px;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.15s, background 0.15s;
+      line-height: 1.5;
+    }
+
+    #sidebar nav ul li a:hover {
+      color: var(--amber-light);
+      background: rgba(230,162,32,0.06);
+    }
+
+    #sidebar nav ul li.section > a {
+      color: var(--amber-light);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding-top: 14px;
+      padding-bottom: 4px;
+    }
+
+    #sidebar nav ul li.sub > a {
+      padding-left: 36px;
+      font-size: 12px;
+    }
+
+    /* ============================================
+       MAIN CONTENT
+       ============================================ */
+    #content {
+      margin-left: 260px;
+      max-width: 820px;
+      padding: 0 64px 120px;
+    }
+
+    @media (max-width: 900px) {
+      #sidebar { display: none; }
+      #content { margin-left: 0; padding: 0 24px 80px; max-width: 100%; }
+    }
+
+    /* ============================================
+       HERO / TITLE
+       ============================================ */
+    .hero {
+      padding: 100px 0 80px;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 10%; right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--amber-mid), transparent);
+      opacity: 0.3;
+    }
+
+    .hero-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--amber-mid);
+      margin-bottom: 24px;
+    }
+
+    .hero-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 900;
+      background: linear-gradient(160deg, var(--wax-white) 0%, var(--honey-pale) 20%, var(--amber-light) 45%, var(--amber-mid) 70%, var(--wd-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    .hero-tagline {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 20px;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--text);
+      opacity: 0.5;
+      margin-bottom: 36px;
+    }
+
+    .hero-meta {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .hero-meta-item {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-faint);
+    }
+
+    .hero-meta-item strong {
+      color: var(--text-dim);
+    }
+
+    /* ============================================
+       SECTION SYSTEM
+       ============================================ */
+    .section {
+      padding: 64px 0 0;
+    }
+
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--amber-mid);
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(28px, 4vw, 38px);
+      font-weight: 700;
+      color: var(--wax-cream);
+      line-height: 1.2;
+      margin-bottom: 24px;
+    }
+
+    h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--amber-light);
+      margin: 40px 0 12px;
+    }
+
+    h4 {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--amber-light);
+      letter-spacing: 0.5px;
+      margin: 28px 0 8px;
+    }
+
+    p {
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--text);
+      opacity: 0.75;
+      margin-bottom: 14px;
+    }
+
+    p strong {
+      color: var(--amber-light);
+      font-weight: 600;
+      opacity: 1;
+    }
+
+    p em {
+      color: var(--text);
+      opacity: 0.6;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      background: rgba(108,64,22,0.15);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--amber-light);
+    }
+
+    /* ============================================
+       SPECIAL BLOCKS
+       ============================================ */
+    .pitch-block {
+      background: linear-gradient(135deg, rgba(152,88,8,0.08) 0%, rgba(108,64,22,0.04) 100%);
+      border-left: 3px solid var(--amber-mid);
+      border-radius: 0 12px 12px 0;
+      padding: 28px 32px;
+      margin: 28px 0;
+    }
+
+    .pitch-block p {
+      font-size: 17px;
+      line-height: 1.8;
+      opacity: 0.85;
+    }
+
+    .pitch-block p:last-child { margin-bottom: 0; }
+
+    .vibe-quote {
+      text-align: center;
+      padding: 48px 32px;
+      margin: 40px 0;
+      position: relative;
+    }
+
+    .vibe-quote::before,
+    .vibe-quote::after {
+      content: '';
+      position: absolute;
+      left: 15%; right: 15%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--amber-mid), transparent);
+      opacity: 0.15;
+    }
+
+    .vibe-quote::before { top: 0; }
+    .vibe-quote::after { bottom: 0; }
+
+    .vibe-quote p {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(18px, 2.5vw, 24px);
+      font-style: italic;
+      line-height: 1.6;
+      color: var(--text);
+      opacity: 0.65;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ============================================
+       PILLAR CARDS
+       ============================================ */
+    .pillars {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      margin: 32px 0;
+    }
+
+    .pillar {
+      background: rgba(26,18,8,0.6);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .pillar-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--amber-light);
+      padding-top: 2px;
+    }
+
+    .pillar p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    /* ============================================
+       DATA TABLES
+       ============================================ */
+    .data-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 24px 0;
+      font-size: 13px;
+    }
+
+    .data-table thead th {
+      background: rgba(108,64,22,0.25);
+      padding: 12px 16px;
+      text-align: left;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--amber-mid);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .data-table tbody td {
+      padding: 11px 16px;
+      border-bottom: 1px solid rgba(108,64,22,0.1);
+      color: var(--text);
+      opacity: 0.7;
+      background: rgba(14,11,5,0.4);
+      line-height: 1.6;
+    }
+
+    .data-table tbody td:first-child {
+      font-weight: 600;
+      color: var(--amber-light);
+      opacity: 1;
+      white-space: nowrap;
+    }
+
+    .data-table tbody tr:last-child td { border-bottom: none; }
+
+    /* ============================================
+       IMAGE GRID
+       ============================================ */
+    .img-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 24px 0;
+    }
+
+    .img-grid img {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .img-full {
+      margin: 24px 0;
+    }
+
+    .img-full img {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .img-caption {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    /* ============================================
+       BREED PALETTE DISPLAY
+       ============================================ */
+    .breed-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin: 28px 0;
+    }
+
+    .breed-card {
+      background: rgba(26,18,8,0.5);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .breed-card-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--amber-light);
+    }
+
+    .breed-card p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .swatch-row {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .swatch-sm {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* ============================================
+       FILE MANIFEST
+       ============================================ */
+    .file-tree {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 2.0;
+      color: var(--text-dim);
+      background: rgba(14,11,5,0.6);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 24px 0;
+      overflow-x: auto;
+    }
+
+    .file-tree .dir { color: var(--amber-light); font-weight: 600; }
+    .file-tree .file { color: var(--text-dim); }
+    .file-tree .note { color: var(--text-faint); font-style: italic; }
+  </style>
+</head>
+<body>
+
+<!-- ============================================
+     SIDEBAR
+     ============================================ -->
+<div id="sidebar">
+  <div class="sidebar-brand">
+    <h1>Smoke &amp; Honey</h1>
+    <div class="sub">Queen Finder Sub-GDD</div>
+  </div>
+  <nav>
+    <ul>
+      <li class="section"><a href="#h1_overview">1. Overview</a></li>
+      <li class="sub"><a href="#design_intent">Design Intent</a></li>
+      <li class="sub"><a href="#player_fantasy">Player Fantasy</a></li>
+      <li class="sub"><a href="#parent_gdd_refs">Parent GDD References</a></li>
+
+      <li class="section"><a href="#h1_mechanic">2. Core Mechanic</a></li>
+      <li class="sub"><a href="#trigger_conditions">Trigger Conditions</a></li>
+      <li class="sub"><a href="#sighting_probability">Sighting Probability Model</a></li>
+      <li class="sub"><a href="#queen_tells">Visual Tells</a></li>
+      <li class="sub"><a href="#difficulty_scaling">Difficulty Scaling</a></li>
+      <li class="sub"><a href="#inspection_rank">Inspection Difficulty Rank</a></li>
+      <li class="sub"><a href="#roll_probabilities">Roll Probabilities</a></li>
+
+      <li class="section"><a href="#h1_breeds">3. Breed Visual Identity</a></li>
+      <li class="sub"><a href="#breed_palettes">Color Palettes</a></li>
+      <li class="sub"><a href="#queen_vs_worker">Queen vs Worker Anatomy</a></li>
+      <li class="sub"><a href="#breed_difficulty">Breed Difficulty Ranking</a></li>
+
+      <li class="section"><a href="#h1_sprites">4. Sprite Asset Spec</a></li>
+      <li class="sub"><a href="#sprite_dimensions">Dimensions &amp; Layout</a></li>
+      <li class="sub"><a href="#rendering_pipeline">Rendering Pipeline</a></li>
+      <li class="sub"><a href="#wing_design">Wing Design Notes</a></li>
+
+      <li class="section"><a href="#h1_sim">5. Simulation Mockups</a></li>
+      <li class="sub"><a href="#sim_overview">Overview &amp; Purpose</a></li>
+      <li class="sub"><a href="#difficulty_tiers">Difficulty Tiers</a></li>
+      <li class="sub"><a href="#sim_manifest">File Manifest</a></li>
+
+      <li class="section"><a href="#h1_integration">6. Integration &amp; Code</a></li>
+      <li class="sub"><a href="#inspection_overlay">InspectionOverlay.gd</a></li>
+      <li class="sub"><a href="#frame_renderer">FrameRenderer Integration</a></li>
+      <li class="sub"><a href="#xp_rewards">XP &amp; Rewards</a></li>
+
+      <li class="section"><a href="#h1_hookpoints">7. System Hook Points</a></li>
+      <li class="sub"><a href="#data_flow">Full Data Flow</a></li>
+      <li class="sub"><a href="#queen_frame_assignment">Queen Frame Assignment</a></li>
+      <li class="sub"><a href="#ellipsoid_model">3D Ellipsoid Brood Model</a></li>
+      <li class="sub"><a href="#hex_coordinate_system">Hex Coordinate System</a></li>
+      <li class="sub"><a href="#snapshot_pipeline">Snapshot Pipeline</a></li>
+
+      <li class="section"><a href="#h1_movement">8. Bee Movement Algorithm</a></li>
+      <li class="sub"><a href="#movement_overview">Overview &amp; Goals</a></li>
+      <li class="sub"><a href="#bee_entity">BeeEntity Structure</a></li>
+      <li class="sub"><a href="#worker_movement">Worker Movement</a></li>
+      <li class="sub"><a href="#queen_movement">Queen Movement</a></li>
+      <li class="sub"><a href="#attendant_circle">Attendant Circle</a></li>
+      <li class="sub"><a href="#attendant_scaling">Attendant Scaling by Rank</a></li>
+      <li class="sub"><a href="#speed_constants">Speed &amp; Timing Constants</a></li>
+      <li class="sub"><a href="#pathfinding">Pathfinding on Hex Grid</a></li>
+      <li class="sub"><a href="#collision_avoidance">Collision &amp; Density</a></li>
+
+      <li class="section"><a href="#h1_rendering">9. Rendering Pipeline</a></li>
+      <li class="sub"><a href="#render_layer_stack">Layer Stack</a></li>
+      <li class="sub"><a href="#sprite_compositing">Sprite Compositing</a></li>
+      <li class="sub"><a href="#animation_timing">Animation Timing</a></li>
+      <li class="sub"><a href="#performance_budget">Performance Budget</a></li>
+
+      <li class="section"><a href="#h1_interaction">10. Player Interaction</a></li>
+      <li class="sub"><a href="#click_detection">Click Detection</a></li>
+      <li class="sub"><a href="#feedback_states">Feedback States</a></li>
+      <li class="sub"><a href="#tier_gating">Knowledge Tier Gating</a></li>
+
+      <li class="section"><a href="#h1_future">11. Future Development</a></li>
+      <li class="sub"><a href="#phase2_plans">Phase 2 Plans</a></li>
+      <li class="sub"><a href="#system_interaction_summary">Systems Interaction Summary</a></li>
+      <li class="sub"><a href="#file_tree">Asset File Tree</a></li>
+
+      <li class="section"><a href="#h1_systems_impact">12. Systems Impact</a></li>
+      <li class="sub"><a href="#existing_file_changes">Existing File Changes</a></li>
+      <li class="sub"><a href="#new_files_needed">New Files Required</a></li>
+      <li class="sub"><a href="#integration_order">Implementation Order</a></li>
+      <li class="sub"><a href="#gamestate_interactions">Gamestate Interactions</a></li>
+      <li class="sub"><a href="#constants_summary">Constants Cross-Reference</a></li>
+    </ul>
+  </nav>
+</div>
+
+<!-- ============================================
+     MAIN CONTENT
+     ============================================ -->
+<div id="content">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-label">Smoke &amp; Honey -- Sub-System Design Document</div>
+    <h1 class="hero-title">Find the Queen</h1>
+    <div class="hero-tagline">The observational skill at the heart of every inspection</div>
+    <div class="hero-meta">
+      <span class="hero-meta-item"><strong>Parent:</strong> Main GDD S6.1</span>
+      <span class="hero-meta-item"><strong>Status:</strong> Phase 1 Complete</span>
+      <span class="hero-meta-item"><strong>Last Updated:</strong> 2026-03-25</span>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       1. OVERVIEW
+       ========================================== -->
+  <div class="section" id="h1_overview">
+    <div class="section-label">Section 01</div>
+    <h2>Overview</h2>
+
+    <h3 id="design_intent">Design Intent</h3>
+    <p>The "Find the Queen" mechanic is the signature observational challenge woven into the frame inspection system. Every time the player pulls a frame during a hive inspection, there is a chance the queen is on that frame. Spotting her is never required to complete an inspection, but doing so rewards the player with XP, confirms the queen is alive and present, and deepens the feeling of mastery that comes from reading a hive.</p>
+
+    <div class="pitch-block">
+      <p>Real beekeepers spend minutes scanning thousands of bees on a single frame, looking for the one with the longer abdomen, the slightly different gait, the ring of attendants. This mechanic captures that moment of recognition -- the satisfying "there she is" -- without requiring the player to pixel-hunt. Probability gates the sighting, but skill and breed knowledge make it more likely.</p>
+    </div>
+
+    <h3 id="player_fantasy">Player Fantasy</h3>
+    <p>The player fantasy is that of a seasoned beekeeper who can glance at a frame crawling with hundreds of bees and pick out the queen by subtle differences in body shape, movement, and behavior. Early on, spotting the queen feels lucky. By mid-game, it feels earned. By late-game, missing her feels wrong.</p>
+
+    <h3 id="parent_gdd_refs">Parent GDD References</h3>
+    <table class="data-table">
+      <thead><tr><th>Section</th><th>Topic</th><th>Relevance</th></tr></thead>
+      <tbody>
+        <tr><td>S6.1</td><td>Hive Inspection System</td><td>Queen finding is embedded in the frame-by-frame inspection flow. The queen occupies one frame; the player discovers her (or not) as they inspect.</td></tr>
+        <tr><td>S6.1 Sighting Model</td><td>Queen Sighting Probability</td><td>60% base + 1% per level, capped at 80%. Awards +15 XP. Implemented in InspectionOverlay.gd.</td></tr>
+        <tr><td>S3.2</td><td>The Queen</td><td>Queen biology: species, grade, age, laying rate. Queen grade is inferred from brood patterns, never shown as a letter.</td></tr>
+        <tr><td>S3.8</td><td>Frame Inspection &amp; Queen Laying Patterns</td><td>The 3D ellipsoid brood nest determines which frames are queen-active. The queen is placed on the frame with the densest brood.</td></tr>
+        <tr><td>S6.1.1</td><td>Inspection Knowledge Tiers</td><td>Higher tiers reveal more queen info: Tier 3 shows laying assessment, Tier 4 shows gene quality hint, Tier 5 shows grade/species string.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ==========================================
+       2. CORE MECHANIC
+       ========================================== -->
+  <div class="section" id="h1_mechanic">
+    <div class="section-label">Section 02</div>
+    <h2>Core Mechanic</h2>
+
+    <h3 id="trigger_conditions">Trigger Conditions</h3>
+    <p>At the start of every inspection, two rolls determine the session: the <strong>difficulty rank</strong> (Easy/Medium/Hard) and the <strong>queen visibility roll</strong> (80% chance the queen is present on her frame). Both are rolled once and persist for the entire inspection.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Condition</th><th>Details</th></tr></thead>
+      <tbody>
+        <tr><td>Queen visibility roll (80%)</td><td>At inspection start, <code>rng.randf() &lt; 0.80</code>. If it passes, the queen bee entity is spawned on her assigned frame with attendants. If it fails (20%), the queen entity is <strong>not spawned at all</strong> -- the player sees only workers on every frame. This is determined once, at the moment the inspection opens, not per-frame.</td></tr>
+        <tr><td>Queen is present in hive</td><td>The hive simulation must report <code>queen.present == true</code>. Queenless hives never spawn a queen entity regardless of the 80% roll.</td></tr>
+        <tr><td>Correct frame</td><td>The queen entity only exists on one frame index (determined by brood nest center via <code>_get_queen_frame_idx()</code>). On all other frames, the player sees only workers.</td></tr>
+        <tr><td>Player clicks queen</td><td>The player must visually find and click the queen entity on her frame. There is no auto-sighting, no probability roll per frame view. Finding the queen is entirely skill-based once she's been spawned.</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="sighting_probability">Queen Visibility Model</h3>
+    <p>The queen visibility roll replaces the old per-frame-view probability system. Instead of rolling every time the player flips to a frame, the game makes a single binary decision at inspection start: <strong>is the queen findable this inspection, or not?</strong></p>
+
+    <table class="data-table">
+      <thead><tr><th>Parameter</th><th>Value</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Queen spawn chance</td><td>80%</td><td>Flat rate. Rolled once at inspection start. If pass: queen entity + attendants are spawned on her frame. If fail: no queen entity exists anywhere this inspection.</td></tr>
+        <tr><td>XP reward</td><td>Easy: +10 XP, Medium: +15 XP, Hard: +25 XP</td><td>Awarded when the player clicks the queen entity. Scales with inspection difficulty rank. See <a href="#inspection_rank">Inspection Difficulty Rank</a>.</td></tr>
+        <tr><td>Notification</td><td>"Queen confirmed!"</td><td>Toast notification shown only when the player clicks on the queen. Via NotificationManager.show_queen_sighting(). Falls back to inline Label if autoload is unavailable.</td></tr>
+        <tr><td>No queen feedback</td><td>None</td><td>If the queen was not spawned (20%), the player simply never finds her. No "queen not found" message -- the player doesn't know if they missed her or if she wasn't visible. This mirrors the real beekeeping experience.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="file-tree">
+      <span class="note">roll_queen_visibility(rng, sim):</span><br>
+      &nbsp;&nbsp;if not sim.queen.present: return false <span class="note">-- queenless hive, never spawn</span><br>
+      &nbsp;&nbsp;return rng.randf() &lt; QUEEN_SPAWN_CHANCE <span class="note">-- 0.80</span>
+    </div>
+
+    <div class="pitch-block">
+      <p><em>Design Note: The 80/20 split is deliberate. Even experienced beekeepers sometimes don't spot the queen during an inspection -- she may be hiding in a cluster, on the other side of a frame the player didn't flip, or simply hard to pick out. The 20% miss rate preserves tension: the player knows the queen isn't guaranteed, so every successful find feels earned. It also prevents the mechanic from becoming routine. Critically, when the queen IS spawned, finding her is pure player skill -- no more dice rolls, just observation.</em></p>
+    </div>
+
+    <h3 id="queen_tells">Visual Tells -- How Real Beekeepers Spot Queens</h3>
+    <p>The sprite system is designed to encode the same visual cues that real beekeepers use when scanning a frame. These cues are subtle at game-sprite scale, which is intentional: the player should feel the satisfaction of pattern recognition, not be handed the answer.</p>
+
+    <div class="pillars">
+      <div class="pillar">
+        <div class="pillar-name">Abdomen Length</div>
+        <p>The queen's abdomen extends noticeably past her wing tips. Workers' wings cover nearly all of their abdomen. This is the primary tell -- the elongated shape that catches your eye when scanning a dense frame.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-name">Wing Proportion</div>
+        <p>Queen wings only reach about halfway down her abdomen, while worker wings cover most of theirs. At sprite scale, this manifests as more body color visible behind the wings on queens.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-name">Less Fuzz</div>
+        <p>Queens have a shinier, less hairy thorax and abdomen compared to workers. The sprite renderer uses fewer hair dots (6 vs 10 on abdomen, 12 vs 18 on thorax) to achieve this.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-name">Wider Leg Splay</div>
+        <p>Queen legs angle further outward (+1.2 px splay) than worker legs, giving a slightly wider stance visible on close inspection.</p>
+      </div>
+    </div>
+
+    <h3 id="difficulty_scaling">Difficulty Scaling</h3>
+    <p>Queen-finding difficulty combines two layers: the <strong>colony population</strong> (organic, simulation-driven) and an <strong>inspection difficulty rank</strong> (rolled once when the player opens the inspection). Together they determine how many worker bees crowd the frame and how hard it is to pick out the queen.</p>
+
+    <h4 id="inspection_rank">Inspection Difficulty Rank</h4>
+    <p>When the player initiates an inspection, the game rolls a difficulty rank: <strong>Easy</strong>, <strong>Medium</strong>, or <strong>Hard</strong>. This rank persists for the entire inspection session and controls three parameters that together define the visual density and challenge: <em>bee count multiplier</em>, <em>minimum spacing between bees</em>, and <em>cluster tightness</em> (how tightly bees clump toward the frame center). These three levers mirror the exact parameters used to generate the static mockup images in <code>generate_frame_sim.py</code>.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Rank</th><th>Density Mult</th><th>Min Spacing (px)</th><th>Cluster Tightness</th><th>Mockup Reference</th></tr></thead>
+      <tbody>
+        <tr><td>Easy</td><td>0.33 (1/3)</td><td>26-30</td><td>0.26-0.30 (spread out)</td><td>30-40 bees, open comb visible, bees individually distinct</td></tr>
+        <tr><td>Medium</td><td>0.67 (2/3)</td><td>16-18</td><td>0.19-0.20 (moderate clumps)</td><td>75-82 bees, moderate coverage, clusters forming</td></tr>
+        <tr><td>Hard</td><td>1.0 (3/3)</td><td>10-13</td><td>0.15-0.18 (tight packing)</td><td>100-115 bees, dense coverage, overlapping bodies</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Spacing</strong> is the minimum pixel distance between any two bee entity centers. On Easy, bees keep wide gaps between them so each individual is clearly distinct. On Hard, bees overlap and crowd together, making shape-based identification much harder. <strong>Cluster tightness</strong> is the standard deviation of the Gaussian distribution used when picking spawn/target positions -- smaller values pull bees toward the frame center, creating dense knots with sparse edges. On Easy, bees spread across the full comb face.</p>
+
+    <p>The density multiplier is applied <em>after</em> the 1:100 ratio calculation but <em>before</em> jitter and clamping. Spacing and cluster tightness are applied in the BeeEntity spawn and target-selection logic. See the <a href="#density_ratio">density model formula</a> in Section 8 for the exact pipeline and the <a href="#collision_avoidance">collision section</a> for how spacing interacts with soft repulsion.</p>
+
+    <h4 id="roll_probabilities">Roll Probabilities</h4>
+    <p>The default implementation ships with <strong>flat equal probability: 33% Easy, 33% Medium, 34% Hard</strong>. This is deliberately simple so the mechanic can be tested and tuned in playtesting before adding complexity.</p>
+
+    <div class="file-tree">
+      <span class="note">roll_inspection_difficulty(rng):</span><br>
+      &nbsp;&nbsp;roll = rng.randi() % 3<br>
+      &nbsp;&nbsp;if roll == 0: return EASY <span class="note">-- 33%</span><br>
+      &nbsp;&nbsp;if roll == 1: return MEDIUM <span class="note">-- 33%</span><br>
+      &nbsp;&nbsp;return HARD <span class="note">-- 34%</span>
+    </div>
+
+    <p>The following optional bias hooks are documented here for future tuning but are <strong>not active at Phase 2.0 launch</strong>. Each one shifts weight between the three tiers without changing the core formula:</p>
+
+    <table class="data-table">
+      <thead><tr><th>Bias Hook</th><th>Source</th><th>Effect (when enabled)</th><th>Rationale</th></tr></thead>
+      <tbody>
+        <tr><td>Player level</td><td><code>GameData.player_level</code></td><td>Levels 1-3: +15% Easy, -15% Hard. Levels 8+: -10% Easy, +10% Hard.</td><td>Eases new players in, challenges veterans.</td></tr>
+        <tr><td>Knowledge tier</td><td><code>InspectionOverlay._inspection_knowledge_tier</code></td><td>Tier 4-5: +10% Hard, -10% Easy.</td><td>Experienced inspectors see more realistic density.</td></tr>
+        <tr><td>Temperament</td><td><code>queen.temperament</code></td><td>Defensive colonies: +20% Hard. Calm colonies: +10% Easy.</td><td>Links queen genetics to inspection experience.</td></tr>
+        <tr><td>Congestion</td><td><code>congestion_state</code> 2-3</td><td>Force Medium minimum (no Easy). State 3: force Hard.</td><td>Overcrowded hives are physically packed.</td></tr>
+        <tr><td>Colony size</td><td><code>nurse_count</code> &lt; 1000</td><td>Force Easy (even Hard would only show MIN_VISIBLE bees).</td><td>Prevents meaningless Hard on tiny colonies.</td></tr>
+      </tbody>
+    </table>
+
+    <p><em>To enable a bias hook later: add a weighted roll function that adjusts the base 33/33/34 split by the bias percentages above. Multiple hooks stack additively and the final probabilities are clamped to [5%, 80%] per tier to prevent any tier from being eliminated entirely.</em></p>
+
+    <h4>Combined Difficulty Factors</h4>
+    <table class="data-table">
+      <thead><tr><th>Factor</th><th>Easier</th><th>Harder</th></tr></thead>
+      <tbody>
+        <tr><td>Inspection rank</td><td>Easy (1/3 density) -- only a third of expected bees appear</td><td>Hard (3/3 density) -- full bee count from ratio</td></tr>
+        <tr><td>Colony size (via ratio)</td><td>Nuc/package: 3-6 visible bees on Easy, 8-15 on Hard</td><td>Peak/booming: 7-19 on Easy, 27-56 on Hard</td></tr>
+        <tr><td>Breed color</td><td>Italian (golden), Buckfast (amber) -- queen's bands contrast</td><td>Russian (very dark), Carniolan (grey-brown) -- queen blends in</td></tr>
+        <tr><td>Cluster tightness</td><td>Spread out, individual bees distinct</td><td>Tight clusters, overlapping bodies</td></tr>
+        <tr><td>Colony temperament</td><td>Calm colonies hold still on frames</td><td>Defensive colonies run -- chaotic movement</td></tr>
+        <tr><td>Queen marking</td><td>Marked queens (color dot on thorax) are trivially spotted</td><td>Unmarked queens require anatomical identification</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Note on mockup images:</strong> The static simulation images in the <code>find_the_queen/</code> folder use fixed bee counts (30-115) for illustration purposes and do not use the ratio formula or the inspection rank multiplier. In the actual game, visible bee count is always derived from <code>nurse_count * frame_share / 100 * difficulty_mult + jitter</code>, clamped to [MIN_VISIBLE, MAX_VISIBLE].</p>
+  </div>
+
+  <!-- ==========================================
+       3. BREED VISUAL IDENTITY
+       ========================================== -->
+  <div class="section" id="h1_breeds">
+    <div class="section-label">Section 03</div>
+    <h2>Breed Visual Identity</h2>
+
+    <h3 id="breed_palettes">Color Palettes</h3>
+    <p>Each of the five in-game breeds has a distinct color palette based on real-world honeybee race coloring. The palette defines head, thorax, abdomen bands, legs, antennae, and wings. Wing colors are intentionally muted (dark grey-blue, RGB 88-104 range) across all breeds to avoid bright distracting highlights and to keep the focus on body shape differences.</p>
+
+    <div class="breed-cards">
+      <div class="breed-card">
+        <div class="breed-card-name">Italian</div>
+        <p>Bright golden-yellow bands, light brown thorax. The "classic" honeybee look. Queen is easiest to spot due to high contrast between her golden bands and dark abdomen segments. Most popular beginner breed in real beekeeping.</p>
+      </div>
+      <div class="breed-card">
+        <div class="breed-card-name">Buckfast</div>
+        <p>Warm amber-orange bands, medium brown thorax. Visually similar to Italian but slightly more muted and variable. A hybrid breed developed at Buckfast Abbey. Queen's amber coloring still provides reasonable contrast.</p>
+      </div>
+      <div class="breed-card">
+        <div class="breed-card-name">Carniolan</div>
+        <p>Dusky grey-brown bands, dark grey thorax. Much more subdued than Italian or Buckfast. Queen blends more with workers due to low contrast between band colors and dark body. Moderate difficulty.</p>
+      </div>
+      <div class="breed-card">
+        <div class="breed-card-name">Caucasian</div>
+        <p>Silvery-grey bands with a subtle blue-grey sheen, dark thorax. Muted and cool-toned. Queen's elongated abdomen is the primary tell since color differentiation is minimal. Hard difficulty tier.</p>
+      </div>
+      <div class="breed-card">
+        <div class="breed-card-name">Russian</div>
+        <p>Very dark brown to near-black body, muted pale bands barely visible. The hardest breed for queen-finding because everything is dark. Queen must be identified purely by shape -- abdomen length, wing proportion, and leg splay. Expert difficulty.</p>
+      </div>
+    </div>
+
+    <h3 id="queen_vs_worker">Queen vs Worker Anatomy</h3>
+    <p>The sprite system renders queens and workers from the same base template with specific parameter differences. These differences are calibrated to be noticeable when you know what to look for, but not obvious at a casual glance -- mirroring the real beekeeping experience.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Feature</th><th>Worker</th><th>Queen</th><th>Visual Effect</th></tr></thead>
+      <tbody>
+        <tr><td>Abdomen center offset</td><td>cx + 6.5</td><td>cx + 9.0</td><td>Queen body sits further back, abdomen projects further from thorax.</td></tr>
+        <tr><td>Abdomen radius X</td><td>10.0</td><td>14.5</td><td>~45% longer. The signature elongated look.</td></tr>
+        <tr><td>Abdomen radius Y</td><td>10.0</td><td>9.2</td><td>Slightly narrower, giving a tapered rather than round shape.</td></tr>
+        <tr><td>Stripe bands</td><td>4 bands</td><td>5 bands</td><td>Extra band fills the longer abdomen.</td></tr>
+        <tr><td>Wing length</td><td>13.0 px</td><td>10.0 px</td><td>Workers' wings cover abdomen; queen's wings end halfway. Key tell.</td></tr>
+        <tr><td>Wing width</td><td>6.5 px</td><td>5.5 px</td><td>Slightly narrower wings on queens.</td></tr>
+        <tr><td>Thorax radius</td><td>7.0 x 7.5</td><td>6.5 x 7.0</td><td>Queen's thorax slightly smaller relative to her longer body.</td></tr>
+        <tr><td>Hair dots (abdomen)</td><td>10</td><td>6</td><td>Queen appears shinier, less fuzzy.</td></tr>
+        <tr><td>Hair dots (thorax)</td><td>18</td><td>12</td><td>Same shinier effect on thorax.</td></tr>
+        <tr><td>Leg splay extra</td><td>0</td><td>+1.2 px</td><td>Queen legs spread wider.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="img-full">
+      <img src="queen_species_comparison.png" alt="Queen species comparison -- all 5 breeds, queen vs worker">
+      <div class="img-caption">Queen (top) vs Worker (bottom) across all 5 breeds at 8x zoom</div>
+    </div>
+
+    <h3 id="breed_difficulty">Breed Difficulty Ranking</h3>
+    <table class="data-table">
+      <thead><tr><th>Rank</th><th>Breed</th><th>Difficulty</th><th>Reason</th></tr></thead>
+      <tbody>
+        <tr><td>1 (easiest)</td><td>Italian</td><td>Easy</td><td>Bright golden bands create maximum contrast. Queen's elongated golden abdomen stands out clearly from the crowd.</td></tr>
+        <tr><td>2</td><td>Buckfast</td><td>Easy-Medium</td><td>Warm amber is still distinct but slightly less vivid than Italian. Variable coloring adds mild complexity.</td></tr>
+        <tr><td>3</td><td>Carniolan</td><td>Medium</td><td>Grey-brown tones reduce contrast between queen and workers. Shape becomes the primary identifier.</td></tr>
+        <tr><td>4</td><td>Caucasian</td><td>Hard</td><td>Silvery-grey palette with minimal color differentiation. Must rely on body proportions.</td></tr>
+        <tr><td>5 (hardest)</td><td>Russian</td><td>Very Hard</td><td>Near-black coloring makes all bees look similar. Only shape, fuzz level, and leg splay distinguish the queen. Expert-only.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ==========================================
+       4. SPRITE ASSET SPEC
+       ========================================== -->
+  <div class="section" id="h1_sprites">
+    <div class="section-label">Section 04</div>
+    <h2>Sprite Asset Specification</h2>
+
+    <h3 id="sprite_dimensions">Dimensions &amp; Layout</h3>
+    <table class="data-table">
+      <thead><tr><th>Parameter</th><th>Value</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Cell size</td><td>60 x 42 px</td><td>Wide enough for queen's full abdomen plus rotation headroom. Expanded from v1's 48x36 and v2's 56x40.</td></tr>
+        <tr><td>Directions</td><td>8</td><td>E, NE, N, NW, W, SW, S, SE. Each row of the spritesheet.</td></tr>
+        <tr><td>Walk frames</td><td>4</td><td>Looping walk cycle with leg alternation (tripod gait) and abdomen bob.</td></tr>
+        <tr><td>Idle frames</td><td>3</td><td>Antenna twitch, subtle wing flutter on frame 1.</td></tr>
+        <tr><td>Total frames</td><td>7 per direction</td><td>Cols 0-3: walk. Cols 4-6: idle.</td></tr>
+        <tr><td>Spritesheet size</td><td>420 x 336 px</td><td>7 cols x 8 rows = 56 cells per sheet.</td></tr>
+        <tr><td>Superscale</td><td>5x internal</td><td>All geometry is drawn at 300x210 then downscaled via LANCZOS for smooth anti-aliasing.</td></tr>
+        <tr><td>Output per breed</td><td>3 files</td><td>Spritesheet (420x336), Preview (1260x1008 at 3x), Close-up (480x336 at 8x).</td></tr>
+        <tr><td>Total outputs</td><td>30 images</td><td>5 breeds x 2 roles (worker + queen) x 3 files each.</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="rendering_pipeline">Rendering Pipeline</h3>
+    <p>Each bee frame is composited back-to-front in five layers: <strong>legs</strong> (3 pairs, tripod gait animation), <strong>abdomen</strong> (striped teardrop with hair dots), <strong>wings</strong> (forewing + hindwing polygons with venation), <strong>thorax</strong> (round fuzzy disc), and <strong>head</strong> (wide capsule with compound eyes, mandibles, and segmented antennae). Everything is rendered at 5x superscale and downscaled with LANCZOS. Rotation for the 8 directions uses BICUBIC interpolation with padding to prevent edge clipping.</p>
+
+    <h3 id="wing_design">Wing Design Notes</h3>
+    <p>Wings went through several iterations. The current design uses <strong>subdued grey-blue tones</strong> (fill around RGB 88-104, edge 72-90, vein 58-78) that sit well below the body colors. This was a deliberate choice after earlier versions had wings that were too bright and drew the eye away from the body shape differences that matter for queen identification. Each wing has a forewing (larger, front) and hindwing (smaller, partially occluded) with three cross-veins drawn as thin lines. Queens have shorter wings (10px vs 13px) that expose more of the abdomen behind them -- this is the single most important visual cue for finding the queen.</p>
+
+    <div class="img-full">
+      <img src="breed_comparison.png" alt="Breed comparison -- all 5 breeds, worker row and queen row">
+      <div class="img-caption">Breed comparison at 6x -- workers (top row), queens (bottom row)</div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       5. SIMULATION MOCKUPS
+       ========================================== -->
+  <div class="section" id="h1_sim">
+    <div class="section-label">Section 05</div>
+    <h2>Simulation Mockups</h2>
+
+    <h3 id="sim_overview">Overview &amp; Purpose</h3>
+    <p>The <code>find_the_queen/</code> directory contains 12 simulated frame images at three difficulty tiers. Each scenario is a pair: a challenge image (bees on a honeycomb frame with one hidden queen) and an answer image (same frame with the queen circled in red). These serve as visual reference for how the in-game queen-finding will look at various colony densities and breed combinations.</p>
+
+    <p>The simulation places bees on a procedurally generated honeycomb background using Gaussian clustering centered on the frame. Bee sprites are rendered at 1.3x scale, depth-sorted by Y position, and individually rotated to one of 8 random directions. The queen is always included and placed using the same spatial algorithm as workers -- she gets no special positioning advantage.</p>
+
+    <h3 id="difficulty_tiers">Difficulty Tiers</h3>
+
+    <h4>Easy (Scenarios 01-08)</h4>
+    <p>30-40 workers with generous spacing (min 26-30px between centers) and loose clustering (std dev 27-30% of frame size). Uses lighter breeds -- Italian and Buckfast primarily, plus one Caucasian variant. Plenty of visible comb between bees. The queen's longer abdomen is easy to pick out with open space around her.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Scenario</th><th>Breed</th><th>Workers</th><th>Spacing</th><th>Tag</th></tr></thead>
+      <tbody>
+        <tr><td>01-02</td><td>Italian</td><td>35</td><td>28px / 0.28</td><td>easy_italian</td></tr>
+        <tr><td>03-04</td><td>Buckfast</td><td>40</td><td>26px / 0.26</td><td>easy_buckfast</td></tr>
+        <tr><td>05-06</td><td>Caucasian</td><td>30</td><td>30px / 0.30</td><td>easy_caucasian</td></tr>
+        <tr><td>07-08</td><td>Italian</td><td>38</td><td>27px / 0.27</td><td>easy_italian2</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Medium (Scenarios 09-16)</h4>
+    <p>75-82 workers with tighter spacing (16-18px) and moderate clustering (std dev 19-20%). Mixes darker breeds -- Carniolan, Russian -- with some lighter ones. Bees overlap visually and the queen must be identified by shape amidst the crowd rather than by isolation.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Scenario</th><th>Breed</th><th>Workers</th><th>Spacing</th><th>Tag</th></tr></thead>
+      <tbody>
+        <tr><td>09-10</td><td>Carniolan</td><td>75</td><td>18px / 0.20</td><td>medium_carniolan</td></tr>
+        <tr><td>11-12</td><td>Russian</td><td>80</td><td>16px / 0.19</td><td>medium_russian</td></tr>
+        <tr><td>13-14</td><td>Buckfast</td><td>82</td><td>17px / 0.19</td><td>medium_buckfast</td></tr>
+        <tr><td>15-16</td><td>Italian</td><td>78</td><td>17px / 0.20</td><td>medium_italian</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Hard (Scenarios 17-24)</h4>
+    <p>100-115 workers with aggressive spacing (10-13px) and tight clustering (std dev 15-18%). Exclusively dark breeds -- Russian, Caucasian, Carniolan. The frame is nearly covered. Finding the queen requires careful scanning of body proportions and wing length in a sea of similarly-colored bees.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Scenario</th><th>Breed</th><th>Workers</th><th>Spacing</th><th>Tag</th></tr></thead>
+      <tbody>
+        <tr><td>17-18</td><td>Russian</td><td>105</td><td>12px / 0.17</td><td>hard_russian</td></tr>
+        <tr><td>19-20</td><td>Caucasian</td><td>100</td><td>13px / 0.18</td><td>hard_caucasian</td></tr>
+        <tr><td>21-22</td><td>Carniolan</td><td>110</td><td>11px / 0.16</td><td>hard_carniolan</td></tr>
+        <tr><td>23-24</td><td>Russian</td><td>115</td><td>10px / 0.15</td><td>hard_russian2</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="sim_manifest">File Manifest</h3>
+    <p>All simulation images are 800 x 450 px, optimized PNG. Files are numbered sequentially so they sort in difficulty order, with each challenge immediately followed by its answer reveal.</p>
+
+    <div class="file-tree">
+      <span class="dir">find_the_queen/</span><br>
+      &nbsp;&nbsp;<span class="file">01_challenge_easy_italian.png</span> <span class="note">-- 35 workers, Italian</span><br>
+      &nbsp;&nbsp;<span class="file">02_answer_easy_italian.png</span><br>
+      &nbsp;&nbsp;<span class="file">03_challenge_easy_buckfast.png</span> <span class="note">-- 40 workers, Buckfast</span><br>
+      &nbsp;&nbsp;<span class="file">04_answer_easy_buckfast.png</span><br>
+      &nbsp;&nbsp;<span class="file">05_challenge_easy_caucasian.png</span> <span class="note">-- 30 workers, Caucasian</span><br>
+      &nbsp;&nbsp;<span class="file">06_answer_easy_caucasian.png</span><br>
+      &nbsp;&nbsp;<span class="file">07_challenge_easy_italian2.png</span> <span class="note">-- 38 workers, Italian</span><br>
+      &nbsp;&nbsp;<span class="file">08_answer_easy_italian2.png</span><br>
+      &nbsp;&nbsp;<span class="file">09_challenge_medium_carniolan.png</span> <span class="note">-- 75 workers, Carniolan</span><br>
+      &nbsp;&nbsp;<span class="file">10_answer_medium_carniolan.png</span><br>
+      &nbsp;&nbsp;<span class="file">11_challenge_medium_russian.png</span> <span class="note">-- 80 workers, Russian</span><br>
+      &nbsp;&nbsp;<span class="file">12_answer_medium_russian.png</span><br>
+      &nbsp;&nbsp;<span class="file">13_challenge_medium_buckfast.png</span> <span class="note">-- 82 workers, Buckfast</span><br>
+      &nbsp;&nbsp;<span class="file">14_answer_medium_buckfast.png</span><br>
+      &nbsp;&nbsp;<span class="file">15_challenge_medium_italian.png</span> <span class="note">-- 78 workers, Italian</span><br>
+      &nbsp;&nbsp;<span class="file">16_answer_medium_italian.png</span><br>
+      &nbsp;&nbsp;<span class="file">17_challenge_hard_russian.png</span> <span class="note">-- 105 workers, Russian</span><br>
+      &nbsp;&nbsp;<span class="file">18_answer_hard_russian.png</span><br>
+      &nbsp;&nbsp;<span class="file">19_challenge_hard_caucasian.png</span> <span class="note">-- 100 workers, Caucasian</span><br>
+      &nbsp;&nbsp;<span class="file">20_answer_hard_caucasian.png</span><br>
+      &nbsp;&nbsp;<span class="file">21_challenge_hard_carniolan.png</span> <span class="note">-- 110 workers, Carniolan</span><br>
+      &nbsp;&nbsp;<span class="file">22_answer_hard_carniolan.png</span><br>
+      &nbsp;&nbsp;<span class="file">23_challenge_hard_russian2.png</span> <span class="note">-- 115 workers, Russian</span><br>
+      &nbsp;&nbsp;<span class="file">24_answer_hard_russian2.png</span><br>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       6. INTEGRATION & CODE
+       ========================================== -->
+  <div class="section" id="h1_integration">
+    <div class="section-label">Section 06</div>
+    <h2>Integration &amp; Code</h2>
+
+    <h3 id="inspection_overlay">InspectionOverlay.gd</h3>
+    <p>The queen sighting mechanic lives in <code>scripts/ui/InspectionOverlay.gd</code>. It hooks into three navigation events: switching frames (<code>_switch_frame</code>), switching boxes (<code>_switch_box</code>), and flipping sides (<code>_flip_side</code>). Each of these calls <code>_check_queen_sighting()</code> after recording the current side's cell data.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Constant / Var</th><th>Value</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>QUEEN_SIGHT_BASE</td><td>0.60</td><td>Base sighting probability (60%).</td></tr>
+        <tr><td>QUEEN_SIGHT_MAX</td><td>0.80</td><td>Hard cap on sighting probability.</td></tr>
+        <tr><td>QUEEN_SIGHT_XP</td><td>15</td><td>XP awarded on successful sighting.</td></tr>
+        <tr><td>_queen_seen</td><td>bool</td><td>Set to true after first successful sighting. Reset to false when inspection opens.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>_get_queen_frame_idx()</h4>
+    <p>Determines which frame the queen is on by querying the simulation's frame order and returning the first (center-most) frame index. The queen occupies the densest brood frame, which aligns with real bee behavior -- queens lay outward from the center of the nest.</p>
+
+    <h4>_check_queen_sighting()</h4>
+    <p>The core roll. Checks preconditions (not already seen, queen present, correct frame), calculates probability as <code>min(BASE + level * 0.01, MAX)</code>, and rolls. On success, sets <code>_queen_seen = true</code>, awards XP via <code>GameData.add_xp()</code>, and fires the notification.</p>
+
+    <h3 id="frame_renderer">FrameRenderer Integration</h3>
+    <p>The FrameRenderer draws the cell grid for each frame face. In the current Phase 1 implementation, the queen sighting is probability-based and does not require the queen sprite to be physically rendered on the frame. Future phases (see S7) will render the actual queen sprite walking on the frame, making the mechanic a true visual search.</p>
+
+    <h3 id="xp_rewards">XP &amp; Reward Flow</h3>
+    <table class="data-table">
+      <thead><tr><th>Step</th><th>System</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>InspectionOverlay</td><td>Sighting roll succeeds. Calls <code>GameData.add_xp(15)</code>.</td></tr>
+        <tr><td>2</td><td>GameData</td><td>Adds XP to player total. Checks for level-up threshold.</td></tr>
+        <tr><td>3</td><td>InspectionOverlay</td><td>Calls <code>_show_queen_notification()</code>.</td></tr>
+        <tr><td>4</td><td>NotificationManager</td><td>Displays toast: "Queen confirmed! +15 XP". Slides in from right, fades after delay.</td></tr>
+        <tr><td>5</td><td>InspectionOverlay</td><td>Sets <code>_queen_seen = true</code>. No further rolls this inspection.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="pitch-block">
+      <p><em>Design Note: The queen info displayed in the inspection stats panel scales with Knowledge Tier. Tier 3 (Competent) shows a laying assessment ("Laying well" / "Sparse lay"). Tier 4 (Advanced) adds a gene quality hint ("Strong gene" / "Weak gene"). Tier 5 (Master) shows the actual grade/species string ("Q: A/Ita"). The queen sighting itself is available at all tiers -- even beginners can get lucky.</em></p>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       7. SYSTEM HOOK POINTS
+       ========================================== -->
+  <div class="section" id="h1_hookpoints">
+    <div class="section-label">Section 07</div>
+    <h2>System Hook Points</h2>
+
+    <h3 id="data_flow">Full Data Flow -- Inspection Open to Queen Sighting</h3>
+    <p>Understanding how the queen finder hooks into the existing system requires tracing the data flow from when the player opens an inspection through to when a queen sighting can occur. Every component in this chain already exists; the queen finder adds a visual layer on top.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Step</th><th>System</th><th>Action</th><th>Data Passed</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Player / hive.gd</td><td>Player presses inspect key on a hive node</td><td>hive_node reference</td></tr>
+        <tr><td>2</td><td>InspectionOverlay.open()</td><td>Deducts 10 energy, resolves knowledge tier (1-5), resets state: <code>_queen_seen=false</code>, <code>_viewed_sides.clear()</code>, creates new <code>FrameRenderer</code> instance</td><td>_hive, _sim (HiveSimulation node)</td></tr>
+        <tr><td>3</td><td>FrameRenderer</td><td>Loads <code>cell_atlas.png</code> (364x20 px, 14 cell states) via <code>Image.load_from_file()</code>. Prepares canvas buffers for honeycomb rendering.</td><td>Atlas image cached in _atlas_image</td></tr>
+        <tr><td>4</td><td>InspectionOverlay._refresh_frame()</td><td>Calls <code>_renderer.render_honeycomb(frame, side)</code>. Result assigned to <code>_cell_rect.texture</code>.</td><td>HiveFrame object, side int (0=A, 1=B)</td></tr>
+        <tr><td>5</td><td>FrameRenderer.render_honeycomb()</td><td>Creates 1833x755 canvas. Blits each cell's atlas sprite at hex-offset positions (26px col step, 15px row step, 13px odd-row shift). Dirty-checked via PackedByteArray hash.</td><td>PackedByteArray (cells or cells_b), ImageTexture output</td></tr>
+        <tr><td>6</td><td>InspectionOverlay._record_current_side()</td><td>If first visit to this frame-side, calls <code>CellStateTransition.full_count_side()</code> and accumulates cell counts into <code>_accum_counts</code>.</td><td>Dictionary {state_id: count}</td></tr>
+        <tr><td>7</td><td>InspectionOverlay._check_queen_sighting()</td><td>Checks: queen present? Correct frame? Roll probability. On success: <code>GameData.add_xp(15)</code>, fire notification, set <code>_queen_seen=true</code>.</td><td>queen dict from _sim, player_level from GameData</td></tr>
+      </tbody>
+    </table>
+
+    <div class="pitch-block">
+      <p><em>Hook Point for Phase 2: Step 5 is where bee sprites get composited onto the honeycomb canvas. The FrameRenderer currently returns a static cell grid. The queen finder Phase 2 adds a second render pass that overlays animated bee sprites on top of this base layer. The existing dirty-checking hash system means the cell grid only re-renders when cell data changes, while the bee overlay re-renders every animation tick.</em></p>
+    </div>
+
+    <h3 id="queen_frame_assignment">Queen Frame Assignment Algorithm</h3>
+    <p>The queen is not randomly placed. She occupies the frame with the most active laying, determined by scanning frames in the <strong>center-out order</strong> defined by the brood nest model. This mirrors real bee biology: the queen works the center of the nest where conditions are warmest and brood density is highest.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Constant</th><th>Value</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>QUEEN_FRAME_ORDER</td><td>[4, 5, 3, 6, 2, 7, 1, 8, 0, 9]</td><td>Frame indices sorted center-outward. Frame 4-5 are the core of the brood nest.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>_get_queen_frame_idx() Algorithm</h4>
+    <p>Iterates through <code>QUEEN_FRAME_ORDER</code> and returns the first frame that contains any eggs (<code>S_EGG</code> cells &gt; 0). If no frames have eggs (queenless transition, winter shutdown), defaults to frame 4 (nest center). This means the queen is always on the most actively-laid frame, which is the frame the player is most likely to inspect thoroughly.</p>
+
+    <h3 id="ellipsoid_model">3D Ellipsoid Brood Nest Model</h3>
+    <p>The queen's laying pattern and bee density on frames are governed by a 3D ellipsoid centered in the brood box. This model determines where eggs are laid, which cells are eligible for brood, and -- critically for the queen finder -- where bee density is highest on any given frame.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Axis</th><th>Center</th><th>Radius</th><th>Physical Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>Z (frame depth)</td><td>4.5 (between frames 4-5)</td><td>5.0</td><td>Brood spans frames 0-9 but concentrates at center. Outer frames are mostly honey/pollen.</td></tr>
+        <tr><td>X (horizontal)</td><td>35.0 (mid-column of 70-col grid)</td><td>38.0</td><td>Brood fills most of the frame width, leaving a thin honey band at edges.</td></tr>
+        <tr><td>Y (vertical)</td><td>15.0 (upper third)</td><td>42.0 (asymmetric downward)</td><td>Brood nest sits high and extends down. Top arch = honey cap. Bottom = more brood. Asymmetric because heat rises.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>3D Distance Formula</h4>
+    <p>Every cell in the hive has a normalized 3D distance from the ellipsoid center. Cells with distance &le; 1.0 are inside the brood zone. The queen lays from center outward, sorted by this distance.</p>
+    <div class="file-tree">
+      <span class="note">_cell_3d_dist(frame_idx, col, row):</span><br>
+      &nbsp;&nbsp;dz = (frame_idx - 4.5) / 5.0<br>
+      &nbsp;&nbsp;dx = (col - 35) / 38.0<br>
+      &nbsp;&nbsp;dy = (row - 15) / 42.0<br>
+      &nbsp;&nbsp;return sqrt(dz*dz + dx*dx + dy*dy)<br>
+      <br>
+      <span class="note">Cells at dist 0.0 = dead center of nest</span><br>
+      <span class="note">Cells at dist 1.0 = edge of brood zone</span><br>
+      <span class="note">Cells at dist > 1.0 = honey/pollen/empty</span>
+    </div>
+
+    <p>This distance value directly drives <strong>bee density per cell</strong> in the queen finder overlay. Center cells (dist 0.0-0.3) have the most bees walking over them. Edge cells (dist 0.8-1.0) have sparse bee traffic. Cells outside the ellipsoid (dist &gt; 1.0) are mostly empty of nurse bees.</p>
+
+    <h3 id="hex_coordinate_system">Hex Coordinate System</h3>
+    <p>The FrameRenderer uses a pointy-top hexagonal offset grid. All bee positions in the queen finder overlay must map to this same coordinate space.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Parameter</th><th>Value</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>HEX_COL_STEP</td><td>26 px</td><td>Horizontal distance between cell centers.</td></tr>
+        <tr><td>HEX_ROW_STEP</td><td>15 px</td><td>Vertical distance between rows (3/4 of cell height for hex packing).</td></tr>
+        <tr><td>HEX_ODD_SHIFT</td><td>13 px</td><td>Odd-numbered rows shift right by half a column width.</td></tr>
+        <tr><td>Canvas size</td><td>1833 x 755 px</td><td>Full honeycomb render (70 cols x 50 rows in hex layout).</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Grid-to-Pixel Conversion</h4>
+    <div class="file-tree">
+      <span class="note">cell_to_pixel(col, row):</span><br>
+      &nbsp;&nbsp;x = col * 26 + (13 if row % 2 == 1 else 0)<br>
+      &nbsp;&nbsp;y = row * 15<br>
+      &nbsp;&nbsp;return (x, y)<br>
+      <br>
+      <span class="note">pixel_to_cell(px, py):</span><br>
+      &nbsp;&nbsp;row = round(py / 15)<br>
+      &nbsp;&nbsp;x_shift = 13 if row % 2 == 1 else 0<br>
+      &nbsp;&nbsp;col = round((px - x_shift) / 26)<br>
+      &nbsp;&nbsp;return (col, row)
+    </div>
+
+    <h3 id="snapshot_pipeline">Snapshot Pipeline</h3>
+    <p>Every daily tick, <code>HiveSimulation.tick()</code> runs its 10-step pipeline and writes a snapshot via <code>SnapshotWriter</code>. The InspectionOverlay reads <code>_sim.last_snapshot</code> for queen data. Key snapshot fields consumed by the queen finder:</p>
+
+    <table class="data-table">
+      <thead><tr><th>Field</th><th>Type</th><th>Used By</th></tr></thead>
+      <tbody>
+        <tr><td>queen_present</td><td>bool</td><td>Gate: skip sighting if false</td></tr>
+        <tr><td>queen_species</td><td>String</td><td>Tier 5 display, breed-specific sprite selection</td></tr>
+        <tr><td>queen_grade</td><td>String (S/A/B/C/D/F)</td><td>Tier 4-5 display, affects attendant count</td></tr>
+        <tr><td>queen_age</td><td>int (days)</td><td>Phase 2: older queens move slower</td></tr>
+        <tr><td>nurse_count</td><td>int</td><td>Determines how many worker sprites to render</td></tr>
+        <tr><td>egg_count</td><td>int</td><td>Used by _get_queen_frame_idx() to find queen's frame</td></tr>
+        <tr><td>congestion_state</td><td>int (0-3)</td><td>Affects movement agitation; may bias difficulty rank roll toward Hard</td></tr>
+        <tr><td>health_score</td><td>float (0-100)</td><td>Unhealthy colonies have erratic movement patterns</td></tr>
+        <tr><td>queen.temperament</td><td>String</td><td>May bias difficulty rank roll (defensive -> harder, calm -> easier)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ==========================================
+       8. BEE MOVEMENT ALGORITHM
+       ========================================== -->
+  <div class="section" id="h1_movement">
+    <div class="section-label">Section 08</div>
+    <h2>Bee Movement Algorithm</h2>
+
+    <h3 id="movement_overview">Overview &amp; Goals</h3>
+    <p>Phase 2 replaces the probability-based sighting roll with a live visual search. The player sees actual bee sprites walking on the honeycomb frame and must identify the queen by her anatomy and movement pattern. This requires a movement system that is visually convincing, performant at 60+ sprites, and produces natural-looking bee behavior on a hex grid.</p>
+
+    <div class="pitch-block">
+      <p>The movement system does <strong>not</strong> simulate individual bee AI. Bees are not making decisions. They are animated particles following simple movement rules that, in aggregate, produce the appearance of purposeful colony behavior. The goal is visual believability at the frame level, not entomological accuracy at the individual level.</p>
+    </div>
+
+    <h3 id="bee_entity">BeeEntity Structure</h3>
+    <p>Each visible bee on the frame is a lightweight data object. No scene tree nodes, no physics bodies. Pure data processed in a single loop.</p>
+
+    <div class="file-tree">
+      <span class="dir">BeeEntity (Dictionary or inner class):</span><br>
+      &nbsp;&nbsp;<span class="file">pos_x: float</span> <span class="note">-- pixel X on honeycomb canvas (0-1833)</span><br>
+      &nbsp;&nbsp;<span class="file">pos_y: float</span> <span class="note">-- pixel Y on honeycomb canvas (0-755)</span><br>
+      &nbsp;&nbsp;<span class="file">target_x: float</span> <span class="note">-- destination pixel X</span><br>
+      &nbsp;&nbsp;<span class="file">target_y: float</span> <span class="note">-- destination pixel Y</span><br>
+      &nbsp;&nbsp;<span class="file">direction: int</span> <span class="note">-- 0-7 facing (indexes into spritesheet row)</span><br>
+      &nbsp;&nbsp;<span class="file">anim_frame: int</span> <span class="note">-- 0-6 current animation frame</span><br>
+      &nbsp;&nbsp;<span class="file">anim_timer: float</span> <span class="note">-- seconds until next frame advance</span><br>
+      &nbsp;&nbsp;<span class="file">state: int</span> <span class="note">-- 0=WALKING, 1=IDLE, 2=TURNING</span><br>
+      &nbsp;&nbsp;<span class="file">idle_remaining: float</span> <span class="note">-- seconds left in idle pause</span><br>
+      &nbsp;&nbsp;<span class="file">speed: float</span> <span class="note">-- pixels per second (varies by role)</span><br>
+      &nbsp;&nbsp;<span class="file">is_queen: bool</span> <span class="note">-- true for the single queen entity</span><br>
+      &nbsp;&nbsp;<span class="file">is_attendant: bool</span> <span class="note">-- true for bees in the queen's court</span><br>
+      &nbsp;&nbsp;<span class="file">breed_key: String</span> <span class="note">-- palette lookup for sprite rendering</span><br>
+    </div>
+
+    <h3 id="worker_movement">Worker Movement Model</h3>
+    <p>Worker bees on a brood frame exhibit a characteristic pattern: short bursts of purposeful walking (head into cells, check larvae, move to next) punctuated by brief pauses. They don't wander randomly -- they move in rough lines along the comb face, occasionally changing direction to inspect adjacent cells.</p>
+
+    <h4>State Machine</h4>
+    <table class="data-table">
+      <thead><tr><th>State</th><th>Behavior</th><th>Duration</th><th>Transition</th></tr></thead>
+      <tbody>
+        <tr><td>WALKING</td><td>Move toward target at <code>speed</code> px/sec. Advance walk animation (frames 0-3) every <code>WALK_FRAME_INTERVAL</code>. Direction updated to face target.</td><td>Until within 2px of target</td><td>On arrival: 70% chance IDLE, 30% chance pick new target immediately (continuous walk).</td></tr>
+        <tr><td>IDLE</td><td>Stay in place. Play idle animation (frames 4-6) with antenna twitch. Simulates "head in cell" inspection behavior.</td><td>0.4 - 1.8 seconds (random)</td><td>On expiry: pick new target, enter WALKING.</td></tr>
+        <tr><td>TURNING</td><td>Rotate direction toward new target over 0.15 seconds. No position change. Brief visual pause before walking.</td><td>0.1 - 0.2 seconds</td><td>On completion: enter WALKING with new direction.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Target Selection Algorithm</h4>
+    <p>When a worker needs a new destination, it picks a target cell using a weighted system that biases movement toward the brood nest center:</p>
+
+    <div class="file-tree">
+      <span class="note">pick_worker_target(current_col, current_row, frame_idx):</span><br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- 60% chance: move to a nearby cell (1-3 cells away)</span><br>
+      &nbsp;&nbsp;<span class="note">-- 30% chance: move toward brood nest center</span><br>
+      &nbsp;&nbsp;<span class="note">-- 10% chance: random cell anywhere on frame</span><br>
+      <br>
+      &nbsp;&nbsp;<span class="note">NEARBY (most common):</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;offset_col = randi_range(-3, 3)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;offset_row = randi_range(-3, 3)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;target = clamp(current + offset, frame_bounds)<br>
+      <br>
+      &nbsp;&nbsp;<span class="note">CENTER-BIASED:</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;lerp toward (35, 25) with t = randf_range(0.2, 0.5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;add jitter: +/- randi_range(-2, 2) on each axis<br>
+      <br>
+      &nbsp;&nbsp;<span class="note">RANDOM:</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;col = randi_range(2, 67)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;row = randi_range(2, 47)<br>
+      <br>
+      &nbsp;&nbsp;return cell_to_pixel(target_col, target_row)
+    </div>
+
+    <h3 id="queen_movement">Queen Movement Model</h3>
+    <p>The queen moves differently from workers in three critical ways: she is <strong>slower</strong>, she <strong>pauses longer</strong>, and she moves with <strong>more deliberation</strong> (fewer random direction changes, longer straight-line segments). These behavioral differences are the motion-based analog of the visual shape tells.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Parameter</th><th>Worker</th><th>Queen</th><th>Gameplay Effect</th></tr></thead>
+      <tbody>
+        <tr><td>Base speed</td><td>28-36 px/sec</td><td>14-18 px/sec</td><td>Queen moves at roughly half the worker speed. She stands out as the "slow one."</td></tr>
+        <tr><td>Idle duration</td><td>0.4-1.8 sec</td><td>1.5-4.0 sec</td><td>Queen pauses much longer between moves. She's laying eggs, not patrolling.</td></tr>
+        <tr><td>Walk segment</td><td>1-3 cells</td><td>1-2 cells</td><td>Queen takes shorter steps. Deliberate, not scurrying.</td></tr>
+        <tr><td>Direction change rate</td><td>High (new dir each segment)</td><td>Low (60% chance to continue same dir)</td><td>Queen walks in straighter lines. Workers zigzag.</td></tr>
+        <tr><td>Animation speed</td><td>8 fps</td><td>5 fps</td><td>Queen's legs move slower, giving a stately gait.</td></tr>
+        <tr><td>Age modifier</td><td>None</td><td>speed *= max(0.6, 1.0 - age_days/1500)</td><td>Older queens slow down. A 2-year queen moves at ~65% speed.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Queen Target Selection</h4>
+    <div class="file-tree">
+      <span class="note">pick_queen_target(current_col, current_row, frame_idx):</span><br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- 60% chance: continue roughly same direction (1-2 cells forward)</span><br>
+      &nbsp;&nbsp;<span class="note">-- 25% chance: move to adjacent brood cell (checking larvae)</span><br>
+      &nbsp;&nbsp;<span class="note">-- 15% chance: slight direction change (30-60 degrees)</span><br>
+      <br>
+      &nbsp;&nbsp;<span class="note">CONTINUE FORWARD:</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;target = current + direction_vector * randi_range(1, 2)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;clamp to frame bounds, bounce off edges<br>
+      <br>
+      &nbsp;&nbsp;<span class="note">ADJACENT BROOD CELL:</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;pick random hex neighbor (6 directions)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;prefer cells with S_EGG or S_DRAWN_EMPTY state<br>
+      <br>
+      &nbsp;&nbsp;<span class="note">SLIGHT TURN:</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;rotate current heading by +/- 1-2 direction steps<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;advance 1 cell in new direction
+    </div>
+
+    <div class="pitch-block">
+      <p><em>Design Note: The queen never crosses to the honey/pollen band at the frame edges. Her target selection is constrained to cells within the ellipsoid (3D distance &le; 1.0). Workers occasionally wander out to the honey band, but the queen stays in the brood zone. This is both biologically accurate and a subtle gameplay cue -- the queen is always somewhere in the dense middle area.</em></p>
+    </div>
+
+    <h3 id="attendant_circle">Attendant Circle (Retinue Behavior)</h3>
+    <p>In real hives, the queen is surrounded by 8-12 attendant workers who face inward toward her, feed her, and groom her. This "retinue" or "court" is one of the most reliable visual cues for finding the queen. The attendant system implements this.</p>
+
+    <h4>Attendant Count by Queen Grade</h4>
+    <table class="data-table">
+      <thead><tr><th>Queen Grade</th><th>Attendants</th><th>Visual Effect</th></tr></thead>
+      <tbody>
+        <tr><td>S (Superior)</td><td>10-12</td><td>Large, obvious court circle. Queen is well-attended.</td></tr>
+        <tr><td>A (Above Avg)</td><td>8-10</td><td>Clear retinue, easy to spot the pattern.</td></tr>
+        <tr><td>B (Average)</td><td>6-8</td><td>Moderate court. Visible if you know to look.</td></tr>
+        <tr><td>C (Below Avg)</td><td>4-5</td><td>Sparse attendance. Colony losing faith in queen.</td></tr>
+        <tr><td>D (Poor)</td><td>2-3</td><td>Almost no court. Queen is being ignored.</td></tr>
+        <tr><td>F (Failing)</td><td>0-1</td><td>No retinue. Queen may be about to be superseded.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Attendant Movement Algorithm</h4>
+    <div class="file-tree">
+      <span class="note">update_attendant(bee, queen_entity, delta):</span><br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- Each attendant has an assigned "slot" angle around the queen</span><br>
+      &nbsp;&nbsp;slot_angle = (attendant_index / total_attendants) * TAU<br>
+      &nbsp;&nbsp;orbit_radius = 18.0 px <span class="note">-- ~1 cell distance from queen center</span><br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- Ideal position orbits slowly around the queen</span><br>
+      &nbsp;&nbsp;slot_angle += ORBIT_SPEED * delta <span class="note">-- 0.08 rad/sec, very slow drift</span><br>
+      &nbsp;&nbsp;ideal_x = queen.pos_x + cos(slot_angle) * orbit_radius<br>
+      &nbsp;&nbsp;ideal_y = queen.pos_y + sin(slot_angle) * orbit_radius<br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- Smoothly follow ideal position</span><br>
+      &nbsp;&nbsp;bee.pos_x = lerp(bee.pos_x, ideal_x, 3.0 * delta)<br>
+      &nbsp;&nbsp;bee.pos_y = lerp(bee.pos_y, ideal_y, 3.0 * delta)<br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- Always face toward queen</span><br>
+      &nbsp;&nbsp;bee.direction = angle_to_direction(atan2(queen.pos_y - bee.pos_y,<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;queen.pos_x - bee.pos_x))<br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- Occasionally break off to check a cell, then return</span><br>
+      &nbsp;&nbsp;<span class="note">-- 5% chance per second to do a 0.5-1.0s detour</span>
+    </div>
+
+    <p>The visual effect is a loose ring of inward-facing workers that drifts with the queen as she moves. The ring is not rigid -- attendants wobble, occasionally detour, and rejoin. This organic imperfection makes the pattern feel natural rather than artificial, while still being recognizable as "something different is happening here."</p>
+
+    <h4 id="attendant_scaling">Attendant Scaling by Difficulty Rank</h4>
+    <p>The attendant circle acts as a <strong>helping visual cue</strong> that scales inversely with difficulty. On Easy inspections, players get <em>more</em> attendants around the queen to help them learn the pattern. On Hard, attendants are reduced, forcing the player to rely on anatomy and movement alone.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Difficulty Rank</th><th>Attendant Modifier</th><th>Effect (on Grade B queen, base 6-8)</th></tr></thead>
+      <tbody>
+        <tr><td>Easy</td><td>x1.5 (50% more, rounded up)</td><td>9-12 attendants -- large obvious court, strong visual hint</td></tr>
+        <tr><td>Medium</td><td>x1.0 (grade-based count, no change)</td><td>6-8 attendants -- standard retinue</td></tr>
+        <tr><td>Hard</td><td>x0.5 (halved, rounded down, min 1 if grade C+)</td><td>3-4 attendants -- sparse, court barely recognizable</td></tr>
+      </tbody>
+    </table>
+
+    <p>The modifier is applied after the queen grade lookup. On Easy, even a grade D queen gets 3-4 attendants instead of 2-3, making the court pattern visible. On Hard, even a grade S queen only gets 5-6 attendants, blending the court into the general crowd. Grade F queens always get 0-1 regardless of difficulty -- a failing queen is a failing queen.</p>
+
+    <h3 id="speed_constants">Speed &amp; Timing Constants</h3>
+    <table class="data-table">
+      <thead><tr><th>Constant</th><th>Value</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>WORKER_SPEED_MIN</td><td>28 px/sec</td><td>Calm colony, plenty of space</td></tr>
+        <tr><td>WORKER_SPEED_MAX</td><td>36 px/sec</td><td>Agitated colony or crowded frame</td></tr>
+        <tr><td>QUEEN_SPEED_MIN</td><td>14 px/sec</td><td>Slow deliberate movement</td></tr>
+        <tr><td>QUEEN_SPEED_MAX</td><td>18 px/sec</td><td>Slightly faster when young queen</td></tr>
+        <tr><td>ATTENDANT_FOLLOW_SPEED</td><td>3.0 (lerp weight)</td><td>How quickly attendants track queen position</td></tr>
+        <tr><td>ATTENDANT_ORBIT_SPEED</td><td>0.08 rad/sec</td><td>Slow drift around queen (~78 sec full orbit)</td></tr>
+        <tr><td>ATTENDANT_ORBIT_RADIUS</td><td>18 px</td><td>~1 hex cell distance from queen center</td></tr>
+        <tr><td>WALK_FRAME_INTERVAL</td><td>0.125 sec (8 fps)</td><td>Worker walk animation speed</td></tr>
+        <tr><td>QUEEN_FRAME_INTERVAL</td><td>0.200 sec (5 fps)</td><td>Queen walk animation speed (slower gait)</td></tr>
+        <tr><td>IDLE_FRAME_INTERVAL</td><td>0.300 sec</td><td>Idle antenna twitch rate (all bees)</td></tr>
+        <tr><td>WORKER_IDLE_MIN</td><td>0.4 sec</td><td>Shortest idle pause for workers</td></tr>
+        <tr><td>WORKER_IDLE_MAX</td><td>1.8 sec</td><td>Longest idle pause for workers</td></tr>
+        <tr><td>QUEEN_IDLE_MIN</td><td>1.5 sec</td><td>Queen pauses longer (laying eggs)</td></tr>
+        <tr><td>QUEEN_IDLE_MAX</td><td>4.0 sec</td><td>Long pause while laying in a cell</td></tr>
+        <tr><td>TURN_DURATION</td><td>0.15 sec</td><td>Visual rotation pause before walking new dir</td></tr>
+      </tbody>
+    </table>
+
+    <div class="pitch-block">
+      <p><em>Speed is NOT affected by inspection difficulty rank. All bees (workers and queen) move at the same speed regardless of Easy/Medium/Hard. This is deliberate: the queen's slower movement pattern is a core visual tell, and adjusting speed per difficulty would either make Easy trivial (slow queen = obvious) or break the feel of Hard (fast queen = frustrating, unrealistic). The three levers for difficulty are count, spacing, and clustering only. Speed varies only by temperament and congestion (see below).</em></p>
+    </div>
+
+    <h4>Temperament &amp; Congestion Modifiers</h4>
+    <p>Colony mood affects both movement behavior <strong>and visible bee density</strong>. More temperamental colonies are harder to inspect because there are literally more bees running around on the frames -- agitated bees boil out of the comb and crowd the surface. This is a direct density multiplier applied on top of the difficulty rank multiplier.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Condition</th><th>Density Modifier</th><th>Speed Modifier</th><th>Idle Modifier</th><th>Direction Change Rate</th></tr></thead>
+      <tbody>
+        <tr><td>Calm (temperament &ge; 0.9)</td><td>x1.0 (no change)</td><td>x1.0 (base)</td><td>x1.0 (base)</td><td>Normal</td></tr>
+        <tr><td>Normal (temperament 0.7-0.9)</td><td>x1.15 (+15% more bees)</td><td>x1.1</td><td>x0.85</td><td>+10% more turns</td></tr>
+        <tr><td>Defensive (temperament &lt; 0.7)</td><td>x1.4 (+40% more bees)</td><td>x1.3</td><td>x0.6</td><td>+30% more turns (jittery)</td></tr>
+        <tr><td>Congested (state &ge; 2)</td><td>x1.25 (+25% more bees)</td><td>x0.8 (slower, packed)</td><td>x1.3 (more waiting)</td><td>+20% (can't move freely)</td></tr>
+        <tr><td>Post-smoke</td><td>x0.85 (-15% fewer bees)</td><td>x0.7 (groggy)</td><td>x1.5 (longer pauses)</td><td>-20% (sluggish)</td></tr>
+      </tbody>
+    </table>
+
+    <p>The density modifier stacks multiplicatively with the difficulty rank multiplier. Example: Hard (x1.0) on a defensive colony (x1.4) = x1.4 total density. Easy (x0.33) on a defensive colony (x1.4) = x0.46 total density. This means a hot hive always feels busier than a calm one, regardless of the rolled difficulty. The combined multiplier is still clamped by MIN_VISIBLE and MAX_VISIBLE after jitter.</p>
+
+    <div class="pitch-block">
+      <p><em>Why temperament affects density: In real beekeeping, defensive colonies are genuinely harder to inspect because the bees boil up off the comb, run across the frame surface in waves, and cluster more aggressively. A calm Italian hive holds still and you can scan methodically. A hot Russian hive has bees running everywhere. Tying temperament to visible bee count captures this directly -- it is not arbitrary difficulty, it is simulation-driven realism that the player can feel.</em></p>
+    </div>
+
+    <h3 id="pathfinding">Pathfinding on Hex Grid</h3>
+    <p>Bees do <strong>not</strong> use pathfinding. There are no obstacles to route around on a flat comb face. Movement is direct linear interpolation from current position to target position at the entity's speed. Direction is quantized to the nearest of 8 headings to select the correct spritesheet row.</p>
+
+    <div class="file-tree">
+      <span class="note">update_walking(bee, delta):</span><br>
+      &nbsp;&nbsp;dx = bee.target_x - bee.pos_x<br>
+      &nbsp;&nbsp;dy = bee.target_y - bee.pos_y<br>
+      &nbsp;&nbsp;dist = sqrt(dx*dx + dy*dy)<br>
+      <br>
+      &nbsp;&nbsp;if dist &lt; 2.0: <span class="note">-- arrived</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;transition to IDLE or pick new target<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;return<br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- Normalize and move</span><br>
+      &nbsp;&nbsp;nx = dx / dist<br>
+      &nbsp;&nbsp;ny = dy / dist<br>
+      &nbsp;&nbsp;step = bee.speed * delta<br>
+      &nbsp;&nbsp;bee.pos_x += nx * min(step, dist)<br>
+      &nbsp;&nbsp;bee.pos_y += ny * min(step, dist)<br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- Update direction (8-way quantized)</span><br>
+      &nbsp;&nbsp;angle = atan2(dy, dx)<br>
+      &nbsp;&nbsp;bee.direction = int(round(angle / (TAU / 8))) % 8
+    </div>
+
+    <h3 id="collision_avoidance">Collision &amp; Density Management</h3>
+    <p>Bees do not have hard collision. Instead, a <strong>soft repulsion</strong> nudges bees apart when they overlap. The repulsion distance is <strong>difficulty-dependent</strong>: Easy inspections use a wider repulsion radius to keep bees spread apart, while Hard inspections use a tighter radius that allows overlap and clumping -- mirroring the spacing and clustering parameters from the <a href="#inspection_rank">difficulty rank table</a>.</p>
+
+    <div class="file-tree">
+      <span class="dir">SPACING CONSTANTS (per difficulty rank):</span><br>
+      &nbsp;&nbsp;<span class="note">-- Match generate_frame_sim.py min_spacing parameters</span><br>
+      &nbsp;&nbsp;MIN_BEE_DIST_EASY = 28 <span class="note">-- px, wide gaps, each bee distinct</span><br>
+      &nbsp;&nbsp;MIN_BEE_DIST_MEDIUM = 17 <span class="note">-- px, moderate proximity</span><br>
+      &nbsp;&nbsp;MIN_BEE_DIST_HARD = 12 <span class="note">-- px, tight packing, bodies overlap</span><br>
+      <br>
+      <span class="dir">CLUSTER TIGHTNESS (per difficulty rank):</span><br>
+      &nbsp;&nbsp;<span class="note">-- Std dev fraction of canvas dimensions for spawn/target Gaussian</span><br>
+      &nbsp;&nbsp;CLUSTER_SPREAD_EASY = 0.28 <span class="note">-- bees spread across full frame</span><br>
+      &nbsp;&nbsp;CLUSTER_SPREAD_MEDIUM = 0.20 <span class="note">-- moderate clumping toward center</span><br>
+      &nbsp;&nbsp;CLUSTER_SPREAD_HARD = 0.16 <span class="note">-- tight knots, sparse edges</span><br>
+    </div>
+
+    <div class="file-tree">
+      <span class="note">apply_soft_repulsion(bees, delta, min_bee_dist):</span><br>
+      &nbsp;&nbsp;for each pair (a, b) where distance &lt; min_bee_dist:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;overlap = min_bee_dist - distance<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;push_x = (a.pos_x - b.pos_x) / distance * overlap * 0.3<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;push_y = (a.pos_y - b.pos_y) / distance * overlap * 0.3<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;a.pos_x += push_x * delta * 60<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;a.pos_y += push_y * delta * 60<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;b.pos_x -= push_x * delta * 60<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;b.pos_y -= push_y * delta * 60<br>
+      <br>
+      <span class="note">-- Use spatial hash (grid cells 20x20px) for O(n) neighbor lookup</span><br>
+      <span class="note">-- Never pair-check all bees (O(n^2) is too expensive at 100+ bees)</span>
+    </div>
+
+    <p>The cluster tightness value is used when selecting spawn positions and new movement targets for walking bees. Instead of picking uniformly random positions on the canvas, the system uses a Gaussian distribution centered on the frame midpoint with standard deviation = <code>canvas_dimension * CLUSTER_SPREAD</code>. On Easy, this produces an even spread. On Hard, bees gravitate toward the center, forming dense knots with sparse edges -- exactly matching the sim mockup visual feel.</p>
+
+    <h4>Bee Count Per Frame (Density Model)</h4>
+    <p>The number of bees rendered on a frame is derived from a fixed ratio of the actual hive population, distributed proportionally by each frame's brood share, then jittered by a small random padding so it never looks mathematically perfect.</p>
+
+    <h4>Real Hive Population Reference</h4>
+    <p>These are the actual adult bee counts tracked by <code>HiveSimulation</code>. The queen finder only renders bees from the <strong>nurse</strong> population (the bees that physically walk on brood frames). House bees and foragers are elsewhere in the hive or out in the field.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Colony State</th><th>Nurses</th><th>House</th><th>Foragers</th><th>Total Adults</th></tr></thead>
+      <tbody>
+        <tr><td>Nuc install (spring)</td><td>3,500</td><td>4,000</td><td>2,500</td><td>10,000</td></tr>
+        <tr><td>Package install</td><td>2,800</td><td>3,200</td><td>1,800</td><td>7,850</td></tr>
+        <tr><td>Growing (early summer)</td><td>5,000</td><td>6,000</td><td>4,000</td><td>15,000</td></tr>
+        <tr><td>Peak (mid-summer)</td><td>8,000</td><td>10,000</td><td>7,000</td><td>25,000+</td></tr>
+        <tr><td>Strong peak</td><td>12,000</td><td>14,000</td><td>10,000</td><td>36,000+</td></tr>
+        <tr><td>Autumn decline</td><td>3,000</td><td>4,000</td><td>2,000</td><td>9,000</td></tr>
+        <tr><td>Winter cluster</td><td>2,000</td><td>3,000</td><td>500</td><td>5,500</td></tr>
+      </tbody>
+    </table>
+
+    <h4 id="density_ratio">The Ratio: 1 Visible Bee per 100 Nurses</h4>
+    <p>The core ratio is <strong>1:100</strong> -- for every 100 nurse bees in the hive simulation, 1 bee sprite is rendered on-screen. This is applied <em>per frame</em> based on that frame's proportional share of total brood cells, then scaled by the <strong>inspection difficulty rank</strong> (Easy = 1/3, Medium = 2/3, Hard = 3/3), then multiplied by the <strong>temperament density modifier</strong> (calm x1.0 through defensive x1.4), then padded with random jitter and clamped to [MIN_VISIBLE, MAX_VISIBLE]. The queen entity is only added if the 80% visibility roll passed at inspection start.</p>
+
+    <div class="file-tree">
+      <span class="dir">CONSTANTS:</span><br>
+      &nbsp;&nbsp;NURSE_TO_VISIBLE_RATIO = 100 <span class="note">-- 1 rendered bee per 100 real nurses</span><br>
+      &nbsp;&nbsp;DIFFICULTY_MULT_EASY = 0.33 <span class="note">-- 1/3 density on Easy inspections</span><br>
+      &nbsp;&nbsp;DIFFICULTY_MULT_MEDIUM = 0.67 <span class="note">-- 2/3 density on Medium inspections</span><br>
+      &nbsp;&nbsp;DIFFICULTY_MULT_HARD = 1.0 <span class="note">-- full density on Hard inspections</span><br>
+      &nbsp;&nbsp;QUEEN_SPAWN_CHANCE = 0.80 <span class="note">-- 80% chance queen entity is spawned this inspection</span><br>
+      &nbsp;&nbsp;JITTER_MIN = -3 <span class="note">-- random padding low end</span><br>
+      &nbsp;&nbsp;JITTER_MAX = 3 <span class="note">-- random padding high end (inclusive)</span><br>
+      &nbsp;&nbsp;MIN_VISIBLE = 8 <span class="note">-- floor: always show at least 8 bees on an active frame</span><br>
+      &nbsp;&nbsp;MAX_VISIBLE = 120 <span class="note">-- ceiling: performance cap</span><br>
+    </div>
+
+    <div class="file-tree">
+      <span class="note">calculate_visible_bees(frame_idx, sim, rng, difficulty_mult, temperament_density_mult, queen_spawned):</span><br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- Step 1: Get actual nurse population from simulation</span><br>
+      &nbsp;&nbsp;total_nurses = sim.nurse_count<br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- Step 2: Calculate this frame's share of total brood</span><br>
+      &nbsp;&nbsp;frame_brood = count_brood_cells(frame, SIDE_A) + count_brood_cells(frame, SIDE_B)<br>
+      &nbsp;&nbsp;box_brood = 0<br>
+      &nbsp;&nbsp;for f in all_frames:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;box_brood += count_brood_cells(f, SIDE_A) + count_brood_cells(f, SIDE_B)<br>
+      &nbsp;&nbsp;frame_share = frame_brood / max(1, box_brood)<br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- Step 3: Apply ratio -- nurses on THIS frame, scaled to visible</span><br>
+      &nbsp;&nbsp;nurses_on_frame = total_nurses * frame_share<br>
+      &nbsp;&nbsp;base_visible = int(round(nurses_on_frame / NURSE_TO_VISIBLE_RATIO))<br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- Step 4: Apply inspection difficulty multiplier</span><br>
+      &nbsp;&nbsp;base_visible = int(round(base_visible * difficulty_mult))<br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- Step 5: Apply temperament density modifier (defensive = more bees)</span><br>
+      &nbsp;&nbsp;base_visible = int(round(base_visible * temperament_density_mult))<br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- Step 6: Random jitter (+/- 2-3 bees)</span><br>
+      &nbsp;&nbsp;jitter = rng.randi_range(JITTER_MIN, JITTER_MAX)<br>
+      &nbsp;&nbsp;visible = base_visible + jitter<br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- Step 7: Clamp to safe range</span><br>
+      &nbsp;&nbsp;visible = clampi(visible, MIN_VISIBLE, MAX_VISIBLE)<br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- Step 8: +1 for queen if she was spawned AND this is her frame</span><br>
+      &nbsp;&nbsp;if queen_spawned and frame_idx == queen_frame_idx:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;visible += 1 <span class="note">-- queen entity added on top of worker count</span><br>
+      <br>
+      &nbsp;&nbsp;return visible
+    </div>
+
+    <h4>Worked Examples -- What the Player Sees</h4>
+    <p>The "Base (1:100)" column shows the raw ratio output. The three rank columns show that value after the difficulty multiplier, before jitter. Jitter adds +/- 3 to the final number; MIN_VISIBLE of 8 still applies as the floor.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Colony State</th><th>Nurses</th><th>Frame Share</th><th>Base (1:100)</th><th>Easy (x0.33)</th><th>Medium (x0.67)</th><th>Hard (x1.0)</th></tr></thead>
+      <tbody>
+        <tr><td>Nuc install</td><td>3,500</td><td>~35%</td><td>12</td><td>4 -> 8*</td><td>8</td><td>12</td></tr>
+        <tr><td>Package install</td><td>2,800</td><td>~30%</td><td>8</td><td>3 -> 8*</td><td>8*</td><td>8</td></tr>
+        <tr><td>Growing</td><td>5,000</td><td>~32%</td><td>16</td><td>5 -> 8*</td><td>11</td><td>16</td></tr>
+        <tr><td>Peak summer</td><td>8,000</td><td>~28%</td><td>22</td><td>8</td><td>15</td><td>22</td></tr>
+        <tr><td>Strong peak</td><td>12,000</td><td>~25%</td><td>30</td><td>10</td><td>20</td><td>30</td></tr>
+        <tr><td>Strong peak (center)</td><td>12,000</td><td>~40%</td><td>48</td><td>16</td><td>32</td><td>48</td></tr>
+        <tr><td>Booming (rare)</td><td>15,000+</td><td>~35%</td><td>53</td><td>17</td><td>35</td><td>53</td></tr>
+        <tr><td>Outer honey frame</td><td>8,000</td><td>~5%</td><td>4 -> 8*</td><td>8*</td><td>8*</td><td>8*</td></tr>
+        <tr><td>Winter</td><td>2,000</td><td>~40%</td><td>8</td><td>3 -> 8*</td><td>8*</td><td>8</td></tr>
+      </tbody>
+    </table>
+    <p><em>* = clamped up to MIN_VISIBLE (8). Jitter of +/- 3 applied after these numbers. Queen entity adds +1 on her frame.</em></p>
+
+    <div class="pitch-block">
+      <p><em>Why three levers, not just count? The static mockup images prove the concept: the difference between Easy and Hard is not just "more bees" -- it is how those bees are arranged. 17 bees with 28px spacing and wide spread (Easy booming) feels completely different from 12 bees with 12px spacing and tight clustering (Hard nuc) even though the counts are similar. Count alone would make Easy-on-big-colony and Hard-on-small-colony feel identical, which defeats the purpose. The three-parameter model (count x spacing x clustering) ensures that the rolled difficulty rank always produces a meaningfully different visual experience regardless of colony size. The rank is rolled once per inspection so every frame within that session has consistent parameters -- no jarring changes when flipping between frames.</em></p>
+    </div>
+
+    <h4>Edge Cases</h4>
+    <table class="data-table">
+      <thead><tr><th>Situation</th><th>Handling</th></tr></thead>
+      <tbody>
+        <tr><td>Frame has zero brood (pure honey/empty)</td><td>frame_share = 0, base_visible = 0. Difficulty multiplier applied to 0 still = 0. Jitter can push to 1-3 but floor of MIN_VISIBLE (8) applies if any nurses exist. A few stray workers on a honey frame is realistic. Spacing and clustering use Easy parameters regardless of rolled rank (sparse frame, wide gaps).</td></tr>
+        <tr><td>Queenless hive (no eggs anywhere)</td><td>Queen entity is not spawned. Workers still rendered normally. box_brood uses existing capped brood for distribution even though no new eggs are being laid. Difficulty rank still applies to worker count normally.</td></tr>
+        <tr><td>All brood on one frame (new package)</td><td>frame_share approaches 1.0. Most visible bees cluster on the single active frame. Easy on a package: 2800/100 * 1.0 * 0.33 = ~9 bees. Hard: ~28 bees. Outer frames show MIN_VISIBLE (8) with Easy spacing regardless.</td></tr>
+        <tr><td>nurse_count = 0 (colony collapse)</td><td>base_visible = 0 for all frames at any difficulty. Jitter can push to 1-3 max. MIN_VISIBLE floor does NOT apply when nurse_count = 0 (special case -- dead hive should look dead). Player sees eerily empty comb.</td></tr>
+        <tr><td>Super frames (above excluder)</td><td>No queen entity ever spawned on supers (queen excluder prevents her from being there). Bee count uses forager_count instead of nurse_count at same 1:100 ratio. <strong>Difficulty rank does NOT apply to supers</strong> -- supers always show typical (Medium-equivalent) density with standard spacing and clustering. The difficulty rank only affects brood box frames where the queen search matters. Supers are just "look at the honey frames" -- no challenge mechanic involved.</td></tr>
+        <tr><td>Easy + tiny colony (nurse_count &lt; 1000)</td><td>Base visible would be &lt; 4 before multiplier, meaning all three difficulty ranks clamp to MIN_VISIBLE (8). The difficulty feels identical. The <a href="#roll_probabilities">bias hook</a> for colony size forces Easy on these colonies since Hard adds no challenge anyway -- saves the visual variety for when the colony grows.</td></tr>
+        <tr><td>Easy + booming colony</td><td>15,000 nurses, 35% share = 53 base. Easy = 17 bees with wide spacing (26-30px). This is intentional: Easy on a huge colony should feel like a relaxing scan, not a search. The wide spacing and loose clustering ensure each bee is individually distinct even at 17 entities.</td></tr>
+        <tr><td>Hard + small colony</td><td>3,500 nurses (nuc), 35% share = 12 base. Hard = 12 bees but with tight spacing (10-13px) and tight clustering (0.15-0.18). Even with few bees, the tight packing makes them overlap and clump, creating genuine difficulty in distinguishing queen anatomy from workers.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ==========================================
+       9. RENDERING PIPELINE
+       ========================================== -->
+  <div class="section" id="h1_rendering">
+    <div class="section-label">Section 09</div>
+    <h2>Rendering Pipeline</h2>
+
+    <h3 id="render_layer_stack">Layer Stack</h3>
+    <p>The inspection frame view composites three layers. The cell grid is the base, bees are the middle, and UI overlays sit on top.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Layer</th><th>Z-Index</th><th>Content</th><th>Update Rate</th></tr></thead>
+      <tbody>
+        <tr><td>0 - Cell Grid</td><td>0</td><td>Honeycomb cells from <code>FrameRenderer.render_honeycomb()</code>. Static 1833x755 canvas of hex cell sprites.</td><td>Once per frame switch (dirty-checked via hash). Cached between animation ticks.</td></tr>
+        <tr><td>1 - Bee Overlay</td><td>1</td><td>All bee sprites composited onto a separate RGBA canvas, same dimensions as cell grid. Y-sorted for depth.</td><td>Every _process() frame (~60fps). Only this layer redraws each tick.</td></tr>
+        <tr><td>2 - UI Overlay</td><td>2</td><td>Queen highlight circle (after sighting), click feedback, cell tooltip hover, frame header/stats.</td><td>Event-driven (on click, hover, sighting).</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="sprite_compositing">Sprite Compositing</h3>
+    <p>Each bee sprite is extracted from its breed's spritesheet at the correct direction row and animation frame column, then blitted onto the bee overlay canvas at the entity's pixel position. Compositing uses alpha blending via <code>Image.blend_rect()</code>.</p>
+
+    <div class="file-tree">
+      <span class="note">render_bee_overlay(bees, breed_sheets):</span><br>
+      &nbsp;&nbsp;canvas = Image.create(1833, 755, false, FORMAT_RGBA8)<br>
+      &nbsp;&nbsp;canvas.fill(Color(0, 0, 0, 0)) <span class="note">-- transparent</span><br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- Y-sort for depth ordering (bees lower on frame drawn on top)</span><br>
+      &nbsp;&nbsp;bees.sort(key = pos_y)<br>
+      <br>
+      &nbsp;&nbsp;for bee in bees:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;sheet = breed_sheets[bee.breed_key][bee.is_queen]<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;src_x = bee.anim_frame * CELL_W <span class="note">-- 60px per frame column</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;src_y = bee.direction * CELL_H <span class="note">-- 42px per direction row</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;src_rect = Rect2i(src_x, src_y, CELL_W, CELL_H)<br>
+      <br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="note">-- Destination centered on bee position</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;dst = Vector2i(int(bee.pos_x) - CELL_W/2, int(bee.pos_y) - CELL_H/2)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;canvas.blend_rect(sheet, src_rect, dst)<br>
+      <br>
+      &nbsp;&nbsp;return ImageTexture.create_from_image(canvas)
+    </div>
+
+    <h3 id="animation_timing">Animation Timing</h3>
+    <table class="data-table">
+      <thead><tr><th>Animation</th><th>Frames</th><th>Speed</th><th>Loop</th></tr></thead>
+      <tbody>
+        <tr><td>Worker walk</td><td>0-3 (4 frames)</td><td>8 fps (0.125s per frame)</td><td>Yes, continuous while WALKING</td></tr>
+        <tr><td>Queen walk</td><td>0-3 (4 frames)</td><td>5 fps (0.200s per frame)</td><td>Yes, slower gait</td></tr>
+        <tr><td>Worker idle</td><td>4-6 (3 frames)</td><td>3.3 fps (0.300s per frame)</td><td>Yes, antenna twitch</td></tr>
+        <tr><td>Queen idle</td><td>4-6 (3 frames)</td><td>3.3 fps (0.300s per frame)</td><td>Yes, same rate</td></tr>
+        <tr><td>Attendant idle</td><td>4-6 (3 frames)</td><td>3.3 fps (0.300s per frame)</td><td>Yes, facing inward toward queen</td></tr>
+      </tbody>
+    </table>
+
+    <div class="file-tree">
+      <span class="note">advance_animation(bee, delta):</span><br>
+      &nbsp;&nbsp;interval = QUEEN_FRAME_INTERVAL if bee.is_queen else WALK_FRAME_INTERVAL<br>
+      &nbsp;&nbsp;if bee.state == IDLE: interval = IDLE_FRAME_INTERVAL<br>
+      <br>
+      &nbsp;&nbsp;bee.anim_timer -= delta<br>
+      &nbsp;&nbsp;if bee.anim_timer &lt;= 0:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;bee.anim_timer += interval<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;if bee.state == WALKING:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bee.anim_frame = (bee.anim_frame + 1) % 4 <span class="note">-- walk loop 0-3</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;else:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bee.anim_frame = 4 + ((bee.anim_frame - 4 + 1) % 3) <span class="note">-- idle loop 4-6</span>
+    </div>
+
+    <h3 id="performance_budget">Performance Budget</h3>
+    <p>The inspection overlay runs inside a Godot 4.6 game at native resolution. Every millisecond counts. The bee overlay must stay under 8ms per frame to maintain 60fps alongside the rest of the game. All estimates below use the worst case of <code>MAX_VISIBLE = 120</code> bees (the hard ceiling from the <a href="#density_ratio">density model constants</a>). In practice, most colonies produce 15-55 visible bees, so real-world performance will be substantially better than these estimates.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Operation</th><th>Cost (est. @ MAX_VISIBLE=120)</th><th>Optimization</th></tr></thead>
+      <tbody>
+        <tr><td>Entity update (120 bees)</td><td>~0.3 ms</td><td>Pure data, no nodes. Single loop, no allocations.</td></tr>
+        <tr><td>Soft repulsion (spatial hash)</td><td>~0.4 ms</td><td>Grid-based neighbor lookup. O(n) amortized.</td></tr>
+        <tr><td>Y-sort</td><td>~0.1 ms</td><td>Insertion sort (nearly sorted each frame, O(n) average).</td></tr>
+        <tr><td>Sprite compositing (120 blits)</td><td>~2.5 ms</td><td>Image.blend_rect is native C++. Pre-cropped sprite rects cached.</td></tr>
+        <tr><td>ImageTexture upload</td><td>~1.0 ms</td><td>Single texture update per frame. GPU handles display.</td></tr>
+        <tr><td><strong>Total</strong></td><td><strong>~4.3 ms</strong></td><td>Well within 16.6ms budget. Leaves headroom for UI and cell grid.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="pitch-block">
+      <p><em>Fallback: If frame rate drops below 45fps (measured over 0.5s window), reduce visible bee count by 20% and increase WALK_FRAME_INTERVAL to 0.167s (6fps). This adaptive LOD keeps the experience smooth on lower-end hardware without breaking the visual search mechanic.</em></p>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       10. PLAYER INTERACTION
+       ========================================== -->
+  <div class="section" id="h1_interaction">
+    <div class="section-label">Section 10</div>
+    <h2>Player Interaction</h2>
+
+    <h3 id="click_detection">Click Detection -- Identifying the Queen</h3>
+    <p>In Phase 2, the player identifies the queen by clicking on her. The click is tested against all bee entities in reverse Y-order (topmost drawn first) using a circular hit test.</p>
+
+    <div class="file-tree">
+      <span class="note">on_frame_clicked(mouse_pos_canvas):</span><br>
+      &nbsp;&nbsp;HIT_RADIUS = 18 px <span class="note">-- generous click target, ~half a cell</span><br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- Test in reverse Y-order (top-drawn bees tested first)</span><br>
+      &nbsp;&nbsp;for bee in reversed(y_sorted_bees):<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;dx = mouse_pos_canvas.x - bee.pos_x<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;dy = mouse_pos_canvas.y - bee.pos_y<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;if dx*dx + dy*dy &lt; HIT_RADIUS * HIT_RADIUS:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if bee.is_queen:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;queen_found() <span class="note">-- success!</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wrong_bee_clicked(bee) <span class="note">-- feedback</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+      <br>
+      &nbsp;&nbsp;<span class="note">-- Clicked empty space -- no response (or subtle comb click sound)</span>
+    </div>
+
+    <h3 id="feedback_states">Feedback States</h3>
+    <table class="data-table">
+      <thead><tr><th>Event</th><th>Visual</th><th>Audio</th><th>Mechanical</th></tr></thead>
+      <tbody>
+        <tr><td>Queen found (correct click)</td><td>Gold highlight circle pulses around queen. Attendants scatter briefly then reform. "Queen confirmed!" toast slides in.</td><td>Soft chime + subtle buzz</td><td>XP scales with difficulty rank: Easy +10, Medium +15, Hard +25 via <code>GameData.add_xp()</code>. <code>_queen_seen = true</code>. Queen sprite gets permanent subtle glow for rest of inspection.</td></tr>
+        <tr><td>Wrong bee clicked</td><td>Brief red flash on the clicked bee (0.2s). No penalty message -- clicking wrong is expected.</td><td>Quiet "tick" sound</td><td>No penalty. No click limit. Player can keep trying.</td></tr>
+        <tr><td>Queen not on this frame</td><td>No bee entity responds because the queen entity only exists on her assigned frame.</td><td>None</td><td>Player naturally moves to next frame. The mechanic is discoverable.</td></tr>
+        <tr><td>Hover over bee (Phase 2+)</td><td>Subtle brighten on the hovered bee entity. Mouse cursor changes to magnifying glass.</td><td>None</td><td>Helps player track which bees they've examined.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="pitch-block">
+      <p><em>Design Note: There is no penalty for wrong clicks and no click limit. Queen-finding should feel like a relaxing observational challenge, not a high-stakes test. The player is rewarded for success but never punished for trying. This matches the real experience of scanning a frame -- you look at many bees, think "is that her?", decide no, keep looking. The moment of recognition is the reward.</em></p>
+    </div>
+
+    <h3 id="tier_gating">Knowledge Tier Gating</h3>
+    <p>The visual search mechanic is available at all tiers, but the information the player receives about the queen after finding her scales with their inspection knowledge level:</p>
+
+    <table class="data-table">
+      <thead><tr><th>Tier</th><th>Name</th><th>On Sighting</th><th>Post-Sighting Display</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Hobbyist</td><td>"Queen found!" (generic)</td><td>Nothing extra. Player knows queen is alive.</td></tr>
+        <tr><td>2</td><td>Apprentice</td><td>"Queen found! She looks healthy."</td><td>Simple health indicator (healthy/struggling).</td></tr>
+        <tr><td>3</td><td>Beekeeper</td><td>"Queen found! Laying well."</td><td>Laying assessment from egg count.</td></tr>
+        <tr><td>4</td><td>Journeyman</td><td>"Queen found! Strong genetics."</td><td>Gene quality hint (Strong/Avg/Weak).</td></tr>
+        <tr><td>5</td><td>Master</td><td>"Queen found! A-grade Italian."</td><td>Full grade + species. Player can evaluate queen quality at a glance.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Higher tiers also benefit from better visual cues: Tier 4+ players see the attendant circle rendered with slightly higher contrast (attendants face inward more obviously). Tier 5 players get a subtle directional hint arrow if they've been searching the wrong frame for more than 15 seconds. These assists are invisible at lower tiers.</p>
+  </div>
+
+  <!-- ==========================================
+       11. FUTURE DEVELOPMENT
+       ========================================== -->
+  <div class="section" id="h1_future">
+    <div class="section-label">Section 11</div>
+    <h2>Future Development</h2>
+
+    <h3 id="phase2_plans">Phase 2 Plans</h3>
+    <p>Phase 1 (current) uses a probability-based sighting model where the queen is "found" by a dice roll when the player views the correct frame. Phase 2 will evolve this into a true visual search mechanic:</p>
+
+    <div class="pillars">
+      <div class="pillar">
+        <div class="pillar-name">Rendered Queen</div>
+        <p>The queen sprite will be physically drawn on the frame among the worker bees. The player must visually locate her by scanning for the longer abdomen and shorter wings. The sighting roll is replaced by a click/tap interaction.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-name">Attendant Circle</div>
+        <p>In real hives, the queen is often surrounded by a ring of 8-12 attendant workers facing inward. This "court" is an additional visual cue. Workers near the queen will be oriented toward her, creating a subtle radial pattern.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-name">Movement Patterns</div>
+        <p>Queens move differently -- slower, more deliberate, with longer pauses. Workers scurry. Animated frame views will let the player spot the queen by her distinctive gait, especially in dense colonies where static visual identification is hard.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-name">Marking System</div>
+        <p>Players who own a queen marking kit can mark their queen with one of five international colors (based on year). A marked queen is trivially easy to find, rewarding the player for investing in the tool. Marks persist across inspections until the queen is superseded.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-name">Difficulty Integration</div>
+        <p>Three independent systems layer together to create difficulty: (1) The <strong>1:100 nurse ratio</strong> ties bee count to colony population -- bigger colonies = more bees. (2) The <strong>inspection difficulty rank</strong> (Easy/Medium/Hard, rolled at start) applies a 1/3, 2/3, or 3/3 density multiplier plus spacing and clustering parameters from the mockup generator. (3) <strong>Temperament</strong> directly scales visible bee count (calm x1.0 to defensive x1.4) -- hot hives are physically more crowded. These stack multiplicatively. Speed is never affected by rank. The queen is only spawned 80% of the time. Attendants scale inversely with rank (more on Easy, fewer on Hard). See <a href="#inspection_rank">Section 2.4</a> and <a href="#density_ratio">Section 8.6</a> for full details.</p>
+      </div>
+    </div>
+
+    <h3 id="system_interaction_summary">How the Systems Interact -- Complete Picture</h3>
+    <p>This section pulls together every subsystem involved in the queen finder so a developer (or future Nathan reviewing this document) can see the full picture in one place. Each numbered point links back to the section where it is fully specified.</p>
+
+    <p><strong>At inspection start</strong> (one-time rolls, stored for the session):</p>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>What Happens</th><th>Result</th><th>Reference</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Roll difficulty rank (flat 33/33/34)</td><td>EASY, MEDIUM, or HARD</td><td><a href="#roll_probabilities">S2.4.1</a></td></tr>
+        <tr><td>2</td><td>Map rank to 3 parameters</td><td>density_mult (0.33/0.67/1.0), min_bee_dist (28/17/12), cluster_spread (0.28/0.20/0.16)</td><td><a href="#inspection_rank">S2.4</a></td></tr>
+        <tr><td>3</td><td>Roll queen visibility (80%)</td><td>queen_spawned = true/false</td><td><a href="#sighting_probability">S2.2</a></td></tr>
+        <tr><td>4</td><td>Look up temperament density modifier</td><td>temperament_density_mult (1.0 to 1.4)</td><td><a href="#speed_constants">S8.6</a></td></tr>
+        <tr><td>5</td><td>Look up queen grade for attendants</td><td>base_attendants (0-12) x rank modifier (x1.5/x1.0/x0.5)</td><td><a href="#attendant_circle">S8.5</a></td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Per frame flip</strong> (recalculated each time player navigates):</p>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>What Happens</th><th>Inputs</th><th>Reference</th></tr></thead>
+      <tbody>
+        <tr><td>6</td><td>Calculate visible bees (8-step pipeline)</td><td>nurse_count, frame_brood_share, density_mult, temperament_mult, jitter, clamp [8,120], +1 if queen frame</td><td><a href="#density_ratio">S8.4</a></td></tr>
+        <tr><td>7</td><td>Spawn/despawn bee entities to match count</td><td>visible count, cluster_spread for positions</td><td><a href="#bee_entity">S8.2</a></td></tr>
+        <tr><td>8</td><td>If queen_spawned and queen's frame: place queen entity + attendants</td><td>queen_frame_idx, attendant count</td><td><a href="#attendant_circle">S8.5</a></td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Per game tick</strong> (every frame at 60fps):</p>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>What Happens</th><th>Details</th><th>Reference</th></tr></thead>
+      <tbody>
+        <tr><td>9</td><td>Update bee movement (walk/idle/turn state machine)</td><td>Speed from base constants x temperament modifier. NOT affected by difficulty rank.</td><td><a href="#worker_movement">S8.3</a></td></tr>
+        <tr><td>10</td><td>Apply soft repulsion with min_bee_dist</td><td>Spatial hash O(n) lookup, push apart if closer than min_bee_dist</td><td><a href="#collision_avoidance">S8.7</a></td></tr>
+        <tr><td>11</td><td>Y-sort and composite sprites</td><td>~4.3ms worst case at MAX_VISIBLE=120</td><td><a href="#performance_budget">S9.4</a></td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>On player click</strong>:</p>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>What Happens</th><th>Result</th><th>Reference</th></tr></thead>
+      <tbody>
+        <tr><td>12</td><td>Hit test click against bee entities (reverse Y-order, 18px radius)</td><td>Identify clicked bee</td><td><a href="#click_detection">S10.1</a></td></tr>
+        <tr><td>13a</td><td>If clicked bee is queen</td><td>"Queen confirmed! +N XP" toast. XP = 10/15/25 by rank. _queen_seen = true. Gold highlight.</td><td><a href="#feedback_states">S10.2</a></td></tr>
+        <tr><td>13b</td><td>If clicked bee is worker</td><td>Brief red flash, no penalty, no click limit.</td><td><a href="#feedback_states">S10.2</a></td></tr>
+        <tr><td>13c</td><td>If queen not spawned (20%)</td><td>Player clicks workers, never finds queen. No message. Mirrors real beekeeping: "I looked everywhere but couldn't find her."</td><td><a href="#sighting_probability">S2.2</a></td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="file_tree">Complete Asset File Tree</h3>
+    <div class="file-tree">
+      <span class="dir">research/queenFinder/</span><br>
+      &nbsp;&nbsp;<span class="file">_Queen_Finder_GDD.html</span> <span class="note">-- this document</span><br>
+      &nbsp;&nbsp;<span class="file">generate_nurse_bee.py</span> <span class="note">-- sprite generator (all breeds, workers + queens)</span><br>
+      &nbsp;&nbsp;<span class="file">generate_frame_sim.py</span> <span class="note">-- find-the-queen simulation generator</span><br>
+      &nbsp;&nbsp;<span class="file">breed_comparison.png</span> <span class="note">-- 6x side-by-side, workers top / queens bottom</span><br>
+      &nbsp;&nbsp;<span class="file">queen_species_comparison.png</span> <span class="note">-- 8x per-breed queen vs worker</span><br>
+      &nbsp;&nbsp;<span class="file">{breed}_{role}_spritesheet.png</span> <span class="note">-- 420x336, 10 sheets total</span><br>
+      &nbsp;&nbsp;<span class="file">{breed}_{role}_preview.png</span> <span class="note">-- 1260x1008 at 3x, 10 sheets total</span><br>
+      &nbsp;&nbsp;<span class="file">{breed}_{role}_closeup_8x.png</span> <span class="note">-- 480x336, 10 images total</span><br>
+      &nbsp;&nbsp;<span class="dir">find_the_queen/</span> <span class="note">-- 24 simulation images (12 pairs, static mockups)</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">01-08: Easy tier</span> <span class="note">-- 30-40 bees (mockup), Italian/Buckfast/Caucasian</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">09-16: Medium tier</span> <span class="note">-- 75-82 bees (mockup), mixed breeds</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">17-24: Hard tier</span> <span class="note">-- 100-115 bees (mockup), dark breeds</span><br>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       12. SYSTEMS IMPACT -- REQUIRED MODIFICATIONS
+       ========================================== -->
+  <div class="section" id="h1_systems_impact">
+    <div class="section-label">Section 12</div>
+    <h2>Systems Impact -- Required Modifications</h2>
+    <p>Implementing Phase 2 (rendered queen with visual search) requires changes across multiple existing systems plus new assets and scripts. This section maps every file that needs modification, what changes are needed, and which density model constants each file must reference.</p>
+
+    <h3 id="existing_file_changes">Existing Files Requiring Changes</h3>
+
+    <table class="data-table">
+      <thead><tr><th>File</th><th>Current Role</th><th>Required Changes</th><th>New Constants / References</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>scripts/ui/InspectionOverlay.gd</code></td>
+          <td>Inspection UI, queen sighting probability roll, stat display, knowledge tiers</td>
+          <td>
+            At inspection start: roll difficulty rank (Easy/Medium/Hard, flat 33/33/34), roll queen visibility (80% spawn chance), look up temperament density modifier from queen dict.
+            Store <code>_inspection_difficulty_mult</code>, <code>_inspection_min_bee_dist</code>, <code>_inspection_cluster_spread</code>, <code>_queen_spawned</code>, <code>_temperament_density_mult</code>.
+            Add BeeEntity array management (spawn, update, despawn per frame flip).
+            Add <code>calculate_visible_bees()</code> using the 8-step density pipeline (ratio, difficulty, temperament, jitter, clamp, queen).
+            If <code>_queen_spawned</code>: spawn queen entity + attendants (count = grade-based x difficulty attendant modifier) on queen's assigned frame.
+            Add bee overlay rendering layer (composit bee sprites onto frame image).
+            Add click detection (<code>on_frame_clicked</code>) with circular hit test against bee entities.
+            Replace probability-based <code>_check_queen_sighting()</code> with click-based visual search.
+            Show "Queen confirmed! +N XP" toast only when player clicks queen entity.
+            Add hover highlight for bee under cursor.
+            Add queen-found/wrong-bee feedback states and animations.
+          </td>
+          <td><code>NURSE_TO_VISIBLE_RATIO</code>, <code>MIN_VISIBLE</code>, <code>MAX_VISIBLE</code>, <code>JITTER_MIN</code>, <code>JITTER_MAX</code>, <code>HIT_RADIUS</code>, <code>QUEEN_SPAWN_CHANCE</code>, <code>DIFFICULTY_MULT_*</code>, <code>MIN_BEE_DIST_*</code>, <code>CLUSTER_SPREAD_*</code>, <code>QUEEN_SIGHT_XP_*</code>, <code>ATTENDANT_DIFF_MULT_*</code></td>
+        </tr>
+        <tr>
+          <td><code>scripts/simulation/FrameRenderer.gd</code></td>
+          <td>Renders cell state grids (rectangular, LOD, honeycomb modes)</td>
+          <td>
+            Add bee overlay layer (Layer 1 above cell grid Layer 0).
+            Expose <code>render_bee_overlay()</code> method that accepts bee entity positions and returns an Image.
+            Modify <code>render_honeycomb()</code> to return base comb image separately so bee layer can be composited on top.
+            Add spritesheet atlas loading for bee sprites (new atlas texture, separate from cell_atlas).
+          </td>
+          <td>Bee spritesheet atlas path, <code>BEE_CELL_W=60</code>, <code>BEE_CELL_H=42</code>, <code>BEE_SCALE=1.3</code></td>
+        </tr>
+        <tr>
+          <td><code>scripts/core/HiveSimulation.gd</code></td>
+          <td>Core simulation: population, brood cycles, queen behavior, frame state</td>
+          <td>
+            Expose <code>get_nurse_count()</code> (already available as <code>nurse_count</code>, but needs a clean API method).
+            Add <code>get_frame_brood_share(frame_idx, side)</code> that returns the proportion of total brood on a given frame side.
+            Ensure <code>QUEEN_FRAME_ORDER</code> is accessible for queen entity placement.
+          </td>
+          <td>No new constants -- exposes existing data to InspectionOverlay</td>
+        </tr>
+        <tr>
+          <td><code>scripts/simulation/CellStateTransition.gd</code></td>
+          <td>Manages cell state changes (empty, egg, larva, capped, honey, etc.)</td>
+          <td>
+            Add <code>count_brood_cells(frame, side)</code> helper that returns the number of cells in brood states (egg + larva + capped brood) for ratio calculation.
+          </td>
+          <td>Brood state enum values for filtering</td>
+        </tr>
+        <tr>
+          <td><code>scripts/simulation/QueenBehavior.gd</code></td>
+          <td>Queen laying patterns, skip probability, laying rate</td>
+          <td>
+            Expose queen age (<code>queen.age_days</code>) for the age-based speed modifier on the queen BeeEntity (older queens move slower).
+            Expose queen grade for attendant circle count scaling.
+          </td>
+          <td>No new constants -- exposes existing queen dict fields</td>
+        </tr>
+        <tr>
+          <td><code>scripts/autoloads/GameData.gd</code></td>
+          <td>Global game state, XP, unlocks</td>
+          <td>
+            No structural changes needed. Already has <code>add_xp()</code> which the queen-found event will call with <code>QUEEN_SIGHT_XP = 15</code>.
+          </td>
+          <td>No changes -- existing API sufficient</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 id="new_files_needed">New Files Required</h3>
+
+    <table class="data-table">
+      <thead><tr><th>File (proposed)</th><th>Purpose</th><th>Key Contents</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>scripts/ui/BeeOverlay.gd</code></td>
+          <td>Dedicated bee entity management and rendering system</td>
+          <td>
+            BeeEntity struct/class (pos_x, pos_y, direction, state, anim_frame, anim_timer, is_queen, speed).
+            Movement state machine (WALKING, IDLE, TURNING).
+            Spatial hash grid for O(n) soft repulsion.
+            Y-sort and sprite compositing loop.
+            Worker speed: 28-36 px/sec, Queen speed: 14-18 px/sec.
+            Attendant circle logic (0-12 orbiting bees, 18px radius, 0.08 rad/sec).
+            Adaptive LOD fallback (reduce count by 20% if fps drops below 45).
+          </td>
+        </tr>
+        <tr>
+          <td><code>assets/sprites/bee_spritesheet_atlas.png</code></td>
+          <td>Combined spritesheet atlas for all breeds, imported into Godot</td>
+          <td>
+            Generated from <code>generate_nurse_bee.py</code> output.
+            10 sheets (5 breeds x 2 roles) at 420x336 each, packed into a single atlas or loaded individually.
+            7 frames per direction x 8 directions = 56 cells per sheet.
+          </td>
+        </tr>
+        <tr>
+          <td><code>assets/sprites/bee_atlas.tres</code></td>
+          <td>Godot AtlasTexture resource for efficient GPU-side sprite lookup</td>
+          <td>
+            Maps breed + role + direction + frame to atlas Rect2 regions.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 id="integration_order">Recommended Implementation Order</h3>
+    <p>These modifications have dependencies. The recommended order minimizes throwaway work:</p>
+
+    <table class="data-table">
+      <thead><tr><th>Step</th><th>Task</th><th>Depends On</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Add <code>count_brood_cells()</code> to CellStateTransition.gd</td><td>None</td></tr>
+        <tr><td>2</td><td>Add <code>get_frame_brood_share()</code> to HiveSimulation.gd</td><td>Step 1</td></tr>
+        <tr><td>3</td><td>Import bee spritesheets into Godot assets, create atlas resource</td><td>None (parallel with 1-2)</td></tr>
+        <tr><td>4</td><td>Create BeeOverlay.gd with entity management, movement, rendering</td><td>Steps 1-3</td></tr>
+        <tr><td>5</td><td>Add bee overlay layer to FrameRenderer.gd</td><td>Step 4</td></tr>
+        <tr><td>6</td><td>Integrate into InspectionOverlay.gd: spawn bees, handle clicks, queen feedback</td><td>Steps 4-5</td></tr>
+        <tr><td>7</td><td>Expose queen age/grade from QueenBehavior.gd for speed + attendant scaling</td><td>Step 6</td></tr>
+        <tr><td>8</td><td>Performance tuning and adaptive LOD</td><td>Step 6</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="gamestate_interactions">Gamestate Interactions</h3>
+    <p>The inspection difficulty rank does not exist in isolation -- it reads from and writes to several gamestate systems. This section maps every interaction point.</p>
+
+    <h4>Difficulty Rank Roll -- Inputs from Gamestate</h4>
+    <table class="data-table">
+      <thead><tr><th>Gamestate Source</th><th>Field / Method</th><th>How It Affects the Roll</th></tr></thead>
+      <tbody>
+        <tr><td><code>InspectionOverlay.gd</code></td><td><code>_inspection_knowledge_tier</code> (1-5)</td><td>Can bias the roll probabilities. Higher knowledge tiers could weight toward harder rolls (the beekeeper sees "more realistically"). Alternatively, keep equal weighting and let knowledge tiers only affect post-sighting info display.</td></tr>
+        <tr><td><code>HiveSimulation.gd</code></td><td><code>queen.temperament</code></td><td><strong>ACTIVE (Phase 2.0):</strong> Directly scales visible bee count via temperament density modifier (calm x1.0, normal x1.15, defensive x1.4). Stacks multiplicatively with difficulty rank multiplier. More temperamental bees = more crowded frames = harder to find queen. See <a href="#speed_constants">Temperament &amp; Congestion Modifiers</a> table.</td></tr>
+        <tr><td><code>HiveSimulation.gd</code></td><td><code>congestion_state</code> (0-3)</td><td>Congested hives (pre-swarm, overcrowded) could force Medium or Hard. A congestion_state of 3 could always force Hard -- the hive is packed.</td></tr>
+        <tr><td><code>GameData.gd</code></td><td><code>player_level</code> / <code>total_xp</code></td><td>Early game (level 1-3) could weight toward Easy to ease new players in. Mid-game (4-7) even weighting. Late-game (8+) weight toward Hard. This creates a natural difficulty curve.</td></tr>
+        <tr><td><code>HiveSimulation.gd</code></td><td><code>nurse_count</code></td><td>Colony size is already reflected in the 1:100 ratio, but extremely small colonies (nurse_count &lt; 1000) could force Easy since even Hard would only show 8 bees. Prevents a trivially sparse frame on Hard.</td></tr>
+      </tbody>
+    </table>
+
+    <p><em>Design note: The exact weighting formula is a tuning decision. The simplest starting implementation is equal probability (33%/33%/33%) with the above factors as optional modifiers added later. Get the core multiplier working first, tune the roll probabilities in playtesting.</em></p>
+
+    <h4>Inspection Start -- Outputs to Gamestate</h4>
+    <table class="data-table">
+      <thead><tr><th>Destination</th><th>What Happens</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td><code>InspectionOverlay._inspection_difficulty_mult</code></td><td>Stored as a float (0.33, 0.67, or 1.0) for the duration of the inspection session. Passed to <code>calculate_visible_bees()</code> on every frame flip.</td><td>Core mechanical effect -- controls how many worker bees render.</td></tr>
+        <tr><td><code>InspectionOverlay._inspection_min_bee_dist</code></td><td>Stored as int (28, 17, or 12). Used by soft repulsion and spawn placement.</td><td>Controls how close bees can pack together.</td></tr>
+        <tr><td><code>InspectionOverlay._inspection_cluster_spread</code></td><td>Stored as float (0.28, 0.20, or 0.16). Used by Gaussian target selection.</td><td>Controls how tightly bees clump toward frame center.</td></tr>
+        <tr><td><code>InspectionOverlay._queen_spawned</code></td><td>Boolean from the 80% visibility roll. If true, queen entity + attendants are created on queen's frame. If false, no queen exists this inspection.</td><td>The 20% miss rate -- sometimes you just don't see her.</td></tr>
+        <tr><td><code>InspectionOverlay._temperament_density_mult</code></td><td>Float looked up from queen.temperament (1.0 to 1.4). Multiplied into visible bee count after difficulty mult.</td><td>Defensive colonies = more bees on frame = harder to find queen.</td></tr>
+        <tr><td><code>InspectionOverlay._inspection_difficulty_rank</code></td><td>Stored as enum/int (EASY=0, MEDIUM=1, HARD=2) for XP scaling and attendant modifier.</td><td>Used when queen is found to determine XP award amount.</td></tr>
+        <tr><td><code>GameData.add_xp()</code></td><td>Queen-found XP scales with difficulty: Easy = 10 XP, Medium = 15 XP, Hard = 25 XP. Fired only when player clicks queen entity.</td><td>Meaningful progression incentive.</td></tr>
+        <tr><td>Toast UI</td><td>"Queen confirmed! +N XP" toast shown <strong>only when the player clicks the queen entity</strong>. No toast at inspection start. No toast for difficulty rank. The player discovers the difficulty through the density of bees, not a label.</td><td>Immersion. The player should feel the difficulty, not be told it.</td></tr>
+        <tr><td><code>InspectionOverlay._queen_seen</code></td><td>Set to true when queen is clicked. If queen was not spawned (20%), this stays false -- player never knows if they missed her or if she wasn't visible.</td><td>Mirrors real beekeeping ambiguity.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Lifecycle of the Inspection Session</h4>
+    <div class="file-tree">
+      <span class="note">Inspection session lifecycle:</span><br>
+      <br>
+      &nbsp;&nbsp;1. Player presses E with Hive Tool near colonized hive<br>
+      &nbsp;&nbsp;2. InspectionOverlay._start_inspection() fires<br>
+      &nbsp;&nbsp;3. Roll difficulty rank: rng.randi() % 3 -> EASY(0), MEDIUM(1), HARD(2)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="note">-- (Phase 2.0: flat 33/33/34. Bias hooks deferred to playtesting.)</span><br>
+      &nbsp;&nbsp;4. Roll queen visibility: rng.randf() &lt; 0.80<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="note">-- true: queen + attendants will be spawned on her frame</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="note">-- false: no queen entity exists this inspection</span><br>
+      &nbsp;&nbsp;5. Look up temperament density modifier from queen.temperament<br>
+      &nbsp;&nbsp;6. Store all session params: difficulty_mult, min_bee_dist, cluster_spread,<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;queen_spawned, temperament_density_mult, attendant_modifier<br>
+      &nbsp;&nbsp;7. Player navigates frames -- calculate_visible_bees() uses full pipeline<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="note">-- (No toast, no UI indicator for difficulty. Player feels it.)</span><br>
+      &nbsp;&nbsp;8. If queen_spawned and player clicks queen: "Queen confirmed! +N XP" toast<br>
+      &nbsp;&nbsp;9. Player closes inspection -- all session params discarded<br>
+      &nbsp;&nbsp;10. Next inspection rolls fresh<br>
+    </div>
+
+    <h3 id="constants_summary">Constants Cross-Reference</h3>
+    <p>All density model constants in one place for easy reference during implementation:</p>
+    <div class="file-tree">
+      <span class="dir">DENSITY MODEL (define in BeeOverlay.gd or InspectionOverlay.gd):</span><br>
+      &nbsp;&nbsp;NURSE_TO_VISIBLE_RATIO = 100<br>
+      &nbsp;&nbsp;DIFFICULTY_MULT_EASY = 0.33 <span class="note">-- 1/3 density</span><br>
+      &nbsp;&nbsp;DIFFICULTY_MULT_MEDIUM = 0.67 <span class="note">-- 2/3 density</span><br>
+      &nbsp;&nbsp;DIFFICULTY_MULT_HARD = 1.0 <span class="note">-- full density</span><br>
+      &nbsp;&nbsp;JITTER_MIN = -3<br>
+      &nbsp;&nbsp;JITTER_MAX = 3<br>
+      &nbsp;&nbsp;MIN_VISIBLE = 8<br>
+      &nbsp;&nbsp;MAX_VISIBLE = 120<br>
+      <br>
+      <span class="dir">DIFFICULTY-DEPENDENT SPACING (define in BeeOverlay.gd):</span><br>
+      &nbsp;&nbsp;<span class="note">-- From generate_frame_sim.py min_spacing parameters</span><br>
+      &nbsp;&nbsp;MIN_BEE_DIST_EASY = 28 <span class="note">-- px, wide gaps</span><br>
+      &nbsp;&nbsp;MIN_BEE_DIST_MEDIUM = 17 <span class="note">-- px, moderate proximity</span><br>
+      &nbsp;&nbsp;MIN_BEE_DIST_HARD = 12 <span class="note">-- px, tight packing</span><br>
+      <br>
+      <span class="dir">DIFFICULTY-DEPENDENT CLUSTERING (define in BeeOverlay.gd):</span><br>
+      &nbsp;&nbsp;<span class="note">-- Gaussian std dev as fraction of canvas dimension</span><br>
+      &nbsp;&nbsp;CLUSTER_SPREAD_EASY = 0.28 <span class="note">-- bees spread across full frame</span><br>
+      &nbsp;&nbsp;CLUSTER_SPREAD_MEDIUM = 0.20 <span class="note">-- moderate clumping toward center</span><br>
+      &nbsp;&nbsp;CLUSTER_SPREAD_HARD = 0.16 <span class="note">-- tight knots, sparse edges</span><br>
+      <br>
+      <span class="dir">QUEEN SPAWN (define in InspectionOverlay.gd):</span><br>
+      &nbsp;&nbsp;QUEEN_SPAWN_CHANCE = 0.80 <span class="note">-- 80% chance queen entity exists this inspection</span><br>
+      <br>
+      <span class="dir">XP REWARDS (define in InspectionOverlay.gd):</span><br>
+      &nbsp;&nbsp;QUEEN_SIGHT_XP_EASY = 10<br>
+      &nbsp;&nbsp;QUEEN_SIGHT_XP_MEDIUM = 15<br>
+      &nbsp;&nbsp;QUEEN_SIGHT_XP_HARD = 25<br>
+      <br>
+      <span class="dir">ATTENDANT DIFFICULTY SCALING (define in BeeOverlay.gd):</span><br>
+      &nbsp;&nbsp;ATTENDANT_DIFF_MULT_EASY = 1.5 <span class="note">-- more attendants = visual hint</span><br>
+      &nbsp;&nbsp;ATTENDANT_DIFF_MULT_MEDIUM = 1.0 <span class="note">-- baseline</span><br>
+      &nbsp;&nbsp;ATTENDANT_DIFF_MULT_HARD = 0.5 <span class="note">-- sparse court = harder to spot queen</span><br>
+      <br>
+      <span class="dir">TEMPERAMENT DENSITY (define in BeeOverlay.gd):</span><br>
+      &nbsp;&nbsp;TEMPERAMENT_DENSITY_CALM = 1.0<br>
+      &nbsp;&nbsp;TEMPERAMENT_DENSITY_NORMAL = 1.15<br>
+      &nbsp;&nbsp;TEMPERAMENT_DENSITY_DEFENSIVE = 1.4<br>
+      &nbsp;&nbsp;TEMPERAMENT_DENSITY_CONGESTED = 1.25<br>
+      &nbsp;&nbsp;TEMPERAMENT_DENSITY_POST_SMOKE = 0.85<br>
+      <br>
+      <span class="dir">MOVEMENT (define in BeeOverlay.gd):</span><br>
+      &nbsp;&nbsp;WORKER_SPEED_MIN = 28.0 <span class="note">-- px/sec</span><br>
+      &nbsp;&nbsp;WORKER_SPEED_MAX = 36.0<br>
+      &nbsp;&nbsp;QUEEN_SPEED_MIN = 14.0<br>
+      &nbsp;&nbsp;QUEEN_SPEED_MAX = 18.0<br>
+      &nbsp;&nbsp;WALK_FRAME_INTERVAL = 0.125 <span class="note">-- 8fps walk cycle</span><br>
+      &nbsp;&nbsp;IDLE_FRAME_INTERVAL = 0.333 <span class="note">-- 3fps idle bobble</span><br>
+      &nbsp;&nbsp;SPATIAL_HASH_CELL = 20 <span class="note">-- px, grid cell size</span><br>
+      <br>
+      <span class="dir">INTERACTION (define in InspectionOverlay.gd):</span><br>
+      &nbsp;&nbsp;HIT_RADIUS = 18 <span class="note">-- px, click target</span><br>
+      <br>
+      <span class="dir">ATTENDANT CIRCLE (define in BeeOverlay.gd):</span><br>
+      &nbsp;&nbsp;ATTENDANT_RADIUS = 18.0 <span class="note">-- px, orbit distance</span><br>
+      &nbsp;&nbsp;ATTENDANT_DRIFT = 0.08 <span class="note">-- rad/sec angular drift</span><br>
+      &nbsp;&nbsp;ATTENDANT_MAX = 12 <span class="note">-- max attendants at queen grade 5</span><br>
+    </div>
+  </div>
+
+</div><!-- #content -->
+</body>
+</html>

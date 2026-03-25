@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily GDD Sync Report — March 25, 2026</title>
+<style>
+  :root {
+    --bg: #1a1a1a; --surface: #242424; --border: #333;
+    --amber: #C8860A; --amber-lt: #E8A020; --green: #5a8a3a;
+    --red: #8a3a3a; --blue: #3a6a8a; --text: #e8dfc8; --muted: #8a8070;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Arial, sans-serif;
+         font-size: 14px; line-height: 1.65; max-width: 900px; margin: 0 auto; padding: 40px 32px; }
+  h1 { color: var(--amber-lt); font-size: 24px; margin-bottom: 8px; }
+  h2 { color: var(--amber); font-size: 18px; border-bottom: 1px solid var(--border);
+       padding-bottom: 6px; margin: 28px 0 14px; }
+  h3 { color: var(--amber-lt); font-size: 14px; margin: 18px 0 8px; }
+  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+  .status-box { background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
+                padding: 16px 20px; margin: 12px 0; }
+  .status-box.green { border-left: 3px solid var(--green); }
+  .status-box.amber { border-left: 3px solid var(--amber); }
+  .status-box.blue { border-left: 3px solid var(--blue); }
+  .status-box.red { border-left: 3px solid var(--red); }
+  .status-box strong { display: block; margin-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 8px 0 16px; }
+  th { background: #1e1a14; color: var(--amber); text-align: left; padding: 8px 12px;
+       border-bottom: 2px solid var(--amber); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+  td { padding: 7px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: #2a2620; }
+  ul { margin: 8px 0 8px 20px; }
+  li { margin: 4px 0; }
+  .tag { display: inline-block; padding: 1px 7px; border-radius: 2px; font-size: 10px; font-weight: bold; }
+  .tag-green { background: #1a3a1a; color: #5acc88; }
+  .tag-amber { background: #2a2a1a; color: #ccaa44; }
+  .tag-blue { background: #1a1a2a; color: #668ab4; }
+  .note { color: var(--muted); font-size: 12px; font-style: italic; margin: 8px 0; }
+  code { background: #2a2520; padding: 1px 5px; border-radius: 2px; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<h1>Daily GDD Sync Report</h1>
+<p class="subtitle">Smoke &amp; Honey — March 25, 2026 — Automated Sync (Run 2 — Evening Update)</p>
+<p class="note">This is the second sync run for March 25. The first run covered work through 05:00 CST. This run covers work from 05:00-06:00 CST and verifies all prior updates.</p>
+
+<!-- BACKUP CONFIRMATION -->
+<h2>Backup Confirmation</h2>
+<div class="status-box green">
+  <strong>Backup Updated Successfully</strong>
+  <code>Smoke_and_Honey_GDD.html</code> (515,151 bytes) copied to <code>oldGDD/BeeKeeper_Pro_GDD_2026-03-25.html</code><br>
+  This backup reflects the GDD state after the first sync run (which added 7 new subsections under section 6.3 and extended the Development Changelog through 05:00 CST).
+</div>
+
+<!-- WORK REVIEWED -->
+<h2>Work Reviewed (Since Last Sync)</h2>
+<p>Reviewed 1 new changelog entry at 06:00 CST (after the first sync covered through 05:00). Also verified that the 01:30 CST item sprite regeneration entry was already properly captured in the first sync.</p>
+
+<h3>New Work Since Last Sync</h3>
+<table>
+  <tr><th>Time</th><th>System</th><th>Description</th></tr>
+  <tr>
+    <td>06:00 CST</td>
+    <td>Art — Queen Finder</td>
+    <td>
+      Queen Finder asset overhaul: (1) Dimmed wing colors across all 5 breed palettes for more realistic appearance. (2) Fixed queen abdomen cutoff — expanded cell size from 56x40 to 60x42. (3) Added queen_species_comparison.png — 8x closeup of all 5 breeds with worker counterparts. (4) Expanded find-the-queen simulations from 6 to 12 images (2 easier, 2 harder, 2 very hard up to 115 bees). (5) Reduced sim frame from 960x540 to 800x450. (6) Deleted old delete/ directory. (7) Removed stale .import files.
+    </td>
+  </tr>
+</table>
+
+<h3>Git Activity</h3>
+<p>1 commit in the repository:</p>
+<table>
+  <tr><th>Commit</th><th>Time</th><th>Description</th></tr>
+  <tr><td><code>6fd103d</code></td><td>00:41</td><td>Initial commit: Smoke &amp; Honey — Fresh repository setup with complete GDD, dev plan, scripts, assets, and documentation.</td></tr>
+</table>
+<p class="note">All work since the initial commit has been done in the working tree without additional commits.</p>
+
+<!-- GDD CHANGES -->
+<h2>Changes Made to GDD (This Run)</h2>
+
+<h3>Development Changelog Extended</h3>
+<p>Added a new changelog group <strong>"Queen Finder Asset Overhaul"</strong> with 2 entries:</p>
+<table>
+  <tr><th>Entry</th><th>Section Added</th></tr>
+  <tr><td>06:00 — Queen Finder art overhaul</td><td>Wing color dimming, abdomen fix, species comparison image, 12 simulation images, frame resize, cleanup</td></tr>
+  <tr><td>01:30 — Item sprite regeneration</td><td>All 20 item sprites regenerated at 32x32 (was in changelog but missing from GDD changelog in first sync)</td></tr>
+</table>
+
+<h3>Sections NOT Modified</h3>
+<ul>
+  <li>No new game design sections needed — the Queen Finder mechanic was already documented in the existing "Find the Queen" inspection mechanic (GDD section 6.6). The 06:00 work was art asset polish, not a design decision.</li>
+  <li>All sections added by the first sync run remain intact and correct.</li>
+</ul>
+
+<!-- DEVPLAN UPDATES -->
+<h2>DevPlan Updates</h2>
+<div class="status-box blue">
+  <strong>BeeKeeper_Pro_DevPlan.html Updated</strong>
+  <ul>
+    <li>Art inventory: Added "12 queen-finder simulation images (5 breed palettes, species comparison sheet)" to the Art assets summary.</li>
+  </ul>
+</div>
+
+<!-- FIRST SYNC SUMMARY -->
+<h2>First Sync Run Summary (for reference)</h2>
+<div class="status-box green">
+  <strong>Major systems documented in first sync (through 05:00 CST):</strong>
+  <ul>
+    <li>Package Bees Colony Installation (section 6.3.1)</li>
+    <li>Package Bee Colony Establishment mechanics (section 6.3.2)</li>
+    <li>3D Ellipsoid Comb Drawing System (section 6.3.3)</li>
+    <li>Hive Tool &amp; Gloves items (section 6.3.4)</li>
+    <li>Storage Chest System (section 6.3.5)</li>
+    <li>Starting Inventory (section 6.3.6)</li>
+    <li>Hotbar Item Sprites (section 6.3.7)</li>
+    <li>10 changelog groups covering March 24 09:00 through March 25 05:00</li>
+    <li>DevPlan fully updated (scripts 50+, scenes 22+, art inventory, Phase 1 status, MVP checklist)</li>
+  </ul>
+</div>
+
+<!-- ACTION ITEMS -->
+<h2>Action Items</h2>
+<table>
+  <tr><th>#</th><th>Priority</th><th>Item</th></tr>
+  <tr><td>1</td><td><span class="tag tag-amber">HIGH</span></td><td>Verify the game launches and all new systems work in Godot 4.6 after the massive ASCII/type-inference cleanup</td></tr>
+  <tr><td>2</td><td><span class="tag tag-amber">HIGH</span></td><td>Test Package Bees installation flow end-to-end (place hive, install bees, wait 7 days, inspect)</td></tr>
+  <tr><td>3</td><td><span class="tag tag-blue">MED</span></td><td>Test Storage Chest interaction (open, transfer items, close)</td></tr>
+  <tr><td>4</td><td><span class="tag tag-blue">MED</span></td><td>Verify queen finder simulation images display correctly at new 800x450 frame size</td></tr>
+  <tr><td>5</td><td><span class="tag tag-blue">MED</span></td><td>Commit working tree changes — all work since initial commit is uncommitted</td></tr>
+  <tr><td>6</td><td><span class="tag tag-blue">MED</span></td><td>Phase 2 planning: Sleep/day advance and weather system are the next critical path items</td></tr>
+</table>
+
+<!-- UNCERTAINTIES -->
+<h2>Uncertainties / Items Needing Review</h2>
+<div class="status-box amber">
+  <strong>Items where implementation exists but user decision is unclear</strong>
+  <ul>
+    <li><strong>Queen finder difficulty curve:</strong> The 12 simulations now range from 30 bees (easy) to 115 bees (very hard). Nathan should verify whether the difficulty tiers feel right in-game and if the queen is appropriately findable at each level.</li>
+    <li><strong>Queen wing color dimming:</strong> Wing colors were significantly dimmed (wing_fill from ~140 to ~90 RGB). Nathan should verify the dimmed wings look correct in the actual inspection overlay and queen finder mini-game.</li>
+    <li><strong>Hive sprite final dimensions (from first sync):</strong> Multiple redraw iterations. Nathan should verify the final sprites look correct in-game.</li>
+    <li><strong>Starting inventory balance (from first sync):</strong> Only 1 of each critical item + stocked chest. Nathan should confirm this feels right.</li>
+    <li><strong>Max 2 deeps permanently locked (from first sync):</strong> Significant design constraint — needs confirmation.</li>
+    <li><strong>Chest auto-stocking on scene load (from first sync):</strong> May need a first-time-only guard.</li>
+  </ul>
+</div>
+
+<div style="text-align:center; padding: 32px 0; color: var(--muted); font-size: 11px;">
+  Daily GDD Sync Report — Generated March 25, 2026 (Run 2) — Smoke &amp; Honey
+</div>
+
+</body>
+</html>

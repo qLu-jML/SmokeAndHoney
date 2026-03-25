@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://merchant01"]
+
+[ext_resource type="Script" path="res://scripts/npc/merchant.gd" id="1_merch"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_merch"]
+size = Vector2(32, 32)
+
+[node name="Merchant" type="Node2D"]
+y_sort_origin = 16
+script = ExtResource("1_merch")
+
+[node name="FrankSprite" type="Sprite2D" parent="."]
+
+[node name="Label" type="Label" parent="."]
+offset_left = -20.0
+offset_top = -24.0
+offset_right = 20.0
+offset_bottom = -14.0
+theme_override_font_sizes/font_size = 6
+text = "Frank"
+horizontal_alignment = 1
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+shape = SubResource("RectangleShape2D_merch")

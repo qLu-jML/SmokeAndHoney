@@ -1,0 +1,190 @@
+# sprite_loader.gd — Runtime SpriteFrames builder that bypasses Godot's import pipeline.
+# Loads a sprite sheet PNG via Image.load_from_file() and creates SpriteFrames by
+# cropping regions programmatically. Only needs ONE file load per character.
+#
+# Usage:
+#   var frames = SpriteLoader.load_character_frames("res://assets/sprites/npc/The_Beekeeper")
+#   $AnimatedSprite2D.sprite_frames = frames
+class_name SpriteLoader
+
+# Direction names matching player.gd's _dir_to_anim() output
+const DIRECTIONS = ["south", "south_east", "east", "north_east", "north", "north_west", "west", "south_west"]
+
+const FRAME_W := 120
+const FRAME_H := 120
+const COLS := 8
+# Sheet layout: rows 0-7 = idle, rows 8-15 = walk, rows 16-23 = run
+
+## Build a complete SpriteFrames resource for a character from their spritesheet.
+## base_dir: e.g. "res://assets/sprites/npc/The_Beekeeper"
+## Expects: base_dir/beekeeper_spritesheet.png or base_dir/uncle_bob_spritesheet.png
+## Falls back to trying individual frame PNGs if no spritesheet found.
+static func load_character_frames(base_dir: String) -> SpriteFrames:
+	# Try to find the spritesheet PNG
+	var sheet_path := _find_spritesheet(base_dir)
+	if sheet_path == "":
+		# Fallback: try individual PNGs
+		return _load_from_individual_pngs(base_dir)
+
+	var abs_path := ProjectSettings.globalize_path(sheet_path)
+	print("SpriteLoader: loading sheet from %s" % abs_path)
+
+	var img := Image.load_from_file(abs_path)
+	if img == null or img.is_empty():
+		push_warning("SpriteLoader: Image.load_from_file failed for %s — trying individual PNGs" % abs_path)
+		return _load_from_individual_pngs(base_dir)
+
+	var sf := SpriteFrames.new()
+	if sf.has_animation(&"default"):
+		sf.remove_animation(&"default")
+
+	var total := 0
+
+	# ── Idle animations (rows 0-7, 1 frame each, column 0) ──
+	for i in range(8):
+		var anim_name := "idle_" + DIRECTIONS[i]
+		sf.add_animation(StringName(anim_name))
+		sf.set_animation_loop(StringName(anim_name), true)
+		sf.set_animation_speed(StringName(anim_name), 1.0)
+		var tex := _crop_frame(img, 0, i)
+		if tex:
+			sf.add_frame(StringName(anim_name), tex)
+			total += 1
+
+	# ── Walk animations (rows 8-15, 8 frames each) ──
+	for i in range(8):
+		var anim_name := "walk_" + DIRECTIONS[i]
+		sf.add_animation(StringName(anim_name))
+		sf.set_animation_loop(StringName(anim_name), true)
+		sf.set_animation_speed(StringName(anim_name), 8.0)
+		for col in range(8):
+			var tex := _crop_frame(img, col, 8 + i)
+			if tex:
+				sf.add_frame(StringName(anim_name), tex)
+				total += 1
+
+	# ── Run animations (rows 16-23, 8 frames each) ──
+	for i in range(8):
+		var anim_name := "run_" + DIRECTIONS[i]
+		sf.add_animation(StringName(anim_name))
+		sf.set_animation_loop(StringName(anim_name), true)
+		sf.set_animation_speed(StringName(anim_name), 8.0)
+		for col in range(8):
+			var tex := _crop_frame(img, col, 16 + i)
+			if tex:
+				sf.add_frame(StringName(anim_name), tex)
+				total += 1
+
+	if total == 0:
+		push_warning("SpriteLoader: 0 frames cropped from sheet — falling back to individual PNGs")
+		return _load_from_individual_pngs(base_dir)
+
+	print("SpriteLoader: built %d animations (%d frames) from %s" % [sf.get_animation_names().size(), total, sheet_path])
+	return sf
+
+## Crop a single frame from the sheet image and return an ImageTexture.
+static func _crop_frame(sheet: Image, col: int, row: int) -> ImageTexture:
+	var x := col * FRAME_W
+	var y := row * FRAME_H
+	if x + FRAME_W > sheet.get_width() or y + FRAME_H > sheet.get_height():
+		return null
+	var region := Rect2i(x, y, FRAME_W, FRAME_H)
+	var frame_img := sheet.get_region(region)
+	if frame_img == null or frame_img.is_empty():
+		return null
+	return ImageTexture.create_from_image(frame_img)
+
+## Find the spritesheet PNG in the base directory.
+static func _find_spritesheet(base_dir: String) -> String:
+	# Try common naming patterns
+	var candidates := [
+		base_dir + "/beekeeper_spritesheet.png",
+		base_dir + "/uncle_bob_spritesheet.png",
+		base_dir + "/ellen_harwick_spritesheet.png",
+		base_dir + "/frank_fischbach_spritesheet.png",
+		base_dir + "/spritesheet.png",
+	]
+	for c in candidates:
+		if FileAccess.file_exists(c):
+			return c
+	# Try to find any file with "spritesheet" in the name
+	var dir := DirAccess.open(base_dir)
+	if dir:
+		dir.list_dir_begin()
+		var fname := dir.get_next()
+		while fname != "":
+			if "spritesheet" in fname.to_lower() and fname.ends_with(".png"):
+				return base_dir + "/" + fname
+			fname = dir.get_next()
+	return ""
+
+## Fallback: load individual frame PNGs (rotations + walking + running).
+static func _load_from_individual_pngs(base_dir: String) -> SpriteFrames:
+	const DIR_FOLDER_NAMES = {
+		"south": "south", "south_east": "south-east", "east": "east",
+		"north_east": "north-east", "north": "north", "north_west": "north-west",
+		"west": "west", "south_west": "south-west",
+	}
+
+	var sf := SpriteFrames.new()
+	if sf.has_animation(&"default"):
+		sf.remove_animation(&"default")
+	var total := 0
+
+	# Idle
+	for dir_name in DIRECTIONS:
+		var folder_name: String = DIR_FOLDER_NAMES[dir_name]
+		var anim_name := "idle_" + dir_name
+		var path := base_dir + "/rotations/" + folder_name + ".png"
+		sf.add_animation(StringName(anim_name))
+		sf.set_animation_loop(StringName(anim_name), true)
+		sf.set_animation_speed(StringName(anim_name), 1.0)
+		var tex := _load_single_png(path)
+		if tex:
+			sf.add_frame(StringName(anim_name), tex)
+			total += 1
+
+	# Walk
+	for dir_name in DIRECTIONS:
+		var folder_name: String = DIR_FOLDER_NAMES[dir_name]
+		var anim_name := "walk_" + dir_name
+		sf.add_animation(StringName(anim_name))
+		sf.set_animation_loop(StringName(anim_name), true)
+		sf.set_animation_speed(StringName(anim_name), 8.0)
+		for i in range(8):
+			var path := base_dir + "/animations/walking-8-frames/" + folder_name + "/frame_%03d.png" % i
+			var tex := _load_single_png(path)
+			if tex:
+				sf.add_frame(StringName(anim_name), tex)
+				total += 1
+
+	# Run
+	for dir_name in DIRECTIONS:
+		var folder_name: String = DIR_FOLDER_NAMES[dir_name]
+		var anim_name := "run_" + dir_name
+		sf.add_animation(StringName(anim_name))
+		sf.set_animation_loop(StringName(anim_name), true)
+		sf.set_animation_speed(StringName(anim_name), 8.0)
+		for i in range(8):
+			var path := base_dir + "/animations/running-8-frames/" + folder_name + "/frame_%03d.png" % i
+			var tex := _load_single_png(path)
+			if tex:
+				sf.add_frame(StringName(anim_name), tex)
+				total += 1
+
+	if total == 0:
+		push_warning("SpriteLoader: 0 frames loaded from individual PNGs in %s" % base_dir)
+		return null
+
+	print("SpriteLoader: built %d animations (%d frames) from individual PNGs in %s" % [sf.get_animation_names().size(), total, base_dir])
+	return sf
+
+## Load a single PNG from disk as ImageTexture.
+static func _load_single_png(path: String) -> ImageTexture:
+	if not FileAccess.file_exists(path):
+		return null
+	var abs_path := ProjectSettings.globalize_path(path)
+	var img := Image.load_from_file(abs_path)
+	if img == null or img.is_empty():
+		return null
+	return ImageTexture.create_from_image(img)

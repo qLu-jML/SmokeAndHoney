@@ -1,0 +1,492 @@
+{
+  "_comment": "Smoke & Honey — Item Registry. Maps GameData item constants to sprite paths and metadata. Wire new items here and reference ITEM_* consts from GameData.gd.",
+
+  "items": {
+
+    "honey_jar": {
+      "display_name": "Honey Jar",
+      "description": "Standard wildflower honey, ready to sell.",
+      "sprite": "res://assets/sprites/items/honey_jar_standard.png",
+      "sprite_size": [32, 32],
+      "category": "product",
+      "stackable": true,
+      "max_stack": 99,
+      "base_sell_price": 8.50,
+      "grades": {
+        "standard": {
+          "sprite": "res://assets/sprites/items/honey_jar_standard.png",
+          "sell_price": 8.50,
+          "moisture_max": 18.6
+        },
+        "premium": {
+          "sprite": "res://assets/sprites/items/honey_jar_premium.png",
+          "sell_price": 14.00,
+          "moisture_max": 17.0
+        },
+        "economy": {
+          "sprite": "res://assets/sprites/items/honey_jar_economy.png",
+          "sell_price": 5.00,
+          "moisture_min": 18.6
+        }
+      }
+    },
+
+    "raw_honey": {
+      "display_name": "Raw Honey (bulk)",
+      "description": "Unjarred honey extracted from the hive.",
+      "sprite": "res://assets/sprites/items/honey_jar_standard.png",
+      "sprite_size": [32, 32],
+      "category": "material",
+      "stackable": true,
+      "max_stack": 999,
+      "base_sell_price": 0.0,
+      "_note": "Use honey_jar sprites at reduced opacity or tint for bulk display; no dedicated raw sprite yet."
+    },
+
+    "beeswax": {
+      "display_name": "Beeswax Block",
+      "description": "Pale yellow wax rendered from cappings.",
+      "sprite": "res://assets/sprites/items/beeswax.png",
+      "sprite_size": [32, 32],
+      "category": "material",
+      "stackable": true,
+      "max_stack": 99,
+      "base_sell_price": 3.25
+    },
+
+    "jar": {
+      "display_name": "Empty Jar",
+      "description": "A glass jar waiting to be filled.",
+      "sprite": "res://assets/sprites/items/sugar_syrup.png",
+      "sprite_size": [32, 32],
+      "category": "supply",
+      "stackable": true,
+      "max_stack": 99,
+      "base_sell_price": 0.0,
+      "_note": "Re-uses sugar_syrup jar shape. Replace with dedicated empty jar sprite when available."
+    },
+
+    "sugar_syrup": {
+      "display_name": "Sugar Syrup",
+      "description": "2:1 sugar solution for emergency feeding.",
+      "sprite": "res://assets/sprites/items/sugar_syrup.png",
+      "sprite_size": [32, 32],
+      "category": "supply",
+      "stackable": true,
+      "max_stack": 20,
+      "base_sell_price": 0.0
+    },
+
+    "syrup_feeder": {
+      "display_name": "Hive Top Feeder",
+      "description": "Feeder filled with sugar syrup.",
+      "sprite": "res://assets/sprites/items/sugar_syrup.png",
+      "sprite_size": [32, 32],
+      "category": "equipment",
+      "stackable": false,
+      "base_sell_price": 0.0,
+      "_note": "Dedicated feeder sprite needed (Phase 3). Shares syrup icon for now."
+    },
+
+    "pollen": {
+      "display_name": "Pollen",
+      "description": "Collected flower pollen. Boosts brood nutrition.",
+      "sprite": "res://assets/sprites/world/forage/dandelion.png",
+      "sprite_size": [32, 32],
+      "category": "material",
+      "stackable": true,
+      "max_stack": 99,
+      "base_sell_price": 1.50,
+      "_note": "Uses dandelion tile as placeholder. Dedicated 32x32 pollen icon needed."
+    },
+
+    "seeds": {
+      "display_name": "Wildflower Seeds",
+      "description": "Plant these to create new forage patches.",
+      "sprite": "res://assets/sprites/world/forage/clover.png",
+      "sprite_size": [32, 32],
+      "category": "supply",
+      "stackable": true,
+      "max_stack": 50,
+      "base_sell_price": 0.0,
+      "_note": "Uses clover tile as placeholder. Dedicated seed packet icon needed."
+    },
+
+    "treatment_oxalic": {
+      "display_name": "Oxalic Acid Treatment",
+      "description": "Varroa mite treatment. Use in broodless period.",
+      "sprite": "res://assets/sprites/items/refractometer.png",
+      "sprite_size": [32, 32],
+      "category": "treatment",
+      "stackable": true,
+      "max_stack": 10,
+      "base_sell_price": 0.0,
+      "_note": "Shares refractometer icon as placeholder. Dedicated treatment sprite needed."
+    },
+
+    "treatment_formic": {
+      "display_name": "Formic Acid (MAQS)",
+      "description": "Varroa treatment that penetrates capped brood.",
+      "sprite": "res://assets/sprites/items/refractometer.png",
+      "sprite_size": [32, 32],
+      "category": "treatment",
+      "stackable": true,
+      "max_stack": 10,
+      "base_sell_price": 0.0,
+      "_note": "Shares refractometer icon as placeholder."
+    },
+
+    "frames": {
+      "display_name": "Langstroth Frame",
+      "description": "Wooden frames for a super or brood box.",
+      "sprite": "res://assets/sprites/items/hive_tool.png",
+      "sprite_size": [32, 32],
+      "category": "equipment",
+      "stackable": true,
+      "max_stack": 40,
+      "base_sell_price": 0.0,
+      "_note": "Shares hive_tool icon as placeholder. Dedicated frame sprite needed."
+    },
+
+    "super_box": {
+      "display_name": "Honey Super",
+      "description": "An additional box to expand hive capacity.",
+      "sprite": "res://assets/sprites/hive/overworld_hive_shadow.png",
+      "sprite_size": [26, 36],
+      "category": "equipment",
+      "stackable": true,
+      "max_stack": 5,
+      "base_sell_price": 0.0,
+      "_note": "Placeholder. Needs dedicated super-box inventory icon."
+    },
+
+    "beehive": {
+      "display_name": "Langstroth Hive",
+      "description": "A full hive setup ready to receive a colony.",
+      "sprite": "res://assets/sprites/hive/overworld_hive.png",
+      "sprite_size": [26, 36],
+      "category": "equipment",
+      "stackable": false,
+      "base_sell_price": 0.0
+    },
+
+    "queen_cage": {
+      "display_name": "Queen Cage",
+      "description": "Introduces a new mated queen to the hive.",
+      "sprite": "res://assets/sprites/hive/queen_mark_white.png",
+      "sprite_size": [8, 8],
+      "category": "equipment",
+      "stackable": true,
+      "max_stack": 5,
+      "base_sell_price": 0.0,
+      "_note": "Uses queen marker as placeholder. Dedicated cage icon needed."
+    },
+
+    "swarm_trap": {
+      "display_name": "Swarm Trap",
+      "description": "Bait hive to catch a passing swarm.",
+      "sprite": "res://assets/sprites/hive/overworld_hive_shadow.png",
+      "sprite_size": [26, 36],
+      "category": "equipment",
+      "stackable": false,
+      "base_sell_price": 0.0,
+      "_note": "Placeholder. Needs dedicated swarm trap icon."
+    },
+
+    "hive_tool": {
+      "display_name": "Hive Tool",
+      "description": "J-shaped pry bar for separating frames. Required to inspect hives.",
+      "sprite": "res://assets/sprites/items/hive_tool.png",
+      "sprite_size": [32, 32],
+      "category": "tool",
+      "stackable": false,
+      "max_stack": 1,
+      "base_sell_price": 0.0
+    },
+
+    "package_bees": {
+      "display_name": "Package Bees",
+      "description": "A 3-lb package of honey bees with a caged queen. Install in an empty, complete hive to start a colony.",
+      "sprite": "res://assets/sprites/items/package_bees.png",
+      "sprite_size": [32, 32],
+      "category": "equipment",
+      "stackable": true,
+      "max_stack": 5,
+      "base_sell_price": 0.0
+    },
+
+    "deep_box": {
+      "display_name": "Deep Hive Body",
+      "description": "A complete deep body with 10 foundation frames. Add to a thriving colony for brood expansion.",
+      "sprite": "res://assets/sprites/hive/hive_deep.png",
+      "sprite_size": [24, 14],
+      "category": "equipment",
+      "stackable": true,
+      "max_stack": 5,
+      "base_sell_price": 0.0,
+      "buy_price": 25.00
+    },
+
+    "queen_excluder": {
+      "display_name": "Queen Excluder",
+      "description": "Metal grid that confines the queen to brood boxes. Place between deeps and supers to keep honey frames brood-free.",
+      "sprite": "res://assets/sprites/hive/hive_excluder.png",
+      "sprite_size": [24, 2],
+      "category": "equipment",
+      "stackable": true,
+      "max_stack": 5,
+      "base_sell_price": 0.0,
+      "buy_price": 8.00
+    },
+
+    "full_super": {
+      "display_name": "Full Honey Super",
+      "description": "A honey super removed from the hive, full of capped frames. Take to the extraction table to harvest.",
+      "sprite": "res://assets/sprites/hive/hive_super.png",
+      "sprite_size": [24, 10],
+      "category": "material",
+      "stackable": true,
+      "max_stack": 2,
+      "base_sell_price": 0.0,
+      "_note": "Temporary carry item. Not purchasable. Slows player movement."
+    },
+
+    "honey_bulk": {
+      "display_name": "Bulk Honey (5 lb)",
+      "description": "Five pounds of raw honey in a bulk bucket. Sells at wholesale price.",
+      "sprite": "res://assets/sprites/items/honey_jar_standard.png",
+      "sprite_size": [32, 32],
+      "category": "product",
+      "stackable": true,
+      "max_stack": 20,
+      "base_sell_price": 5.10,
+      "_note": "60% of jar price per lb. Sells to Frank at Saturday Market."
+    },
+
+    "fermented_honey": {
+      "display_name": "Fermented Honey",
+      "description": "Honey with moisture above 20.5%. Cannot be sold as honey, but makes excellent mead.",
+      "sprite": "res://assets/sprites/items/honey_jar_economy.png",
+      "sprite_size": [32, 32],
+      "category": "material",
+      "stackable": true,
+      "max_stack": 20,
+      "base_sell_price": 0.0,
+      "_note": "Input for mead crafting (Phase 4). No direct sale value."
+    },
+
+    "gloves": {
+      "display_name": "Beekeeping Gloves",
+      "description": "Thick leather gloves for hive management. Equip to add or rearrange boxes on a colonized hive.",
+      "sprite": "res://assets/sprites/items/gloves.png",
+      "sprite_size": [32, 32],
+      "category": "tool",
+      "stackable": false,
+      "max_stack": 1,
+      "base_sell_price": 0.0,
+      "buy_price": 15.00
+    },
+
+    "chest": {
+      "display_name": "Storage Chest",
+      "description": "A sturdy wooden chest with 50 storage slots. Place it in the world to store items.",
+      "sprite": "res://assets/sprites/objects/chest.png",
+      "sprite_size": [24, 18],
+      "category": "equipment",
+      "stackable": true,
+      "max_stack": 5,
+      "base_sell_price": 0.0,
+      "buy_price": 35.00,
+      "_note": "Placeable storage object. 10x5 grid (50 slots)."
+    }
+  },
+
+  "tools": {
+    "_comment": "Tools are not GameData item constants — they're player equipment slots. Sprite paths listed here for wiring into the HUD / toolbar.",
+
+    "smoker": {
+      "display_name": "Smoker",
+      "description": "Calms bees during hive inspection.",
+      "sprite": "res://assets/sprites/items/smoker.png",
+      "sprite_size": [32, 32],
+      "category": "tool",
+      "energy_cost_per_use": 2.0,
+      "unlock_level": 1
+    },
+
+    "hive_tool": {
+      "display_name": "Hive Tool",
+      "description": "J-shaped pry bar for separating frames.",
+      "sprite": "res://assets/sprites/items/hive_tool.png",
+      "sprite_size": [32, 32],
+      "category": "tool",
+      "energy_cost_per_use": 0.5,
+      "unlock_level": 1
+    },
+
+    "veil": {
+      "display_name": "Bee Veil",
+      "description": "Protective veil. Required for inspections.",
+      "sprite": "res://assets/sprites/items/veil.png",
+      "sprite_size": [32, 32],
+      "category": "tool",
+      "energy_cost_per_use": 0.0,
+      "unlock_level": 1
+    },
+
+    "uncapping_knife": {
+      "display_name": "Uncapping Knife",
+      "description": "Slices wax caps off honey frames before extraction.",
+      "sprite": "res://assets/sprites/items/uncapping_knife.png",
+      "sprite_size": [32, 32],
+      "category": "tool",
+      "energy_cost_per_use": 3.0,
+      "unlock_level": 2
+    },
+
+    "refractometer": {
+      "display_name": "Refractometer",
+      "description": "Measures honey moisture to determine grade.",
+      "sprite": "res://assets/sprites/items/refractometer.png",
+      "sprite_size": [32, 32],
+      "category": "tool",
+      "energy_cost_per_use": 0.5,
+      "unlock_level": 2
+    }
+  },
+
+  "forage_tiles": {
+    "_comment": "Forage ground overlays — used by ForageManager.gd for nectar source visuals.",
+
+    "clover": {
+      "display_name": "White Clover",
+      "sprite": "res://assets/sprites/world/forage/clover.png",
+      "sprite_size": [32, 32],
+      "nectar_value": 1.0,
+      "season": ["spring", "summer"],
+      "forage_radius_tiles": 3
+    },
+    "dandelion": {
+      "display_name": "Dandelion",
+      "sprite": "res://assets/sprites/world/forage/dandelion.png",
+      "sprite_size": [32, 32],
+      "nectar_value": 0.6,
+      "season": ["spring"],
+      "forage_radius_tiles": 2
+    },
+    "goldenrod": {
+      "display_name": "Goldenrod",
+      "sprite": "res://assets/sprites/world/forage/goldenrod.png",
+      "sprite_size": [32, 32],
+      "nectar_value": 1.2,
+      "season": ["fall"],
+      "forage_radius_tiles": 3
+    },
+    "linden": {
+      "display_name": "Linden (Basswood)",
+      "sprite": "res://assets/sprites/world/forage/linden.png",
+      "sprite_size": [32, 32],
+      "nectar_value": 1.8,
+      "season": ["summer"],
+      "forage_radius_tiles": 5,
+      "unlock_condition": "petersen_farm_access"
+    }
+  },
+
+  "npcs": {
+    "_comment": "NPC overworld and portrait sprite references.",
+
+    "uncle_bob": {
+      "display_name": "Uncle Bob",
+      "overworld_sprite": "res://assets/sprites/npc/uncle_bob.png",
+      "portrait_sprite": "res://assets/sprites/npc/uncle_bob_portrait.png",
+      "portrait_size": [64, 64],
+      "role": "mentor",
+      "home_scene": "res://scenes/world/home_farm.tscn"
+    },
+    "frank_fischbach": {
+      "display_name": "Frank Fischbach",
+      "overworld_sprite": "res://assets/sprites/npc/frank_fischbach.png",
+      "portrait_sprite": "res://assets/sprites/npc/frank_portrait.png",
+      "portrait_size": [64, 64],
+      "role": "market_vendor",
+      "home_scene": "res://scenes/world/saturday_market.tscn"
+    },
+    "dr_harwick": {
+      "display_name": "Dr. Ellen Harwick",
+      "overworld_sprite": "res://assets/sprites/npc/dr_harwick.png",
+      "portrait_sprite": null,
+      "role": "extension_agent",
+      "home_scene": "res://scenes/world/cedar_bend.tscn"
+    },
+    "walt_harmon": {
+      "display_name": "Walt Harmon",
+      "overworld_sprite": "res://assets/sprites/npc/walt_harmon.png",
+      "portrait_sprite": null,
+      "role": "neighboring_farmer",
+      "home_scene": "res://scenes/world/harmon_farm.tscn"
+    },
+    "kacey_harmon": {
+      "display_name": "Kacey Harmon",
+      "overworld_sprite": "res://assets/sprites/npc/kacey_harmon.png",
+      "portrait_sprite": null,
+      "role": "neighboring_farmer",
+      "home_scene": "res://scenes/world/harmon_farm.tscn"
+    }
+  },
+
+  "buildings": {
+    "_comment": "World building sprites for the overworld map.",
+
+    "feed_supply": {
+      "display_name": "Cedar Bend Feed & Supply",
+      "sprite": "res://assets/sprites/world/buildings/feed_supply.png",
+      "sprite_size": [80, 64],
+      "scene": "res://scenes/world/feed_supply.tscn"
+    },
+    "diner": {
+      "display_name": "Cedar Bend Diner",
+      "sprite": "res://assets/sprites/world/buildings/diner.png",
+      "sprite_size": [80, 64],
+      "scene": "res://scenes/world/diner.tscn"
+    },
+    "market_stall": {
+      "display_name": "Saturday Market Stall",
+      "sprite": "res://assets/sprites/world/props/market_stall.png",
+      "sprite_size": [32, 48],
+      "scene": "res://scenes/world/saturday_market.tscn"
+    },
+    "grange_hall": {
+      "display_name": "Cedar Bend Grange Hall",
+      "sprite": "res://assets/sprites/world/buildings/grange_hall.png",
+      "sprite_size": [96, 72],
+      "scene": "res://scenes/world/grange_hall.tscn"
+    }
+  },
+
+  "hive_ui": {
+    "_comment": "Sprites used within the hive inspection UI.",
+
+    "queen_markers": {
+      "white":  "res://assets/sprites/hive/queen_mark_white.png",
+      "yellow": "res://assets/sprites/hive/queen_mark_yellow.png",
+      "red":    "res://assets/sprites/hive/queen_mark_red.png",
+      "green":  "res://assets/sprites/hive/queen_mark_green.png",
+      "blue":   "res://assets/sprites/hive/queen_mark_blue.png",
+      "_note": "International queen-marking color system. Year mod 5: 1/6=white, 2/7=yellow, 3/8=red, 4/9=green, 5/0=blue."
+    },
+    "hive_shadow": "res://assets/sprites/hive/overworld_hive_shadow.png",
+    "smoke_puff":  "res://assets/sprites/fx/smoke_puff.png",
+    "bee_particle":"res://assets/sprites/fx/bee_particle.png",
+    "bee_forager": "res://assets/sprites/fx/bee_forager.png"
+  },
+
+  "ui_chrome": {
+    "_comment": "UI texture sprites for panels, HUD, and menus.",
+
+    "panel_wood":      "res://assets/sprites/ui/panel_wood.png",
+    "log_page":        "res://assets/sprites/ui/log_page.png",
+    "inventory_slot":  "res://assets/sprites/ui/inventory_slot.png",
+    "xp_bar":          "res://assets/sprites/ui/xp_bar.png"
+  }
+}

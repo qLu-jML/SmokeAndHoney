@@ -1,0 +1,144 @@
+[gd_resource type="SpriteFrames" load_steps=65 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/rotations/south.png" id="rot_s"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/rotations/south-east.png" id="rot_se"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/rotations/east.png" id="rot_e"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/rotations/north-east.png" id="rot_ne"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/rotations/north.png" id="rot_n"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/rotations/north-west.png" id="rot_nw"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/rotations/west.png" id="rot_w"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/rotations/south-west.png" id="rot_sw"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/south/frame_000.png" id="ws0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/south/frame_001.png" id="ws1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/south/frame_002.png" id="ws2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/south/frame_003.png" id="ws3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/south/frame_004.png" id="ws4"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/south/frame_005.png" id="ws5"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/south/frame_006.png" id="ws6"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/south/frame_007.png" id="ws7"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/east/frame_000.png" id="we0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/east/frame_001.png" id="we1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/east/frame_002.png" id="we2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/east/frame_003.png" id="we3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/east/frame_004.png" id="we4"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/east/frame_005.png" id="we5"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/east/frame_006.png" id="we6"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/east/frame_007.png" id="we7"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north-east/frame_000.png" id="wne0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north-east/frame_001.png" id="wne1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north-east/frame_002.png" id="wne2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north-east/frame_003.png" id="wne3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north-east/frame_004.png" id="wne4"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north-east/frame_005.png" id="wne5"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north-east/frame_006.png" id="wne6"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north-east/frame_007.png" id="wne7"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north/frame_000.png" id="wn0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north/frame_001.png" id="wn1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north/frame_002.png" id="wn2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north/frame_003.png" id="wn3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north/frame_004.png" id="wn4"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north/frame_005.png" id="wn5"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north/frame_006.png" id="wn6"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north/frame_007.png" id="wn7"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north-west/frame_000.png" id="wnw0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north-west/frame_001.png" id="wnw1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north-west/frame_002.png" id="wnw2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north-west/frame_003.png" id="wnw3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north-west/frame_004.png" id="wnw4"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north-west/frame_005.png" id="wnw5"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north-west/frame_006.png" id="wnw6"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/north-west/frame_007.png" id="wnw7"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/west/frame_000.png" id="ww0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/west/frame_001.png" id="ww1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/west/frame_002.png" id="ww2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/west/frame_003.png" id="ww3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/west/frame_004.png" id="ww4"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/west/frame_005.png" id="ww5"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/west/frame_006.png" id="ww6"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/west/frame_007.png" id="ww7"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/south-west/frame_000.png" id="wsw0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/south-west/frame_001.png" id="wsw1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/south-west/frame_002.png" id="wsw2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/south-west/frame_003.png" id="wsw3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/south-west/frame_004.png" id="wsw4"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/south-west/frame_005.png" id="wsw5"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/south-west/frame_006.png" id="wsw6"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/Frank_Fischbach/animations/walking-8-frames/south-west/frame_007.png" id="wsw7"]
+
+[resource]
+animations = [{
+"frames": [{"duration": 1.0, "texture": ExtResource("rot_s")}],
+"loop": true,
+"name": &"idle_south",
+"speed": 1.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("rot_se")}],
+"loop": true,
+"name": &"idle_south_east",
+"speed": 1.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("rot_e")}],
+"loop": true,
+"name": &"idle_east",
+"speed": 1.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("rot_ne")}],
+"loop": true,
+"name": &"idle_north_east",
+"speed": 1.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("rot_n")}],
+"loop": true,
+"name": &"idle_north",
+"speed": 1.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("rot_nw")}],
+"loop": true,
+"name": &"idle_north_west",
+"speed": 1.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("rot_w")}],
+"loop": true,
+"name": &"idle_west",
+"speed": 1.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("rot_sw")}],
+"loop": true,
+"name": &"idle_south_west",
+"speed": 1.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("ws0")}, {"duration": 1.0, "texture": ExtResource("ws1")}, {"duration": 1.0, "texture": ExtResource("ws2")}, {"duration": 1.0, "texture": ExtResource("ws3")}, {"duration": 1.0, "texture": ExtResource("ws4")}, {"duration": 1.0, "texture": ExtResource("ws5")}, {"duration": 1.0, "texture": ExtResource("ws6")}, {"duration": 1.0, "texture": ExtResource("ws7")}],
+"loop": true,
+"name": &"walk_south",
+"speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("we0")}, {"duration": 1.0, "texture": ExtResource("we1")}, {"duration": 1.0, "texture": ExtResource("we2")}, {"duration": 1.0, "texture": ExtResource("we3")}, {"duration": 1.0, "texture": ExtResource("we4")}, {"duration": 1.0, "texture": ExtResource("we5")}, {"duration": 1.0, "texture": ExtResource("we6")}, {"duration": 1.0, "texture": ExtResource("we7")}],
+"loop": true,
+"name": &"walk_east",
+"speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("wne0")}, {"duration": 1.0, "texture": ExtResource("wne1")}, {"duration": 1.0, "texture": ExtResource("wne2")}, {"duration": 1.0, "texture": ExtResource("wne3")}, {"duration": 1.0, "texture": ExtResource("wne4")}, {"duration": 1.0, "texture": ExtResource("wne5")}, {"duration": 1.0, "texture": ExtResource("wne6")}, {"duration": 1.0, "texture": ExtResource("wne7")}],
+"loop": true,
+"name": &"walk_north_east",
+"speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("wn0")}, {"duration": 1.0, "texture": ExtResource("wn1")}, {"duration": 1.0, "texture": ExtResource("wn2")}, {"duration": 1.0, "texture": ExtResource("wn3")}, {"duration": 1.0, "texture": ExtResource("wn4")}, {"duration": 1.0, "texture": ExtResource("wn5")}, {"duration": 1.0, "texture": ExtResource("wn6")}, {"duration": 1.0, "texture": ExtResource("wn7")}],
+"loop": true,
+"name": &"walk_north",
+"speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("wnw0")}, {"duration": 1.0, "texture": ExtResource("wnw1")}, {"duration": 1.0, "texture": ExtResource("wnw2")}, {"duration": 1.0, "texture": ExtResource("wnw3")}, {"duration": 1.0, "texture": ExtResource("wnw4")}, {"duration": 1.0, "texture": ExtResource("wnw5")}, {"duration": 1.0, "texture": ExtResource("wnw6")}, {"duration": 1.0, "texture": ExtResource("wnw7")}],
+"loop": true,
+"name": &"walk_north_west",
+"speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("ww0")}, {"duration": 1.0, "texture": ExtResource("ww1")}, {"duration": 1.0, "texture": ExtResource("ww2")}, {"duration": 1.0, "texture": ExtResource("ww3")}, {"duration": 1.0, "texture": ExtResource("ww4")}, {"duration": 1.0, "texture": ExtResource("ww5")}, {"duration": 1.0, "texture": ExtResource("ww6")}, {"duration": 1.0, "texture": ExtResource("ww7")}],
+"loop": true,
+"name": &"walk_west",
+"speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("wsw0")}, {"duration": 1.0, "texture": ExtResource("wsw1")}, {"duration": 1.0, "texture": ExtResource("wsw2")}, {"duration": 1.0, "texture": ExtResource("wsw3")}, {"duration": 1.0, "texture": ExtResource("wsw4")}, {"duration": 1.0, "texture": ExtResource("wsw5")}, {"duration": 1.0, "texture": ExtResource("wsw6")}, {"duration": 1.0, "texture": ExtResource("wsw7")}],
+"loop": true,
+"name": &"walk_south_west",
+"speed": 8.0
+}]
