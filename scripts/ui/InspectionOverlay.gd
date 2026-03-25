@@ -68,11 +68,10 @@ const C_GOOD       := Color(0.45, 0.82, 0.45, 1.0)
 # -- Energy cost (GDD S2.1) ------------------------------------------------------
 const ENERGY_COST := 10.0
 
-# -- Queen sighting (GDD S6.1) ----------------------------------------------------
-const QUEEN_SIGHT_BASE    := 0.60
-const QUEEN_SIGHT_MAX     := 0.80
-# XP value mirrors GameData.XP_QUEEN_SIGHTING (GDD S7.1) -- kept local for fast access.
-const QUEEN_SIGHT_XP      := 15  # Must match GameData.XP_QUEEN_SIGHTING
+# -- Queen Finder Phase 2 (GDD S6.1 + Queen Finder Sub-GDD) ----------------------
+# Replaced probability-based sighting with click-based visual search.
+# Queen spawn chance (80%) and difficulty rank are rolled once per inspection.
+# XP scales with difficulty: Easy=10, Medium=15, Hard=25.
 
 # -- Internal refs ----------------------------------------------------------------
 var _hive:          Node          = null
@@ -82,6 +81,10 @@ var _box_idx:       int           = 0
 var _frame_idx:     int           = 0
 var _current_side:  int           = 0
 var _queen_seen:    bool          = false
+
+# -- Queen Finder Phase 2 (bee overlay) ----------------------------------------
+var _bee_overlay: BeeOverlay = null
+var _bee_rect:    TextureRect = null   # displays the bee sprite overlay
 
 # UI nodes
 var _header_name:   Label  = null
@@ -130,13 +133,22 @@ func open(hive_node: Node) -> void:
 	_accum_counts.clear()
 	_total_cells_seen = 0
 
+	# -- Queen Finder Phase 2: initialize bee overlay session -------------------
+	if _sim != null:
+		_bee_overlay = BeeOverlay.new()
+		# Roll difficulty rank: flat 33/33/34
+		var diff_roll: int = randi() % 3
+		# Roll queen visibility: 80% chance
+		var queen_vis: bool = _sim.queen.get("present", false) and randf() < 0.80
+		_bee_overlay.init_session(_sim, diff_roll, queen_vis)
+
 	# Apply tier visibility
 	_apply_tier_visibility()
 
 	_refresh_frame()
 	_record_current_side()
 	_refresh_stats()
-	_check_queen_sighting()
+	_populate_bees()
 
 # ------------------------------------------------------------------------------
 # Lifecycle
@@ -297,6 +309,17 @@ func _ready() -> void:
 	_cell_rect.mouse_exited.connect(_on_grid_mouse_exited)
 	bg.add_child(_cell_rect)
 
+	# -- Bee overlay (Phase 2 queen finder sprites) ----------------------------
+	_bee_rect = TextureRect.new()
+	_bee_rect.position          = Vector2(cell_x, cell_y)
+	_bee_rect.size              = Vector2(CELL_AREA_W, CELL_AREA_H)
+	_bee_rect.expand_mode       = TextureRect.EXPAND_IGNORE_SIZE
+	_bee_rect.stretch_mode      = TextureRect.STRETCH_SCALE
+	_bee_rect.texture_filter    = CanvasItem.TEXTURE_FILTER_NEAREST
+	_bee_rect.mouse_filter      = Control.MOUSE_FILTER_PASS
+	_bee_rect.z_index           = 1   # Above cell grid
+	bg.add_child(_bee_rect)
+
 	# -- Tooltip (black box with orange border, follows mouse) -----------------
 	_tooltip_panel = PanelContainer.new()
 	_tooltip_panel.visible = false
@@ -330,7 +353,7 @@ func _ready() -> void:
 	footer_bg.position = Vector2(0, VP_H - FOOTER_H)
 	bg.add_child(footer_bg)
 
-	_footer_label = _lbl("[A/D] Frame  [F] Flip  [W/S] Box  [ESC] Close",
+	_footer_label = _lbl("[A/D] Frame  [F] Flip  [W/S] Box  [Click] Find Queen  [ESC] Close",
 		5, Vector2(2, VP_H - FOOTER_H + 2), Vector2(VP_W - 4, 8), C_MUTED)
 	bg.add_child(_footer_label)
 
@@ -354,8 +377,33 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			_harvest_from_overlay()
 	get_viewport().set_input_as_handled()
 
-func _process(_delta: float) -> void:
+func _unhandled_input(event: InputEvent) -> void:
+	# Queen Finder Phase 2: click detection on bee overlay
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if _bee_overlay == null or _bee_rect == null or _queen_seen:
+			return
+		# Convert viewport mouse position to bee overlay canvas coordinates
+		var canvas_pos: Vector2 = _viewport_to_canvas(event.position)
+		if canvas_pos.x < 0.0:
+			return  # click outside the cell area
+		var result: Dictionary = _bee_overlay.hit_test(canvas_pos)
+		if result.get("is_queen", false):
+			_queen_seen = true
+			var xp_amount: int = result.get("xp", 15)
+			GameData.add_xp(xp_amount)
+			_show_queen_notification_phase2(xp_amount)
+			get_viewport().set_input_as_handled()
+		elif result.get("hit", false):
+			# Wrong bee -- feedback handled by BeeOverlay flash_timer
+			get_viewport().set_input_as_handled()
+
+func _process(delta: float) -> void:
 	_refresh_tooltip()
+	# Queen Finder Phase 2: update bee animations and render overlay
+	if _bee_overlay != null:
+		_bee_overlay.update(delta)
+		if _bee_rect != null:
+			_bee_rect.texture = _bee_overlay.get_texture()
 
 # ------------------------------------------------------------------------------
 # Tier Visibility -- called once from open() after _tier is resolved
@@ -389,7 +437,7 @@ func _navigate(dir: int) -> void:
 	_refresh_frame()
 	_record_current_side()
 	_refresh_stats()
-	_check_queen_sighting()
+	_populate_bees()
 
 func _switch_box(dir: int) -> void:
 	if _sim == null or _sim.boxes.size() <= 1:
@@ -400,7 +448,7 @@ func _switch_box(dir: int) -> void:
 	_refresh_frame()
 	_record_current_side()
 	_refresh_stats()
-	_check_queen_sighting()
+	_populate_bees()
 
 func _flip_side() -> void:
 	_current_side = 1 - _current_side
@@ -906,7 +954,83 @@ func _refresh_tooltip() -> void:
 	_tooltip_panel.position = Vector2(tx, ty)
 
 # ------------------------------------------------------------------------------
-# Queen Sighting (GDD S6.1)
+# Queen Finder Phase 2 -- Bee Overlay Integration
+# ------------------------------------------------------------------------------
+
+## Populate bee entities on the current frame. Called on frame/box navigation.
+func _populate_bees() -> void:
+	if _bee_overlay == null or _sim == null:
+		return
+	var box: Variant = _current_box()
+	if box == null:
+		return
+	_bee_overlay.populate_frame(_frame_idx, box)
+
+## Convert viewport mouse position to honeycomb canvas coordinates.
+## Returns Vector2(-1, -1) if outside the cell display area.
+func _viewport_to_canvas(viewport_pos: Vector2) -> Vector2:
+	if _bee_rect == null:
+		return Vector2(-1.0, -1.0)
+
+	# The bee_rect is positioned at (FRAME_BAR_L, HEADER_H + FRAME_BAR_T)
+	# and sized CELL_AREA_W x CELL_AREA_H in the viewport.
+	# The canvas is CANVAS_W x CANVAS_H (1833 x 755) scaled down to fit.
+	var cell_x: float = float(FRAME_BAR_L)
+	var cell_y: float = float(HEADER_H + FRAME_BAR_T)
+
+	var local_x: float = viewport_pos.x - cell_x
+	var local_y: float = viewport_pos.y - cell_y
+
+	if local_x < 0.0 or local_x >= float(CELL_AREA_W) or local_y < 0.0 or local_y >= float(CELL_AREA_H):
+		return Vector2(-1.0, -1.0)
+
+	# Scale from viewport cell area to honeycomb canvas
+	var canvas_x: float = local_x / float(CELL_AREA_W) * float(BeeOverlay.CANVAS_W)
+	var canvas_y: float = local_y / float(CELL_AREA_H) * float(BeeOverlay.CANVAS_H)
+	return Vector2(canvas_x, canvas_y)
+
+## Phase 2 notification: XP scales with difficulty rank.
+func _show_queen_notification_phase2(xp_amount: int) -> void:
+	# Build tier-appropriate message
+	var msg: String = "Queen confirmed!"
+	if _tier >= 5:
+		var species: String = _sim.last_snapshot.get("queen_species", "?") if _sim != null else "?"
+		var grade: String = _sim.last_snapshot.get("queen_grade", "?") if _sim != null else "?"
+		msg = "Queen found! %s-grade %s." % [grade, species]
+	elif _tier >= 4:
+		var grade: String = _sim.last_snapshot.get("queen_grade", "?") if _sim != null else "?"
+		if grade in ["S", "A+", "A"]:
+			msg = "Queen found! Strong genetics."
+		elif grade in ["B", "C"]:
+			msg = "Queen found! Average genetics."
+		else:
+			msg = "Queen found! Weak genetics."
+	elif _tier >= 3:
+		msg = "Queen found! She looks healthy."
+	elif _tier >= 2:
+		msg = "Queen found!"
+
+	var nm := get_tree().root.get_node_or_null("NotificationManager")
+	if nm and nm.has_method("show_queen_sighting"):
+		nm.show_queen_sighting(xp_amount)
+		return
+
+	var note := Label.new()
+	note.text = "%s +%d XP" % [msg, xp_amount]
+	note.add_theme_font_size_override("font_size", 7)
+	note.add_theme_color_override("font_color", Color(1.0, 0.88, 0.30, 1.0))
+	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	@warning_ignore("INTEGER_DIVISION")
+	note.position = Vector2(0, VP_H / 2 - 20)
+	note.size     = Vector2(VP_W, 14)
+	note.z_index  = 30
+	var bg := get_child(0)
+	bg.add_child(note)
+	var timer := get_tree().create_timer(3.0)
+	timer.timeout.connect(note.queue_free)
+
+# ------------------------------------------------------------------------------
+# Queen Sighting -- Legacy (Phase 1, kept for fallback compatibility)
 # ------------------------------------------------------------------------------
 
 func _get_queen_frame_idx() -> int:

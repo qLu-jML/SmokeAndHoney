@@ -2046,14 +2046,18 @@ Action: verify the weight threshold for winter stores is met. If yes, harvest ca
 <tr><td>Time of day modifier</td><td>Evening inspections (after 15:00): base chance ×1.25. Foragers returning to the hive increase defensive behavior.</td></tr>
 <tr><td>Energy penalty per sting</td><td>5–8 energy lost per sting event. See §5.4 Bee Stings — Energy Loss Hazard.</td></tr>
 </tbody></table>
-<h4 id="Queen_Sighting_Probability_Model">Queen Sighting — Probability Model</h4>
-<p>When the player views the frame the queen currently occupies, <code>InspectionOverlay.gd</code> performs a sighting roll. The queen is not guaranteed to be spotted every inspection — finding her reliably requires both skill and luck.</p>
+<h4 id="Queen_Sighting_Probability_Model">Queen Sighting — Visual Search (Phase 2)</h4>
+<p><strong>Phase 2 (implemented):</strong> The probability-based sighting model has been replaced by an interactive visual search minigame. When the player inspects a hive, animated bee sprites walk on each frame. The queen must be found by clicking on her among the workers. See the <em>Queen Finder Sub-GDD</em> (<code>research/queenFinder/_Queen_Finder_GDD.html</code>) for the full specification.</p>
 <table class="data-table">
-<tr><td>Base probability</td><td>60% — the chance on any given inspection frame render that the queen is spotted, regardless of player level.</td></tr>
-<tr><td>Level bonus</td><td>+1% per player level, stacking on top of the base. Capped at a maximum of 80% regardless of level.</td></tr>
-<tr><td>Reward on success</td><td>+15 XP awarded immediately. NotificationManager fires a "👑 Queen confirmed!" toast notification. InspectionOverlay.gd delegates both to their respective autoloads.</td></tr>
-<tr><td>Implementation</td><td>InspectionOverlay.gd handles the roll when rendering the queen's current frame. Updated to use NotificationManager autoload for the notification.</td></tr>
+<tr><td>Queen visibility</td><td>80% chance, rolled once at inspection start. If pass: queen entity + attendants spawned on her assigned frame. If fail: no queen visible this inspection.</td></tr>
+<tr><td>Difficulty rank</td><td>Rolled once per inspection: Easy (33%), Medium (33%), Hard (34%). Controls bee density (0.33/0.67/1.0 multiplier), spacing (28/17/12 px), and clustering (0.28/0.20/0.16 Gaussian spread).</td></tr>
+<tr><td>XP reward</td><td>Scales with difficulty: Easy +10 XP, Medium +15 XP, Hard +25 XP. Awarded when player clicks the queen entity.</td></tr>
+<tr><td>Visual tells</td><td>Queen has longer abdomen (~45% elongated), shorter wings (expose abdomen), fewer fuzz dots (shinier), wider leg splay. Breed color affects difficulty (Italian easiest, Russian hardest).</td></tr>
+<tr><td>Attendant circle</td><td>Queen is surrounded by orbiting attendant bees (count scales with grade: S=11, B=7, F=0). Attendants scale inversely with difficulty (Easy x1.5, Hard x0.5).</td></tr>
+<tr><td>Wrong click penalty</td><td>None. Brief red flash on clicked worker. No click limit. Player can keep trying.</td></tr>
+<tr><td>Implementation</td><td><code>BeeOverlay.gd</code> manages bee entities, movement, rendering, and click detection. <code>InspectionOverlay.gd</code> integrates the overlay and handles XP/notification on queen found.</td></tr>
 </tbody></table>
+<p><strong>Phase 1 (legacy):</strong> The original probability-based model (60% base + 1%/level, capped 80%) remains in InspectionOverlay.gd as fallback code but is no longer called during normal gameplay.</p>
 <h4 id="h3_6_1_1_Inspection_Knowledge_Tiers">6.1.1 Inspection Knowledge Tiers</h4>
 <p>The information available during hive inspection is gated by the player's experience level. This models how a real beekeeper's observational skills develop over time — a hobbyist sees wax and bees, while a master beekeeper reads the frame like a diagnostic report. Developer Mode overrides to full Level 5 display for testing.</p>
 <table class="data-table">

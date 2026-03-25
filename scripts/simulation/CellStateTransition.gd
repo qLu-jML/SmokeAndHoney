@@ -381,6 +381,17 @@ static func full_count(frame) -> Dictionary:
 		counts[frame.cells_b[i]] += 1
 	return counts
 
+## Count brood cells (S_EGG through S_CAPPED_DRONE) on a SINGLE side of a frame.
+## Used by the Queen Finder density model to calculate per-frame brood share.
+static func count_brood_side(frame, side: int) -> int:
+	var n := 0
+	var arr: PackedByteArray = frame.cells if side == 0 else frame.cells_b
+	for i in frame.grid_size:
+		var s: int = int(arr[i])
+		if s >= S_EGG and s <= S_CAPPED_DRONE:
+			n += 1
+	return n
+
 ## Accumulate full_count across an Array[HiveFrame] in a single allocation.
 ## Counts both sides (A and B) of every frame.  One pass gives all 14 state
 ## totals across the entire box -- replacing N separate count_state() calls.

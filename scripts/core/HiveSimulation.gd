@@ -257,6 +257,20 @@ class HiveBox:
 			n += f.count_honey()
 		return n
 
+	## Returns what fraction (0.0-1.0) of total brood in this box is on the
+	## given frame (both sides combined). Used by Queen Finder density model.
+	func get_frame_brood_share(frame_idx: int) -> float:
+		var total_brood := 0
+		var frame_brood := 0
+		for fi in frames.size():
+			var fb: int = CellStateTransition.count_brood(frames[fi])
+			total_brood += fb
+			if fi == frame_idx:
+				frame_brood = fb
+		if total_brood == 0:
+			return 0.0
+		return float(frame_brood) / float(total_brood)
+
 # -- Queen Data ----------------------------------------------------------------
 var queen: Dictionary = {
 	"present":          true,
