@@ -737,16 +737,18 @@ func _find_queen_frame(sim: HiveSimulation) -> int:
 				return fi
 	return HiveSimulation.QUEEN_FRAME_ORDER[0]
 
-## Convert angle (radians, screen-space Y-down) to 8-way direction index.
-## Spritesheet rows use math convention (Y-up): 0=E, 1=NE, 2=N, 3=NW, 4=W, 5=SW, 6=S, 7=SE
-## So we negate the angle to flip Y before quantizing.
+## Convert screen-space angle (from atan2 with Y-down) to spritesheet row index.
+## The base sprite was drawn head-left (West) but labeled row 0 as "East",
+## so every row actually faces the opposite X direction. Adding 4 (half turn)
+## corrects the offset: row 0=W, 1=NW, 2=N, 3=NE, 4=E, 5=SE, 6=S, 7=SW.
 func _angle_to_dir(angle: float) -> int:
-	var a: float = fmod(-angle + TAU, TAU)
-	var idx: int = int(roundf(a / (TAU / 8.0))) % 8
+	var a: float = fmod(angle + TAU, TAU)
+	var idx: int = (int(roundf(a / (TAU / 8.0))) + 4) % 8
 	return idx
 
-## Convert 8-way direction index to unit vector in screen-space (Y-down).
-## Negates Y because sprite directions use math convention (Y-up).
+## Convert spritesheet row index back to a screen-space unit vector (Y-down).
+## Undoes the +4 row offset so the returned vector matches the facing direction.
 func _dir_to_vector(dir: int) -> Vector2:
-	var angle: float = float(dir) * (TAU / 8.0)
-	return Vector2(cos(angle), -sin(angle))
+	var screen_idx: int = (dir + 4) % 8
+	var angle: float = float(screen_idx) * (TAU / 8.0)
+	return Vector2(cos(angle), sin(angle))
