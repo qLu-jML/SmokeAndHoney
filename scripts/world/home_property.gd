@@ -62,11 +62,11 @@ func _ready() -> void:
 
 func _register_map_markers() -> void:
 	SceneManager.clear_scene_markers()
-	# Bounds: use the playable area (tighter than the full wall extent)
-	# Player starts near (-14, -26), action is roughly -200..800 x, -100..500 y
-	SceneManager.set_scene_bounds(Rect2(-200, -100, 1000, 600))
-	# POIs -- auto-scan will pick up UncleBob, Merchant, StorageChest
-	# but we can register known ones with friendly names
+	# Fixed bounds for the home property map.
+	# Content: player(-14,-26), Bob(380,140), Merchant(565,290),
+	#   Storage(200,220), Hive(300,350), exit-right(330,45).
+	# Bounds padded ~80px beyond outermost content on each side.
+	SceneManager.set_scene_bounds(Rect2(-100, -110, 750, 550))
 	var uncle_bob: Node2D = get_node_or_null("World/UncleBob")
 	if uncle_bob:
 		SceneManager.register_scene_poi(uncle_bob.global_position, "Uncle Bob", Color(0.45, 0.85, 0.50))
@@ -76,6 +76,8 @@ func _register_map_markers() -> void:
 	var chest: Node2D = get_node_or_null("World/StorageChest")
 	if chest:
 		SceneManager.register_scene_poi(chest.global_position, "Storage", Color(0.85, 0.70, 0.30))
+	# Hive (spawned at fixed position on fresh game)
+	SceneManager.register_scene_poi(Vector2(300, 350), "Hive", Color(0.95, 0.80, 0.25))
 	# Exits
 	SceneManager.register_scene_exit("right", "County Road")
 

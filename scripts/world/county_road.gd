@@ -50,6 +50,8 @@ func _setup_exits() -> void:
 
 func _register_map_markers() -> void:
 	SceneManager.clear_scene_markers()
+	# Fixed bounds: exits at x+/-330, y+/-100, with padding
+	SceneManager.set_scene_bounds(Rect2(-400, -160, 800, 320))
 	# POIs
 	if truck_sprite:
 		SceneManager.register_scene_poi(truck_sprite.position, "Truck", Color(0.6, 0.55, 0.45))

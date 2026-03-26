@@ -24,6 +24,7 @@ func _setup_exits() -> void:
 
 func _register_map_markers() -> void:
 	SceneManager.clear_scene_markers()
+	SceneManager.set_scene_bounds(Rect2(-400, -160, 800, 320))
 	# Garden features
 	var plaque: Node2D = get_node_or_null("World/Props/Plaque") as Node2D
 	if plaque:
