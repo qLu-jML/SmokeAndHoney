@@ -8,6 +8,7 @@ func _ready() -> void:
 	if get_node_or_null("/root/SceneManager"):
 		SceneManager.current_zone_name = "Timber Creek"
 		SceneManager.show_zone_name()
+		_register_map_markers()
 	_apply_seasonal_visuals()
 	TimeManager.day_advanced.connect(_on_day_advanced)
 	_setup_exits()
@@ -18,6 +19,18 @@ func _setup_exits() -> void:
 	# Bottom edge -> County Road
 	ExitHelper.create_exit(self, "bottom", "res://scenes/world/county_road.tscn",
 		"v County Road")
+
+func _register_map_markers() -> void:
+	SceneManager.clear_scene_markers()
+	# Nature landmarks
+	var creek: Node2D = get_node_or_null("World/Creek") as Node2D
+	if creek:
+		SceneManager.register_scene_poi(creek.position, "Creek", Color(0.3, 0.6, 0.85))
+	var signpost: Node2D = get_node_or_null("World/Props/Signpost") as Node2D
+	if signpost:
+		SceneManager.register_scene_poi(signpost.position, "Signpost", Color(0.7, 0.55, 0.3))
+	# Exits
+	SceneManager.register_scene_exit("bottom", "County Road")
 
 func _on_day_advanced(_day: int) -> void:
 	_apply_seasonal_visuals()

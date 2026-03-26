@@ -76,6 +76,11 @@ func _ready() -> void:
 	if get_node_or_null("/root/SceneManager"):
 		SceneManager.current_zone_name = "Crossroads Diner"
 		SceneManager.show_zone_name()
+		SceneManager.clear_scene_markers()
+		SceneManager.set_scene_bounds(Rect2(-160, -90, 320, 180))
+		SceneManager.register_scene_poi(Vector2(0, -40), "Counter", Color(0.7, 0.5, 0.3))
+		SceneManager.register_scene_poi(Vector2(0, 80), "Door", Color(0.7, 0.4, 0.2))
+		SceneManager.register_scene_exit("bottom", "Cedar Bend")
 	_build_menu_ui()
 	_update_tv_weather()
 	_update_npc_visibility()

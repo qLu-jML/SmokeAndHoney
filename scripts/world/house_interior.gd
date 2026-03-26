@@ -18,6 +18,10 @@ func _ready() -> void:
 	if get_node_or_null("/root/SceneManager"):
 		SceneManager.current_zone_name = "House Interior"
 		SceneManager.show_zone_name()
+		SceneManager.clear_scene_markers()
+		SceneManager.set_scene_bounds(Rect2(0, 0, W * TILE, H * TILE))
+		SceneManager.register_scene_poi(Vector2(DOOR_COL * TILE + TILE * 0.5, (H - 1) * TILE), "Door", Color(0.7, 0.4, 0.2))
+		SceneManager.register_scene_exit("bottom", "Outside")
 	_build_walls()
 	_place_player()
 

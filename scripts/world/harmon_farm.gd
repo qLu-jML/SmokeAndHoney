@@ -10,6 +10,7 @@ func _ready() -> void:
 	if get_node_or_null("/root/SceneManager"):
 		SceneManager.current_zone_name = "Harmon Farm"
 		SceneManager.show_zone_name()
+		_register_map_markers()
 	_apply_seasonal_visuals()
 	TimeManager.day_advanced.connect(_on_day_advanced)
 	_setup_exits()
@@ -20,6 +21,25 @@ func _setup_exits() -> void:
 	# Top edge -> County Road
 	ExitHelper.create_exit(self, "top", "res://scenes/world/county_road.tscn",
 		"^ County Road")
+
+func _register_map_markers() -> void:
+	SceneManager.clear_scene_markers()
+	# Buildings
+	var barn: Node2D = get_node_or_null("World/Buildings/Barn") as Node2D
+	if barn:
+		SceneManager.register_scene_poi(barn.position, "Barn", Color(0.7, 0.4, 0.2))
+	var farmhouse: Node2D = get_node_or_null("World/Buildings/Farmhouse") as Node2D
+	if farmhouse:
+		SceneManager.register_scene_poi(farmhouse.position, "Farmhouse", Color(0.8, 0.6, 0.3))
+	# NPCs
+	var walt: Node2D = get_node_or_null("World/NPCs/Walt") as Node2D
+	if walt:
+		SceneManager.register_scene_poi(walt.position, "Walt", Color(0.5, 0.8, 0.5))
+	var kacey: Node2D = get_node_or_null("World/NPCs/Kacey") as Node2D
+	if kacey:
+		SceneManager.register_scene_poi(kacey.position, "Kacey", Color(0.5, 0.8, 0.5))
+	# Exits
+	SceneManager.register_scene_exit("top", "County Road")
 
 func _on_day_advanced(_day: int) -> void:
 	_apply_seasonal_visuals()

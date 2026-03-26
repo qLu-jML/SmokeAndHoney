@@ -33,6 +33,7 @@ func _ready() -> void:
 	if get_node_or_null("/root/SceneManager"):
 		SceneManager.current_zone_name = "Cedar Bend"
 		SceneManager.show_zone_name()
+		_register_map_markers()
 	_setup_zone_exits()
 	ExitHelper.position_player_from_spawn_side(self)
 	print("Cedar Bend scene loaded -- Phase 4 build.")
@@ -47,6 +48,26 @@ func _setup_zone_exits() -> void:
 	# Bottom edge -> Fairgrounds
 	ExitHelper.create_exit(self, "bottom", "res://scenes/world/fairgrounds.tscn",
 		"v Fairgrounds")
+
+func _register_map_markers() -> void:
+	SceneManager.clear_scene_markers()
+	# Buildings as POIs
+	var buildings: Node = get_node_or_null("World/Buildings")
+	if buildings:
+		for bname in ["CrossroadsDiner", "FeedSupply", "PostOffice", "GrangeHall"]:
+			var b: Node2D = buildings.get_node_or_null(bname) as Node2D
+			if b:
+				var lbl: String = bname
+				match bname:
+					"CrossroadsDiner": lbl = "Diner"
+					"FeedSupply": lbl = "Feed & Supply"
+					"PostOffice": lbl = "Post Office"
+					"GrangeHall": lbl = "Grange Hall"
+				SceneManager.register_scene_poi(b.position, lbl, Color(0.8, 0.6, 0.3))
+	# Exits
+	SceneManager.register_scene_exit("left", "County Road")
+	SceneManager.register_scene_exit("right", "Garden")
+	SceneManager.register_scene_exit("bottom", "Fairgrounds")
 
 func _on_day_advanced(_day: int) -> void:
 	_apply_seasonal_visuals()

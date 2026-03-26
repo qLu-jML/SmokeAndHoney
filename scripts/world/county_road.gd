@@ -29,6 +29,7 @@ func _ready() -> void:
 	if get_node_or_null("/root/SceneManager"):
 		SceneManager.current_zone_name = "County Road"
 		SceneManager.show_zone_name()
+		_register_map_markers()
 	_setup_exits()
 	ExitHelper.position_player_from_spawn_side(self)
 	print("County Road scene loaded -- Phase 4 build.")
@@ -46,6 +47,19 @@ func _setup_exits() -> void:
 	# Top edge -> Timber Creek
 	ExitHelper.create_exit(self, "top", "res://scenes/world/timber_creek.tscn",
 		"^ Timber Creek")
+
+func _register_map_markers() -> void:
+	SceneManager.clear_scene_markers()
+	# POIs
+	if truck_sprite:
+		SceneManager.register_scene_poi(truck_sprite.position, "Truck", Color(0.6, 0.55, 0.45))
+	if mailbox_sprite:
+		SceneManager.register_scene_poi(mailbox_sprite.position, "Mailbox", Color(0.7, 0.3, 0.2))
+	# Exits
+	SceneManager.register_scene_exit("left", "Home")
+	SceneManager.register_scene_exit("right", "Cedar Bend")
+	SceneManager.register_scene_exit("bottom", "Harmon Farm")
+	SceneManager.register_scene_exit("top", "Timber Creek")
 
 func _on_day_advanced(_day: int) -> void:
 	_apply_seasonal_visuals()

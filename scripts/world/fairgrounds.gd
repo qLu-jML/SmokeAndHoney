@@ -10,6 +10,7 @@ func _ready() -> void:
 	if get_node_or_null("/root/SceneManager"):
 		SceneManager.current_zone_name = "County Fairgrounds"
 		SceneManager.show_zone_name()
+		_register_map_markers()
 	_update_event_state()
 	TimeManager.day_advanced.connect(_on_day_advanced)
 	_setup_exits()
@@ -20,6 +21,18 @@ func _setup_exits() -> void:
 	# Top edge -> Cedar Bend
 	ExitHelper.create_exit(self, "top", "res://scenes/world/cedar_bend.tscn",
 		"^ Cedar Bend")
+
+func _register_map_markers() -> void:
+	SceneManager.clear_scene_markers()
+	# Fairgrounds features
+	var gate: Node2D = get_node_or_null("World/Buildings/Gate") as Node2D
+	if gate:
+		SceneManager.register_scene_poi(gate.position, "Gate", Color(0.7, 0.4, 0.2))
+	var booths: Node2D = get_node_or_null("World/EventBooths") as Node2D
+	if booths and booths.visible:
+		SceneManager.register_scene_poi(booths.position, "Event Booths", Color(0.9, 0.7, 0.2))
+	# Exits
+	SceneManager.register_scene_exit("top", "Cedar Bend")
 
 func _on_day_advanced(_day: int) -> void:
 	_update_event_state()

@@ -10,6 +10,7 @@ func _ready() -> void:
 	if get_node_or_null("/root/SceneManager"):
 		SceneManager.current_zone_name = "Community Garden"
 		SceneManager.show_zone_name()
+		_register_map_markers()
 	_apply_seasonal_visuals()
 	TimeManager.day_advanced.connect(_on_day_advanced)
 	_setup_exits()
@@ -20,6 +21,22 @@ func _setup_exits() -> void:
 	# Left edge -> Cedar Bend
 	ExitHelper.create_exit(self, "left", "res://scenes/world/cedar_bend.tscn",
 		"<- Cedar Bend")
+
+func _register_map_markers() -> void:
+	SceneManager.clear_scene_markers()
+	# Garden features
+	var plaque: Node2D = get_node_or_null("World/Props/Plaque") as Node2D
+	if plaque:
+		SceneManager.register_scene_poi(plaque.position, "Plaque", Color(0.7, 0.55, 0.3))
+	var bench: Node2D = get_node_or_null("World/Props/Bench") as Node2D
+	if bench:
+		SceneManager.register_scene_poi(bench.position, "Bench", Color(0.6, 0.5, 0.4))
+	# NPC
+	var terri: Node2D = get_node_or_null("World/NPCs/DrTerri") as Node2D
+	if terri:
+		SceneManager.register_scene_poi(terri.position, "Dr. Terri", Color(0.5, 0.8, 0.5))
+	# Exits
+	SceneManager.register_scene_exit("left", "Cedar Bend")
 
 func _on_day_advanced(_day: int) -> void:
 	_apply_seasonal_visuals()

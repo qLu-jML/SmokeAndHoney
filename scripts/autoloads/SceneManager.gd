@@ -9,6 +9,37 @@ var _map_overlay_scene: PackedScene = null
 var _map_overlay_instance: Node = null
 var _map_open: bool = false
 
+# -- Scene POI and Exit Registration -------------------------------------------
+# Each scene populates these in _ready(); map overlay reads them.
+# POI format: { "pos": Vector2, "label": String, "color": Color (optional) }
+# Exit format: { "edge": String, "label": String }
+var _scene_pois: Array = []
+var _scene_exits: Array = []
+var _scene_bounds: Rect2 = Rect2(-350, -120, 700, 240)  # default bounds
+
+func register_scene_poi(world_pos: Vector2, label: String, color: Color = Color(0.85, 0.72, 0.35, 1.0)) -> void:
+	_scene_pois.append({"pos": world_pos, "label": label, "color": color})
+
+func register_scene_exit(edge: String, label: String) -> void:
+	_scene_exits.append({"edge": edge, "label": label})
+
+func set_scene_bounds(bounds: Rect2) -> void:
+	_scene_bounds = bounds
+
+func clear_scene_markers() -> void:
+	_scene_pois.clear()
+	_scene_exits.clear()
+	_scene_bounds = Rect2(-350, -120, 700, 240)
+
+func get_scene_pois() -> Array:
+	return _scene_pois
+
+func get_scene_exits() -> Array:
+	return _scene_exits
+
+func get_scene_bounds() -> Rect2:
+	return _scene_bounds
+
 # -- Zone Minimap ---------------------------------------------------------------
 var _zone_label: Label = null
 var _zone_bg: ColorRect = null

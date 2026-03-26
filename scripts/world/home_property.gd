@@ -8,6 +8,7 @@ func _ready() -> void:
 	if get_node_or_null("/root/SceneManager"):
 		SceneManager.current_zone_name = "Home Property"
 		SceneManager.show_zone_name()
+		_register_map_markers()
 	# -- Priority 1: returning from an interior scene --------------------------
 	# The player walked through a door (house -> exterior).  TimeManager carries
 	# the hive / flower / player-position state across the scene change.
@@ -52,6 +53,26 @@ func _ready() -> void:
 	_setup_exits()
 	# Position player based on which direction they came from
 	ExitHelper.position_player_from_spawn_side(self)
+
+func _register_map_markers() -> void:
+	SceneManager.clear_scene_markers()
+	# Home scene is larger than default -- set bounds from wall positions
+	SceneManager.set_scene_bounds(Rect2(-580, -350, 2667, 1635))
+	# POIs -- buildings and notable objects
+	var house_node: Node2D = get_node_or_null("World/House")
+	if house_node:
+		SceneManager.register_scene_poi(house_node.position, "House", Color(0.8, 0.6, 0.3))
+	var uncle_bob: Node2D = get_node_or_null("World/UncleBob")
+	if uncle_bob:
+		SceneManager.register_scene_poi(uncle_bob.position, "Uncle Bob", Color(0.5, 0.8, 0.5))
+	var merchant: Node2D = get_node_or_null("World/Merchant")
+	if merchant:
+		SceneManager.register_scene_poi(merchant.position, "Merchant", Color(0.7, 0.5, 0.9))
+	var chest: Node2D = get_node_or_null("World/StorageChest")
+	if chest:
+		SceneManager.register_scene_poi(chest.position, "Storage", Color(0.6, 0.55, 0.4))
+	# Exits
+	SceneManager.register_scene_exit("right", "County Road")
 
 func _setup_exits() -> void:
 	# Right edge -> County Road
