@@ -3,6 +3,11 @@ extends Node2D
 const HIVE_SCENE   := preload("res://scenes/hive.tscn")
 const FLOWER_SCENE := preload("res://scenes/flowers/flowers.tscn")
 
+const INTERACT_RADIUS := 100.0
+
+# Building door triggers: node_name -> interior scene path
+var _building_triggers: Dictionary = {}
+
 func _ready() -> void:
 	TimeManager.current_scene_id = "home"
 	if get_node_or_null("/root/SceneManager"):
@@ -55,6 +60,9 @@ func _ready() -> void:
 		# brood nest, adequate stores.  Placed near the player's starting area.
 		_spawn_starter_hive()
 
+	# -- Building entry triggers ------------------------------------------------
+	_setup_building_triggers()
+
 	# -- Walking exits ----------------------------------------------------------
 	_setup_exits()
 	# Position player based on which direction they came from
@@ -85,6 +93,13 @@ func _register_map_markers() -> void:
 		print("[HomeProperty] Registered Storage at %s" % str(chest.global_position))
 	else:
 		print("[HomeProperty] WARNING: StorageChest node not found!")
+	# Buildings
+	var farmhouse: Node2D = get_node_or_null("World/Buildings/Farmhouse")
+	if farmhouse:
+		SceneManager.register_scene_poi(farmhouse.global_position, "Farmhouse", Color(0.85, 0.65, 0.40))
+	var honey_house: Node2D = get_node_or_null("World/Buildings/HoneyHouse")
+	if honey_house:
+		SceneManager.register_scene_poi(honey_house.global_position, "Honey House", Color(0.90, 0.70, 0.30))
 	# Hive (spawned at fixed position on fresh game)
 	SceneManager.register_scene_poi(Vector2(300, 350), "Hive", Color(0.95, 0.80, 0.25))
 	print("[HomeProperty] Registered Hive at (300, 350)")
@@ -107,6 +122,70 @@ func _spawn_starter_hive() -> void:
 	# Overwintered Carniolan B -- the benchmark test colony for spring Day 1.
 	if hive_node.has_method("place_as_overwintered"):
 		hive_node.place_as_overwintered("Carniolan", "B")
+
+func _setup_building_triggers() -> void:
+	_building_triggers = {
+		"Farmhouse":  "res://scenes/house/house_interior.tscn",
+		"HoneyHouse": "res://scenes/world/honey_house.tscn",
+	}
+
+func _process(_delta: float) -> void:
+	var player: Node2D = get_node_or_null("World/player") as Node2D
+	if not player:
+		return
+	# Show/hide hints on buildings based on proximity
+	for bname in _building_triggers.keys():
+		var bnode: Node2D = get_node_or_null("World/Buildings/" + bname) as Node2D
+		if not bnode:
+			continue
+		var dist: float = player.global_position.distance_to(bnode.global_position)
+		var hint: Label = bnode.get_node_or_null("InteractHint") as Label
+		if hint:
+			hint.visible = dist < INTERACT_RADIUS
+
+	# Handle E key to enter buildings
+	if Input.is_action_just_pressed("interact"):
+		_try_enter_building(player)
+
+func _try_enter_building(player: Node2D) -> void:
+	var closest_name: String = ""
+	var closest_dist: float = INF
+	for bname in _building_triggers.keys():
+		var bnode: Node2D = get_node_or_null("World/Buildings/" + bname) as Node2D
+		if not bnode:
+			continue
+		var dist: float = player.global_position.distance_to(bnode.global_position)
+		if dist < INTERACT_RADIUS and dist < closest_dist:
+			closest_dist = dist
+			closest_name = bname
+	if closest_name == "":
+		return
+	var target_scene: String = _building_triggers.get(closest_name, "")
+	if target_scene == "":
+		return
+	# Save exterior state before entering interior
+	_save_exterior_state()
+	TimeManager.came_from_interior = false
+	TimeManager.player_return_pos = player.global_position
+	print("[HomeProperty] Entering %s -> %s" % [closest_name, target_scene])
+	SceneManager.change_scene(target_scene)
+
+func _save_exterior_state() -> void:
+	var world: Node = get_node_or_null("World")
+	if not world:
+		return
+	TimeManager.exterior_hives.clear()
+	TimeManager.exterior_flowers.clear()
+	for child in world.get_children():
+		if child.has_method("get_hive_data"):
+			TimeManager.exterior_hives.append({
+				"pos": child.global_position,
+				"tile": child.get_meta("tile_coords", Vector2i.ZERO)
+			})
+		elif child.is_in_group("flowers"):
+			TimeManager.exterior_flowers.append({
+				"pos": child.global_position
+			})
 
 func _setup_exits() -> void:
 	# Right edge -> County Road

@@ -23,6 +23,8 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/environment/garden_bed.png" id="garden_bed_tex"]
 [ext_resource type="Script" path="res://scripts/world/flower_lifecycle_manager.gd" id="flower_lifecycle_script"]
 [ext_resource type="Script" path="res://scripts/world/chest.gd" id="chest_script"]
+[ext_resource type="Texture2D" path="res://assets/sprites/buildings/farmhouse.png" id="farmhouse_tex"]
+[ext_resource type="Texture2D" path="res://assets/sprites/buildings/honey_house.png" id="honey_house_tex"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_tq2pu"]
 texture = ExtResource("4_hxvsk")
@@ -2474,7 +2476,7 @@ texture_region_size = Vector2i(32, 32)
 0:0/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_coneflower"]
-; Purple Coneflower forage tile — 16×16 RGBA, single tile atlas
+; Purple Coneflower forage tile -- 32x32 RGBA, single tile atlas
 ; Used for Layer 3 (flowers_forage), source_id=6
 texture = ExtResource("coneflower_tex")
 texture_region_size = Vector2i(32, 32)
@@ -2584,6 +2586,37 @@ shape = SubResource("RectangleShape2D_choun")
 [node name="RightWall" type="CollisionShape2D" parent="World/StaticBody2D" unique_id=773453123]
 position = Vector2(2086.75, 456)
 shape = SubResource("RectangleShape2D_choun")
+
+[node name="Buildings" type="Node2D" parent="World"]
+y_sort_enabled = true
+
+[node name="Farmhouse" type="Sprite2D" parent="World/Buildings"]
+position = Vector2(80, -80)
+texture = ExtResource("farmhouse_tex")
+z_index = 1
+
+[node name="InteractHint" type="Label" parent="World/Buildings/Farmhouse"]
+offset_left = -50.0
+offset_top = -120.0
+offset_right = 50.0
+offset_bottom = -100.0
+text = "Press E to Enter"
+horizontal_alignment = 1
+visible = false
+
+[node name="HoneyHouse" type="Sprite2D" parent="World/Buildings"]
+position = Vector2(450, -40)
+texture = ExtResource("honey_house_tex")
+z_index = 1
+
+[node name="InteractHint" type="Label" parent="World/Buildings/HoneyHouse"]
+offset_left = -50.0
+offset_top = -100.0
+offset_right = 50.0
+offset_bottom = -80.0
+text = "Press E to Enter"
+horizontal_alignment = 1
+visible = false
 
 [node name="Merchant" parent="World" unique_id=999888666 instance=ExtResource("merchant_scene")]
 position = Vector2(565, 290)
