@@ -45,9 +45,15 @@ func _ready() -> void:
 	# If successful, apply_to_scene() spawns saved hives and flowers, restores
 	# player position and inventory, and rehydrates all autoload state.
 	# If no save file exists (first run) or it is corrupted, load_from_disk()
-	# returns false and we skip silently -- the scene starts as a fresh game.
+	# returns false and we fall through to Priority 3 (fresh game).
 	if SaveManager.load_from_disk():
 		SaveManager.apply_to_scene(self)
+	else:
+		# -- Priority 3: fresh game -- spawn the starter overwintered hive -----
+		# The player's story begins in spring with one established colony that
+		# survived winter.  Carniolan B-rated queen, 4 drawn frames, small
+		# brood nest, adequate stores.  Placed near the player's starting area.
+		_spawn_starter_hive()
 
 	# -- Walking exits ----------------------------------------------------------
 	_setup_exits()
@@ -56,23 +62,37 @@ func _ready() -> void:
 
 func _register_map_markers() -> void:
 	SceneManager.clear_scene_markers()
-	# Home scene is larger than default -- set bounds from wall positions
-	SceneManager.set_scene_bounds(Rect2(-580, -350, 2667, 1635))
-	# POIs -- buildings and notable objects
-	var house_node: Node2D = get_node_or_null("World/House")
-	if house_node:
-		SceneManager.register_scene_poi(house_node.position, "House", Color(0.8, 0.6, 0.3))
+	# Bounds: use the playable area (tighter than the full wall extent)
+	# Player starts near (-14, -26), action is roughly -200..800 x, -100..500 y
+	SceneManager.set_scene_bounds(Rect2(-200, -100, 1000, 600))
+	# POIs -- auto-scan will pick up UncleBob, Merchant, StorageChest
+	# but we can register known ones with friendly names
 	var uncle_bob: Node2D = get_node_or_null("World/UncleBob")
 	if uncle_bob:
-		SceneManager.register_scene_poi(uncle_bob.position, "Uncle Bob", Color(0.5, 0.8, 0.5))
+		SceneManager.register_scene_poi(uncle_bob.global_position, "Uncle Bob", Color(0.45, 0.85, 0.50))
 	var merchant: Node2D = get_node_or_null("World/Merchant")
 	if merchant:
-		SceneManager.register_scene_poi(merchant.position, "Merchant", Color(0.7, 0.5, 0.9))
+		SceneManager.register_scene_poi(merchant.global_position, "Merchant", Color(0.70, 0.50, 0.90))
 	var chest: Node2D = get_node_or_null("World/StorageChest")
 	if chest:
-		SceneManager.register_scene_poi(chest.position, "Storage", Color(0.6, 0.55, 0.4))
+		SceneManager.register_scene_poi(chest.global_position, "Storage", Color(0.85, 0.70, 0.30))
 	# Exits
 	SceneManager.register_scene_exit("right", "County Road")
+
+## Spawn the starter overwintered hive on a fresh game (no save file).
+## Placed south-east of the player's starting position in a logical apiary spot.
+func _spawn_starter_hive() -> void:
+	var world: Node = get_node_or_null("World")
+	if world == null:
+		return
+	var hive_node: Node2D = HIVE_SCENE.instantiate()
+	world.add_child(hive_node)
+	# Position the hive to the right and slightly below the player start (73,141).
+	# Far enough away to feel intentional, close enough to find immediately.
+	hive_node.global_position = Vector2(300, 350)
+	# Overwintered Carniolan B -- the benchmark test colony for spring Day 1.
+	if hive_node.has_method("place_as_overwintered"):
+		hive_node.place_as_overwintered("Carniolan", "B")
 
 func _setup_exits() -> void:
 	# Right edge -> County Road
