@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://farmtest123"]
+[gd_scene format=3 uid="uid://homeproperty01"]
 
 [ext_resource type="PackedScene" uid="uid://d3qdbfmsmyqoa" path="res://scenes/player/player.tscn" id="3_jyhfs"]
 [ext_resource type="Script" uid="uid://y3uori7de3fm" path="res://scripts/ui/hud.gd" id="3_tbgi4"]
@@ -9,7 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://dtj6572wwej54" path="res://assets/sprites/paid/Pixel Art Top Down - Village v1.0.7/Texture/Extra/TX Village Plant with Shadow.png" id="7_hxvsk"]
 [ext_resource type="Script" uid="uid://fq4bb4j3t1ww" path="res://scripts/ui/grid_overlay.gd" id="grid_overlay_script"]
 [ext_resource type="PackedScene" uid="uid://merchant01" path="res://scenes/npc/merchant.tscn" id="merchant_scene"]
-[ext_resource type="Script" uid="uid://ykw0xvtgsnlg" path="res://scripts/world/test_environment.gd" id="test_env_script"]
+[ext_resource type="Script" uid="uid://ykw0xvtgsnlg" path="res://scripts/world/home_property.gd" id="test_env_script"]
 
 [ext_resource type="Script" path="res://scripts/npc/uncle_bob.gd" id="uncle_bob_script"]
 [ext_resource type="Texture2D" path="res://assets/sprites/world/forage/dandelion_mature.png" id="dandelion_tex"]
@@ -2521,7 +2521,7 @@ size = Vector2(22.5, 1672)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gardenbed"]
 size = Vector2(48, 16)
 
-[node name="TestEnvironment" type="Node2D" unique_id=802804618]
+[node name="HomeProperty" type="Node2D" unique_id=802804618]
 script = ExtResource("test_env_script")
 
 [node name="World" type="Node2D" parent="." unique_id=1545308088]

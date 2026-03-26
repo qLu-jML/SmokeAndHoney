@@ -4,7 +4,7 @@
 # Each WildflowerCluster spawns multiple small flower sprites scattered
 # organically around a center point, blending seamlessly with the grass.
 #
-# Attach this script to the WildflowerPatches node in TestEnvironment.tscn.
+# Attach this script to the WildflowerPatches node in home_property.tscn.
 # On _ready(), it removes any old static Sprite2D children and spawns
 # organic clusters based on the cluster definitions below.
 # -----------------------------------------------------------------------------

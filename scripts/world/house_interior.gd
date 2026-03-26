@@ -93,5 +93,5 @@ func _find_player() -> Node:
 func _trigger() -> void:
 	_transitioning = true
 	TimeManager.came_from_interior = true
-	TimeManager.next_scene = "res://scenes/TestEnvironment.tscn"
+	TimeManager.next_scene = "res://scenes/home_property.tscn"
 	get_tree().change_scene_to_file("res://scenes/loading/loading_screen.tscn")

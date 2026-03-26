@@ -19,7 +19,7 @@
 #   EXCEPTIONAL: ?early shift (arrives day 12-16)
 #   POOR:        ?late shift  (arrives day 22-28, may overlap Greening)
 #
-# Grass grid: hardcoded for TestEnvironment; scene-specific subclasses can
+# Grass grid: hardcoded for HomeProperty; scene-specific subclasses can
 # override _get_grass_zone_rect() to define their own planting footprint.
 # -----------------------------------------------------------------------------
 extends Node2D
@@ -247,10 +247,10 @@ func _clear_dandelions() -> void:
 # -- Area / Zone ----------------------------------------------------------------
 
 ## Returns the grass footprint rect in world space for dandelion seeding.
-## TestEnvironment grass covers roughly the tilemap playable area.
+## HomeProperty grass covers roughly the tilemap playable area.
 ## Override per scene for accuracy.
 func _get_grass_zone_rect() -> Rect2:
-	# TestEnvironment: the playable lawn/field area excluding paths and buildings.
+	# HomeProperty: the playable lawn/field area excluding paths and buildings.
 	# Rough footprint based on tilemap position and known scene bounds.
 	return Rect2(Vector2(-14, -26), Vector2(1600, 900))
 

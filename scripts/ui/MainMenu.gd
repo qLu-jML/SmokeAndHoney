@@ -288,7 +288,7 @@ func _transition_to_game() -> void:
 	var tw := create_tween()
 	tw.tween_property(overlay, "modulate:a", 1.0, 0.35)
 	await tw.finished
-	get_tree().change_scene_to_file("res://scenes/TestEnvironment.tscn")
+	get_tree().change_scene_to_file("res://scenes/home_property.tscn")
 
 # -- Save detection ------------------------------------------------------------
 

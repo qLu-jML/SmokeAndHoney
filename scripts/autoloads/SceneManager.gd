@@ -115,6 +115,6 @@ func go_back() -> void:
 	# Return to the previous scene (e.g., exiting an interior)
 	var target: String = TimeManager.previous_scene
 	if target == "":
-		target = "res://scenes/TestEnvironment.tscn"
+		target = "res://scenes/home_property.tscn"
 	TimeManager.next_scene = target
 	get_tree().change_scene_to_file("res://scenes/loading/loading_screen.tscn")

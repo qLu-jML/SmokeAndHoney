@@ -64,7 +64,7 @@ signal load_failed(reason: String)
 var _pending_data:    Dictionary = {}
 
 ## True when _pending_data contains valid, version-matched save data that has
-## not yet been applied.  test_environment.gd checks this flag in _ready().
+## not yet been applied.  home_property.gd checks this flag in _ready().
 var has_pending_load: bool = false
 
 
@@ -235,7 +235,7 @@ func load_from_disk() -> bool:
 ## IMPORTANT: call this AFTER the scene's _ready() has finished so that the
 ## World node, player, and DandelionSpawner are all present in the tree.
 ##
-## scene_root -- the TestEnvironment Node2D (or the equivalent scene root).
+## scene_root -- the HomeProperty Node2D (or the equivalent scene root).
 func apply_to_scene(scene_root: Node) -> void:
 	if not has_pending_load or _pending_data.is_empty():
 		push_warning("SaveManager.apply_to_scene(): no pending data.")

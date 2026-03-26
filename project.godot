@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Smoke and Honey"
-run/main_scene="res://scenes/TestEnvironment.tscn"
+run/main_scene="res://scenes/home_property.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
 

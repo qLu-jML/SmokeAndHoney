@@ -10,7 +10,7 @@ room_height = 8
 door_col = 4
 zone_name = "Honey House"
 scene_id = "honey_house"
-exit_scene = "res://scenes/TestEnvironment.tscn"
+exit_scene = "res://scenes/home_property.tscn"
 floor_color = Color(0.62, 0.55, 0.42, 1.0)
 wall_color = Color(0.40, 0.28, 0.15, 1.0)
 

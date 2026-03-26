@@ -35,7 +35,7 @@ func _ready() -> void:
 
 func _setup_exits() -> void:
 	# Left edge -> Home Property
-	ExitHelper.create_exit(self, "left", "res://scenes/TestEnvironment.tscn",
+	ExitHelper.create_exit(self, "left", "res://scenes/home_property.tscn",
 		"<- Home")
 	# Right edge -> Cedar Bend (town)
 	ExitHelper.create_exit(self, "right", "res://scenes/world/cedar_bend.tscn",
