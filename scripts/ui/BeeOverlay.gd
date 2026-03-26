@@ -737,15 +737,16 @@ func _find_queen_frame(sim: HiveSimulation) -> int:
 				return fi
 	return HiveSimulation.QUEEN_FRAME_ORDER[0]
 
-## Convert angle (radians) to 8-way direction index.
+## Convert angle (radians, screen-space Y-down) to 8-way direction index.
+## Spritesheet rows use math convention (Y-up): 0=E, 1=NE, 2=N, 3=NW, 4=W, 5=SW, 6=S, 7=SE
+## So we negate the angle to flip Y before quantizing.
 func _angle_to_dir(angle: float) -> int:
-	# Normalize to 0..TAU
-	var a: float = fmod(angle + TAU, TAU)
-	# 0=E, 1=NE, 2=N, 3=NW, 4=W, 5=SW, 6=S, 7=SE
+	var a: float = fmod(-angle + TAU, TAU)
 	var idx: int = int(roundf(a / (TAU / 8.0))) % 8
 	return idx
 
-## Convert 8-way direction to unit vector.
+## Convert 8-way direction index to unit vector in screen-space (Y-down).
+## Negates Y because sprite directions use math convention (Y-up).
 func _dir_to_vector(dir: int) -> Vector2:
 	var angle: float = float(dir) * (TAU / 8.0)
-	return Vector2(cos(angle), sin(angle))
+	return Vector2(cos(angle), -sin(angle))
