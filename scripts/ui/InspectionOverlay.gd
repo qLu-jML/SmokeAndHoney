@@ -1029,58 +1029,7 @@ func _show_queen_notification_phase2(xp_amount: int) -> void:
 	var timer := get_tree().create_timer(3.0)
 	timer.timeout.connect(note.queue_free)
 
-# ------------------------------------------------------------------------------
-# Queen Sighting -- Legacy (Phase 1, kept for fallback compatibility)
-# ------------------------------------------------------------------------------
-
-func _get_queen_frame_idx() -> int:
-	if _sim == null:
-		return 4
-	var order: Array = HiveSimulation.QUEEN_FRAME_ORDER
-	for fi in order:
-		var frame = _current_box().frames[fi]
-		if CellStateTransition.count_state(frame, CellStateTransition.S_EGG) > 0:
-			return fi
-	return order[0]
-
-func _check_queen_sighting() -> void:
-	if _queen_seen or _sim == null:
-		return
-	if not _sim.queen.get("present", false):
-		return
-
-	var queen_frame: int = _get_queen_frame_idx()
-	if _frame_idx != queen_frame:
-		return
-
-	var level_bonus: float = float(GameData.player_level) * 0.01
-	var chance: float = clampf(QUEEN_SIGHT_BASE + level_bonus, 0.0, QUEEN_SIGHT_MAX)
-	if randf() > chance:
-		return
-
-	_queen_seen = true
-	GameData.add_xp(QUEEN_SIGHT_XP)
-	_show_queen_notification()
-
-func _show_queen_notification() -> void:
-	var nm := get_tree().root.get_node_or_null("NotificationManager")
-	if nm and nm.has_method("show_queen_sighting"):
-		nm.show_queen_sighting(QUEEN_SIGHT_XP)
-		return
-
-	var note := Label.new()
-	note.text = "Queen confirmed! +%d XP" % QUEEN_SIGHT_XP
-	note.add_theme_font_size_override("font_size", 7)
-	note.add_theme_color_override("font_color", Color(1.0, 0.88, 0.30, 1.0))
-	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	@warning_ignore("INTEGER_DIVISION")
-	note.position = Vector2(0, VP_H / 2 - 20)
-	note.size     = Vector2(VP_W, 14)
-	note.z_index  = 30
-	var bg := get_child(0)
-	bg.add_child(note)
-	var timer := get_tree().create_timer(3.0)
-	timer.timeout.connect(note.queue_free)
+# (Phase 1 queen sighting removed -- replaced by Phase 2 visual search above)
 
 # ------------------------------------------------------------------------------
 # Harvest shortcut from inside the overlay
