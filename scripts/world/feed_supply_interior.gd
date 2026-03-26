@@ -131,6 +131,10 @@ var _shop_btns:     Array = []
 # -- Lifecycle -----------------------------------------------------------------
 
 func _ready() -> void:
+	TimeManager.current_scene_id = "feed_supply_interior"
+	if get_node_or_null("/root/SceneManager"):
+		SceneManager.current_zone_name = "Tanner's Feed & Supply"
+		SceneManager.show_zone_name()
 	_build_shop_ui()
 	_build_bulletin_ui()
 	_update_seasonal_shelves()

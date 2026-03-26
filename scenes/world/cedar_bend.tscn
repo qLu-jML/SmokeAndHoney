@@ -1,6 +1,7 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/cedar_bend.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://d3qdbfmsmyqoa" path="res://scenes/player/player.tscn" id="11"]
 [ext_resource type="Texture2D" path="res://assets/sprites/buildings/crossroads_diner.png" id="2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/buildings/feed_supply.png" id="3"]
 [ext_resource type="Texture2D" path="res://assets/sprites/buildings/post_office.png" id="4"]
@@ -223,3 +224,6 @@ visible = false
 anchors_preset = 15
 color = Color(0.88, 0.84, 0.70, 0.07)
 mouse_filter = 2
+
+[node name="player" parent="." instance=ExtResource("11")]
+position = Vector2(0, 30)

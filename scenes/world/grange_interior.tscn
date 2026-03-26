@@ -1,0 +1,102 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/generic_interior.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://d3qdbfmsmyqoa" path="res://scenes/player/player.tscn" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/npc/darlene_kowalski.png" id="3"]
+
+[node name="GrangeInterior" type="Node2D"]
+script = ExtResource("1")
+room_width = 12
+room_height = 10
+door_col = 5
+zone_name = "Cedar Valley Grange Hall"
+scene_id = "grange_interior"
+exit_scene = "res://scenes/world/cedar_bend.tscn"
+floor_color = Color(0.68, 0.55, 0.38, 1.0)
+wall_color = Color(0.42, 0.28, 0.15, 1.0)
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="Lectern" type="ColorRect" parent="Props"]
+offset_left = 160.0
+offset_top = 48.0
+offset_right = 192.0
+offset_bottom = 80.0
+color = Color(0.45, 0.30, 0.18, 1)
+
+[node name="LecternLabel" type="Label" parent="Props/Lectern"]
+offset_left = -10.0
+offset_top = -14.0
+offset_right = 42.0
+offset_bottom = -4.0
+text = "Lectern"
+theme_override_font_sizes/font_size = 4
+theme_override_colors/font_color = Color(0.55, 0.45, 0.30, 1)
+horizontal_alignment = 1
+
+[node name="FoldingChairs" type="Node2D" parent="Props"]
+
+[node name="Chair1" type="ColorRect" parent="Props/FoldingChairs"]
+offset_left = 80.0
+offset_top = 128.0
+offset_right = 96.0
+offset_bottom = 144.0
+color = Color(0.50, 0.45, 0.40, 1)
+
+[node name="Chair2" type="ColorRect" parent="Props/FoldingChairs"]
+offset_left = 128.0
+offset_top = 128.0
+offset_right = 144.0
+offset_bottom = 144.0
+color = Color(0.50, 0.45, 0.40, 1)
+
+[node name="Chair3" type="ColorRect" parent="Props/FoldingChairs"]
+offset_left = 176.0
+offset_top = 128.0
+offset_right = 192.0
+offset_bottom = 144.0
+color = Color(0.50, 0.45, 0.40, 1)
+
+[node name="Chair4" type="ColorRect" parent="Props/FoldingChairs"]
+offset_left = 224.0
+offset_top = 128.0
+offset_right = 240.0
+offset_bottom = 144.0
+color = Color(0.50, 0.45, 0.40, 1)
+
+[node name="Chair5" type="ColorRect" parent="Props/FoldingChairs"]
+offset_left = 272.0
+offset_top = 128.0
+offset_right = 288.0
+offset_bottom = 144.0
+color = Color(0.50, 0.45, 0.40, 1)
+
+[node name="NPCs" type="Node2D" parent="."]
+
+[node name="DarleneKowalski" type="Sprite2D" parent="NPCs"]
+position = Vector2(192, 80)
+texture = ExtResource("3")
+z_index = 3
+
+[node name="DarleneLabel" type="Label" parent="NPCs/DarleneKowalski"]
+offset_left = -35.0
+offset_top = -20.0
+offset_right = 35.0
+offset_bottom = -10.0
+text = "Darlene Kowalski"
+theme_override_font_sizes/font_size = 5
+theme_override_colors/font_color = Color(0.70, 0.55, 0.25, 1)
+horizontal_alignment = 1
+
+[node name="RoomLabel" type="Label" parent="."]
+offset_left = 80.0
+offset_top = 36.0
+offset_right = 300.0
+offset_bottom = 48.0
+text = "CVBA Monthly Meeting"
+theme_override_font_sizes/font_size = 6
+theme_override_colors/font_color = Color(0.65, 0.50, 0.28, 1)
+horizontal_alignment = 1
+
+[node name="player" parent="." instance=ExtResource("2")]
+position = Vector2(192, 48)

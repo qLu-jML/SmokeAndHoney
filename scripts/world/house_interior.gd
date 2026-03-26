@@ -14,6 +14,10 @@ const COL_EDGE  := Color(0.25, 0.15, 0.05, 1.0)   # grid edge lines
 var _transitioning := false
 
 func _ready() -> void:
+	TimeManager.current_scene_id = "house_interior"
+	if get_node_or_null("/root/SceneManager"):
+		SceneManager.current_zone_name = "House Interior"
+		SceneManager.show_zone_name()
 	_build_walls()
 	_place_player()
 

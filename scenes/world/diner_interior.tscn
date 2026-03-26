@@ -1,6 +1,7 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/diner_interior.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://d3qdbfmsmyqoa" path="res://scenes/player/player.tscn" id="15"]
 [ext_resource type="Texture2D" path="res://assets/sprites/interiors/diner_counter.png" id="2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/interiors/diner_booth.png" id="3"]
 [ext_resource type="Texture2D" path="res://assets/sprites/interiors/diner_tv.png" id="4"]
@@ -329,3 +330,6 @@ horizontal_alignment = 1
 [node name="MenuUI" type="CanvasLayer" parent="."]
 layer = 10
 visible = false
+
+[node name="player" parent="." instance=ExtResource("15")]
+position = Vector2(100, 60)

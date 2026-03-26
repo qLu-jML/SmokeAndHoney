@@ -1,0 +1,81 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/generic_interior.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://d3qdbfmsmyqoa" path="res://scenes/player/player.tscn" id="2"]
+
+[node name="HarmonBarnInterior" type="Node2D"]
+script = ExtResource("1")
+room_width = 14
+room_height = 10
+door_col = 6
+zone_name = "Harmon Barn"
+scene_id = "harmon_barn_interior"
+exit_scene = "res://scenes/world/harmon_farm.tscn"
+floor_color = Color(0.55, 0.42, 0.28, 1.0)
+wall_color = Color(0.38, 0.22, 0.12, 1.0)
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="HayStorage" type="ColorRect" parent="Props"]
+offset_left = 32.0
+offset_top = 48.0
+offset_right = 128.0
+offset_bottom = 112.0
+color = Color(0.72, 0.62, 0.35, 1)
+
+[node name="HayLabel" type="Label" parent="Props/HayStorage"]
+offset_left = 10.0
+offset_top = -14.0
+offset_right = 86.0
+offset_bottom = -4.0
+text = "Hay Storage"
+theme_override_font_sizes/font_size = 4
+theme_override_colors/font_color = Color(0.55, 0.45, 0.30, 1)
+horizontal_alignment = 1
+
+[node name="EquipmentArea" type="ColorRect" parent="Props"]
+offset_left = 288.0
+offset_top = 48.0
+offset_right = 416.0
+offset_bottom = 112.0
+color = Color(0.42, 0.40, 0.38, 1)
+
+[node name="EquipLabel" type="Label" parent="Props/EquipmentArea"]
+offset_left = 10.0
+offset_top = -14.0
+offset_right = 118.0
+offset_bottom = -4.0
+text = "Farm Equipment"
+theme_override_font_sizes/font_size = 4
+theme_override_colors/font_color = Color(0.55, 0.45, 0.30, 1)
+horizontal_alignment = 1
+
+[node name="WorkBench" type="ColorRect" parent="Props"]
+offset_left = 160.0
+offset_top = 48.0
+offset_right = 256.0
+offset_bottom = 80.0
+color = Color(0.52, 0.38, 0.22, 1)
+
+[node name="BenchLabel" type="Label" parent="Props/WorkBench"]
+offset_left = 10.0
+offset_top = -14.0
+offset_right = 86.0
+offset_bottom = -4.0
+text = "Workbench"
+theme_override_font_sizes/font_size = 4
+theme_override_colors/font_color = Color(0.55, 0.45, 0.30, 1)
+horizontal_alignment = 1
+
+[node name="RoomLabel" type="Label" parent="."]
+offset_left = 100.0
+offset_top = 36.0
+offset_right = 350.0
+offset_bottom = 48.0
+text = "Harmon Barn"
+theme_override_font_sizes/font_size = 6
+theme_override_colors/font_color = Color(0.65, 0.50, 0.28, 1)
+horizontal_alignment = 1
+
+[node name="player" parent="." instance=ExtResource("2")]
+position = Vector2(224, 48)

@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/post_office_interior.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://d3qdbfmsmyqoa" path="res://scenes/player/player.tscn" id="8"]
 [ext_resource type="Texture2D" path="res://assets/sprites/interiors/post_counter.png" id="2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/interiors/pigeonholes.png" id="3"]
 [ext_resource type="Texture2D" path="res://assets/sprites/npc/june_postmaster.png" id="4"]
@@ -189,3 +190,6 @@ horizontal_alignment = 1
 [node name="CounterUI" type="CanvasLayer" parent="."]
 layer = 10
 visible = false
+
+[node name="player" parent="." instance=ExtResource("8")]
+position = Vector2(80, 60)

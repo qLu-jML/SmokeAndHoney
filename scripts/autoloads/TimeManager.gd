@@ -42,6 +42,8 @@ var player_return_pos:  Vector2 = Vector2.ZERO
 var exterior_hives:     Array   = []
 var exterior_flowers:   Array   = []
 var next_scene:         String  = ""
+var previous_scene:     String  = ""
+var current_scene_id:   String  = "home"   # used by zone minimap
 
 # -- Time Progression ----------------------------------------------------------
 

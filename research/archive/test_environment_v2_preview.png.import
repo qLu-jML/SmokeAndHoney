@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dguh68lsu30s2"
-path="res://.godot/imported/test_environment_v2_preview.png-7044359771426f157fff69894f41292e.ctex"
+path="res://.godot/imported/test_environment_v2_preview.png-b8603f041fca3e93b9a43e631b98554c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://test_environment_v2_preview.png"
-dest_files=["res://.godot/imported/test_environment_v2_preview.png-7044359771426f157fff69894f41292e.ctex"]
+source_file="res://research/archive/test_environment_v2_preview.png"
+dest_files=["res://.godot/imported/test_environment_v2_preview.png-b8603f041fca3e93b9a43e631b98554c.ctex"]
 
 [params]
 
@@ -37,4 +37,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_

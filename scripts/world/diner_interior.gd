@@ -72,6 +72,10 @@ var _menu_buttons: Array = []
 # -- Lifecycle -----------------------------------------------------------------
 
 func _ready() -> void:
+	TimeManager.current_scene_id = "diner_interior"
+	if get_node_or_null("/root/SceneManager"):
+		SceneManager.current_zone_name = "Crossroads Diner"
+		SceneManager.show_zone_name()
 	_build_menu_ui()
 	_update_tv_weather()
 	_update_npc_visibility()

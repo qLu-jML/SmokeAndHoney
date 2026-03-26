@@ -25,7 +25,27 @@ func _ready() -> void:
 	_apply_seasonal_visuals()
 	_check_mailbox_state()
 	TimeManager.day_advanced.connect(_on_day_advanced)
+	TimeManager.current_scene_id = "county_road"
+	if get_node_or_null("/root/SceneManager"):
+		SceneManager.current_zone_name = "County Road"
+		SceneManager.show_zone_name()
+	_setup_exits()
+	ExitHelper.position_player_from_spawn_side(self)
 	print("County Road scene loaded -- Phase 4 build.")
+
+func _setup_exits() -> void:
+	# Left edge -> Home Property
+	ExitHelper.create_exit(self, "left", "res://scenes/TestEnvironment.tscn",
+		"<- Home")
+	# Right edge -> Cedar Bend (town)
+	ExitHelper.create_exit(self, "right", "res://scenes/world/cedar_bend.tscn",
+		"-> Cedar Bend")
+	# Bottom edge -> Harmon Farm
+	ExitHelper.create_exit(self, "bottom", "res://scenes/world/harmon_farm.tscn",
+		"v Harmon Farm")
+	# Top edge -> Timber Creek
+	ExitHelper.create_exit(self, "top", "res://scenes/world/timber_creek.tscn",
+		"^ Timber Creek")
 
 func _on_day_advanced(_day: int) -> void:
 	_apply_seasonal_visuals()
@@ -101,13 +121,8 @@ func _update_mailbox_sprite() -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.keycode:
-			KEY_M:
-				_toggle_map()
 			KEY_E:
 				_try_interact()
-			KEY_ESCAPE:
-				if _map_open:
-					_close_map()
 
 # -- Interaction ----------------------------------------------------------------
 

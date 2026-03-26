@@ -4,6 +4,10 @@ const HIVE_SCENE   := preload("res://scenes/hive.tscn")
 const FLOWER_SCENE := preload("res://scenes/flowers/flowers.tscn")
 
 func _ready() -> void:
+	TimeManager.current_scene_id = "home"
+	if get_node_or_null("/root/SceneManager"):
+		SceneManager.current_zone_name = "Home Property"
+		SceneManager.show_zone_name()
 	# -- Priority 1: returning from an interior scene --------------------------
 	# The player walked through a door (house -> exterior).  TimeManager carries
 	# the hive / flower / player-position state across the scene change.
@@ -43,3 +47,13 @@ func _ready() -> void:
 	# returns false and we skip silently -- the scene starts as a fresh game.
 	if SaveManager.load_from_disk():
 		SaveManager.apply_to_scene(self)
+
+	# -- Walking exits ----------------------------------------------------------
+	_setup_exits()
+	# Position player based on which direction they came from
+	ExitHelper.position_player_from_spawn_side(self)
+
+func _setup_exits() -> void:
+	# Right edge -> County Road
+	ExitHelper.create_exit(self, "right", "res://scenes/world/county_road.tscn",
+		"-> County Road")

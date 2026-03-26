@@ -16,6 +16,10 @@ var _counter_open: bool = false
 # -- Lifecycle -----------------------------------------------------------------
 
 func _ready() -> void:
+	TimeManager.current_scene_id = "post_office_interior"
+	if get_node_or_null("/root/SceneManager"):
+		SceneManager.current_zone_name = "Cedar Bend Post Office"
+		SceneManager.show_zone_name()
 	_build_counter_ui()
 	_update_package_visibility()
 	TimeManager.day_advanced.connect(_on_day_advanced)

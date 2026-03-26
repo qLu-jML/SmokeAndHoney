@@ -29,7 +29,24 @@ func _ready() -> void:
 	_check_saturday_market()
 	_spawn_initial_pedestrians()
 	TimeManager.day_advanced.connect(_on_day_advanced)
+	TimeManager.current_scene_id = "cedar_bend"
+	if get_node_or_null("/root/SceneManager"):
+		SceneManager.current_zone_name = "Cedar Bend"
+		SceneManager.show_zone_name()
+	_setup_zone_exits()
+	ExitHelper.position_player_from_spawn_side(self)
 	print("Cedar Bend scene loaded -- Phase 4 build.")
+
+func _setup_zone_exits() -> void:
+	# Left edge -> County Road
+	ExitHelper.create_exit(self, "left", "res://scenes/world/county_road.tscn",
+		"<- County Road")
+	# Right edge -> Community Garden
+	ExitHelper.create_exit(self, "right", "res://scenes/world/community_garden.tscn",
+		"-> Garden")
+	# Bottom edge -> Fairgrounds
+	ExitHelper.create_exit(self, "bottom", "res://scenes/world/fairgrounds.tscn",
+		"v Fairgrounds")
 
 func _on_day_advanced(_day: int) -> void:
 	_apply_seasonal_visuals()
@@ -125,6 +142,7 @@ func _try_enter_grange() -> void:
 		var hour: float = TimeManager.current_hour
 		if hour >= 18.0 and hour <= 22.0:
 			print("[Cedar Bend] Grange Hall meeting tonight -- entering...")
+			TimeManager.previous_scene = "res://scenes/world/cedar_bend.tscn"
 			TimeManager.next_scene = "res://scenes/world/grange_interior.tscn"
 			get_tree().change_scene_to_file("res://scenes/loading/loading_screen.tscn")
 			return

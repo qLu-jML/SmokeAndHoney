@@ -1,0 +1,1912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smoke &amp; Honey -- Location &amp; Map Build Report</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --wd-darkest:    #261206;
+      --wd-dark:       #46260C;
+      --wd-mid:        #6C4016;
+      --wd-light:      #94602A;
+      --wd-pale:       #BA8A48;
+      --amber-dark:    #985808;
+      --amber-mid:     #C8820C;
+      --amber-light:   #E6A220;
+      --honey-pale:    #F4CC6E;
+      --wax-cream:     #F2E4B2;
+      --wax-white:     #FCF5D7;
+      --cell-empty:    #E4D498;
+      --cell-honey:    #D49E28;
+      --cell-wall:     #B48430;
+      --bg:            #0F0A04;
+      --bg-warm:       #1A1208;
+      --text:          #F2E4B2;
+      --text-dim:      rgba(242,228,178,0.55);
+      --text-faint:    rgba(242,228,178,0.3);
+      --border:        rgba(108,64,22,0.3);
+      --glow:          rgba(230,162,32,0.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    #sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 260px;
+      height: 100vh;
+      overflow-y: auto;
+      background: rgba(14,11,5,0.97);
+      border-right: 1px solid rgba(108,64,22,0.2);
+      padding: 32px 0 60px;
+      z-index: 100;
+    }
+    #sidebar::-webkit-scrollbar { width: 4px; }
+    #sidebar::-webkit-scrollbar-thumb { background: var(--wd-mid); border-radius: 2px; }
+    .sidebar-brand {
+      padding: 0 24px 20px;
+      border-bottom: 1px solid rgba(108,64,22,0.2);
+      margin-bottom: 16px;
+    }
+    .sidebar-brand h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 18px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--honey-pale) 0%, var(--amber-light) 50%, var(--amber-mid) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 0.5px;
+    }
+    .sidebar-brand .sub {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-top: 2px;
+    }
+    #sidebar nav ul { list-style: none; }
+    #sidebar nav ul li a {
+      display: block;
+      padding: 5px 24px;
+      font-size: 12px;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.15s, background 0.15s;
+      line-height: 1.5;
+    }
+    #sidebar nav ul li a:hover {
+      color: var(--amber-light);
+      background: rgba(230,162,32,0.06);
+    }
+    #sidebar nav ul li.section > a {
+      color: var(--amber-light);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding-top: 14px;
+      padding-bottom: 4px;
+    }
+    #sidebar nav ul li.sub > a {
+      padding-left: 36px;
+      font-size: 12px;
+    }
+
+    #content {
+      margin-left: 260px;
+      max-width: 900px;
+      padding: 0 64px 120px;
+    }
+
+    @media (max-width: 900px) {
+      #sidebar { display: none; }
+      #content { margin-left: 0; padding: 0 24px 80px; max-width: 100%; }
+    }
+
+    .hero {
+      padding: 80px 0 60px;
+      text-align: center;
+      position: relative;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 10%; right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--amber-mid), transparent);
+      opacity: 0.3;
+    }
+    .hero-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--amber-mid);
+      margin-bottom: 24px;
+    }
+    .hero-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 900;
+      background: linear-gradient(160deg, var(--wax-white) 0%, var(--honey-pale) 20%, var(--amber-light) 45%, var(--amber-mid) 70%, var(--wd-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .hero-tagline {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 18px;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--text);
+      opacity: 0.5;
+      margin-bottom: 28px;
+    }
+    .hero-meta {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .hero-meta-item {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-faint);
+    }
+    .hero-meta-item strong { color: var(--text-dim); }
+
+    .section { padding: 64px 0 0; }
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--amber-mid);
+      margin-bottom: 12px;
+    }
+    h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(28px, 4vw, 38px);
+      font-weight: 700;
+      color: var(--wax-cream);
+      line-height: 1.2;
+      margin-bottom: 24px;
+    }
+    h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--amber-light);
+      margin: 40px 0 12px;
+    }
+    h4 {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--amber-light);
+      letter-spacing: 0.5px;
+      margin: 28px 0 8px;
+    }
+    p {
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--text);
+      opacity: 0.75;
+      margin-bottom: 14px;
+    }
+    p strong { color: var(--amber-light); font-weight: 600; opacity: 1; }
+    p em { color: var(--text); opacity: 0.6; }
+
+    .pitch-block {
+      background: linear-gradient(135deg, rgba(152,88,8,0.08) 0%, rgba(108,64,22,0.04) 100%);
+      border-left: 3px solid var(--amber-mid);
+      border-radius: 0 12px 12px 0;
+      padding: 28px 32px;
+      margin: 28px 0;
+    }
+    .pitch-block p { font-size: 15px; line-height: 1.8; opacity: 0.85; }
+    .pitch-block p:last-child { margin-bottom: 0; }
+
+    .data-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 24px 0;
+      font-size: 13px;
+    }
+    .data-table thead th {
+      background: rgba(108,64,22,0.25);
+      padding: 12px 16px;
+      text-align: left;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--amber-mid);
+      border-bottom: 1px solid var(--border);
+    }
+    .data-table tbody td {
+      padding: 11px 16px;
+      border-bottom: 1px solid rgba(108,64,22,0.1);
+      color: var(--text);
+      opacity: 0.7;
+      background: rgba(14,11,5,0.4);
+      line-height: 1.6;
+    }
+    .data-table tbody td:first-child {
+      font-weight: 600;
+      color: var(--amber-light);
+      opacity: 1;
+      white-space: nowrap;
+    }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+
+    .status-built { color: #6EBF6E; font-weight: 600; }
+    .status-partial { color: var(--amber-light); font-weight: 600; }
+    .status-missing { color: #E06060; font-weight: 600; }
+
+    .map-ascii {
+      background: rgba(14,11,5,0.7);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin: 24px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1.4;
+      color: var(--honey-pale);
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .location-card {
+      background: rgba(26,18,8,0.5);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin: 28px 0;
+    }
+    .location-card h4 {
+      margin: 0 0 4px;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--amber-light);
+    }
+    .location-card .meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: var(--text-faint);
+      margin-bottom: 12px;
+    }
+    .location-card p { font-size: 14px; line-height: 1.7; margin-bottom: 10px; }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--amber-mid), transparent);
+      opacity: 0.15;
+      margin: 48px 0;
+    }
+
+    .doc-footer {
+      margin-top: 80px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    .doc-footer p {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--text-faint);
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="sidebar-brand">
+    <h1>Smoke &amp; Honey</h1>
+    <div class="sub">Location &amp; Map Report</div>
+  </div>
+  <nav>
+    <ul>
+      <li class="section"><a href="#executive">Executive Summary</a></li>
+      <li class="section"><a href="#current_state">Current Build State</a></li>
+      <li class="sub"><a href="#exists">What Exists</a></li>
+      <li class="sub"><a href="#gap_analysis">Gap Analysis</a></li>
+      <li class="section"><a href="#genre_reference">Genre Reference</a></li>
+      <li class="sub"><a href="#stardew">Stardew Valley Comparison</a></li>
+      <li class="sub"><a href="#harvest_moon">Harvest Moon Comparison</a></li>
+      <li class="sub"><a href="#lessons">Lessons for Smoke &amp; Honey</a></li>
+      <li class="section"><a href="#location_maps">Location Maps</a></li>
+      <li class="sub"><a href="#map_home">Home Property</a></li>
+      <li class="sub"><a href="#map_home_interior">House Interior</a></li>
+      <li class="sub"><a href="#map_shed">Shed / Honey House</a></li>
+      <li class="sub"><a href="#map_backfield">Back Field</a></li>
+      <li class="sub"><a href="#map_county_road">County Road</a></li>
+      <li class="sub"><a href="#map_cedar_bend">Cedar Bend (Town)</a></li>
+      <li class="sub"><a href="#map_diner">Diner Interior</a></li>
+      <li class="sub"><a href="#map_tanners">Tanner's Supply Interior</a></li>
+      <li class="sub"><a href="#map_post_office">Post Office Interior</a></li>
+      <li class="sub"><a href="#map_harwick">Dr. Harwick's Office</a></li>
+      <li class="sub"><a href="#map_grange">Grange Hall Interior</a></li>
+      <li class="sub"><a href="#map_fairgrounds">County Fairgrounds</a></li>
+      <li class="sub"><a href="#map_timber">Timber &amp; Woodlot</a></li>
+      <li class="sub"><a href="#map_harmon">Harmon Farm</a></li>
+      <li class="sub"><a href="#map_harmon_interior">Harmon Interior</a></li>
+      <li class="sub"><a href="#map_orchard">Harmon Orchard</a></li>
+      <li class="sub"><a href="#map_river">River Bottom</a></li>
+      <li class="sub"><a href="#map_town_garden">Town Garden</a></li>
+      <li class="section"><a href="#world_connection">World Connection Map</a></li>
+      <li class="section"><a href="#build_order">Recommended Build Order</a></li>
+      <li class="section"><a href="#master_inventory">Master Sprite Inventory</a></li>
+      <li class="section"><a href="#totals">Totals &amp; Scope</a></li>
+    </ul>
+  </nav>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="content">
+
+<div class="hero">
+  <div class="hero-label">Research &amp; Design Report</div>
+  <div class="hero-title">Location &amp; Map<br>Build Report</div>
+  <div class="hero-tagline">Every scene. Every building. Every path between them.</div>
+  <div class="hero-meta">
+    <span class="hero-meta-item"><strong>Date:</strong> March 26, 2026</span>
+    <span class="hero-meta-item"><strong>Status:</strong> Pre-Production Audit</span>
+    <span class="hero-meta-item"><strong>Total Maps Required:</strong> 18</span>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 1: EXECUTIVE SUMMARY                 -->
+<!-- ============================================ -->
+<div class="section" id="executive">
+  <p class="section-label">01</p>
+  <h2>Executive Summary</h2>
+  <p>This report catalogs every distinct scene map required to bring Smoke &amp; Honey to life as specified in the GDD. It evaluates the current codebase against those requirements, draws comparative lessons from Stardew Valley and Harvest Moon, and provides suggested layouts for each map along with a world connection diagram showing how players navigate between locations.</p>
+
+  <p>The GDD specifies <strong>6 primary outdoor locations</strong> (Home Property, County Road, Cedar Bend town, Timber &amp; Woodlot, Harmon Farm, River Bottom) plus <strong>1 bonus location</strong> (Town Garden), which expand into <strong>18 total scene maps</strong> when counting all required interiors and sub-areas. Of these 18, the current build has <strong>7 partially built</strong> and <strong>11 not yet started</strong>.</p>
+
+  <div class="pitch-block">
+    <p><strong>Scope at a Glance:</strong> 18 scene maps. 7 outdoor environments. 9 interiors. 2 sub-areas. 25 total hive slots spread across 5 apiary locations. Each outdoor scene requires 4-6 seasonal variants (palette swaps + overlay layers). The world is compact by design -- intimate, not sprawling. Every location earns its place through gameplay function and narrative weight.</p>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 2: CURRENT BUILD STATE               -->
+<!-- ============================================ -->
+<div class="section" id="current_state">
+  <p class="section-label">02</p>
+  <h2>Current Build State</h2>
+
+  <h3 id="exists">What Exists in the Codebase</h3>
+  <p>The following scenes currently exist as .tscn files with associated scripts. Most are in early scaffold state -- scene trees with placeholder nodes and basic layout, but lacking full art assets, seasonal variants, and interactive systems.</p>
+
+  <table class="data-table">
+    <thead>
+      <tr><th>Scene File</th><th>GDD Location</th><th>Status</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>main.tscn</td><td>Home Property</td><td><span class="status-partial">Partial</span></td><td>Uses Cainos tileset. Has player, TileMap layers, basic apiary area. No shed, no back field gate, no Darlene fence line. No seasonal system.</td></tr>
+      <tr><td>house_interior.tscn</td><td>House Interior</td><td><span class="status-partial">Partial</span></td><td>Minimal -- player spawn point only. No furniture, no crafting bench, no Knowledge Log table, no window view.</td></tr>
+      <tr><td>county_road.tscn</td><td>County Road</td><td><span class="status-partial">Partial</span></td><td>Has truck sprite, mailbox, Harmon field background, basic layout. Map overlay exists as separate scene.</td></tr>
+      <tr><td>cedar_bend.tscn</td><td>Cedar Bend (Town)</td><td><span class="status-partial">Partial</span></td><td>Building sprites placed (diner, feed supply, post office, grange hall, market stall). Frank and Bob NPCs present. Missing: background buildings, street detail, fairgrounds gate, pedestrians.</td></tr>
+      <tr><td>diner_interior.tscn</td><td>Crossroads Diner</td><td><span class="status-partial">Partial</span></td><td>Most complete interior. Has counter, booths, TV, pie case, chalkboard menu, Rose waitress, floor. Needs: NPC schedule system, weather display on TV, ambient animation.</td></tr>
+      <tr><td>feed_supply_interior.tscn</td><td>Tanner's Supply</td><td><span class="status-partial">Partial</span></td><td>Shelves, bulletin board, Carl Tanner NPC, counter. Needs: seasonal stock display, product interaction, purchasing system.</td></tr>
+      <tr><td>post_office_interior.tscn</td><td>Post Office</td><td><span class="status-partial">Partial</span></td><td>Counter, pigeonholes, June NPC. Needs: package pickup system, delivery notification tie-in.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="gap_analysis">Gap Analysis -- What Is Missing</h3>
+  <table class="data-table">
+    <thead>
+      <tr><th>Required Scene</th><th>Status</th><th>Priority</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Shed / Honey House Interior</td><td><span class="status-missing">Not Built</span></td><td>High -- needed for workbench, tool storage, extraction</td></tr>
+      <tr><td>Back Field (sub-area)</td><td><span class="status-missing">Not Built</span></td><td>Medium -- tree planting, long-term investment zone</td></tr>
+      <tr><td>Dr. Harwick's Office Interior</td><td><span class="status-missing">Not Built</span></td><td>Medium -- disease diagnostics, lab services</td></tr>
+      <tr><td>Grange Hall Interior</td><td><span class="status-missing">Not Built</span></td><td>Medium -- CVBA meetings, equipment swap</td></tr>
+      <tr><td>County Fairgrounds (sub-scene)</td><td><span class="status-missing">Not Built</span></td><td>Low -- seasonal event only (High-Sun)</td></tr>
+      <tr><td>Timber &amp; Woodlot (full outdoor)</td><td><span class="status-missing">Not Built</span></td><td>High -- Year 2 unlock, distinct atmosphere</td></tr>
+      <tr><td>Harmon Farm (full outdoor)</td><td><span class="status-missing">Not Built</span></td><td>High -- Year 2-3 unlock, crop rotation visual</td></tr>
+      <tr><td>Harmon Farmhouse Interior</td><td><span class="status-missing">Not Built</span></td><td>Medium -- quest dialogue scenes</td></tr>
+      <tr><td>Harmon Orchard (sub-area)</td><td><span class="status-missing">Not Built</span></td><td>Medium -- apiary location (4 hive slots)</td></tr>
+      <tr><td>River Bottom (full outdoor)</td><td><span class="status-missing">Not Built</span></td><td>Medium -- Year 3 unlock, premium location</td></tr>
+      <tr><td>Town Garden (bonus)</td><td><span class="status-missing">Not Built</span></td><td>Low -- 2-hive bonus location</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 3: GENRE REFERENCE                   -->
+<!-- ============================================ -->
+<div class="section" id="genre_reference">
+  <p class="section-label">03</p>
+  <h2>Genre Reference -- Stardew Valley &amp; Harvest Moon</h2>
+
+  <h3 id="stardew">Stardew Valley -- Location Structure</h3>
+  <p>Stardew Valley uses approximately <strong>20+ distinct explorable areas</strong> connected via screen transitions. The core structure follows a hub-and-spoke model with the Farm at the center. Key architectural patterns relevant to Smoke &amp; Honey:</p>
+
+  <table class="data-table">
+    <thead>
+      <tr><th>Stardew Pattern</th><th>Details</th><th>Smoke &amp; Honey Parallel</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>The Farm (hub)</td><td>Player's home base. House, barn, coop, greenhouse, shipping bin, cave. The place you return to every night. Most time spent here.</td><td>Home Property -- same role. Apiary clearing, house, shed, back field.</td></tr>
+      <tr><td>Pelican Town</td><td>Main street with ~10 enterable buildings (shop, saloon, clinic, library, museum, blacksmith, mayor's house). NPC schedules drive repeat visits.</td><td>Cedar Bend -- same role. Diner, Tanner's, post office, Grange Hall, market area, Harwick's office.</td></tr>
+      <tr><td>Bus Stop / Backwoods</td><td>Transitional corridor scenes connecting farm to town. Light interactable content (seasonal forage, worm spots).</td><td>County Road -- exact same function. Transitional with mailbox and ambient forage.</td></tr>
+      <tr><td>Cindersap Forest</td><td>Atmospheric woodland area south of farm. Distinct feel (darker, denser). Contains Wizard's Tower, seasonal forage, fishing spots.</td><td>Timber &amp; Woodlot -- same vibe. Darker canopy, creek, distinct atmosphere, Lloyd NPC.</td></tr>
+      <tr><td>The Mountain</td><td>Northern area with mine entrance, carpenter's shop, lake. Gated content (mine levels unlock progressively).</td><td>No direct parallel -- S&amp;H doesn't have a mine. The River Bottom fills the "remote premium zone" role.</td></tr>
+      <tr><td>The Beach</td><td>Southern coastal area. Willy's shop, seasonal fishing, Night Market event. Distinct visual palette.</td><td>River Bottom -- most visually distinct location, seasonal events, premium forage.</td></tr>
+      <tr><td>Ginger Island</td><td>Late-game unlock via boat repair. Entirely new biome with separate farm, NPCs, and activities.</td><td>No parallel needed -- S&amp;H's 5-year scope doesn't require a separate biome.</td></tr>
+      <tr><td>Interiors</td><td>~15-20 enterable building interiors. Most are single-room. Key ones (saloon, shop, museum) have more detail.</td><td>S&amp;H needs 9 interiors. Similar scale, fewer buildings but more depth per building.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="harvest_moon">Harvest Moon: Friends of Mineral Town -- Location Structure</h3>
+  <p>The original Harvest Moon games use a tighter, more intimate world structure that is arguably closer to Smoke &amp; Honey's design philosophy. Mineral Town has <strong>~12 distinct areas</strong> on a compact map.</p>
+
+  <table class="data-table">
+    <thead>
+      <tr><th>Harvest Moon Pattern</th><th>Details</th><th>Smoke &amp; Honey Parallel</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Your Farm</td><td>House, barn, coop, crop field, beehive (produces honey from a tree), dog house, water hole. Everything within a few screens.</td><td>Home Property -- nearly identical scope. S&amp;H replaces crops with apiary as primary activity.</td></tr>
+      <tr><td>Rose Square (town center)</td><td>Central gathering area for festivals and events. Clock, benches, seasonal decorations.</td><td>Saturday Market area in Cedar Bend center -- same festival/event function.</td></tr>
+      <tr><td>Supermarket / Shops</td><td>Single general store for seeds, tools, gifts. One building, one shopkeeper family. Simple purchase interface.</td><td>Tanner's Supply -- same role. Feed, equipment, bee packages, seasonal stock.</td></tr>
+      <tr><td>Poultry / Livestock farms</td><td>Separate NPC-run operations where you buy animals. Characters live above the shop.</td><td>No livestock in S&amp;H, but Darlene's adjacent property fills the "neighbor with expertise" role.</td></tr>
+      <tr><td>Church / Community</td><td>Community gathering space, wedding venue, character development location.</td><td>Grange Hall -- CVBA meetings, community events.</td></tr>
+      <tr><td>Hot Springs / Mountain</td><td>Remote natural area for stamina recovery and foraging. Requires walk to reach.</td><td>River Bottom -- remote natural area, premium forage, requires unlocking.</td></tr>
+      <tr><td>Mother Hill Summit</td><td>Highest point, used for special events. Feels earned when you reach it.</td><td>No direct parallel, but the River Bottom's "most beautiful scene in the game" status fills this emotional role.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="lessons">Key Lessons for Smoke &amp; Honey</h3>
+  <div class="pitch-block">
+    <p><strong>Lesson 1 -- Every location needs a daily-visit reason.</strong> Stardew's shops have NPC schedules that change daily. Harvest Moon's farm animals need daily care. S&amp;H's locations should each have a reason to return: the home apiary for inspections, the diner for weather/Bob dialogue, the market for weekly sales, remote apiaries for management. Locations without daily hooks feel dead.</p>
+    <p><strong>Lesson 2 -- Transitional spaces matter.</strong> Both games use corridor scenes (bus stop, backwoods, paths) to make the world feel physically connected. The County Road serves this role perfectly. It should never feel like a loading screen.</p>
+    <p><strong>Lesson 3 -- Progressive revelation is critical.</strong> Both games gate locations behind friendship, money, or story progress. S&amp;H's unlock chain (Home free, Town Garden Y1, Timber Y2, Orchard Y2-3, River Y3) matches this pattern well. The player should always have one locked location visible on the map as motivation.</p>
+    <p><strong>Lesson 4 -- 12-20 total scenes is the sweet spot.</strong> Stardew has ~20. Harvest Moon FoMT has ~12. S&amp;H's 18 is right in the middle -- enough variety without spreading content thin.</p>
+    <p><strong>Lesson 5 -- Interiors should feel lived-in.</strong> The best farm sim interiors (Stardew's saloon, HM's supermarket) have specific character. Smoke &amp; Honey's diner is already the strongest interior -- it should be the template for all others.</p>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 4: LOCATION MAPS                     -->
+<!-- ============================================ -->
+<div class="section" id="location_maps">
+  <p class="section-label">04</p>
+  <h2>Location Maps -- Every Scene Required</h2>
+  <p>Each location below includes the GDD specification summary, what the scene must contain, and a suggested spatial layout. Layouts use ASCII diagrams showing approximate zone placement within each scene's coordinate space. All scenes use the same top-down slight-north-tilt perspective defined in the GDD Art Direction (Section 10).</p>
+
+  <!-- ---- MAP 1: HOME PROPERTY ---- -->
+  <h3 id="map_home">1. The Home Property (Overworld Hub)</h3>
+  <div class="location-card">
+    <h4>Home Property</h4>
+    <div class="meta">TYPE: Outdoor | SIZE: ~80x40m | HIVE SLOTS: 5 | UNLOCK: Start | STATUS: Partial (main.tscn)</div>
+    <p>The game's anchor. First scene the player sees, most visited location. Must read immediately as a working rural homestead. The scene is 3-4 screens wide with the camera following the player.</p>
+  </div>
+
+  <h4>Required Elements</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Element</th><th>Position</th><th>Function</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Darlene's Fence Line</td><td>Far left</td><td>Background NPC location. Visible neighbor hives (3, always healthy). Dialogue trigger at fence.</td></tr>
+      <tr><td>House Exterior</td><td>Center-left</td><td>White clapboard farmhouse. Door triggers house interior sub-scene. Seasonal variants (open windows summer, chimney smoke winter).</td></tr>
+      <tr><td>Garden Area</td><td>Near house</td><td>Flower beds for player-planted forage. Lilac windbreak for spring pollen.</td></tr>
+      <tr><td>Apiary Clearing</td><td>Center</td><td>5 hive slots on stands behind low white picket fence with gate. South-facing, slightly elevated.</td></tr>
+      <tr><td>Shed / Honey House</td><td>Center-right</td><td>Weathered red-brown shed. Door triggers shed interior. Visual upgrades when Honey House built.</td></tr>
+      <tr><td>Back Field Gate</td><td>Far right</td><td>Metal farm gate in wire fence. Locked until Y1 progression. Opens to back field sub-scene.</td></tr>
+      <tr><td>Lawn Grass</td><td>Everywhere</td><td>Mow state (short/medium/long). Long grass = dandelion scatter in spring. Seasonal palette swap.</td></tr>
+      <tr><td>Ambient Wildlife</td><td>Random</td><td>Robins on fence, butterflies near garden (summer), fireflies at dusk (summer).</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Suggested Layout</h4>
+  <div class="map-ascii">
+NORTH (background: rolling hills, distant fields, sky -- parallax layer)
++-----------------------------------------------------------------------------------+
+|  DARLENE'S     |        HOUSE AREA        |    APIARY     |  SHED   | BACK FIELD  |
+|  FENCE LINE    |                          |   CLEARING    |  AREA   |   GATE      |
+|                |                          |               |         |             |
+|  [Fence]       |  [Lilac]  [House]        | [Hive][Hive]  | [Shed]  |  [Gate]---> |
+|  [Darlene's    |  [Wind-]  [Front ]       | [Hive][Hive]  | [Rain ] |  Back Field |
+|   3 Hives      |  [break]  [Porch ]       | [Hive]        | [Gauge] |  Sub-scene  |
+|   visible]     |           [Door->Int]    | [Picket Fence]| [Door->]|             |
+|                |  [Garden Beds]           |               |  Int    |             |
+|  [Post+Board   |  [Flower] [Flower]       |               |         |             |
+|   Fence]       |                          |               |         |             |
++-----------------------------------------------------------------------------------+
+SOUTH (foreground: player walks left-right along this axis)
+
+  Camera: follows player, scene wider than viewport
+  Depth: FG (player, hives, flowers) | MG (house, shed, fence, trees) | BG (hills, parallax)
+  Width: ~80m (3-4 screen widths at 320px viewport)
+  </div>
+
+  <h4>Required Sprites &amp; Tiles</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Asset</th><th>Type</th><th>Size</th><th>Variants</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TX Tileset Grass</td><td>Ground Tile Pack</td><td>16x16 px</td><td>Multiple variations</td><td><span class="status-built">Exists (Cainos)</span></td></tr>
+      <tr><td>TX Tileset Terrain</td><td>Ground Tile Pack</td><td>16x16 px</td><td>Multiple variations</td><td><span class="status-built">Exists (Cainos)</span></td></tr>
+      <tr><td>House Exterior</td><td>Building</td><td>64-96 px wide</td><td>2 (summer/winter)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Shed Exterior</td><td>Building</td><td>64-96 px wide</td><td>2 (base/upgraded)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Lilac Bush / Tree</td><td>Plant</td><td>48-64 px wide</td><td>3 (spring bloom, summer, fall)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Picket Fence</td><td>Prop</td><td>16-32 px wide</td><td>Straight, corner, gate</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Back Field Gate</td><td>Prop</td><td>64 px wide</td><td>Locked/unlocked states</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Garden Bed</td><td>Prop</td><td>32x32 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Hive Stand</td><td>Prop</td><td>32x32 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Hive Base</td><td>Hive Component</td><td>48x48 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Hive Super</td><td>Hive Component</td><td>48x48 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Hive Lid</td><td>Hive Component</td><td>48x48 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Darlene (NPC)</td><td>NPC Spritesheet</td><td>120x120 px/frame</td><td>8-dir walking</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Dandelion (lifecycle)</td><td>Forage Plant</td><td>32x32 px</td><td>5 phases</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Firefly Particle</td><td>FX</td><td>8-16 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Butterfly Particle</td><td>FX</td><td>16-24 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Robin Sprite</td><td>Wildlife</td><td>24x24 px</td><td>2-4 animation frames</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Fence Post</td><td>Prop</td><td>16x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Parallax Hills BG</td><td>Background</td><td>Wide (parallax)</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Grass Mow States Overlay</td><td>Ground Effect</td><td>Tile-based</td><td>3 (short/medium/long)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Seasonal Foliage Overlay</td><td>Seasonal Effect</td><td>Tile-based</td><td>4 (spring/summer/fall/winter)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Smoke Puff FX</td><td>FX</td><td>32x32 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ---- MAP 2: HOUSE INTERIOR ---- -->
+  <h3 id="map_home_interior">2. House Interior (Sub-scene)</h3>
+  <div class="location-card">
+    <h4>House Interior</h4>
+    <div class="meta">TYPE: Interior | SIZE: ~8x5m | UNLOCK: Start | STATUS: Minimal (house_interior.tscn)</div>
+    <p>Warm kitchen/living room. Primary winter activity hub. Houses the Knowledge Log interaction point, early-game crafting bench, and serves as the emotional heart of the home.</p>
+  </div>
+
+  <h4>Required Elements</h4>
+  <table class="data-table">
+    <tbody>
+      <tr><td>Wood Table</td><td>Knowledge Log interaction point. Player reads/reviews journal entries here.</td></tr>
+      <tr><td>Woodstove / Radiator</td><td>Visual warmth source. Lit in winter months. Ambient crackling.</td></tr>
+      <tr><td>Window</td><td>Looks out toward apiary. Time-of-day light changes visible through it.</td></tr>
+      <tr><td>Coat Hooks</td><td>Beekeeping gear hanging (veil, suit). Visual progression as gear improves.</td></tr>
+      <tr><td>Honey Jar Shelf</td><td>Displays player's harvested honey. Fills over time -- visual achievement.</td></tr>
+      <tr><td>Crafting Bench</td><td>Early-game crafting location. Moves to shed when Honey House is built.</td></tr>
+      <tr><td>Exit Door</td><td>Returns to Home Property exterior.</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Suggested Layout</h4>
+  <div class="map-ascii">
++---------------------------------------+
+|  [Window - apiary view]               |
+|                                       |
+|  [Woodstove]    [Wood Table]          |
+|                 [Knowledge Log]       |
+|                                       |
+|  [Coat Hooks]   [Crafting    ]        |
+|  [Gear Display] [Bench      ]        |
+|                                       |
+|  [Honey Shelf]         [Exit Door]    |
++---------------------------------------+
+  Single room. Cozy. ~8x5m in world space.
+  </div>
+
+  <h4>Required Sprites &amp; Tiles</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Asset</th><th>Type</th><th>Size</th><th>Variants</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Diner Floor Tile</td><td>Interior Floor</td><td>16x16 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Wood Table</td><td>Furniture</td><td>48x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Woodstove / Radiator</td><td>Furniture</td><td>48x48 px</td><td>2 (lit/unlit)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Window Interior</td><td>Background Element</td><td>64x48 px</td><td>4 (time-of-day variants)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Coat Hooks with Gear</td><td>Furniture</td><td>32x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Crafting Bench</td><td>Furniture / Interaction</td><td>64x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Honey Jar Shelf</td><td>Furniture / Display</td><td>96x32 px</td><td>1 base (jars vary)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Honey Jar (standard)</td><td>Item Sprite</td><td>16x24 px</td><td>3 fill levels</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Exit Door</td><td>Prop/Interaction</td><td>32x64 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Wooden Wall Texture</td><td>Background</td><td>Tile-based</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Wooden Ceiling Texture</td><td>Background</td><td>Tile-based</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Fireplace Glow FX</td><td>FX/Lighting</td><td>64x64 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ---- MAP 3: SHED / HONEY HOUSE ---- -->
+  <h3 id="map_shed">3. Shed / Honey House Interior (Sub-scene)</h3>
+  <div class="location-card">
+    <h4>Shed Interior</h4>
+    <div class="meta">TYPE: Interior | SIZE: ~6x4m base, expands | UNLOCK: Start | STATUS: Not Built</div>
+    <p>The workshop. Tool storage, frame building, extraction equipment (late game). Upgrades visually when the Honey House expansion is purchased -- new window, extraction room added.</p>
+  </div>
+
+  <h4>Required Elements</h4>
+  <table class="data-table">
+    <tbody>
+      <tr><td>Workbench</td><td>Frame-building minigame, equipment repair, syrup mixing.</td></tr>
+      <tr><td>Pegboard + Tools</td><td>Visual display of owned tools. Hive tool, smoker, uncapping knife.</td></tr>
+      <tr><td>Shelving</td><td>Spare equipment storage. Seasonal stock changes (spring: packages, fall: winter prep).</td></tr>
+      <tr><td>Treatment Storage</td><td>Varroa treatments, feed supplies. Visual inventory.</td></tr>
+      <tr><td>Extraction Room</td><td>Late-game addition (Honey House upgrade). Extractor, uncapping station, bottling area.</td></tr>
+      <tr><td>Exit Door</td><td>Returns to Home Property exterior.</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Suggested Layout</h4>
+  <div class="map-ascii">
+EARLY GAME (base shed):
++---------------------------+
+|  [Pegboard]  [Workbench ] |
+|  [Tools   ]  [          ] |
+|                            |
+|  [Shelving]  [Treatment ] |
+|  [Frames  ]  [Storage   ] |
+|                            |
+|       [Exit Door]          |
++---------------------------+
+
+LATE GAME (Honey House expansion):
++---------------------------+-------------------+
+|  [Pegboard]  [Workbench ] | [Extractor      ] |
+|  [Tools   ]  [          ] | [Uncapping Table] |
+|                            | [Bottling Station]|
+|  [Shelving]  [Treatment ] | [Jar Storage    ] |
+|  [Frames  ]  [Storage   ] | [Labels/Supplies] |
+|                            |                   |
+|       [Exit Door]          | [New Window]      |
++---------------------------+-------------------+
+  Expansion is a visible room addition to the right.
+  </div>
+
+  <h4>Required Sprites &amp; Tiles</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Asset</th><th>Type</th><th>Size</th><th>Variants</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Shed Interior Floor</td><td>Interior Floor</td><td>16x16 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Wooden Wall Texture</td><td>Background</td><td>Tile-based</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Workbench</td><td>Furniture / Interaction</td><td>64x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Pegboard with Hooks</td><td>Furniture</td><td>48x64 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Tool Icons (pegboard)</td><td>Item Sprite</td><td>16x16 px</td><td>6+ (hive tool, smoker, uncapping knife, etc.)</td><td><span class="status-built">Partial (Exists)</span></td></tr>
+      <tr><td>Shelving Unit</td><td>Furniture</td><td>64x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Treatment Storage Bin</td><td>Furniture / Display</td><td>32x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Frame Stock Display</td><td>Furniture / Display</td><td>48x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Exit Door</td><td>Prop/Interaction</td><td>32x64 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Honey Extractor</td><td>Equipment (Late Game)</td><td>64x64 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Uncapping Table</td><td>Equipment (Late Game)</td><td>48x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Bottling Station</td><td>Equipment (Late Game)</td><td>48x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Jar Storage Shelves</td><td>Furniture (Late Game)</td><td>64x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Window (Expansion)</td><td>Background Element (Late Game)</td><td>48x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Expansion Room Wall</td><td>Background (Late Game)</td><td>Tile-based</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ---- MAP 4: BACK FIELD ---- -->
+  <h3 id="map_backfield">4. Back Field (Sub-area)</h3>
+  <div class="location-card">
+    <h4>Back Field</h4>
+    <div class="meta">TYPE: Sub-area | SIZE: ~40x30m | UNLOCK: Year 1 progression | STATUS: Not Built</div>
+    <p>The long-horizon investment zone. Open grass with plantable tile grid and tree planting spots. Trees grow visually across years (sapling to mature). This is where the player builds their forage infrastructure.</p>
+  </div>
+
+  <h4>Suggested Layout</h4>
+  <div class="map-ascii">
++---------------------------------------------------------------+
+|  [Gate back                                                   |
+|   to Home]   PLANTABLE GRID (raised soil squares)             |
+|              +---+---+---+---+---+---+---+---+                |
+|              |   |   |   |   |   |   |   |   |   Clover,      |
+|              +---+---+---+---+---+---+---+---+   Buckwheat,   |
+|              |   |   |   |   |   |   |   |   |   Wildflower   |
+|              +---+---+---+---+---+---+---+---+   plantings    |
+|                                                                |
+|  TREE SPOTS (stakes mark positions in Y1):                     |
+|  [T1]    [T2]    [T3]    [T4]    [T5]    [T6]                 |
+|  Apple   Cherry  Pear    Linden  Tulip   Willow               |
+|  (Y1:sapling -> Y2:small -> Y3:young -> Y4+:mature+bloom)     |
+|                                                                |
+|  [Field edge: wild grass, goldenrod in fall]                   |
++---------------------------------------------------------------+
+  </div>
+
+  <h4>Required Sprites &amp; Tiles</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Asset</th><th>Type</th><th>Size</th><th>Variants</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TX Tileset Grass</td><td>Ground Tile Pack</td><td>16x16 px</td><td>Multiple variations</td><td><span class="status-built">Exists (Cainos)</span></td></tr>
+      <tr><td>TX Tileset Dirt</td><td>Ground Tile Pack</td><td>16x16 px</td><td>Multiple variations</td><td><span class="status-built">Exists (Cainos)</span></td></tr>
+      <tr><td>Raised Garden Bed / Planting Tile</td><td>Prop / Interaction Grid</td><td>32x32 px</td><td>1 (can show planting state)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Tree Sapling Sprite</td><td>Plant Growth</td><td>32x32 px</td><td>1 (young state)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Small Tree Sprite</td><td>Plant Growth</td><td>48x48 px</td><td>4 (apple, cherry, pear, linden, willow)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Young Tree Sprite</td><td>Plant Growth</td><td>64x64 px</td><td>4 seasonal variants per tree</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Mature Tree with Crown</td><td>Plant Growth</td><td>80-96 px wide</td><td>4 seasonal variants per tree (apple, cherry, pear, linden, willow)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Clover Forage (lifecycle)</td><td>Forage Plant</td><td>32x32 px</td><td>5 phases</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Buckwheat Forage (lifecycle)</td><td>Forage Plant</td><td>32x32 px</td><td>5 phases</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Wildflower Tile</td><td>Forage Plant</td><td>32x32 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Goldenrod (lifecycle)</td><td>Forage Plant</td><td>32x32 px</td><td>5 phases</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Tree Stake Marker</td><td>Prop / Indicator</td><td>16x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Gate Back to Home</td><td>Prop/Interaction</td><td>64 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Seasonal Ground Overlay</td><td>Seasonal Effect</td><td>Tile-based</td><td>4 (spring/summer/fall/winter)</td><td><span class="status-missing">Needed</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ---- MAP 5: COUNTY ROAD ---- -->
+  <h3 id="map_county_road">5. The County Road (Transit Hub)</h3>
+  <div class="location-card">
+    <h4>County Road</h4>
+    <div class="meta">TYPE: Outdoor | SIZE: ~60x25m | UNLOCK: Start | STATUS: Partial (county_road.tscn)</div>
+    <p>The between-places space. Not a loading screen -- a real gravel road. Houses the map navigation interface via the truck. Seasonal forage in road ditches contributes to regional pool.</p>
+  </div>
+
+  <h4>Suggested Layout</h4>
+  <div class="map-ascii">
+NORTH (background)
++-----------------------------------------------------------------------------------+
+|  [Harmon Farm Fields - BG]        [Tree Line]     [Grain Elevator] [Water Tower]  |
+|  (crop rotation visual:           (mid-distance)   (far BG right)   (far BG)      |
+|   corn rows / soybean canopy)                                                      |
++-----------------------------------------------------------------------------------+
+|  LEFT DITCH         GRAVEL ROAD (two-lane, crowned)          RIGHT DITCH           |
+|  [Goldenrod fall]   ==========================================  [Wildflowers]      |
+|  [Wildflower        ===  tire ruts  ===  center line  ===       [Seasonal]         |
+|   scatter]          ==========================================                      |
++-----------------------------------------------------------------------------------+
+|  [Mailbox]                    [TRUCK - parked right shoulder]                      |
+|  (flag up = delivery)         (interact -> Map Overlay UI)                         |
+|                               [Seasonal: frost/dust/leaves]                        |
++-----------------------------------------------------------------------------------+
+SOUTH (foreground)
+
+  Map Overlay: hand-drawn parchment style. Pins for each location.
+  Locked locations = greyed + padlock icon.
+  </div>
+
+  <h4>Required Sprites &amp; Tiles</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Asset</th><th>Type</th><th>Size</th><th>Variants</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TX Tileset Dirt / Gravel</td><td>Road Tile Pack</td><td>16x16 px</td><td>Multiple variations</td><td><span class="status-built">Exists (Cainos)</span></td></tr>
+      <tr><td>Road Center Line</td><td>Road Marking</td><td>16 px wide, variable length</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Mailbox with Flag</td><td>Prop / Interaction</td><td>24x32 px</td><td>2 (flag up/down)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Farm Truck</td><td>Vehicle Prop</td><td>96-128 px wide</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Seasonal Road Overlay</td><td>Seasonal Effect</td><td>Tile-based</td><td>4 (frost, dust, leaves, snow)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Map Overlay UI</td><td>UI Sprite</td><td>Variable</td><td>1 base + location pins</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Locked Location Padlock Icon</td><td>UI Icon</td><td>16x16 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Location Pin Icon</td><td>UI Icon</td><td>16x16 px</td><td>18+ variants</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Distant Forest / Parallax BG</td><td>Background</td><td>Wide (parallax)</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ---- MAP 6: CEDAR BEND ---- -->
+  <h3 id="map_cedar_bend">6. Cedar Bend -- Main Street (Town)</h3>
+  <div class="location-card">
+    <h4>Cedar Bend</h4>
+    <div class="meta">TYPE: Outdoor | SIZE: ~120x30m (widest scene) | UNLOCK: Start | STATUS: Partial (cedar_bend.tscn)</div>
+    <p>The town. Single main street view, walked end to end. Only key buildings are enterable -- the rest is dressed background. Saturday mornings activate the market overlay with tent canopies and booths.</p>
+  </div>
+
+  <h4>Required Buildings (Enterable)</h4>
+  <table class="data-table">
+    <tbody>
+      <tr><td>Crossroads Diner</td><td>Center. 1960s diner with neon OPEN sign, glass block windows, pie case. Busiest building.</td></tr>
+      <tr><td>Tanner's Supply</td><td>Left-center. Green metal siding farm store. Bulletin board by door. Seasonal stock.</td></tr>
+      <tr><td>Post Office</td><td>Left-center (near Tanner's). Brick federal building with flag. Package pickup.</td></tr>
+      <tr><td>Dr. Harwick's Office</td><td>Right-center. Institutional brick. University extension banner. Experimental garden.</td></tr>
+      <tr><td>Grange Hall</td><td>Right-center. White painted wood community hall. Marquee sign with next meeting date.</td></tr>
+      <tr><td>Fairgrounds Gate</td><td>Far right. Wooden arch "Millhaven County Fair". Only active during High-Sun fair event.</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Suggested Layout</h4>
+  <div class="map-ascii">
+NORTH (building facades face south toward player)
++-----------------------------------------------------------------------------------------------+
+|  [Residential]  [Tanner's] [Post ]  [DINER - center]  [Harwick's] [Grange]  [BG Buildings]   |
+|  [Houses BG ]  [Supply  ] [Office]  [Crossroads    ]  [Office   ] [Hall  ]  [Fair Gate-->]   |
+|  [trailing   ]  [Green   ] [Brick]  [Glass+Neon    ]  [Brick+   ] [White ]  [Arch: County]   |
+|  [off left  ]  [Metal   ] [Flag ]  [Pie Case glow ]  [Ext.Sign ] [Wood  ]  [Fair locked ]   |
+|                 [Bulletin]          [Steam/kitchen  ]  [Garden   ] [Marquee]                  |
+|                 [Board   ]          [vent animation ]  [beds    ]  [Sign  ]                   |
++-----------------------------------------------------------------------------------------------+
+|  SIDEWALK (cracked concrete, grass through cracks)                                            |
+|  ==============================================================================================|
+|  MAIN STREET (faded blacktop, painted center line)                                            |
+|  [Saturday Market area: tents + booths overlay on market days]                                |
+|  ==============================================================================================|
+|  SIDEWALK SOUTH                                                                               |
+|  [Ambient pedestrians: 4-6 designs, random walk between waypoints, time-of-day density]       |
++-----------------------------------------------------------------------------------------------+
+SOUTH (foreground, player walks along this axis)
+
+  Width: ~120m (widest scene, ~6-7 screen widths)
+  Background dressing: hardware store, bar, library, bank (non-enterable facades)
+  </div>
+
+  <h4>Required Sprites &amp; Tiles</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Asset</th><th>Type</th><th>Size</th><th>Variants</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TX Tileset Dirt / Gravel</td><td>Road Tile Pack</td><td>16x16 px</td><td>Multiple variations</td><td><span class="status-built">Exists (Cainos)</span></td></tr>
+      <tr><td>TX Village Building</td><td>Building Tile Pack</td><td>16x16 px</td><td>Multiple building facades</td><td><span class="status-built">Exists (Cainos)</span></td></tr>
+      <tr><td>TX Village Props</td><td>Props Tile Pack</td><td>16x16 px</td><td>Multiple prop variations</td><td><span class="status-built">Exists (Cainos)</span></td></tr>
+      <tr><td>TX Village Plant</td><td>Plant Tile Pack</td><td>16x16 px</td><td>Trees, bushes, flowers</td><td><span class="status-built">Exists (Cainos)</span></td></tr>
+      <tr><td>Crossroads Diner Exterior</td><td>Building</td><td>96-128 px wide</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Tanner's Supply Exterior</td><td>Building</td><td>80-96 px wide</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Post Office Exterior</td><td>Building</td><td>80-96 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Grange Hall Exterior</td><td>Building</td><td>96-128 px wide</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Market Stall</td><td>Building/Stall</td><td>64-80 px wide</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Wooden Bench (Park)</td><td>Prop</td><td>48x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Street Light / Lamp Post</td><td>Prop</td><td>16x48 px</td><td>1 (lit/unlit states via shader)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Storefront Door</td><td>Prop/Interaction</td><td>32x64 px</td><td>3 (diner, supply, other)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Hardware Store Facade (BG)</td><td>Background Building</td><td>96-128 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Bar Facade (BG)</td><td>Background Building</td><td>80 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Library Facade (BG)</td><td>Background Building</td><td>96 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Bank Facade (BG)</td><td>Background Building</td><td>80 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Pedestrian A Sprite</td><td>NPC Placeholder</td><td>120x120 px/frame</td><td>Walking frames</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Pedestrian B Sprite</td><td>NPC Placeholder</td><td>120x120 px/frame</td><td>Walking frames</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Pedestrian C Sprite</td><td>NPC Placeholder</td><td>120x120 px/frame</td><td>Walking frames</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Seasonal Street Overlay</td><td>Seasonal Effect</td><td>Tile-based</td><td>4 (spring/summer/fall/winter)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Time-of-Day Lighting Overlay</td><td>Lighting Effect</td><td>Tile-based</td><td>4 (dawn/day/dusk/night)</td><td><span class="status-missing">Needed</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ---- MAP 7: DINER INTERIOR ---- -->
+  <h3 id="map_diner">7. Crossroads Diner Interior</h3>
+  <div class="location-card">
+    <h4>Diner Interior</h4>
+    <div class="meta">TYPE: Interior | SIZE: Medium | UNLOCK: Start | STATUS: Partial (diner_interior.tscn)</div>
+    <p>The social hub. Counter with 8 stools, 4 booths along window. TV shows weather forecast (in-game data surface). Rose the waitress takes orders. NPCs appear on schedule (Bob on Tuesday mornings).</p>
+  </div>
+
+  <h4>Suggested Layout</h4>
+  <div class="map-ascii">
++---------------------------------------------------+
+|  [Window] [Window] [Window] [Window]              |
+|  [Booth1] [Booth2] [Booth3] [Booth4]              |
+|                                                    |
+|  .  .  .  .  .  .  .  .  (walking aisle)          |
+|                                                    |
+|  [Stool][Stool][Stool][Stool]====COUNTER====      |
+|  [Stool][Stool][Stool][Stool]  [Pie Case]  |     |
+|                                 [Coffee  ]  |     |
+|  [B&W Photos]                   [TV-weather]|     |
+|                                 [Kitchen-->]|     |
+|  [Chalkboard Menu]    [Rose]               |     |
+|                       [Waitress]            |     |
+|           [Exit Door]                        |     |
++---------------------------------------------------+
+  NPCs occupy specific seats on their schedule days.
+  </div>
+
+  <h4>Required Sprites &amp; Tiles</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Asset</th><th>Type</th><th>Size</th><th>Variants</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Diner Floor Tile</td><td>Interior Floor</td><td>16x16 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Diner Wall Texture</td><td>Background</td><td>Tile-based</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Diner Counter</td><td>Furniture</td><td>96x32 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Diner Stool</td><td>Furniture</td><td>16x32 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Diner Booth</td><td>Furniture</td><td>64x48 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Pie Case Display</td><td>Furniture/Display</td><td>64x48 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Coffee Maker</td><td>Equipment</td><td>24x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Diner TV</td><td>Equipment</td><td>32x24 px</td><td>1 (with screen state variations)</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Weather Map / Weather Chalkboard</td><td>Background Element</td><td>48x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Chalkboard Menu</td><td>Furniture/Display</td><td>64x48 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Black &amp; White Photo (decorative)</td><td>Wall Decoration</td><td>32x32 px</td><td>3-4</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Rose (NPC - Waitress)</td><td>NPC Spritesheet</td><td>120x120 px/frame</td><td>8-dir walking or idle frames</td><td><span class="status-built">Exists (rose_waitress.png)</span></td></tr>
+      <tr><td>Ellen Harwick (NPC)</td><td>NPC Spritesheet</td><td>120x120 px/frame</td><td>8-dir walking</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Frank Fischbach (NPC)</td><td>NPC Spritesheet</td><td>120x120 px/frame</td><td>8-dir walking</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Uncle Bob (NPC)</td><td>NPC Spritesheet</td><td>120x120 px/frame</td><td>8-dir walking</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Walt Harmon (NPC)</td><td>NPC Placeholder</td><td>120x120 px/frame</td><td>Walking frames or idle</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>June (NPC - Postmaster)</td><td>NPC Placeholder</td><td>120x120 px/frame</td><td>Walking frames or idle</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Exit Door</td><td>Prop/Interaction</td><td>32x64 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Diner Partition / Room Divider</td><td>Prop</td><td>32x64 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Kitchen Door (background)</td><td>Background Element</td><td>32x64 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ---- MAP 8: TANNER'S SUPPLY ---- -->
+  <h3 id="map_tanners">8. Tanner's Supply Interior</h3>
+  <div class="location-card">
+    <h4>Tanner's Supply (Feed Store)</h4>
+    <div class="meta">TYPE: Interior | SIZE: Medium | UNLOCK: Start | STATUS: Partial (feed_supply_interior.tscn)</div>
+    <p>Farm supply store. Shelves with seasonal stock, counter with Carl Tanner, bulletin board for notices and bee package availability.</p>
+  </div>
+
+  <h4>Suggested Layout</h4>
+  <div class="map-ascii">
++-------------------------------------------+
+|  [Seed Display] [Shelving - Bee Supplies] |
+|  (seasonal)     [Frames, Feeders, Wax   ]|
+|                 [Treatments, Smoker Fuel ]|
+|                                           |
+|  [Bee Package]  [Sugar/Feed Shelf       ]|
+|  [Flats-spring] [Winter Prep-fall       ]|
+|                                           |
+|  =========COUNTER (Carl Tanner)========= |
+|  [Register] [Carl]  [Catalog/Order Book] |
+|                                           |
+|  [Bulletin Board]      [Exit Door]        |
++-------------------------------------------+
+  Seasonal stock swap: Spring (packages, seeds), Summer (supers, frames),
+  Fall (treatments, mouse guards, insulation), Winter (reduced stock, quiet)
+  </div>
+
+  <h4>Required Sprites &amp; Tiles</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Asset</th><th>Type</th><th>Size</th><th>Variants</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Supply Store Floor Tile</td><td>Interior Floor</td><td>16x16 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Supply Store Wall Texture</td><td>Background</td><td>Tile-based</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Shelving Unit (tall)</td><td>Furniture</td><td>64x96 px</td><td>1</td><td><span class="status-built">Exists (supply_shelves)</span></td></tr>
+      <tr><td>Product Display Shelves</td><td>Furniture/Display</td><td>64x48 px</td><td>4 (one per shelf wall)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Storage Bins / Containers</td><td>Prop/Display</td><td>32x32 px</td><td>4-6</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Counter (Sales)</td><td>Furniture</td><td>64x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Cash Register</td><td>Equipment</td><td>24x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Order Book / Catalog</td><td>Item Sprite</td><td>16x24 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Bulletin Board</td><td>Furniture/Display</td><td>64x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Carl Tanner (NPC)</td><td>NPC Placeholder</td><td>120x120 px/frame</td><td>Idle/walking frames</td><td><span class="status-built">Exists (carl_tanner.png)</span></td></tr>
+      <tr><td>Exit Door</td><td>Prop/Interaction</td><td>32x64 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Seasonal Stock Overlay</td><td>Content Swap</td><td>Tile-based</td><td>4 (spring/summer/fall/winter shelves)</td><td><span class="status-missing">Needed</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ---- MAP 9: POST OFFICE ---- -->
+  <h3 id="map_post_office">9. Post Office Interior</h3>
+  <div class="location-card">
+    <h4>Post Office</h4>
+    <div class="meta">TYPE: Interior | SIZE: Small | UNLOCK: Start | STATUS: Partial (post_office_interior.tscn)</div>
+    <p>Focused interaction space. June the postmaster, counter, pigeonhole mail sorters, and the buzzing package box in spring (bee packages arriving).</p>
+  </div>
+
+  <h4>Suggested Layout</h4>
+  <div class="map-ascii">
++-------------------------------+
+|  [Pigeonhole Mail Sorters   ] |
+|  [                          ] |
+|                                |
+|  ====COUNTER (June)=========  |
+|  [June]  [Scale] [Stamps   ] |
+|                                |
+|  [Buzzing Box]   [Notices   ] |
+|  (spring pkgs)   [Board     ] |
+|                                |
+|       [Exit Door]              |
++-------------------------------+
+  Smallest interior. Focused: pick up packages, check notices.
+  </div>
+
+  <h4>Required Sprites &amp; Tiles</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Asset</th><th>Type</th><th>Size</th><th>Variants</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Post Office Floor Tile</td><td>Interior Floor</td><td>16x16 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Post Office Wall Texture</td><td>Background</td><td>Tile-based</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Post Counter</td><td>Furniture</td><td>96x32 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Pigeonholes / Mail Slots</td><td>Furniture/Display</td><td>64x64 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Stamp Display</td><td>Furniture/Item</td><td>16x24 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Postal Scale</td><td>Equipment</td><td>32x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Notices/Bulletin Board</td><td>Furniture/Display</td><td>48x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Buzzing Box (Bee Package)</td><td>Prop/Interaction</td><td>32x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>June (NPC - Postmaster)</td><td>NPC Placeholder</td><td>120x120 px/frame</td><td>Idle/counter-standing frames</td><td><span class="status-built">Exists (june_postmaster.png)</span></td></tr>
+      <tr><td>Exit Door</td><td>Prop/Interaction</td><td>32x64 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ---- MAP 10: DR. HARWICK'S OFFICE ---- -->
+  <h3 id="map_harwick">10. Dr. Harwick's Office Interior</h3>
+  <div class="location-card">
+    <h4>Dr. Harwick's Office</h4>
+    <div class="meta">TYPE: Interior | SIZE: Medium | UNLOCK: Year 2 (first disease event) | STATUS: Not Built</div>
+    <p>Science and diagnostics hub. Waiting area plus consultation desk. Agricultural reference materials, pest specimens in jars, microscope. Player submits samples and returns later for results.</p>
+  </div>
+
+  <h4>Suggested Layout</h4>
+  <div class="map-ascii">
++-------------------------------------------+
+|  [Bookshelf - Agricultural References   ] |
+|  [Extension Posters / Pest ID Charts    ] |
+|                                           |
+|  ====DESK (Dr. Harwick)================  |
+|  [Microscope] [Ellen] [Sample Jars     ] |
+|  [Computer  ]         [Pest Specimens  ] |
+|                                           |
+|  WAITING AREA:                            |
+|  [Chair] [Chair]  [Pamphlet Rack       ] |
+|  [Chair] [Chair]  [IPM Brochures       ] |
+|                                           |
+|       [Exit Door]                         |
++-------------------------------------------+
+  Player submits samples at desk. Returns days later for results.
+  Functions as a crafting timer with physical presence.
+  </div>
+
+  <h4>Required Sprites &amp; Tiles</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Asset</th><th>Type</th><th>Size</th><th>Variants</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Office Floor Tile</td><td>Interior Floor</td><td>16x16 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Office Wall Texture</td><td>Background</td><td>Tile-based</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Office Desk</td><td>Furniture</td><td>64x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Office Chair</td><td>Furniture</td><td>24x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Microscope / Lab Equipment</td><td>Equipment</td><td>32x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Laboratory Shelves / Storage</td><td>Furniture</td><td>64x64 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Waiting Room Chair</td><td>Furniture</td><td>24x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Pamphlet Rack</td><td>Furniture/Display</td><td>32x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>IPM Brochure / Educational Material</td><td>Item Sprite</td><td>16x24 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Dr. Harwick (NPC)</td><td>NPC Spritesheet or Placeholder</td><td>120x120 px/frame</td><td>Idle/desk frames (also used for Ellen variant)</td><td><span class="status-built">Exists (dr_harwick.png + Ellen_Harwick spritesheet)</span></td></tr>
+      <tr><td>Exit Door</td><td>Prop/Interaction</td><td>32x64 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ---- MAP 11: GRANGE HALL ---- -->
+  <h3 id="map_grange">11. Grange Hall Interior</h3>
+  <div class="location-card">
+    <h4>Grange Hall</h4>
+    <div class="meta">TYPE: Interior | SIZE: Large | UNLOCK: CVBA meeting invitation | STATUS: Not Built</div>
+    <p>Community hall for monthly CVBA meetings. Active only on meeting nights. Folding chairs, lectern, equipment trade tables along walls. Dark and locked when inactive.</p>
+  </div>
+
+  <h4>Suggested Layout</h4>
+  <div class="map-ascii">
++---------------------------------------------------+
+|  [Stage / Lectern Area                           ]|
+|  [Podium]  [Projector Screen / Chalkboard]        |
+|                                                    |
+|  [Chair][Chair][Chair][Chair][Chair][Chair]        |
+|  [Chair][Chair][Chair][Chair][Chair][Chair]        |
+|  [Chair][Chair][Chair][Chair][Chair][Chair]        |
+|                                                    |
+|  SIDE TABLES:                                      |
+|  [Equipment Swap]  [Honey Tasting]  [Sign-up]     |
+|  [Used Gear     ]  [Sample Jars  ]  [Sheet  ]     |
+|                                                    |
+|  [Coffee/Refreshments Table]    [Exit Door]        |
++---------------------------------------------------+
+  Only populated on meeting nights (1 evening per in-game month).
+  NPC attendees: 8-12 CVBA members, some recurring, some rotating.
+  </div>
+
+  <h4>Required Sprites &amp; Tiles</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Asset</th><th>Type</th><th>Size</th><th>Variants</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Grange Hall Floor Tile</td><td>Interior Floor</td><td>16x16 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Grange Hall Wall Texture</td><td>Background</td><td>Tile-based</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Large Meeting Table</td><td>Furniture</td><td>128x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Folding Chair</td><td>Furniture</td><td>24x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Presentation / Lectern</td><td>Furniture</td><td>32x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Equipment Display Table</td><td>Furniture/Display</td><td>64x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Honey Tasting Table</td><td>Furniture/Display</td><td>64x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Sign-up Sheet / Board</td><td>Furniture/Display</td><td>32x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Coffee / Refreshment Table</td><td>Furniture/Display</td><td>64x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Honey Sample Jar</td><td>Item Sprite</td><td>16x24 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Used Equipment Display (props)</td><td>Item Sprites</td><td>16-32 px</td><td>Multiple hive tools</td><td><span class="status-partial">Partial</span></td></tr>
+      <tr><td>CVBA Members (various NPCs)</td><td>NPC Placeholders</td><td>120x120 px/frame</td><td>8-12 unique walking animations</td><td><span class="status-missing">Needed (most are unique variants)</span></td></tr>
+      <tr><td>Exit Door</td><td>Prop/Interaction</td><td>32x64 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ---- MAP 12: FAIRGROUNDS ---- -->
+  <h3 id="map_fairgrounds">12. County Fairgrounds (Sub-scene)</h3>
+  <div class="location-card">
+    <h4>Millhaven County Fairgrounds</h4>
+    <div class="meta">TYPE: Sub-scene | SIZE: Large | UNLOCK: High-Sun fair event | STATUS: Not Built</div>
+    <p>The largest and most complex non-home scene. Accessed through the fairgrounds gate in Cedar Bend. Only active during the annual county fair. Honey judging pavilion is the key gameplay location.</p>
+  </div>
+
+  <h4>Suggested Layout</h4>
+  <div class="map-ascii">
++-----------------------------------------------------------------------+
+|  [ENTRY GATE from Cedar Bend]                                         |
+|                                                                        |
+|  MIDWAY (game booths, atmosphere):                                     |
+|  [Booth] [Booth] [Booth] [Food Vendor] [Food Vendor]                 |
+|                                                                        |
+|  [Livestock/       [COMPETITION PAVILION           ]  [Show Ring     ]|
+|   Exhibit Barn]    [==============================]  [Bee Beard     ]|
+|  [Animals,         [ Honey Judging Tables         ]  [Competition   ]|
+|   Produce          [ [Judge] [Scoring] [Display]  ]  [(spectator    ]|
+|   displays]        [ Player submits jars here     ]  [ event)       ]|
+|                    [==============================]                   |
+|                                                                        |
+|  [Picnic Area]  [Stage for Announcements]  [Exit back to Cedar Bend] |
++-----------------------------------------------------------------------+
+  Crowded, colorful. Contrast with the quiet of the rest of the game.
+  Active only during fair week in High-Sun. Banners, crowd ambient sound.
+  </div>
+
+  <h4>Required Sprites &amp; Tiles</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Asset</th><th>Type</th><th>Size</th><th>Variants</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TX Tileset Grass / Field</td><td>Ground Tile Pack</td><td>16x16 px</td><td>Multiple variations</td><td><span class="status-built">Exists (Cainos)</span></td></tr>
+      <tr><td>Fairground Booth / Stall</td><td>Prop/Structure</td><td>64x64 px</td><td>3-4 variations</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Fair Tent / Canopy</td><td>Prop/Structure</td><td>80-96 px wide</td><td>2-3 color/pattern variants</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Ferris Wheel</td><td>Prop/Structure</td><td>128x128 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Carnival Game Booth</td><td>Prop/Structure</td><td>64x80 px</td><td>2-3 variations</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Prize Display</td><td>Furniture/Display</td><td>64x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Fair Signage / Banner</td><td>Prop/Decoration</td><td>64x32 px</td><td>2-3</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Picnic Table / Bench</td><td>Furniture</td><td>64x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Stage / Announcement Platform</td><td>Structure</td><td>96x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Crowd Pedestrian (Fair variant A)</td><td>NPC Placeholder</td><td>120x120 px/frame</td><td>Walking frames (casual fair clothes)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Crowd Pedestrian (Fair variant B)</td><td>NPC Placeholder</td><td>120x120 px/frame</td><td>Walking frames (casual fair clothes)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Exit Gate / Path back to Cedar Bend</td><td>Prop/Interaction</td><td>64 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Fair Day Lighting / Colorful Overlays</td><td>Seasonal/Event Effect</td><td>Tile-based</td><td>Bright daytime with festive tint</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Fair Ambient Crowd FX (sprites)</td><td>FX</td><td>Variable</td><td>Various small crowd activity sprites</td><td><span class="status-missing">Needed</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="divider"></div>
+
+  <!-- ---- MAP 13: TIMBER & WOODLOT ---- -->
+  <h3 id="map_timber">13. The Timber &amp; Woodlot</h3>
+  <div class="location-card">
+    <h4>Timber &amp; Woodlot</h4>
+    <div class="meta">TYPE: Outdoor | SIZE: ~80x35m | HIVE SLOTS: 6 | UNLOCK: Year 2 (Lloyd quest + $200) | STATUS: Not Built</div>
+    <p>The most atmospherically distinct location. Feels older and deeper -- predates farming. The linden grove in Wide-Clover is the visual showpiece. Seasonal flooding blocks access in early Quickening. Lloyd Petersen is a semi-random presence 3-4 days per week.</p>
+  </div>
+
+  <h4>Suggested Layout</h4>
+  <div class="map-ascii">
+CANOPY LAYER (filtered light, wind sway shader on leaf layer)
++-----------------------------------------------------------------------------------+
+|  DISEASED TREE   |  CREEK AREA    |  APIARY CLEARING  |  LINDEN GROVE   | TIMBER |
+|  SECTION         |                |                    |                  | EDGE   |
+|                  |                |                    |                  |        |
+|  [Dead Elms -    |  [Willows     ]|  [Hive][Hive]     |  [Linden][Linden]| [Dense]|
+|   pre-quest]     |  [over creek  ]|  [Hive][Hive]     |  [Linden][Linden]| [Trees]|
+|  [Cleared +      |  [Catkins in  ]|  [Hive][Hive]     |  [Linden][Linden]| [BG   ]|
+|   replanted -    |  [Quickening  ]|                    |                  |        |
+|   post-quest]    |  ~~~~~~~~~~~~~ |  [Stump/Worktable] |  In Wide-Clover: |        |
+|                  |  [Creek - flow]|  [Water Trough    ]|  Golden light    |        |
+|  [Lloyd's        |  [stones, var-]|  [Old Fence Posts ]|  Heavy bee VFX   |        |
+|   access path]   |  [iable level ]|                    |  Nectar particles|        |
++-----------------------------------------------------------------------------------+
+SOUTH (foreground, Lloyd sometimes found near creek or timber edge)
+
+  SEASONAL NOTES:
+  - Quickening Wk 1-2: FLOODED ROAD notification, scene inaccessible
+  - Greening: willows leaf out, creek recedes, wild plum blooms white
+  - Wide-Clover: LINDEN BLOOM -- golden canopy tint, max bee particles
+  - Full-Earth: leaf-fall overlay
+  - Deepcold: snow dusting, bare branches, creek partially iced
+  </div>
+
+  <h4>Required Sprites &amp; Tiles</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Asset</th><th>Type</th><th>Size</th><th>Variants</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TX Tileset Grass / Dirt</td><td>Ground Tile Pack</td><td>16x16 px</td><td>Multiple variations</td><td><span class="status-built">Exists (Cainos)</span></td></tr>
+      <tr><td>TX Tileset Terrain (water tiles)</td><td>Terrain Tile Pack</td><td>16x16 px</td><td>Stream/creek variations</td><td><span class="status-built">Exists (Cainos)</span></td></tr>
+      <tr><td>Willow Tree (mature, seasonal)</td><td>Plant/Tree</td><td>96-128 px wide</td><td>4 seasonal variants + leafless winter</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Linden Tree (mature, with bloom)</td><td>Plant/Tree</td><td>96-128 px wide</td><td>5 seasonal variants (golden bloom for Wide-Clover)</td><td><span class="status-built">Exists (linden.png)</span></td></tr>
+      <tr><td>Wild Plum Tree (small, blooming white)</td><td>Plant/Tree</td><td>64-80 px wide</td><td>5 seasonal variants (white bloom in Greening)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Creek / Stream</td><td>Water Tile</td><td>16x16 px</td><td>Flow variation</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Creek Bank / Erosion</td><td>Terrain</td><td>16x32 px</td><td>1-2 variations</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Hive Stand</td><td>Prop</td><td>32x32 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Hive Components (base, super, lid, etc.)</td><td>Hive Parts</td><td>48x48 px</td><td>Multiple</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Lloyd (NPC)</td><td>NPC Placeholder</td><td>120x120 px/frame</td><td>Walking/idle frames (found near creek/timber edge)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Quickening Flooding Overlay</td><td>Seasonal Effect</td><td>Tile-based</td><td>Flooded road appearance</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Leaf Fall / Autumn Overlay</td><td>Seasonal Effect</td><td>Tile-based</td><td>Full-Earth variant</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Snow Dusting Overlay</td><td>Seasonal Effect</td><td>Tile-based</td><td>Deepcold variant</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Ice on Creek Overlay</td><td>Seasonal Effect</td><td>Water tiles</td><td>Deepcold variant</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Linden Bloom Golden Tint Overlay</td><td>Seasonal/Bloom Effect</td><td>Full-screen</td><td>Wide-Clover bloom effect</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Bee Particle / Swarm FX</td><td>FX</td><td>8-16 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Wildflower Undergrowth Tile</td><td>Ground Detail</td><td>16x16 px</td><td>1</td><td><span class="status-built">Exists (wildflower_tile.png)</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ---- MAP 14: HARMON FARM ---- -->
+  <h3 id="map_harmon">14. The Harmon Farm</h3>
+  <div class="location-card">
+    <h4>Harmon Farm</h4>
+    <div class="meta">TYPE: Outdoor | SIZE: ~100x35m | HIVE SLOTS: 4-6 (expandable) | UNLOCK: Year 2-3 (Kacey quest) | STATUS: Not Built</div>
+    <p>The most functionally dynamic location. Changes based on crop rotation (corn vs. soybean years), player relationship, and season. Must look like a working operation -- tractor with door open, barn cat, scattered equipment.</p>
+  </div>
+
+  <h4>Suggested Layout</h4>
+  <div class="map-ascii">
+NORTH (background: rolling hills, neighbor properties)
++-----------------------------------------------------------------------------------------------+
+|  FARMHOUSE    |  BARN + MACHINE SHED  |  FARMYARD LANE  |  FIELD EDGE        |  CROP FIELD   |
+|               |                        |                  |                    |  (to horizon) |
+|  [Farmhouse  ]|  [Barn - red gambrel ]|  [Dirt Lane    ]|  [Fence + Gate   ]|  [Corn rows / |
+|  [2-story    ]|  [Open sliding door  ]|  [             ]|  [Field margins  ]|   Soybean     |
+|  [Wrap porch ]|  [Hay, tractor vis.  ]|  [Path behind  ]|  [Goldenrod     ]|   canopy --   |
+|  [Mudroom    ]|  [Swallow nests      ]|  [barn to      ]|  [(post-quest:  ]|   seasonal    |
+|  [Flag pole  ]|  [                   ]|  [orchard --->  ]|  [ unmowed)     ]|   variants]   |
+|  [Walt often ]|  [Machine Shed      ]|  [             ]|  [              ]|               |
+|  [on porch   ]|  [Sprayer state:    ]|  [             ]|  [              ]|               |
+|              ]|  [deep/front/gone   ]|  [             ]|  [              ]|               |
++-----------------------------------------------------------------------------------------------+
+SOUTH (foreground)
+
+  NPC Locations:
+  - Walt: porch, barn, field gate. Posture changes with relationship (arms crossed -> open -> welcoming)
+  - Kacey: barn office corner, farmyard, laptop bag. Energetic, initiates conversation.
+  - Barn Cat: sleeping on hay bales (ambient)
+
+  SPRAYER VISUAL CUE SYSTEM (machine shed):
+  - Parked deep inside = no pesticide event coming
+  - Moved to front = event in 1-2 days
+  - Gone = event active
+  - Back inside = event over
+  </div>
+
+  <h4>Required Sprites &amp; Tiles</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Asset</th><th>Type</th><th>Size</th><th>Variants</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TX Tileset Grass / Dirt</td><td>Ground Tile Pack</td><td>16x16 px</td><td>Multiple variations</td><td><span class="status-built">Exists (Cainos)</span></td></tr>
+      <tr><td>Corn Field Tile</td><td>Crop/Specialty Tile</td><td>16x16 px</td><td>1-2 growth states</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Soybean Field Tile</td><td>Crop/Specialty Tile</td><td>16x16 px</td><td>1-2 growth states</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Farmhouse Exterior</td><td>Building</td><td>96-128 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Barn Exterior</td><td>Building</td><td>128-160 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Machine Shed Exterior</td><td>Building</td><td>80-96 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Grain Silo</td><td>Prop/Structure</td><td>32-48 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Farm Sprayer Machine</td><td>Prop/Interactive</td><td>96-128 px wide</td><td>1 base (changes position for event system)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Hay Bales</td><td>Prop/Decoration</td><td>32x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Wooden Fence (farm style)</td><td>Prop</td><td>16-32 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Farm Gate</td><td>Prop/Interaction</td><td>64 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Kacey (NPC)</td><td>NPC Placeholder</td><td>120x120 px/frame</td><td>Walking/standing frames (energetic pose)</td><td><span class="status-built">Exists (kacey_harmon.png)</span></td></tr>
+      <tr><td>Barn Cat Sprite</td><td>Wildlife/Ambient</td><td>24x24 px</td><td>1-2 animation frames (sleeping/idle)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Laptop Bag Prop</td><td>Item/Prop</td><td>16x16 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Farm Equipment Props</td><td>Prop/Decoration</td><td>Variable</td><td>3-4 farming tools scattered</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Pesticide Event Overlay</td><td>Seasonal/Event Effect</td><td>Tile-based</td><td>Subtle negative tint when active</td><td><span class="status-missing">Needed</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ---- MAP 15: HARMON INTERIOR ---- -->
+  <h3 id="map_harmon_interior">15. Harmon Farmhouse Interior</h3>
+  <div class="location-card">
+    <h4>Harmon Farmhouse Kitchen</h4>
+    <div class="meta">TYPE: Interior | SIZE: Medium | UNLOCK: After first Kacey quest | STATUS: Not Built</div>
+    <p>Working farmhouse kitchen. Practical, not decorated. Farm records on table, Kacey's laptop with crop planning software, old seed company calendars. Key quest dialogue scenes happen here.</p>
+  </div>
+
+  <h4>Suggested Layout</h4>
+  <div class="map-ascii">
++-------------------------------------------+
+|  [Window - field view]                    |
+|                                           |
+|  [Kitchen Counter]  [Farm Table         ] |
+|  [Practical,     ]  [Records, papers    ] |
+|  [not decorative ]  [Kacey's laptop     ] |
+|                     [Crop rotation plan  ]|
+|                                           |
+|  [Seed Calendars on wall]                 |
+|  [Old photos, practical decor]            |
+|                                           |
+|       [Exit Door]                         |
++-------------------------------------------+
+  Interactive element: table with crop rotation plan.
+  Reveals future year forage conditions when Kacey explains it.
+  </div>
+
+  <h4>Required Sprites &amp; Tiles</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Asset</th><th>Type</th><th>Size</th><th>Variants</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Farmhouse Kitchen Floor Tile</td><td>Interior Floor</td><td>16x16 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Farmhouse Wall Texture</td><td>Background</td><td>Tile-based</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Kitchen Table</td><td>Furniture / Interaction Point</td><td>64x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Kitchen Chair</td><td>Furniture</td><td>24x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Kitchen Counter</td><td>Furniture</td><td>96x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Kitchen Stove</td><td>Equipment</td><td>32x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Refrigerator</td><td>Furniture</td><td>32x64 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Crop Rotation Plan / Chart</td><td>Wall Display</td><td>48x48 px</td><td>1 (interactive, changes based on game state)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Seed Calendar (wall)</td><td>Wall Decoration</td><td>32x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Old Family Photo</td><td>Wall Decoration</td><td>32x32 px</td><td>2-3 (generic farmhouse decor)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Practical Farm Decor (hooks, tools)</td><td>Wall Decoration</td><td>16-32 px</td><td>3-4 items</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Exit Door</td><td>Prop/Interaction</td><td>32x64 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ---- MAP 16: HARMON ORCHARD ---- -->
+  <h3 id="map_orchard">16. Harmon Orchard (Sub-area)</h3>
+  <div class="location-card">
+    <h4>Harmon Orchard</h4>
+    <div class="meta">TYPE: Sub-area | SIZE: Medium | HIVE SLOTS: 4 (expands to 6) | UNLOCK: Kacey Q4 (Pollination Deal) | STATUS: Not Built</div>
+    <p>12-15 mature fruit trees (apple, cherry, pear) in 3 rows behind the barn. Accessed via path from the farmyard. Becomes an apiary location when unlocked. The orchard in Greening bloom -- white and pink blossoms with active hives -- is a specific reward moment.</p>
+  </div>
+
+  <h4>Suggested Layout</h4>
+  <div class="map-ascii">
++---------------------------------------------------+
+|  [Path from Barn <---]                             |
+|                                                    |
+|  [Apple] [Apple] [Cherry] [Cherry] [Pear]         |
+|                                                    |
+|  [Apple] [Cherry] [Pear]  [Apple]  [Cherry]       |
+|         CLOVER GROUND COVER BETWEEN TREES          |
+|  [Pear]  [Apple] [Cherry] [Pear]  [Apple]         |
+|                                                    |
+|  HIVE SLOTS (among the trees):                     |
+|  [Hive1]        [Hive2]        [Hive3]  [Hive4]   |
+|                                                    |
+|  [Wooden Ladder leaning on tree]                   |
+|  [Cover crop strip along south fence]              |
++---------------------------------------------------+
+  SEASONAL:
+  - Greening: White + pink blossoms on all trees. Peak beauty.
+  - Wide-Clover/High-Sun: Full leaf, fruit developing on branches.
+  - Full-Earth: Fall color, ripe fruit visible, apple harvest.
+  - Deepcold: Bare branches, snow on ground.
+
+  POST Q6 (Walt Comes Around): Expands to 6 hive slots.
+  No more pesticide events on Harmon land permanently.
+  </div>
+
+  <h4>Required Sprites &amp; Tiles</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Asset</th><th>Type</th><th>Size</th><th>Variants</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TX Tileset Grass / Dirt</td><td>Ground Tile Pack</td><td>16x16 px</td><td>Multiple variations</td><td><span class="status-built">Exists (Cainos)</span></td></tr>
+      <tr><td>Apple Tree (fruit tree, seasonal)</td><td>Plant/Tree</td><td>80-96 px wide</td><td>5 seasonal variants (blossoms, developing fruit, ripe apples, fall colors, bare)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Pear Tree (fruit tree, seasonal)</td><td>Plant/Tree</td><td>80-96 px wide</td><td>5 seasonal variants</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Cherry Tree (fruit tree, seasonal)</td><td>Plant/Tree</td><td>80-96 px wide</td><td>5 seasonal variants (pink blossoms)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Plum Tree (fruit tree, seasonal)</td><td>Plant/Tree</td><td>80-96 px wide</td><td>5 seasonal variants</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Hive Stand</td><td>Prop</td><td>32x32 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Hive Components</td><td>Hive Parts</td><td>48x48 px</td><td>Multiple</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Grass Row Separators</td><td>Ground Detail</td><td>16 px wide, variable length</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Orchard Fence</td><td>Prop</td><td>16-32 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Pollination Flowers (clover, wildflowers)</td><td>Forage / Flowering Plants</td><td>32x32 px</td><td>Multiple (clover, various wildflowers at peak in bloom season)</td><td><span class="status-partial">Partial (clover exists)</span></td></tr>
+      <tr><td>Bee Swarm / Pollination FX</td><td>FX</td><td>8-16 px</td><td>1</td><td><span class="status-built">Exists (bee_forager.png, bee_particle.png)</span></td></tr>
+      <tr><td>Blossom Petal Fall FX</td><td>Seasonal FX</td><td>8-16 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Leaf Fall FX</td><td>Seasonal FX</td><td>8-16 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Snow Coverage Overlay</td><td>Seasonal Effect</td><td>Tile-based</td><td>Deepcold variant</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Fruit Visibility Overlay</td><td>Seasonal Effect</td><td>Tile-based</td><td>Wide-Clover/High-Sun/Full-Earth variants (fruit appears on branches)</td><td><span class="status-missing">Needed</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ---- MAP 17: RIVER BOTTOM ---- -->
+  <h3 id="map_river">17. The River Bottom</h3>
+  <div class="location-card">
+    <h4>River Bottom</h4>
+    <div class="meta">TYPE: Outdoor | SIZE: ~90x40m (tallest scene) | HIVE SLOTS: 8 | UNLOCK: Year 3 (CVBA + Standing 500 + $500) | STATUS: Not Built</div>
+    <p>The game's most remote and most atmospheric location. Wilder, wetter, more primal. The Cedar Bend River is a real presence. Should be the most beautiful scene in Full-Earth (golden meadow, amber light on water) and most menacing in Quickening (high brown water, muddy banks). Best varietal honey potential in the game.</p>
+  </div>
+
+  <h4>Suggested Layout</h4>
+  <div class="map-ascii">
+NORTH-WEST (river flows diagonally upper-left to lower-right for depth)
++-----------------------------------------------------------------------------------+
+|  WILLOW THICKET  |  ACCESS PATH    |  APIARY CLEARING    |  WILDFLOWER MEADOW    |
+|                  |                  |  (elevated bank)     |                       |
+|  [Willow][Willow]|  [Muddy two-   ]|  [Hive][Hive]       |  [Coneflower         ]|
+|  [Willow][Willow]|  [track road   ]|  [Hive][Hive]       |  [Bergamot           ]|
+|  [Branches trail]|  [from county  ]|  [Hive][Hive]       |  [Black-eyed Susan   ]|
+|  [into water    ]|  [road         ]|  [Hive][Hive]       |  [Ironweed, Milkweed ]|
+|  [Catkins early ]|  [             ]|                      |  [Goldenrod in fall  ]|
+|  [spring -- gold]|  [             ]|  [Cottonwood shade ] |  [Aster in fall      ]|
+|                  |  [             ]|  [River stone table] |  [RICHEST FORAGE     ]|
+|                  |  [             ]|  [Old fence posts  ] |  [IN THE GAME        ]|
++---------------------------+--------+----------------------+-----------------------+
+|  FLOOD PLAIN (low ground -- standing water in Quickening wk 1-2)                  |
+|  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                  |
+|  [Reflective water surface, ripple shader, wading = slow movement]                |
+|  [Standard stands here = flood risk. Elevated stands = safe.]                     |
++-----------------------------------------------------------------------------------+
+|  CEDAR BEND RIVER (20-30m wide, diagonal flow)                                    |
+|  ~~~~~~~~~~~ [Gravel bars in fall] ~~~~~~~~~~~ [Ice shelves in winter] ~~~~~~~~~~  |
+|  ~~~~~~~~~~~ [Brown+fast spring ] ~~~~~~~~~~~ [Clear+slow summer   ] ~~~~~~~~~~   |
++-----------------------------------------------------------------------------------+
+|  FAR BANK: cottonwoods, scrub (background layer)                                  |
+|  [Cottonwood flat -- cottony seed release particles in Wide-Clover]                |
+|  [Terri Vogel's 3 hives visible at far right -- benchmark hives]                  |
++-----------------------------------------------------------------------------------+
+
+  AMBIENT WILDLIFE (richest in the game):
+  - Herons in shallows (background, slow, rare -- 1-2 per visit)
+  - Kingfisher over water
+  - Frogs at dawn/dusk (sound only)
+  - Dragonflies over meadow (summer)
+  - Red-winged blackbirds on willow stems
+
+  PERSPECTIVE NOTE: Diagonal river gives depth not achievable in horizontal scenes.
+  Apiary clearing is 2-3m above flood plain on a raised bank.
+  </div>
+
+  <h4>Required Sprites &amp; Tiles</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Asset</th><th>Type</th><th>Size</th><th>Variants</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TX Tileset Grass / Dirt</td><td>Ground Tile Pack</td><td>16x16 px</td><td>Multiple variations</td><td><span class="status-built">Exists (Cainos)</span></td></tr>
+      <tr><td>TX Tileset Terrain (water)</td><td>Water/Terrain Tile Pack</td><td>16x16 px</td><td>River variations, flow</td><td><span class="status-built">Exists (Cainos)</span></td></tr>
+      <tr><td>Willow Tree (mature, bank-side)</td><td>Plant/Tree</td><td>96-128 px wide</td><td>4 seasonal variants + willow stems for birds</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Water Lily / Aquatic Plants</td><td>Water Flora</td><td>32x32 px</td><td>1-2</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Cattails / Marsh Vegetation</td><td>Water Flora</td><td>16x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>River Bank / High Bank Cliff</td><td>Terrain</td><td>16x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Flood Plain Terrain (lower elevation)</td><td>Terrain/Ground</td><td>16x16 px</td><td>1-2</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Hive Stand (on raised bank)</td><td>Prop</td><td>32x32 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Hive Components</td><td>Hive Parts</td><td>48x48 px</td><td>Multiple</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Heron Bird Sprite</td><td>Wildlife</td><td>48x64 px</td><td>2-3 animation frames (slow walking in water)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Kingfisher Sprite</td><td>Wildlife</td><td>24x32 px</td><td>2-4 animation frames (flying over water)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Dragonfly Sprite</td><td>Wildlife / FX</td><td>16x16 px</td><td>1-2 animation frames (flying)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Red-winged Blackbird Sprite</td><td>Wildlife</td><td>16x16 px</td><td>1-2 animation frames (perched on stems)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Frog Sprite (ambient audio only, or optional visual)</td><td>Wildlife (Audio)</td><td>N/A or 16x16 px if shown</td><td>N/A</td><td><span class="status-missing">Audio Needed</span></td></tr>
+      <tr><td>Pollination Flowers (clover, wildflowers, phacelia, bergamot, coneflower)</td><td>Forage / Flowering Plants</td><td>32x32 px</td><td>5+ lifecycle phases per species</td><td><span class="status-built">Partial (several exist)</span></td></tr>
+      <tr><td>Bee Swarm / Pollination FX</td><td>FX</td><td>8-16 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Water Reflection / Parallax Effect</td><td>Visual Effect</td><td>Variable</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Seasonal Bank Overlay</td><td>Seasonal Effect</td><td>Tile-based</td><td>4 (spring/summer/fall/winter)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Flood Plain Inundation Overlay (rare water event)</td><td>Environmental Effect</td><td>Tile-based</td><td>Flooded state appearance</td><td><span class="status-missing">Needed</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ---- MAP 18: TOWN GARDEN ---- -->
+  <h3 id="map_town_garden">18. Town Garden (Bonus Location)</h3>
+  <div class="location-card">
+    <h4>Town Garden</h4>
+    <div class="meta">TYPE: Outdoor (small) | SIZE: ~30x20m | HIVE SLOTS: 2 | UNLOCK: Year 1 (Uncle Bob beautification quest + 2 lbs honey) | STATUS: Not Built</div>
+    <p>A small bonus apiary location within Cedar Bend. Part of a town beautification project led by Uncle Bob. The smallest apiary with only 2 hive slots, but provides early access to town-area forage and a visible community contribution.</p>
+  </div>
+
+  <h4>Suggested Layout</h4>
+  <div class="map-ascii">
++-------------------------------------------+
+|  [Fence / low stone wall border          ]|
+|                                           |
+|  [Planted Flower Beds]  [Bench]          |
+|  [Community garden   ]  [Town plaque    ]|
+|  [Pollinator-friendly]  ["Cedar Bend    ]|
+|  [plantings          ]  [ Bee Garden"   ]|
+|                                           |
+|  [Hive Slot 1]    [Hive Slot 2]         |
+|  [Simple stand]    [Simple stand]        |
+|                                           |
+|  [Small shed for gear storage]           |
+|  [Path back to Cedar Bend main street]   |
++-------------------------------------------+
+  Smallest outdoor location. Intimate. Community feel.
+  Forage: town garden flowers + nearby residential gardens.
+  </div>
+
+  <h4>Required Sprites &amp; Tiles</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Asset</th><th>Type</th><th>Size</th><th>Variants</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TX Tileset Grass / Dirt</td><td>Ground Tile Pack</td><td>16x16 px</td><td>Multiple variations</td><td><span class="status-built">Exists (Cainos)</span></td></tr>
+      <tr><td>Stone Wall / Border</td><td>Prop/Structure</td><td>16-32 px wide, variable length</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Planted Flower Beds (community garden)</td><td>Prop/Interactive Grid</td><td>32x32 px</td><td>1 (can show planting state)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Wooden Bench (park style)</td><td>Furniture</td><td>48x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Town Plaque / "Cedar Bend Bee Garden" Sign</td><td>Prop/Display</td><td>48x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Hive Stand (simple)</td><td>Prop</td><td>32x32 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Hive Components</td><td>Hive Parts</td><td>48x48 px</td><td>Multiple</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Small Shed / Gear Storage Building</td><td>Building</td><td>64 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Path / Walking Route Back to Cedar Bend</td><td>Terrain/Path</td><td>Tile-based</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Pollinator-Friendly Flowers (variety: coneflower, bergamot, lavender, etc.)</td><td>Forage / Flowering Plants</td><td>32x32 px</td><td>5 lifecycle phases per species</td><td><span class="status-partial">Partial (several exist)</span></td></tr>
+      <tr><td>Residential Garden Flowers (background elements, not functional forage)</td><td>Decorative Plants</td><td>16-32 px</td><td>2-3 varieties</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Bee Swarm / Pollination FX</td><td>FX</td><td>8-16 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Uncle Bob (NPC)</td><td>NPC Spritesheet</td><td>120x120 px/frame</td><td>8-dir walking</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Seasonal Flower Overlay</td><td>Seasonal Effect</td><td>Tile-based</td><td>4 (spring/summer/fall/winter bloom states)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Time-of-Day Lighting Overlay</td><td>Lighting Effect</td><td>Tile-based</td><td>4 (dawn/day/dusk/night)</td><td><span class="status-missing">Needed</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 5: WORLD CONNECTION MAP              -->
+<!-- ============================================ -->
+<div class="section" id="world_connection">
+  <p class="section-label">05</p>
+  <h2>World Connection Map</h2>
+  <p>This diagram shows how every location connects to every other location. All travel flows through the County Road and its map overlay system. The player does not walk between locations in real-time -- they use the truck's map interface. But the connections below show the logical geography of Millhaven County as the player experiences it.</p>
+
+  <h4>Physical Geography (Map Overlay Layout)</h4>
+  <div class="map-ascii">
+                         N
+                         |
+            [TIMBER & WOODLOT]
+            (NW of home, past
+             Lloyd's access road)
+                  |
+                  |  gravel
+                  |  road
+                  |                                [RIVER BOTTOM]
+                  |                                (East, down by the
+                  |                                 Cedar Bend River)
+    [DARLENE'S]---+                                      |
+    (next door,   |                                      |
+     fence line)  |                                      |
+                  |                                      |
+           [HOME PROPERTY]-----[COUNTY ROAD]------[CEDAR BEND TOWN]
+           (player's base)     (transit hub,       (main street)
+            |                   truck + map)        |    |    |
+            |                        |              |    |    |
+         [House Int.]                |         [Diner] [Tanner's] [Post Office]
+         [Shed Int. ]                |         [Harwick's] [Grange Hall]
+         [Back Field]                |         [Town Garden] [Fairgrounds*]
+                                     |
+                              [HARMON FARM]
+                              (South of county road,
+                               visible from road scene)
+                                |
+                           [Farm Interior]
+                           [Orchard sub-area]
+  </div>
+
+  <h4>Navigation Flow Diagram</h4>
+  <div class="map-ascii">
+                    +-------------------+
+                    |   MAP OVERLAY     |
+                    | (truck cab UI)    |
+                    +-------------------+
+                      |   |   |   |   |
+          +-----------+   |   |   |   +-----------+
+          |               |   |   |               |
+          v               v   |   v               v
+  +--------------+  +-------+ | +--------+  +----------+
+  | HOME         |  |TIMBER | | |HARMON  |  | RIVER    |
+  | PROPERTY     |  |WOODLOT| | |FARM    |  | BOTTOM   |
+  +--------------+  +-------+ | +--------+  +----------+
+    |  |  |                   |   |  |
+    v  v  v                   v   v  v
+  [House][Shed][Back     [CEDAR  [Farm  [Orchard]
+   Int.] [Int.] Field]    BEND]  Int.]
+                           |  |  |  |  |  |
+                           v  v  v  v  v  v
+                      [Diner][Tanner's][Post Off]
+                      [Harwick][Grange][Town Gdn]
+                                         [Fair*]
+
+  UNLOCK PROGRESSION:
+  Year 1: Home + County Road + Cedar Bend (+ interiors) + Town Garden
+  Year 2: + Timber & Woodlot (Lloyd quest, $200)
+  Year 2-3: + Harmon Farm / Orchard (Kacey quest, free)
+  Year 3: + River Bottom (CVBA quest, Standing 500, $500)
+
+  *Fairgrounds: seasonal access only (High-Sun fair week)
+  </div>
+
+  <h4>Travel Time &amp; Energy Costs (Design Suggestion)</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>From</th><th>To</th><th>Travel Time</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Home</td><td>County Road</td><td>5 min</td><td>Walk to truck, always available</td></tr>
+      <tr><td>County Road</td><td>Cedar Bend</td><td>15 min</td><td>Short drive</td></tr>
+      <tr><td>County Road</td><td>Timber</td><td>20 min</td><td>Gravel road, further out</td></tr>
+      <tr><td>County Road</td><td>Harmon Farm</td><td>10 min</td><td>Visible from the road</td></tr>
+      <tr><td>County Road</td><td>River Bottom</td><td>30 min</td><td>Longest drive -- most remote location</td></tr>
+      <tr><td>Cedar Bend</td><td>Town Garden</td><td>5 min</td><td>Walk within town</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 6: RECOMMENDED BUILD ORDER           -->
+<!-- ============================================ -->
+<div class="section" id="build_order">
+  <p class="section-label">06</p>
+  <h2>Recommended Build Order</h2>
+  <p>Organized by gameplay dependency -- what the player needs first, built first. Each phase should result in a playable vertical slice.</p>
+
+  <table class="data-table">
+    <thead>
+      <tr><th>Phase</th><th>Scenes to Build</th><th>Why This Order</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Phase 1 (Core Loop)</td><td>Complete Home Property (main.tscn polish), Shed Interior, House Interior (flesh out)</td><td>The player spends 60-70% of Year 1 here. Hive inspection, crafting, Knowledge Log -- all core loop activities happen on these 3 scenes.</td></tr>
+      <tr><td>Phase 2 (World Access)</td><td>Polish County Road, complete Cedar Bend main street, Back Field</td><td>Gives the player somewhere to go. Market sales, NPC interactions, and long-term planting investments become available.</td></tr>
+      <tr><td>Phase 3 (Town Depth)</td><td>Complete Diner, Tanner's, Post Office interiors. Build Dr. Harwick's Office, Grange Hall.</td><td>NPC quest chains require these interiors. Bob's diner visits, Frank's market quests, Ellen's diagnostics, CVBA meetings.</td></tr>
+      <tr><td>Phase 4 (Year 2 Content)</td><td>Timber &amp; Woodlot, Town Garden</td><td>First expansion locations. Timber is the most atmospheric -- build it when you have seasonal systems working. Town Garden is small and fast.</td></tr>
+      <tr><td>Phase 5 (Year 2-3 Content)</td><td>Harmon Farm, Harmon Interior, Harmon Orchard</td><td>Requires crop rotation system, NPC relationship system, and pesticide event system to be meaningful.</td></tr>
+      <tr><td>Phase 6 (Year 3+ Content)</td><td>River Bottom</td><td>Premium late-game location. Requires flooding system, elevated stand mechanics, and the richest forage/wildlife systems. Build last because it is the most complex and can be polished with lessons from all earlier scenes.</td></tr>
+      <tr><td>Phase 7 (Event Content)</td><td>County Fairgrounds</td><td>Seasonal event only. Build after the honey judging and competition systems are designed. Lowest priority for scene construction.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 7: MASTER SPRITE INVENTORY            -->
+<!-- ============================================ -->
+<div class="section" id="master_inventory">
+  <p class="section-label">07</p>
+  <h2>Master Sprite Inventory</h2>
+  <p>Complete inventory of all unique sprites needed across the entire game, categorized by type. This table summarizes what exists vs. what needs to be created.</p>
+
+  <table class="data-table">
+    <thead>
+      <tr><th>Category</th><th>Sprite / Asset Name</th><th>Size</th><th>Variants / Count</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <!-- GROUND TILES & TERRAIN -->
+      <tr><td rowspan="4">Ground Tiles &amp; Terrain</td><td>TX Tileset Grass (Cainos)</td><td>16x16 px</td><td>Multiple variations</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>TX Tileset Dirt (Cainos)</td><td>16x16 px</td><td>Multiple variations</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>TX Tileset Terrain (Cainos)</td><td>16x16 px</td><td>Water, terrain variations</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Road Center Line &amp; Gravel Tile</td><td>16 px / 16x16 px</td><td>1-2</td><td><span class="status-built">Exists</span></td></tr>
+
+      <!-- BUILDINGS EXTERIOR -->
+      <tr><td rowspan="9">Buildings Exterior</td><td>House Exterior (Home Property)</td><td>64-96 px wide</td><td>2 (summer/winter)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Shed Exterior (Home Property)</td><td>64-96 px wide</td><td>2 (base/upgraded)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Crossroads Diner Exterior</td><td>96-128 px wide</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Tanner's Supply / Feed Store Exterior</td><td>80-96 px wide</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Post Office Exterior</td><td>80-96 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Grange Hall Exterior</td><td>96-128 px wide</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Farmhouse Exterior (Harmon Farm)</td><td>96-128 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Barn Exterior (Harmon Farm)</td><td>128-160 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Machine Shed (Harmon Farm)</td><td>80-96 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+
+      <!-- BUILDINGS INTERIOR FURNITURE -->
+      <tr><td rowspan="20">Building Interiors &amp; Furniture</td><td>Diner Floor Tile</td><td>16x16 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Diner Counter</td><td>96x32 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Diner Stool</td><td>16x32 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Diner Booth</td><td>64x48 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Pie Case Display</td><td>64x48 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Diner TV</td><td>32x24 px</td><td>1 (with screen variations)</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Chalkboard Menu</td><td>64x48 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Supply Shelves (Tanner's)</td><td>64x96 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Post Counter</td><td>96x32 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Pigeonholes / Mail Slots</td><td>64x64 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Bulletin Board (generic)</td><td>64x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Wood Table (House Interior)</td><td>48x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Woodstove / Radiator</td><td>48x48 px</td><td>2 (lit/unlit)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Crafting Bench / Workbench</td><td>64x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Honey Jar Shelf</td><td>96x32 px</td><td>1 base</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Pegboard with Hooks / Tool Display</td><td>48x64 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Shelving Unit (tall)</td><td>64x96 px</td><td>Multiple (1-4 per location)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Kitchen Counter &amp; Stove</td><td>96x32 px / 32x48 px</td><td>1 each</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Kitchen Table &amp; Chairs</td><td>64x48 px / 24x32 px</td><td>1 each</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Various Interior Furniture</td><td>Variable</td><td>30+ items (desks, benches, displays, etc.)</td><td><span class="status-missing">Mostly Needed</span></td></tr>
+
+      <!-- TREES & PLANTS -->
+      <tr><td rowspan="15">Trees &amp; Foliage</td><td>Lilac Bush / Tree</td><td>48-64 px wide</td><td>3 (spring bloom, summer, fall)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Apple Tree (fruit tree)</td><td>80-96 px wide</td><td>5 seasonal variants</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Cherry Tree (fruit tree)</td><td>80-96 px wide</td><td>5 seasonal variants (pink blossoms)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Pear Tree (fruit tree)</td><td>80-96 px wide</td><td>5 seasonal variants</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Plum Tree (fruit tree)</td><td>80-96 px wide</td><td>5 seasonal variants</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Willow Tree (mature, seasonal)</td><td>96-128 px wide</td><td>4-5 seasonal variants</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Linden Tree (with golden bloom)</td><td>96-128 px wide</td><td>5 seasonal variants</td><td><span class="status-built">Exists (linden.png)</span></td></tr>
+      <tr><td>Wild Plum Tree (white bloom)</td><td>64-80 px wide</td><td>5 seasonal variants</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Tree Sapling (growth progression)</td><td>32x32 px</td><td>1 (young state)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Small Tree Sprite (various types)</td><td>48x48 px</td><td>4-5 varieties</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Young Tree Sprite (various types)</td><td>64x64 px</td><td>4 seasonal variants per type</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Willow.png (generic willow sprite)</td><td>Variable</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Water Lily / Aquatic Plants</td><td>32x32 px</td><td>1-2</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Cattails / Marsh Vegetation</td><td>16x48 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Tree Stakes / Growth Markers</td><td>16x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+
+      <!-- NPC FULL SPRITESHEETS (8-dir walking) -->
+      <tr><td rowspan="5">NPC Spritesheets (8-dir Walking)</td><td>Ellen Harwick</td><td>120x120 px/frame</td><td>8-dir walking (960x2880 spritesheet)</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Frank Fischbach</td><td>120x120 px/frame</td><td>8-dir walking (960x2880 spritesheet)</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>The Beekeeper / Player Character</td><td>120x120 px/frame</td><td>8-dir walking (960x2880 spritesheet)</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Uncle Bob</td><td>120x120 px/frame</td><td>8-dir walking (960x2880 spritesheet)</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Additional NPCs (Darlene, Lloyd, Kacey variations as needed)</td><td>120x120 px/frame</td><td>8-dir walking per NPC</td><td><span class="status-missing">Needed (some)</span></td></tr>
+
+      <!-- NPC PLACEHOLDERS (single image) -->
+      <tr><td rowspan="8">NPC Placeholders (Single Image)</td><td>Carl Tanner</td><td>120x120 px</td><td>1 (idle/standing)</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Dr. Harwick</td><td>120x120 px</td><td>1 (office idle)</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>June Postmaster</td><td>120x120 px</td><td>1 (counter standing)</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Kacey Harmon</td><td>120x120 px</td><td>1 (energetic pose)</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Walt Harmon</td><td>120x120 px</td><td>1 (farmer standing)</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Rose (Waitress)</td><td>120x120 px</td><td>1-4 animation frames (serving)</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Pedestrian A, B, C (generic crowd)</td><td>120x120 px</td><td>Walking frames (3 variants)</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Fair Crowd Variants</td><td>120x120 px</td><td>2+ additional casual variants</td><td><span class="status-missing">Needed</span></td></tr>
+
+      <!-- PROPS & STRUCTURES -->
+      <tr><td rowspan="20">Props &amp; Structures</td><td>Picket Fence</td><td>16-32 px wide</td><td>Straight, corner, gate</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Back Field Gate</td><td>64 px wide</td><td>Locked/unlocked states</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Farm Gate</td><td>64 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Wooden Fence (farm style)</td><td>16-32 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Stone Wall / Border</td><td>16-32 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Market Stall</td><td>64-80 px wide</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Mailbox with Flag</td><td>24x32 px</td><td>2 (flag up/down)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Farm Sprayer Machine</td><td>96-128 px wide</td><td>1 (position indicates pesticide event state)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Grain Silo</td><td>32-48 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Hay Bales</td><td>32x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Barn Cat Sprite</td><td>24x24 px</td><td>1-2 animation frames (idle)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Bench / Park Bench</td><td>48x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Street Light / Lamp Post</td><td>16x48 px</td><td>1 (lit/unlit via shader)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Farm Equipment Props (scattered tools)</td><td>Variable</td><td>3-4 farming tools</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Laptop Bag Prop</td><td>16x16 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Orchard Fence</td><td>16-32 px wide</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Fairground Booth / Stall</td><td>64x64 px</td><td>3-4 variations</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Fair Tent / Canopy</td><td>80-96 px wide</td><td>2-3 color/pattern variants</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Ferris Wheel</td><td>128x128 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Carnival Game Booth</td><td>64x80 px</td><td>2-3 variations</td><td><span class="status-missing">Needed</span></td></tr>
+
+      <!-- FORAGE & FLOWERS (with lifecycle) -->
+      <tr><td rowspan="12">Forage &amp; Flowers (5-Phase Lifecycle)</td><td>Dandelion</td><td>32x32 px/phase</td><td>5 phases (seed to withered)</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Clover</td><td>32x32 px/phase</td><td>5 phases</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Bergamot</td><td>32x32 px/phase</td><td>5 phases</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Coneflower</td><td>32x32 px/phase</td><td>5 phases</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Sunflower</td><td>32x32 px/phase</td><td>5 phases</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Goldenrod</td><td>32x32 px/phase</td><td>5 phases</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Aster</td><td>32x32 px/phase</td><td>5 phases</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Lavender</td><td>32x32 px/phase</td><td>5 phases</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Phacelia</td><td>32x32 px/phase</td><td>5 phases</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Buckwheat (Back Field planting)</td><td>32x32 px/phase</td><td>5 phases</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Wildflower Tile (generic mixed)</td><td>32x32 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Dandelion Tile (dense forage)</td><td>32x32 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+
+      <!-- ITEMS & EQUIPMENT -->
+      <tr><td rowspan="18">Items &amp; Equipment</td><td>Honey Jar (standard/premium/economy)</td><td>16x24 px</td><td>3 variants, 3 fill levels each</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Beehive (full unit)</td><td>48x48 px</td><td>1 (as inventory item)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Hive Stand</td><td>32x32 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Hive Base / Deep Box</td><td>48x48 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Hive Super</td><td>48x48 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Hive Lid</td><td>48x48 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Queen Excluder</td><td>48x48 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Frames / Frame Items</td><td>16x32 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Queen Cage</td><td>16x16 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Package of Bees</td><td>32x32 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Smoker (equipment)</td><td>24x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Hive Tool</td><td>16x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Uncapping Knife</td><td>16x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Bee Gloves</td><td>32x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Bee Veil</td><td>16x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Treatments (Formic, Oxalic Acid)</td><td>16x16 px</td><td>2</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Honey Bulk / Raw Honey Container</td><td>32x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Sugar Syrup / Feed Container</td><td>24x32 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+
+      <!-- EFFECTS & PARTICLES -->
+      <tr><td rowspan="8">FX &amp; Particles</td><td>Bee Forager / Bee Sprite</td><td>16-24 px</td><td>1 (animation)</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Bee Particle (swarm effect)</td><td>8-16 px</td><td>1</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Smoke Puff FX</td><td>32x32 px</td><td>1 (animation)</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Firefly Particle</td><td>8-16 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Butterfly Particle</td><td>16-24 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Blossom Petal Fall FX</td><td>8-16 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Leaf Fall FX</td><td>8-16 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Dragonfly Sprite (flying animation)</td><td>16x16 px</td><td>1-2 animation frames</td><td><span class="status-missing">Needed</span></td></tr>
+
+      <!-- WILDLIFE -->
+      <tr><td rowspan="5">Wildlife Sprites</td><td>Robin Sprite</td><td>24x24 px</td><td>2-4 animation frames</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Heron Bird Sprite</td><td>48x64 px</td><td>2-3 animation frames (walking in water)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Kingfisher Sprite</td><td>24x32 px</td><td>2-4 animation frames (flying)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Red-winged Blackbird</td><td>16x16 px</td><td>1-2 animation frames (perched)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Frog (audio only, or optional sprite)</td><td>N/A or 16x16 px</td><td>N/A</td><td><span class="status-missing">Audio Needed</span></td></tr>
+
+      <!-- SEASONAL OVERLAYS & EFFECTS -->
+      <tr><td rowspan="8">Seasonal &amp; Environmental Overlays</td><td>Grass Mow States Overlay (short/medium/long)</td><td>Tile-based</td><td>3</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Seasonal Foliage Palette Swap (all locations)</td><td>Full-screen or tile-based</td><td>4 (spring/summer/fall/winter)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Snow Dusting Overlay</td><td>Tile-based</td><td>1 (Deepcold)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Leaf Fall / Autumn Overlay</td><td>Tile-based</td><td>1 (Full-Earth)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Ice on Water / Creek Overlay</td><td>Water tiles</td><td>1 (Deepcold)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Flood / Inundation Overlay</td><td>Tile-based</td><td>1-2 (flood plain, quickening events)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Linden Bloom Golden Tint (wide-clover season)</td><td>Full-screen overlay</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Time-of-Day Lighting (dawn/day/dusk/night)</td><td>Full-screen overlay or shader</td><td>4</td><td><span class="status-missing">Needed</span></td></tr>
+
+      <!-- BACKGROUND & UI ELEMENTS -->
+      <tr><td rowspan="10">Background &amp; Structural Elements</td><td>Parallax Hills Background (Home Property)</td><td>Wide (parallax)</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Distant Forest / Parallax (County Road)</td><td>Wide (parallax)</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>TX Village Building (Cainos)</td><td>16x16 px tiles</td><td>Multiple building facades</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>TX Village Props (Cainos)</td><td>16x16 px tiles</td><td>Multiple prop variations</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>TX Village Plant (Cainos)</td><td>16x16 px tiles</td><td>Trees, bushes, flowers</td><td><span class="status-built">Exists</span></td></tr>
+      <tr><td>Interior Wall Textures (multiple styles)</td><td>Tile-based</td><td>6+ (kitchen, diner, office, etc.)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Interior Floor Tiles (multiple styles)</td><td>16x16 px</td><td>4+ (diner, supply, post office, kitchen)</td><td><span class="status-missing">Mostly Needed</span></td></tr>
+      <tr><td>Door Frames (interior/exterior)</td><td>32x64 px</td><td>Multiple (5+)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Window Frames &amp; Views</td><td>48-64 px</td><td>4+ (time-of-day variants)</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Street / Building Facades (background dressing)</td><td>80-128 px wide</td><td>4 (hardware, bar, library, bank)</td><td><span class="status-missing">Needed</span></td></tr>
+
+      <!-- UI & MAP ELEMENTS -->
+      <tr><td rowspan="4">UI &amp; Map Elements</td><td>Map Overlay (parchment style, hand-drawn)</td><td>Variable</td><td>1 base + location pins</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Location Pin Icons (18+ variants)</td><td>16x16 px</td><td>18+ location types</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Locked Location Padlock Icon</td><td>16x16 px</td><td>1</td><td><span class="status-missing">Needed</span></td></tr>
+      <tr><td>Knowledge Log / UI Icons</td><td>16x16 to 32x32 px</td><td>Multiple (quest markers, status icons)</td><td><span class="status-missing">Needed</span></td></tr>
+    </tbody>
+  </table>
+
+  <h4>Summary Counts</h4>
+  <table class="data-table">
+    <thead>
+      <tr><th>Category</th><th>Total Unique Assets</th><th>Status: Exists</th><th>Status: Partial</th><th>Status: Needed</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Ground Tiles &amp; Terrain</td><td>4</td><td>4</td><td>0</td><td>0</td></tr>
+      <tr><td>Buildings Exterior</td><td>9</td><td>5</td><td>0</td><td>4</td></tr>
+      <tr><td>Building Interiors &amp; Furniture</td><td>20</td><td>8</td><td>0</td><td>12</td></tr>
+      <tr><td>Trees &amp; Foliage</td><td>15</td><td>2</td><td>0</td><td>13</td></tr>
+      <tr><td>NPC Spritesheets (8-dir)</td><td>5</td><td>4</td><td>0</td><td>1</td></tr>
+      <tr><td>NPC Placeholders (single image)</td><td>8</td><td>7</td><td>0</td><td>1</td></tr>
+      <tr><td>Props &amp; Structures</td><td>20</td><td>2</td><td>0</td><td>18</td></tr>
+      <tr><td>Forage &amp; Flowers (lifecycle)</td><td>12</td><td>9</td><td>0</td><td>3</td></tr>
+      <tr><td>Items &amp; Equipment</td><td>18</td><td>9</td><td>0</td><td>9</td></tr>
+      <tr><td>FX &amp; Particles</td><td>8</td><td>3</td><td>0</td><td>5</td></tr>
+      <tr><td>Wildlife Sprites</td><td>5</td><td>0</td><td>0</td><td>5</td></tr>
+      <tr><td>Seasonal &amp; Environmental Overlays</td><td>8</td><td>0</td><td>0</td><td>8</td></tr>
+      <tr><td>Background &amp; Structural Elements</td><td>10</td><td>4</td><td>1</td><td>5</td></tr>
+      <tr><td>UI &amp; Map Elements</td><td>4</td><td>0</td><td>0</td><td>4</td></tr>
+      <tr><td colspan="2"><strong>TOTAL UNIQUE SPRITES/ASSETS</strong></td><td><strong>48</strong></td><td><strong>1</strong></td><td><strong>88</strong></td></tr>
+      <tr><td colspan="2"><strong>COMPLETION STATUS</strong></td><td colspan="3"><strong>35% Complete (48/137 assets) | 1% Partial | 64% Needed</strong></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 8: TOTALS &amp; SCOPE                    -->
+<!-- ============================================ -->
+<div class="section" id="totals">
+  <p class="section-label">08</p>
+  <h2>Totals &amp; Scope Summary</h2>
+
+  <table class="data-table">
+    <thead>
+      <tr><th>Category</th><th>Count</th><th>Details</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Total Scene Maps</td><td>18</td><td>7 outdoor + 9 interior + 2 sub-areas</td></tr>
+      <tr><td>Currently Built (partial)</td><td>7</td><td>main, house_int, county_road, cedar_bend, diner_int, feed_supply_int, post_office_int</td></tr>
+      <tr><td>Remaining to Build</td><td>11</td><td>Shed int, Back Field, Harwick, Grange, Fairgrounds, Timber, Harmon, Harmon int, Orchard, River, Town Garden</td></tr>
+      <tr><td>Total Hive Slots</td><td>25</td><td>Home(5) + Timber(6) + Orchard(4-6) + River(8) + Garden(2)</td></tr>
+      <tr><td>Apiary Locations</td><td>5</td><td>Home, Timber, Orchard, River Bottom, Town Garden</td></tr>
+      <tr><td>Enterable Buildings</td><td>9</td><td>House, Shed, Diner, Tanner's, Post Office, Harwick, Grange, Harmon Kitchen, Fairgrounds Pavilion</td></tr>
+      <tr><td>Seasonal Variants Needed</td><td>~72</td><td>Each outdoor scene needs ~6 seasonal states (4 seasons + transitions). 7 outdoor x ~6 + interiors (minor) + sub-areas.</td></tr>
+      <tr><td>Unique NPC Locations</td><td>12+</td><td>Bob, Darlene, Frank, Ellen, Walt, Kacey, Carl Tanner, June, Rose, Lloyd, Terri Vogel, CVBA members</td></tr>
+    </tbody>
+  </table>
+
+  <div class="pitch-block">
+    <p><strong>Final Note:</strong> Smoke &amp; Honey's world is compact by design. Eighteen scenes is manageable for a small team if each scene is built with intention. The Stardew Valley and Harvest Moon comparisons confirm that this scope is appropriate -- both games prove that a small, handcrafted world with strong seasonal variation and NPC depth creates more emotional resonance than a large, sparse one. Every location in this list earns its place through gameplay function, narrative purpose, or both. Nothing here is filler.</p>
+  </div>
+</div>
+
+<div class="doc-footer">
+  <p>Smoke &amp; Honey -- Location &amp; Map Build Report -- March 2026</p>
+  <p>Generated from GDD Section 13 (Map Locations) with genre analysis</p>
+</div>
+
+</div><!-- end #content -->
+</body>
+</html>
