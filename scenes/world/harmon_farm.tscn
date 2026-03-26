@@ -18,139 +18,139 @@ script = ExtResource("1")
 [node name="World" type="Node2D" parent="."]
 
 [node name="Ground" type="ColorRect" parent="World"]
-offset_left = -320.0
-offset_top = -90.0
-offset_right = 640.0
-offset_bottom = 180.0
+offset_left = -600.0
+offset_top = -200.0
+offset_right = 900.0
+offset_bottom = 300.0
 color = Color(0.525, 0.557, 0.349, 1)
 
 [node name="DirtYard" type="ColorRect" parent="World"]
-offset_left = -80.0
-offset_top = -10.0
-offset_right = 200.0
-offset_bottom = 80.0
+offset_left = -160.0
+offset_top = -20.0
+offset_right = 400.0
+offset_bottom = 150.0
 color = Color(0.647, 0.529, 0.373, 1)
 
 [node name="GravelDrive" type="ColorRect" parent="World"]
-offset_left = -320.0
-offset_top = 50.0
-offset_right = 640.0
-offset_bottom = 64.0
+offset_left = -600.0
+offset_top = 100.0
+offset_right = 900.0
+offset_bottom = 120.0
 color = Color(0.580, 0.549, 0.498, 1)
 
 [node name="Fields" type="Node2D" parent="World"]
 
 [node name="CropFieldBg" type="ColorRect" parent="World/Fields"]
-offset_left = 220.0
-offset_top = -90.0
-offset_right = 640.0
-offset_bottom = 40.0
+offset_left = 400.0
+offset_top = -200.0
+offset_right = 900.0
+offset_bottom = 80.0
 color = Color(0.42, 0.56, 0.28, 1)
 
 [node name="Buildings" type="Node2D" parent="World"]
 
 [node name="HarmonFarmhouse" type="Sprite2D" parent="World/Buildings"]
-position = Vector2(-40, -30)
+position = Vector2(-60, -65)
 texture = ExtResource("3")
 z_index = 1
 
 [node name="HouseLabel" type="Label" parent="World/Buildings/HarmonFarmhouse"]
-offset_left = -40.0
-offset_top = 40.0
-offset_right = 40.0
-offset_bottom = 50.0
+offset_left = -60.0
+offset_top = 88.0
+offset_right = 60.0
+offset_bottom = 100.0
 text = "Harmon Farmhouse"
-theme_override_font_sizes/font_size = 5
+theme_override_font_sizes/font_size = 7
 theme_override_colors/font_color = Color(0.58, 0.51, 0.38, 1)
 horizontal_alignment = 1
 
 [node name="HarmonBarn" type="Sprite2D" parent="World/Buildings"]
-position = Vector2(120, -20)
+position = Vector2(220, -50)
 texture = ExtResource("4")
 z_index = 1
 
 [node name="BarnLabel" type="Label" parent="World/Buildings/HarmonBarn"]
-offset_left = -40.0
-offset_top = 42.0
-offset_right = 40.0
-offset_bottom = 52.0
+offset_left = -50.0
+offset_top = 78.0
+offset_right = 50.0
+offset_bottom = 90.0
 text = "Harmon Barn"
-theme_override_font_sizes/font_size = 5
+theme_override_font_sizes/font_size = 7
 theme_override_colors/font_color = Color(0.58, 0.51, 0.38, 1)
 horizontal_alignment = 1
 
 [node name="InteractHint" type="Label" parent="World/Buildings/HarmonBarn"]
-offset_left = -36.0
-offset_top = -44.0
-offset_right = 36.0
-offset_bottom = -34.0
+offset_left = -50.0
+offset_top = -82.0
+offset_right = 50.0
+offset_bottom = -70.0
 text = "[E] Enter"
-theme_override_font_sizes/font_size = 6
+theme_override_font_sizes/font_size = 8
 theme_override_colors/font_color = Color(0.9, 0.82, 0.6, 1)
 horizontal_alignment = 1
 visible = false
 
 [node name="GrainBins" type="Sprite2D" parent="World/Buildings"]
-position = Vector2(250, -30)
+position = Vector2(450, -50)
 texture = ExtResource("5")
 z_index = 1
 
 [node name="MachineShed" type="Sprite2D" parent="World/Buildings"]
-position = Vector2(320, 10)
+position = Vector2(600, -20)
 texture = ExtResource("6")
 z_index = 1
 
 [node name="Props" type="Node2D" parent="World"]
 
 [node name="Tractor" type="Sprite2D" parent="World/Props"]
-position = Vector2(200, 30)
+position = Vector2(380, 60)
 texture = ExtResource("7")
 z_index = 2
 
 [node name="HayBales" type="Sprite2D" parent="World/Props"]
-position = Vector2(350, 40)
+position = Vector2(540, 80)
 texture = ExtResource("8")
 z_index = 2
 
 [node name="FenceLeft" type="Sprite2D" parent="World/Props"]
-position = Vector2(-160, 30)
+position = Vector2(-300, 60)
 texture = ExtResource("11")
 
 [node name="FenceRight" type="Sprite2D" parent="World/Props"]
-position = Vector2(400, 30)
+position = Vector2(700, 60)
 texture = ExtResource("11")
 
 [node name="NPCs" type="Node2D" parent="World"]
 
 [node name="WaltHarmon" type="Sprite2D" parent="World/NPCs"]
-position = Vector2(60, 20)
+position = Vector2(100, 50)
 texture = ExtResource("9")
 z_index = 3
 
 [node name="WaltLabel" type="Label" parent="World/NPCs/WaltHarmon"]
-offset_left = -30.0
-offset_top = -20.0
-offset_right = 30.0
-offset_bottom = -10.0
+offset_left = -40.0
+offset_top = -48.0
+offset_right = 40.0
+offset_bottom = -36.0
 text = "Walt Harmon"
-theme_override_font_sizes/font_size = 5
+theme_override_font_sizes/font_size = 7
 theme_override_colors/font_color = Color(0.70, 0.55, 0.25, 1)
 horizontal_alignment = 1
 
 [node name="KaceyHarmon" type="Sprite2D" parent="World/NPCs"]
-position = Vector2(160, 65)
+position = Vector2(300, 110)
 texture = ExtResource("10")
 z_index = 3
 
 [node name="KaceyLabel" type="Label" parent="World/NPCs/KaceyHarmon"]
-offset_left = -30.0
-offset_top = -20.0
-offset_right = 30.0
-offset_bottom = -10.0
+offset_left = -40.0
+offset_top = -48.0
+offset_right = 40.0
+offset_bottom = -36.0
 text = "Kacey Harmon"
-theme_override_font_sizes/font_size = 5
+theme_override_font_sizes/font_size = 7
 theme_override_colors/font_color = Color(0.70, 0.55, 0.25, 1)
 horizontal_alignment = 1
 
 [node name="player" parent="." instance=ExtResource("2")]
-position = Vector2(0, 60)
+position = Vector2(0, 110)

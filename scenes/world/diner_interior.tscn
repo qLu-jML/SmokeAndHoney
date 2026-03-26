@@ -291,23 +291,23 @@ texture = ExtResource("8")
 z_index = 3
 
 [node name="InteractHint" type="Label" parent="World/NPCs/RoseWaitress"]
-offset_left = -36.0
-offset_top = -28.0
-offset_right = 36.0
-offset_bottom = -18.0
+offset_left = -40.0
+offset_top = -48.0
+offset_right = 40.0
+offset_bottom = -36.0
 text = "[E] Order"
-theme_override_font_sizes/font_size = 6
+theme_override_font_sizes/font_size = 7
 theme_override_colors/font_color = Color(0.9, 0.82, 0.6, 1)
 horizontal_alignment = 1
 visible = false
 
 [node name="RoseLabel" type="Label" parent="World/NPCs/RoseWaitress"]
-offset_left = -28.0
-offset_top = 18.0
-offset_right = 28.0
-offset_bottom = 28.0
+offset_left = -36.0
+offset_top = 42.0
+offset_right = 36.0
+offset_bottom = 54.0
 text = "Rose"
-theme_override_font_sizes/font_size = 5
+theme_override_font_sizes/font_size = 7
 theme_override_colors/font_color = Color(0.70, 0.60, 0.42, 1)
 horizontal_alignment = 1
 
@@ -318,12 +318,12 @@ z_index = 3
 visible = false
 
 [node name="UncleBobLabel" type="Label" parent="World/NPCs/UncleBoB"]
-offset_left = -30.0
-offset_top = 18.0
-offset_right = 30.0
-offset_bottom = 28.0
+offset_left = -36.0
+offset_top = 42.0
+offset_right = 36.0
+offset_bottom = 54.0
 text = "Uncle Bob"
-theme_override_font_sizes/font_size = 5
+theme_override_font_sizes/font_size = 7
 theme_override_colors/font_color = Color(0.70, 0.60, 0.42, 1)
 horizontal_alignment = 1
 

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smoke &amp; Honey &mdash; Funding Opportunities Report</title>
+<style>
+  :root {
+    --bg: #0F0A04;
+    --surface: #1A1208;
+    --border: rgba(108,64,22,0.3);
+    --amber: #C8820C;
+    --amber-lt: #E6A220;
+    --honey: #F4CC6E;
+    --wax: #F2E4B2;
+    --green: #5acc88;
+    --red: #cc5544;
+    --blue: #5a9acc;
+    --purple: #9b7acc;
+    --muted: rgba(242,228,178,0.55);
+    --text: #F2E4B2;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Arial, sans-serif;
+         font-size: 14px; line-height: 1.7; padding: 40px; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 28px; color: var(--amber-lt); margin-bottom: 4px; }
+  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 32px; }
+  h2 { font-size: 20px; color: var(--amber); margin: 36px 0 16px; padding-bottom: 8px;
+       border-bottom: 1px solid var(--border); }
+  h3 { font-size: 15px; color: var(--honey); margin: 20px 0 8px; }
+  p { margin-bottom: 12px; opacity: 0.85; }
+  ul { padding-left: 20px; margin-bottom: 14px; }
+  ol { padding-left: 20px; margin-bottom: 14px; }
+  li { margin-bottom: 6px; }
+  a { color: var(--amber-lt); text-decoration: none; border-bottom: 1px dotted var(--amber); }
+  a:hover { color: var(--honey); border-bottom-color: var(--honey); }
+  code { background: rgba(200,130,12,0.12); padding: 2px 6px; border-radius: 3px; font-size: 12px; color: var(--honey); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+          padding: 18px 22px; margin-bottom: 16px; }
+  .card-amber { border-left: 4px solid var(--amber); }
+  .card-green { border-left: 4px solid var(--green); }
+  .card-blue { border-left: 4px solid var(--blue); }
+  .card-red { border-left: 4px solid var(--red); }
+  .card-purple { border-left: 4px solid var(--purple); }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px;
+         font-weight: bold; margin-right: 4px; vertical-align: middle; }
+  .tag-free { background: #1a3a1a; color: #5acc88; }
+  .tag-low { background: #2a2a1a; color: #ccaa44; }
+  .tag-med { background: #1a1a2a; color: #668ab4; }
+  .tag-high { background: #3a1a1a; color: #cc5544; }
+  .tag-grant { background: #2a1a3a; color: #9b7acc; }
+  .tag-revenue { background: #1a2a2a; color: #5abccc; }
+  .tag-now { background: #1a3a1a; color: #5acc88; }
+  .tag-soon { background: #2a2a1a; color: #ccaa44; }
+  .tag-later { background: #1a1a2a; color: #668ab4; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: var(--surface); color: var(--amber); text-align: left; padding: 8px 12px;
+       border-bottom: 2px solid var(--amber); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+  td { padding: 7px 12px; border-bottom: 1px solid var(--border); }
+  tr:hover td { background: rgba(200,134,10,0.05); }
+  .stat { font-size: 24px; font-weight: bold; color: var(--amber-lt); }
+  .stat-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 16px 0; }
+  .stat-card { text-align: center; }
+  .highlight { color: var(--amber-lt); font-weight: 600; }
+  .step-num { display: inline-block; width: 24px; height: 24px; line-height: 24px;
+              text-align: center; border-radius: 50%; background: var(--amber);
+              color: var(--bg); font-weight: bold; font-size: 12px; margin-right: 8px; flex-shrink: 0; }
+  .step-row { display: flex; align-items: flex-start; margin-bottom: 14px; }
+  .step-content { flex: 1; }
+  .step-content strong { color: var(--honey); }
+  .amount { font-size: 18px; font-weight: bold; color: var(--amber-lt); }
+  .detail-grid { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; font-size: 13px; }
+  .detail-label { color: var(--muted); font-weight: 600; text-align: right; }
+  .detail-value { color: var(--wax); }
+  .how-to { background: rgba(90,172,136,0.08); border: 1px solid rgba(90,172,136,0.2);
+            border-radius: 4px; padding: 14px 18px; margin: 12px 0; }
+  .how-to h4 { color: var(--green); font-size: 13px; margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; }
+  .how-to ol li { margin-bottom: 8px; color: var(--wax); opacity: 0.9; }
+  .tip { background: rgba(200,130,12,0.08); border: 1px solid rgba(200,130,12,0.2);
+         border-radius: 4px; padding: 10px 14px; margin: 8px 0; font-size: 13px; }
+  .tip::before { content: "TIP: "; font-weight: bold; color: var(--amber); }
+  .separator { height: 1px; background: var(--border); margin: 32px 0; }
+</style>
+</head>
+<body>
+
+<h1>Smoke &amp; Honey &mdash; Funding Opportunities</h1>
+<p class="subtitle">Wednesday, March 26, 2026 &mdash; Actionable Funding Guide with Step-by-Step Instructions</p>
+
+<!-- ================================================================= -->
+<!-- PROJECT FUNDING STRENGTHS                                          -->
+<!-- ================================================================= -->
+<h2>Why Smoke &amp; Honey Is Fundable</h2>
+
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat">50+</div><div class="stat-label">Scripts / 14K Lines</div></div>
+  <div class="stat-card"><div class="stat">Phase 1</div><div class="stat-label">Fully Playable</div></div>
+  <div class="stat-card"><div class="stat">Edu+Ag</div><div class="stat-label">Dual Grant Angle</div></div>
+  <div class="stat-card"><div class="stat">$0</div><div class="stat-label">Engine Royalties</div></div>
+</div>
+
+<div class="card card-amber">
+  <h3>Your Competitive Advantages</h3>
+  <ul>
+    <li><span class="highlight">Educational value</span> &mdash; Teaches real beekeeping biology, pollinator ecology, and agricultural science through observation-based gameplay. This opens doors to education grants that pure entertainment games cannot access.</li>
+    <li><span class="highlight">Agricultural/environmental angle</span> &mdash; Pollinator conservation is a federal policy priority. USDA, state agriculture departments, and environmental nonprofits actively fund public awareness of bee biology.</li>
+    <li><span class="highlight">Playable prototype</span> &mdash; Phase 1 is complete with a working 10-script simulation engine, frame inspection, queen sighting, world navigation, and NPC dialogue. You are not pitching a concept &mdash; you have a game.</li>
+    <li><span class="highlight">Solo developer / Godot Engine</span> &mdash; No team overhead, no engine royalties. Funders reward lean operations with high output.</li>
+  </ul>
+</div>
+
+<!-- ================================================================= -->
+<!-- TIER 1: ZERO RISK                                                  -->
+<!-- ================================================================= -->
+<h2>Tier 1: Zero Risk, Apply Immediately</h2>
+<p>These require no financial commitment, no repayment, and accept projects at your current stage of development.</p>
+
+<!-- DANGEN -->
+<div class="card card-green">
+  <h3><span class="tag tag-free">$0 RISK</span> DANGEN Entertainment Indie Developer Grant</h3>
+  <div class="amount">Up to $50,000 USD</div>
+  <div class="detail-grid">
+    <span class="detail-label">Repayment</span><span class="detail-value">None. No royalties, no strings attached.</span>
+    <span class="detail-label">Requirements</span><span class="detail-value">Playable PC build, clear art direction, micro gameplay loop</span>
+    <span class="detail-label">Disqualifier</span><span class="detail-value">Cannot have existing third-party funding</span>
+    <span class="detail-label">Payout</span><span class="detail-value">50% upfront, 25% at milestone 1, 25% at milestone 2</span>
+    <span class="detail-label">Link</span><span class="detail-value"><a href="https://grant.dangenentertainment.com/" target="_blank">grant.dangenentertainment.com</a></span>
+  </div>
+  <div class="how-to">
+    <h4>How to Apply &mdash; Step by Step</h4>
+    <ol>
+      <li>Go to <a href="https://grant.dangenentertainment.com/" target="_blank">grant.dangenentertainment.com</a> and review the current cycle's requirements and deadlines.</li>
+      <li><strong>Prepare your playable build:</strong> Export Smoke &amp; Honey from Godot as a Windows PC build. Include the current Phase 1 content (hive inspection, queen sighting, world navigation, NPC dialogue).</li>
+      <li><strong>Record a 2-3 minute gameplay trailer:</strong> Use OBS or similar screen capture. Show: walking through Cedar Bend, opening a hive, inspecting frames (flip sides), finding a queen, talking to Uncle Bob. Narrate or add text overlays explaining what the player is doing.</li>
+      <li><strong>Write your pitch (1 page):</strong> Cover the game concept (authentic beekeeping simulation), what makes it unique (observation over stats, real biology), current state (Phase 1 complete, Phase 2 planned), and what the grant would fund (completion of harvest/economy loop).</li>
+      <li><strong>Submit through their portal:</strong> Upload the build, video, and pitch document. Include screenshots of frame inspection and the Cedar Bend world.</li>
+    </ol>
+  </div>
+  <div class="tip">You already meet every requirement. This is your highest-priority application &mdash; do it this week.</div>
+</div>
+
+<!-- ITCH.IO -->
+<div class="card card-green">
+  <h3><span class="tag tag-free">$0 RISK</span> Itch.io Itchfunding (Soft Launch)</h3>
+  <div class="amount">$5&ndash;50 per supporter (uncapped)</div>
+  <div class="detail-grid">
+    <span class="detail-label">Risk</span><span class="detail-value">Zero. If it makes $0, you've lost nothing but setup time.</span>
+    <span class="detail-label">Fees</span><span class="detail-value">You choose (0% to 10% to itch.io, your call)</span>
+    <span class="detail-label">Deadline</span><span class="detail-value">None &mdash; stays up indefinitely</span>
+    <span class="detail-label">Link</span><span class="detail-value"><a href="https://itch.io" target="_blank">itch.io</a></span>
+  </div>
+  <div class="how-to">
+    <h4>How to Set Up &mdash; Step by Step</h4>
+    <ol>
+      <li><strong>Create an itch.io account</strong> at <a href="https://itch.io/register" target="_blank">itch.io/register</a> if you don't have one.</li>
+      <li><strong>Create a new project:</strong> Dashboard &rarr; Create New Project. Set the title to "Smoke &amp; Honey" and classification to "Game."</li>
+      <li><strong>Set pricing:</strong> Choose "Paid" and set a minimum price of $5. Check "This project is also available as a 'Pay what you want' deal" so people can pay more if they choose.</li>
+      <li><strong>Set up the funding goal:</strong> Under the project's Edit page, go to Interact &rarr; Goal Amount. Set a dollar target (e.g., $2,000). This displays a funding progress bar on your page.</li>
+      <li><strong>Write the page description:</strong> Explain Smoke &amp; Honey's concept, show screenshots (frame inspection, Cedar Bend, queen sighting), note that this is an in-development build, and describe what the funding will go toward.</li>
+      <li><strong>Export and upload a playable build:</strong> Godot Export &rarr; Windows Desktop. Zip the output folder. Upload to your itch.io project page.</li>
+      <li><strong>Add a devlog post:</strong> Write your first devlog explaining the project. This appears on the itch.io feed and drives discovery.</li>
+      <li><strong>Publish:</strong> Set visibility to "Public" and hit save.</li>
+    </ol>
+  </div>
+  <div class="tip">Post a devlog every 1-2 weeks with GIFs of new features. Itch.io's algorithm surfaces active projects. Even $500-2,000 helps cover expenses while you develop.</div>
+</div>
+
+<!-- KO-FI -->
+<div class="card card-green">
+  <h3><span class="tag tag-free">$0 RISK</span> Ko-fi Tip Jar &amp; Memberships</h3>
+  <div class="amount">Tips + $3&ndash;10/month memberships</div>
+  <div class="detail-grid">
+    <span class="detail-label">Fees</span><span class="detail-value">0% on one-time tips, 5% on memberships</span>
+    <span class="detail-label">Payout</span><span class="detail-value">Instant via PayPal or Stripe</span>
+    <span class="detail-label">Link</span><span class="detail-value"><a href="https://ko-fi.com" target="_blank">ko-fi.com</a></span>
+  </div>
+  <div class="how-to">
+    <h4>How to Set Up &mdash; Step by Step</h4>
+    <ol>
+      <li><strong>Create a Ko-fi account</strong> at <a href="https://ko-fi.com" target="_blank">ko-fi.com</a>. Connect PayPal or Stripe for payouts.</li>
+      <li><strong>Customize your page:</strong> Add a profile picture (game logo or honeycomb icon), banner image (screenshot from the game), and a bio explaining the project.</li>
+      <li><strong>Enable memberships (optional):</strong> Go to Settings &rarr; Memberships. Create tiers: $3/month "Follower" (devlog access), $5/month "Supporter" (early builds), $10/month "Beekeeper" (design input / name an NPC).</li>
+      <li><strong>Post your first update:</strong> Write a brief intro post with 2-3 screenshots or GIFs showing the coolest parts of the game (hex-grid inspection, queen finding, walking through Cedar Bend).</li>
+      <li><strong>Share the link:</strong> Add your Ko-fi URL to your itch.io page, social media bios, and any game dev communities you frequent.</li>
+    </ol>
+  </div>
+  <div class="tip">Hex-grid beekeeping simulation is inherently visual and fascinating. A weekly GIF of a new feature is low-effort, high-engagement content.</div>
+</div>
+
+<!-- ================================================================= -->
+<!-- TIER 2: LOW RISK, MODERATE EFFORT                                  -->
+<!-- ================================================================= -->
+<h2>Tier 2: Low Risk, Apply Within 1&ndash;2 Months</h2>
+<p>These require a proper application but carry no financial risk to you.</p>
+
+<!-- INDIE FUND -->
+<div class="card card-blue">
+  <h3><span class="tag tag-low">LOW RISK</span> Indie Fund</h3>
+  <div class="amount">Varies (covers your stated budget)</div>
+  <div class="detail-grid">
+    <span class="detail-label">Structure</span><span class="detail-value">Revenue-share loan. If game earns $0 within 2 years of release, you owe $0.</span>
+    <span class="detail-label">Repayment</span><span class="detail-value">125% of loan from game revenue only, or forgiven after 2 years</span>
+    <span class="detail-label">Selectivity</span><span class="detail-value">~5 games/year (competitive but worth applying)</span>
+    <span class="detail-label">Link</span><span class="detail-value"><a href="https://indie-fund.com/apply" target="_blank">indie-fund.com/apply</a></span>
+  </div>
+  <div class="how-to">
+    <h4>How to Apply &mdash; Step by Step</h4>
+    <ol>
+      <li>Go to <a href="https://indie-fund.com/apply" target="_blank">indie-fund.com/apply</a> and fill out their application form.</li>
+      <li><strong>Prepare your pitch materials:</strong> A 1-2 page summary of the game, a playable build or video, and a budget breakdown showing what the funding would cover (your living expenses for X months while completing Phases 2-3).</li>
+      <li><strong>Emphasize the simulation depth:</strong> Indie Fund values innovation. Highlight the 10-script bio-accurate simulation pipeline, observation-over-stats design philosophy, and the 70,000-cell hive model. This is not a typical farming sim.</li>
+      <li><strong>Include your development timeline:</strong> Show what's done (Phase 1), what's next (Phase 2: harvest/economy), and a realistic estimate for Early Access readiness.</li>
+      <li><strong>Submit and follow up:</strong> Their team reviews applications on a rolling basis. If selected, they'll schedule a call.</li>
+    </ol>
+  </div>
+  <div class="tip">The worst case is rejection. The second worst case is getting funded and the game doesn't sell &mdash; in which case the loan is forgiven. You literally cannot lose money.</div>
+</div>
+
+<!-- XSOLLA -->
+<div class="card card-blue">
+  <h3><span class="tag tag-low">LOW RISK</span> Xsolla Funding Network</h3>
+  <div class="amount">Varies (matchmaking with 250+ investors)</div>
+  <div class="detail-grid">
+    <span class="detail-label">How It Works</span><span class="detail-value">Submit your game. They match you with interested investors during pitch events.</span>
+    <span class="detail-label">Risk</span><span class="detail-value">Low &mdash; matchmaking service. Terms depend on the investor you match with.</span>
+    <span class="detail-label">Link</span><span class="detail-value"><a href="https://xsolla.com/funding" target="_blank">xsolla.com/funding</a></span>
+  </div>
+  <div class="how-to">
+    <h4>How to Apply &mdash; Step by Step</h4>
+    <ol>
+      <li>Visit <a href="https://xsolla.com/funding" target="_blank">xsolla.com/funding</a> and create a developer account.</li>
+      <li><strong>Complete your game profile:</strong> Upload screenshots, a gameplay video, and your game description. Focus on the unique educational/simulation angle.</li>
+      <li><strong>Set your funding ask:</strong> Be specific about what you need and what you'd use it for (e.g., "6 months of living expenses to complete the harvest/economy loop and reach Early Access").</li>
+      <li><strong>Attend pitch events:</strong> Xsolla hosts regular online pitch sessions where developers present to investors. Prepare a 5-minute pitch and a 2-minute gameplay video.</li>
+    </ol>
+  </div>
+</div>
+
+<!-- GAMEDEV FUND -->
+<div class="card card-blue">
+  <h3><span class="tag tag-low">LOW RISK</span> Gamedev Fund (Early-Stage Investment)</h3>
+  <div class="detail-grid">
+    <span class="detail-label">Focus</span><span class="detail-value">Premium indie games for PC/consoles with a playable demo</span>
+    <span class="detail-label">Provides</span><span class="detail-value">Funding, knowledge, industry contacts</span>
+    <span class="detail-label">Why You Fit</span><span class="detail-value">You have a playable demo of a premium PC simulation game</span>
+  </div>
+  <div class="how-to">
+    <h4>How to Apply &mdash; Step by Step</h4>
+    <ol>
+      <li>Visit their website and locate the submission form.</li>
+      <li><strong>Prepare a demo build:</strong> Export Smoke &amp; Honey Phase 1 as a standalone PC build.</li>
+      <li><strong>Write a one-page pitch:</strong> Game concept, what makes it unique, current state, what funding enables.</li>
+      <li><strong>Submit with a gameplay video:</strong> 2-3 minutes showing the core loop in action.</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- TIER 3: EDUCATION & AGRICULTURE GRANTS                             -->
+<!-- ================================================================= -->
+<h2>Tier 3: Education &amp; Agriculture Grants (Big Payoff)</h2>
+<p>Your game's authentic beekeeping education angle opens doors that most games cannot access. These require more effort to apply but the payoff is substantial.</p>
+
+<!-- USDA SBIR -->
+<div class="card card-purple">
+  <h3><span class="tag tag-grant">GRANT</span> USDA SBIR (Small Business Innovation Research)</h3>
+  <div class="amount">Up to $175,000 (Phase I, 8 months)</div>
+  <div class="detail-grid">
+    <span class="detail-label">Phase II</span><span class="detail-value">Follow-on funding for commercialization</span>
+    <span class="detail-label">Repayment</span><span class="detail-value">None &mdash; this is a grant, not a loan</span>
+    <span class="detail-label">Requirement</span><span class="detail-value">Must be a U.S. small business (sole proprietorship counts)</span>
+    <span class="detail-label">Your Angle</span><span class="detail-value">Agricultural education tool teaching pollinator biology and hive management</span>
+    <span class="detail-label">Link</span><span class="detail-value"><a href="https://www.nifa.usda.gov/grants/programs/sbir-sttr" target="_blank">nifa.usda.gov/grants/programs/sbir-sttr</a></span>
+  </div>
+  <div class="how-to">
+    <h4>How to Apply &mdash; Step by Step</h4>
+    <ol>
+      <li><strong>Register a business entity:</strong> File a sole proprietorship or single-member LLC in your state. Cost is typically $50-150. This is required for all SBIR applications.</li>
+      <li><strong>Get a DUNS/UEI number:</strong> Register at <a href="https://sam.gov" target="_blank">SAM.gov</a> (System for Award Management). This is free but can take 1-2 weeks to process. You need this before applying to any federal grant.</li>
+      <li><strong>Register on Grants.gov:</strong> Create an account at <a href="https://www.grants.gov" target="_blank">Grants.gov</a> and link your SAM.gov registration.</li>
+      <li><strong>Find the current SBIR solicitation:</strong> Visit <a href="https://www.nifa.usda.gov/grants/programs/sbir-sttr/sbir-topic-areas" target="_blank">NIFA SBIR Topic Areas</a>. Look for topics under "Small and Mid-Size Farms" or "Rural Development" that relate to agricultural education or pollinator health.</li>
+      <li><strong>Write your Phase I proposal (15-25 pages):</strong>
+        <ul>
+          <li><strong>Problem statement:</strong> Pollinator decline is a critical agricultural issue. Public understanding of bee biology and hive management is low. Existing educational materials are passive (textbooks, videos) rather than experiential.</li>
+          <li><strong>Innovation:</strong> Smoke &amp; Honey uses a bio-accurate simulation (70,000-cell hive model, 14 cell states, population cohorts with mortality curves) to teach beekeeping through observation-based gameplay. Players learn real biology by doing, not reading.</li>
+          <li><strong>Research plan:</strong> Phase I would fund completion of the harvest/economy loop and formal educational assessment (pre/post knowledge tests with target users).</li>
+          <li><strong>Budget:</strong> Break down the $175K across 8 months: developer salary, software licenses, user testing, educational assessment consultant.</li>
+        </ul>
+      </li>
+      <li><strong>Submit before the deadline:</strong> USDA SBIR typically has annual solicitation cycles. Check the current deadline on their site.</li>
+    </ol>
+  </div>
+  <div class="tip">$175K is life-changing money for a solo developer. The application is work, but the grant is free money with no repayment. Pollinator decline is a USDA priority &mdash; your game directly addresses it.</div>
+</div>
+
+<!-- IES SBIR -->
+<div class="card card-purple">
+  <h3><span class="tag tag-grant">GRANT</span> Department of Education IES SBIR</h3>
+  <div class="amount">Up to $200,000 (Phase I) / $900,000 (Phase II)</div>
+  <div class="detail-grid">
+    <span class="detail-label">Phase I</span><span class="detail-value">$200,000 for 8 months of R&amp;D</span>
+    <span class="detail-label">Phase II</span><span class="detail-value">Up to $900,000 for 2 years of development + evaluation</span>
+    <span class="detail-label">Precedent</span><span class="detail-value">"Reach for the Sun" (Filament Games) &mdash; plant biology sim, very similar in spirit</span>
+    <span class="detail-label">Link</span><span class="detail-value"><a href="https://ies.ed.gov/funding/research/programs/small-business-innovation-research-sbir" target="_blank">ies.ed.gov SBIR</a></span>
+  </div>
+  <div class="how-to">
+    <h4>How to Apply &mdash; Step by Step</h4>
+    <ol>
+      <li><strong>Complete business registration</strong> (same as USDA SBIR above: LLC/sole prop, SAM.gov, Grants.gov).</li>
+      <li><strong>Review IES SBIR priorities:</strong> Visit their site and look for the current solicitation. IES funds "commercially viable education technology products and games for students, teachers, or administrators."</li>
+      <li><strong>Frame the educational case:</strong>
+        <ul>
+          <li>Smoke &amp; Honey teaches NGSS-aligned science concepts: ecosystem interactions, organism life cycles, population dynamics, human impact on environments.</li>
+          <li>Authentic simulation means players learn by observation (reading frames, recognizing disease, understanding seasonal rhythms) rather than multiple-choice quizzes.</li>
+          <li>Target audience: middle school through adult learners, agricultural extension programs, 4-H clubs, FFA chapters.</li>
+        </ul>
+      </li>
+      <li><strong>Include an evaluation plan:</strong> IES values evidence. Propose a small pilot study: recruit 20-30 participants, measure beekeeping knowledge pre/post gameplay, compare to a control group using traditional materials.</li>
+      <li><strong>Budget for an external evaluator:</strong> IES expects independent assessment. Budget $15-25K for a university partner or education research consultant to run the study.</li>
+      <li><strong>Submit through Grants.gov</strong> before the posted deadline.</li>
+    </ol>
+  </div>
+  <div class="tip">IES has already funded "Reach for the Sun" (a plant biology simulation game by Filament Games). Your game teaches authentic biological processes through observation-based gameplay &mdash; this is exactly what they fund. Phase II alone could be up to $900K.</div>
+</div>
+
+<!-- NEA -->
+<div class="card card-purple">
+  <h3><span class="tag tag-grant">GRANT</span> NEA Grants for Arts Projects</h3>
+  <div class="amount">$10,000 &ndash; $100,000</div>
+  <div class="detail-grid">
+    <span class="detail-label">Requirement</span><span class="detail-value">Nonprofit entity or fiscal sponsor (501(c)(3))</span>
+    <span class="detail-label">Workaround</span><span class="detail-value">Partner with a local arts council as fiscal sponsor (5-10% admin fee)</span>
+    <span class="detail-label">Next Deadline</span><span class="detail-value">July 9, 2026 (FY2026 cycle)</span>
+    <span class="detail-label">Link</span><span class="detail-value"><a href="https://www.arts.gov/grants/grants-for-arts-projects" target="_blank">arts.gov/grants</a></span>
+  </div>
+  <div class="how-to">
+    <h4>How to Apply &mdash; Step by Step</h4>
+    <ol>
+      <li><strong>Find a fiscal sponsor:</strong> Contact your local arts council, community foundation, or educational nonprofit. Explain your project and ask if they'd serve as fiscal sponsor. Many do this regularly for 5-10% of the grant amount.</li>
+      <li><strong>Register on Grants.gov</strong> through your fiscal sponsor's account (they handle this).</li>
+      <li><strong>Prepare your application:</strong> The NEA categorizes video games under "Media Arts." Frame Smoke &amp; Honey as interactive digital art that explores the relationship between humans and the natural world through authentic simulation.</li>
+      <li><strong>Include work samples:</strong> Screenshots, gameplay video, and a written description of the artistic vision.</li>
+      <li><strong>Submit before July 9, 2026.</strong></li>
+    </ol>
+  </div>
+  <div class="tip">The NEA has funded video games before. Your game's visual identity (Langstroth-themed UI, pixel art Cedar Bend) and thematic depth (human-nature relationship) make a strong case for the Media Arts category.</div>
+</div>
+
+<!-- ================================================================= -->
+<!-- TIER 4: REVENUE GENERATING                                         -->
+<!-- ================================================================= -->
+<h2>Tier 4: Revenue-Generating (When Phase 2 Is Done)</h2>
+<p>These generate direct income but should wait until the harvest/economy loop is playable.</p>
+
+<!-- STEAM EA -->
+<div class="card card-amber">
+  <h3><span class="tag tag-revenue">REVENUE</span> Steam Early Access</h3>
+  <div class="amount">$9.99&ndash;$14.99 (EA) / $19.99 (1.0 launch)</div>
+  <div class="detail-grid">
+    <span class="detail-label">Revenue Split</span><span class="detail-value">You keep 70% (Steam takes 30%)</span>
+    <span class="detail-label">When</span><span class="detail-value">After Phase 2 (Harvest &amp; Economy Loop) is complete</span>
+    <span class="detail-label">Why Wait</span><span class="detail-value">Phase 1 alone (inspection without harvest/selling) would get poor reviews</span>
+    <span class="detail-label">Link</span><span class="detail-value"><a href="https://partner.steamgames.com/doc/store/earlyaccess" target="_blank">Steamworks Early Access</a></span>
+  </div>
+  <div class="how-to">
+    <h4>How to Prepare &mdash; Step by Step</h4>
+    <ol>
+      <li><strong>Register on Steamworks:</strong> Go to <a href="https://partner.steamgames.com" target="_blank">partner.steamgames.com</a>. Pay the $100 app deposit (refunded once you earn $1,000+ in sales).</li>
+      <li><strong>Create your store page early:</strong> You can set up a "Coming Soon" page before the game is ready. This lets you collect wishlists &mdash; the single most important metric for Steam launch success.</li>
+      <li><strong>Build your wishlist:</strong> Share the Coming Soon page on social media, itch.io, Reddit (r/IndieGaming, r/beekeeping, r/simulation), and game dev communities. Aim for 2,000+ wishlists before launching EA.</li>
+      <li><strong>Complete Phase 2:</strong> Players need the full loop: inspect hives &rarr; harvest honey &rarr; grade and bottle &rarr; sell at market &rarr; reinvest in equipment/bees &rarr; survive winter.</li>
+      <li><strong>Launch Early Access:</strong> Price at $9.99-14.99. Include a clear Early Access FAQ on your store page explaining what's done, what's planned, and your update cadence.</li>
+    </ol>
+  </div>
+  <div class="tip">25% of Steam's top-selling games went through Early Access. Set up the Coming Soon page now to start collecting wishlists &mdash; you can do this before the game is EA-ready.</div>
+</div>
+
+<!-- PATREON -->
+<div class="card card-amber">
+  <h3><span class="tag tag-revenue">REVENUE</span> Patreon Monthly Memberships</h3>
+  <div class="amount">$3&ndash;$10/month per patron</div>
+  <div class="detail-grid">
+    <span class="detail-label">Fees</span><span class="detail-value">10% of earnings</span>
+    <span class="detail-label">Model</span><span class="detail-value">$3/mo devlogs, $5/mo early builds, $10/mo design input</span>
+  </div>
+  <div class="how-to">
+    <h4>How to Set Up &mdash; Step by Step</h4>
+    <ol>
+      <li><strong>Create a Patreon page:</strong> Sign up at <a href="https://www.patreon.com" target="_blank">patreon.com</a>.</li>
+      <li><strong>Set up tiers:</strong> $3 "Hive Observer" (weekly devlogs), $5 "Apprentice Beekeeper" (early builds + devlogs), $10 "Master Beekeeper" (design input, name an NPC, vote on features).</li>
+      <li><strong>Post your first update:</strong> Write about the journey so far &mdash; how you built a 70,000-cell hive simulation from scratch, the real beekeeping science behind the game, and what's coming next.</li>
+      <li><strong>Maintain a weekly cadence:</strong> One devlog per week with screenshots, GIFs, or short videos. Consistency is what retains patrons.</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- ACTION PLAN TIMELINE                                               -->
+<!-- ================================================================= -->
+<h2>Recommended Action Plan</h2>
+
+<div class="card card-green">
+  <h3><span class="tag tag-now">THIS WEEK</span> Immediate Actions (Zero Cost)</h3>
+  <div class="step-row"><span class="step-num">1</span><div class="step-content"><strong>Set up Ko-fi page</strong> &mdash; 30 minutes. Add screenshots, write a bio, share the link. Start accepting tips immediately.</div></div>
+  <div class="step-row"><span class="step-num">2</span><div class="step-content"><strong>Create itch.io project page</strong> &mdash; 1-2 hours. Upload a playable Phase 1 build, set up itchfunding with a $2,000 goal, write the project description.</div></div>
+  <div class="step-row"><span class="step-num">3</span><div class="step-content"><strong>Set up Steam Coming Soon page</strong> &mdash; 2-3 hours + $100 deposit. Start collecting wishlists now, months before EA launch.</div></div>
+</div>
+
+<div class="card card-blue">
+  <h3><span class="tag tag-soon">THIS MONTH</span> Grant Applications</h3>
+  <div class="step-row"><span class="step-num">4</span><div class="step-content"><strong>Apply to DANGEN grant</strong> &mdash; 3-5 hours total. Record gameplay video, write pitch, export build, submit. Highest priority grant.</div></div>
+  <div class="step-row"><span class="step-num">5</span><div class="step-content"><strong>Submit to Indie Fund</strong> &mdash; 2-3 hours. Quick application form, reuse DANGEN pitch materials. Zero downside.</div></div>
+  <div class="step-row"><span class="step-num">6</span><div class="step-content"><strong>Register on Xsolla Funding</strong> &mdash; 1 hour. Complete developer profile and game listing.</div></div>
+</div>
+
+<div class="card card-purple">
+  <h3><span class="tag tag-later">1&ndash;3 MONTHS</span> Federal Grants (Bigger Effort, Bigger Payoff)</h3>
+  <div class="step-row"><span class="step-num">7</span><div class="step-content"><strong>Register a business entity</strong> &mdash; File sole proprietorship or LLC ($50-150). Register on SAM.gov (free, 1-2 week processing). Register on Grants.gov.</div></div>
+  <div class="step-row"><span class="step-num">8</span><div class="step-content"><strong>Apply to USDA SBIR Phase I</strong> &mdash; Agricultural education angle. $175K grant, no repayment. Requires a formal 15-25 page proposal.</div></div>
+  <div class="step-row"><span class="step-num">9</span><div class="step-content"><strong>Apply to IES SBIR Phase I</strong> &mdash; Educational simulation game angle. $200K grant. Include evaluation plan with university partner.</div></div>
+  <div class="step-row"><span class="step-num">10</span><div class="step-content"><strong>Explore NEA with fiscal sponsor</strong> &mdash; $10K-100K. Deadline July 9, 2026. Contact local arts council for fiscal sponsorship.</div></div>
+</div>
+
+<div class="card card-amber">
+  <h3><span class="tag tag-later">WHEN PHASE 2 IS DONE</span> Revenue Streams</h3>
+  <div class="step-row"><span class="step-num">11</span><div class="step-content"><strong>Launch Steam Early Access</strong> &mdash; $9.99-14.99. Requires complete inspect &rarr; harvest &rarr; sell &rarr; reinvest loop.</div></div>
+  <div class="step-row"><span class="step-num">12</span><div class="step-content"><strong>Launch Patreon</strong> &mdash; Tiered memberships with weekly devlogs and early builds.</div></div>
+</div>
+
+<!-- ================================================================= -->
+<!-- ELIGIBILITY CHECKLIST                                              -->
+<!-- ================================================================= -->
+<h2>Quick Eligibility Checklist</h2>
+
+<table>
+  <tr>
+    <th>Opportunity</th>
+    <th>Playable Build?</th>
+    <th>Business Required?</th>
+    <th>Repayment?</th>
+    <th>Timing</th>
+  </tr>
+  <tr>
+    <td><strong>DANGEN Grant</strong></td>
+    <td style="color:var(--green);">Yes (you have it)</td>
+    <td style="color:var(--green);">No</td>
+    <td style="color:var(--green);">None</td>
+    <td><span class="tag tag-now">NOW</span></td>
+  </tr>
+  <tr>
+    <td><strong>Itch.io Funding</strong></td>
+    <td style="color:var(--green);">Yes (you have it)</td>
+    <td style="color:var(--green);">No</td>
+    <td style="color:var(--green);">None</td>
+    <td><span class="tag tag-now">NOW</span></td>
+  </tr>
+  <tr>
+    <td><strong>Ko-fi</strong></td>
+    <td style="color:var(--green);">No build needed</td>
+    <td style="color:var(--green);">No</td>
+    <td style="color:var(--green);">None</td>
+    <td><span class="tag tag-now">NOW</span></td>
+  </tr>
+  <tr>
+    <td><strong>Indie Fund</strong></td>
+    <td style="color:var(--green);">Yes (you have it)</td>
+    <td style="color:var(--green);">No</td>
+    <td>Revenue only (forgiven after 2yr)</td>
+    <td><span class="tag tag-soon">SOON</span></td>
+  </tr>
+  <tr>
+    <td><strong>Xsolla</strong></td>
+    <td style="color:var(--green);">Yes (you have it)</td>
+    <td style="color:var(--green);">No</td>
+    <td>Varies by investor</td>
+    <td><span class="tag tag-soon">SOON</span></td>
+  </tr>
+  <tr>
+    <td><strong>USDA SBIR</strong></td>
+    <td>Helpful</td>
+    <td style="color:var(--amber);">Yes (sole prop OK)</td>
+    <td style="color:var(--green);">None (grant)</td>
+    <td><span class="tag tag-later">1-3 MO</span></td>
+  </tr>
+  <tr>
+    <td><strong>IES SBIR</strong></td>
+    <td>Helpful</td>
+    <td style="color:var(--amber);">Yes (sole prop OK)</td>
+    <td style="color:var(--green);">None (grant)</td>
+    <td><span class="tag tag-later">1-3 MO</span></td>
+  </tr>
+  <tr>
+    <td><strong>NEA</strong></td>
+    <td>Helpful</td>
+    <td style="color:var(--amber);">Need 501c3 sponsor</td>
+    <td style="color:var(--green);">None (grant)</td>
+    <td><span class="tag tag-later">JUL 9</span></td>
+  </tr>
+  <tr>
+    <td><strong>Steam EA</strong></td>
+    <td style="color:var(--amber);">Need Phase 2</td>
+    <td style="color:var(--green);">No</td>
+    <td>N/A (sales)</td>
+    <td><span class="tag tag-later">PHASE 2</span></td>
+  </tr>
+</table>
+
+<div class="separator"></div>
+<p style="font-size:12px;color:var(--muted);text-align:center;">All information current as of March 2026. Check each program's website for the latest deadlines and requirements.<br>Smoke &amp; Honey Funding Report &mdash; Generated March 26, 2026</p>
+
+</body>
+</html>

@@ -24,7 +24,7 @@ func _setup_exits() -> void:
 
 func _register_map_markers() -> void:
 	SceneManager.clear_scene_markers()
-	SceneManager.set_scene_bounds(Rect2(-400, -160, 800, 320))
+	SceneManager.set_scene_bounds(Rect2(-800, -300, 1600, 600))
 	# Fairgrounds features
 	var gate: Node2D = get_node_or_null("World/Buildings/Gate") as Node2D
 	if gate:

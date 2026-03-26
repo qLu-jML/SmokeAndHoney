@@ -606,8 +606,12 @@ func _action_place_hive() -> void:
 	get_parent().add_child(new_hive)
 	new_hive.global_position = tilemap.to_global(tilemap.map_to_local(map_coords))
 	new_hive.set_meta("tile_coords", map_coords)
-	# Legacy hive is immediately complete and operational -- use method to avoid type reference
-	if new_hive.has_method("place_as_complete"):
+	# Legacy hive is a fully operational overwintered colony (Carniolan B benchmark).
+	# place_as_overwintered() sets up 4 drawn frames, small spring brood nest,
+	# adequate stores, and a 1-year-old queen -- realistic spring Day 1 start.
+	if new_hive.has_method("place_as_overwintered"):
+		new_hive.place_as_overwintered()
+	elif new_hive.has_method("place_as_complete"):
 		new_hive.place_as_complete()
 	update_hud_inventory()
 	_sync_grid_overlay()

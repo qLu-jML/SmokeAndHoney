@@ -7,7 +7,7 @@ extends Node2D
 # -- Scene State ----------------------------------------------------------------
 var _current_scene_path: String = ""
 
-const INTERACT_RADIUS := 60.0
+const INTERACT_RADIUS := 120.0
 
 # Building door triggers (populated in _ready from child nodes)
 var _building_triggers: Dictionary = {}  # { node_name: scene_path }
@@ -51,7 +51,7 @@ func _setup_zone_exits() -> void:
 
 func _register_map_markers() -> void:
 	SceneManager.clear_scene_markers()
-	SceneManager.set_scene_bounds(Rect2(-400, -160, 800, 320))
+	SceneManager.set_scene_bounds(Rect2(-800, -300, 1600, 600))
 	# Buildings as POIs
 	var buildings: Node = get_node_or_null("World/Buildings")
 	if buildings:
@@ -223,14 +223,17 @@ const PED_SPRITES = [
 	"res://assets/sprites/npc/pedestrian_a.png",
 	"res://assets/sprites/npc/pedestrian_b.png",
 	"res://assets/sprites/npc/pedestrian_c.png",
+	"res://assets/sprites/npc/pedestrian_d.png",
+	"res://assets/sprites/npc/pedestrian_e.png",
+	"res://assets/sprites/npc/pedestrian_f.png",
 ]
 const PED_WAYPOINTS = [
-	Vector2(-280, 30),
-	Vector2(-180, 30),
-	Vector2(-60, 30),
-	Vector2(60, 30),
-	Vector2(180, 30),
-	Vector2(280, 30),
+	Vector2(-560, 70),
+	Vector2(-320, 70),
+	Vector2(-100, 70),
+	Vector2(100, 70),
+	Vector2(340, 70),
+	Vector2(520, 70),
 ]
 const MAX_PEDESTRIANS := 4
 
@@ -263,13 +266,13 @@ func _spawn_pedestrian() -> void:
 		spr.texture = load(tex_path)
 	else:
 		# Fallback: colored rect
-		var fb_img: Image = Image.create(12, 28, false, Image.FORMAT_RGBA8)
+		var fb_img: Image = Image.create(64, 80, false, Image.FORMAT_RGBA8)
 		fb_img.fill(Color(0.5, 0.4, 0.3, 1.0))
 		spr.texture = ImageTexture.create_from_image(fb_img)
 
 	# Random start position off-screen left or right
-	var start_x: float = -320.0 if randf() < 0.5 else 320.0
-	spr.position = Vector2(start_x, 30.0 + randf_range(-4.0, 4.0))
+	var start_x: float = -700.0 if randf() < 0.5 else 700.0
+	spr.position = Vector2(start_x, 70.0 + randf_range(-8.0, 8.0))
 	spr.z_index = 2
 
 	# Pick random target waypoint

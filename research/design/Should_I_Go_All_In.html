@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smoke &amp; Honey &mdash; Should I Go All In?</title>
+<style>
+  :root {
+    --bg: #0F0A04;
+    --surface: #1A1208;
+    --border: rgba(108,64,22,0.3);
+    --amber: #C8820C;
+    --amber-lt: #E6A220;
+    --honey: #F4CC6E;
+    --wax: #F2E4B2;
+    --green: #5acc88;
+    --red: #cc5544;
+    --blue: #5a9acc;
+    --purple: #9b7acc;
+    --muted: rgba(242,228,178,0.55);
+    --text: #F2E4B2;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Arial, sans-serif;
+         font-size: 14px; line-height: 1.7; padding: 40px; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 28px; color: var(--amber-lt); margin-bottom: 4px; }
+  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 32px; }
+  h2 { font-size: 20px; color: var(--amber); margin: 36px 0 16px; padding-bottom: 8px;
+       border-bottom: 1px solid var(--border); }
+  h3 { font-size: 15px; color: var(--honey); margin: 20px 0 8px; }
+  p { margin-bottom: 12px; opacity: 0.85; }
+  ul { padding-left: 20px; margin-bottom: 14px; }
+  ol { padding-left: 20px; margin-bottom: 14px; }
+  li { margin-bottom: 8px; }
+  a { color: var(--amber-lt); text-decoration: none; border-bottom: 1px dotted var(--amber); }
+  a:hover { color: var(--honey); border-bottom-color: var(--honey); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+          padding: 18px 22px; margin-bottom: 16px; }
+  .card-amber { border-left: 4px solid var(--amber); }
+  .card-green { border-left: 4px solid var(--green); }
+  .card-blue { border-left: 4px solid var(--blue); }
+  .card-red { border-left: 4px solid var(--red); }
+  .card-purple { border-left: 4px solid var(--purple); }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px;
+         font-weight: bold; margin-right: 4px; vertical-align: middle; }
+  .tag-yes { background: #1a3a1a; color: #5acc88; }
+  .tag-no { background: #3a1a1a; color: #cc5544; }
+  .tag-maybe { background: #2a2a1a; color: #ccaa44; }
+  .tag-fact { background: #1a1a2a; color: #668ab4; }
+  .tag-risk { background: #3a1a1a; color: #cc5544; }
+  .tag-strength { background: #1a3a1a; color: #5acc88; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: var(--surface); color: var(--amber); text-align: left; padding: 8px 12px;
+       border-bottom: 2px solid var(--amber); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+  td { padding: 7px 12px; border-bottom: 1px solid var(--border); }
+  tr:hover td { background: rgba(200,134,10,0.05); }
+  .stat { font-size: 24px; font-weight: bold; color: var(--amber-lt); }
+  .stat-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 16px 0; }
+  .stat-card { text-align: center; }
+  .highlight { color: var(--amber-lt); font-weight: 600; }
+  .verdict-box { background: linear-gradient(135deg, #1A1208 0%, #261A0A 100%);
+                 border: 2px solid var(--amber); border-radius: 8px; padding: 24px 28px;
+                 margin: 24px 0; }
+  .verdict-box h3 { font-size: 18px; color: var(--amber-lt); margin-bottom: 12px; }
+  .scenario { border-left: 3px solid var(--amber); padding-left: 16px; margin: 16px 0; }
+  .scenario-title { font-weight: bold; color: var(--honey); font-size: 14px; }
+  .money-green { color: var(--green); font-weight: bold; }
+  .money-red { color: var(--red); font-weight: bold; }
+  .separator { height: 1px; background: var(--border); margin: 32px 0; }
+  .callout { background: rgba(200,130,12,0.08); border: 1px solid rgba(200,130,12,0.2);
+             border-radius: 4px; padding: 14px 18px; margin: 12px 0; font-size: 13px; }
+  .callout-green { background: rgba(90,204,136,0.08); border-color: rgba(90,204,136,0.2); }
+  .callout-red { background: rgba(204,85,68,0.08); border-color: rgba(204,85,68,0.2); }
+  .progress-bar { background: rgba(200,130,12,0.15); border-radius: 4px; height: 20px; margin: 8px 0; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px;
+                   font-size: 11px; font-weight: bold; color: var(--bg); }
+  .progress-fill.green { background: var(--green); }
+  .progress-fill.amber { background: var(--amber); }
+  .progress-fill.red { background: var(--red); }
+</style>
+</head>
+<body>
+
+<h1>Should I Go All In?</h1>
+<p class="subtitle">An honest assessment for Nathan &mdash; March 26, 2026<br>
+Hospice Chaplain &rarr; Full-Time Indie Game Developer?</p>
+
+<!-- ================================================================= -->
+<!-- THE QUESTION                                                       -->
+<!-- ================================================================= -->
+<h2>The Real Question</h2>
+
+<div class="card card-amber">
+  <p>You're a hospice chaplain. You sit with people at the end of their lives. You know better than almost anyone that time is the one thing you can't get back. So when you ask "should I go all in?" &mdash; you're really asking two questions:</p>
+  <ol>
+    <li><strong>Is this game good enough to justify the risk?</strong></li>
+    <li><strong>Am I the kind of person who will actually finish it?</strong></li>
+  </ol>
+  <p>This report answers both with data, not hype. I'm going to be honest with you because you deserve that.</p>
+</div>
+
+<!-- ================================================================= -->
+<!-- WHAT YOU'VE ACTUALLY BUILT                                         -->
+<!-- ================================================================= -->
+<h2>1. What You've Actually Built (The Evidence)</h2>
+
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat">15,419</div><div class="stat-label">Lines of GDScript</div></div>
+  <div class="stat-card"><div class="stat">58</div><div class="stat-label">Script Files</div></div>
+  <div class="stat-card"><div class="stat">85,000+</div><div class="stat-label">Words of Design Docs</div></div>
+  <div class="stat-card"><div class="stat">6</div><div class="stat-label">Days of Active Dev</div></div>
+</div>
+
+<div class="card card-green">
+  <h3><span class="tag tag-strength">STRENGTH</span> The Simulation Is Real</h3>
+  <p>This is not a reskinned farming game. You built a 10-script biologically accurate simulation pipeline with 70,000-cell hive models, 14 cell states, 3D ellipsoid brood geometry, population cohorts with mortality curves, nurse-to-larva ratios, species-specific queen laying budgets, and disease models for varroa and AFB. The domain knowledge embedded in this codebase is intermediate-to-advanced beekeeping &mdash; you've clearly read Seeley, you understand forage cycles, and you've designed systems with internal biological consistency.</p>
+  <p>This is not something a casual hobbyist builds. This is something someone builds who cares deeply about getting the truth of the subject right.</p>
+</div>
+
+<div class="card card-green">
+  <h3><span class="tag tag-strength">STRENGTH</span> The Design Documents Show Systems Thinking</h3>
+  <p>Your GDD is 64,773 words. Your quest design covers 34 quests across 6 NPCs with a calibrated XP/Standing economy. Your dev plan has 5 phases with clear exit criteria. You have separate design documents for story, locations, art style, and the Queen Finder minigame.</p>
+  <p>This is not someone sketching on the back of a napkin. This is someone who has thought deeply about how all the systems interconnect.</p>
+</div>
+
+<div class="card card-red">
+  <h3><span class="tag tag-risk">HONEST CHECK</span> But Here's Where You Actually Are</h3>
+
+  <p style="margin-bottom:8px;"><strong>Phase 1 &mdash; Core Loop (Inspect Bees)</strong></p>
+  <div class="progress-bar"><div class="progress-fill green" style="width:95%;">95%</div></div>
+
+  <p style="margin-bottom:8px;"><strong>Phase 2 &mdash; Harvest &amp; Economy (Sell Honey)</strong></p>
+  <div class="progress-bar"><div class="progress-fill amber" style="width:10%;">10%</div></div>
+
+  <p style="margin-bottom:8px;"><strong>Phase 3 &mdash; Living World (Quests &amp; NPCs)</strong></p>
+  <div class="progress-bar"><div class="progress-fill amber" style="width:15%;">15%</div></div>
+
+  <p style="margin-bottom:8px;"><strong>Phase 4 &mdash; Depth (Disease, Queen Rearing, Swarms)</strong></p>
+  <div class="progress-bar"><div class="progress-fill red" style="width:5%;">5%</div></div>
+
+  <p style="margin-bottom:8px;"><strong>Phase 5 &mdash; Polish &amp; Ship</strong></p>
+  <div class="progress-bar"><div class="progress-fill red" style="width:0%;">0%</div></div>
+
+  <p style="margin-top:16px;"><strong>Overall completion: roughly 20&ndash;25%.</strong> Phase 1 is genuinely impressive and playable. But everything that makes a game a <em>game</em> &mdash; the economic loop, the quests, the reason to keep playing &mdash; is still ahead of you.</p>
+</div>
+
+<!-- ================================================================= -->
+<!-- THE MARKET REALITY                                                 -->
+<!-- ================================================================= -->
+<h2>2. The Market Reality (Numbers, Not Hope)</h2>
+
+<div class="card card-blue">
+  <h3><span class="tag tag-fact">DATA</span> Your Closest Competitor: APICO</h3>
+  <p>APICO is the most successful beekeeping simulation game on Steam. It launched May 2022 (World Bee Day) and has 91% positive reviews from 1,500+ reviewers. Here are the numbers:</p>
+  <table>
+    <tr><th>Metric</th><th>APICO</th><th>What It Means for You</th></tr>
+    <tr>
+      <td>Gross Revenue</td>
+      <td class="money-green">~$730K&ndash;$880K</td>
+      <td>Over 4 years. Not overnight.</td>
+    </tr>
+    <tr>
+      <td>Net to Developer</td>
+      <td class="money-green">~$260K</td>
+      <td>After Steam's 30% cut, taxes, and publisher share (Whitethorn Games).</td>
+    </tr>
+    <tr>
+      <td>Copies Sold</td>
+      <td>~75,000&ndash;200,000</td>
+      <td>Strong for a niche title. Not viral.</td>
+    </tr>
+    <tr>
+      <td>Team Size</td>
+      <td>2 developers (TNgineers)</td>
+      <td>Similar to solo+spouse setup.</td>
+    </tr>
+    <tr>
+      <td>Development Time</td>
+      <td>~2 years pre-launch</td>
+      <td>Full-time development before release.</td>
+    </tr>
+    <tr>
+      <td>Publisher</td>
+      <td>Whitethorn Games</td>
+      <td>They handled marketing, PR, store optimization.</td>
+    </tr>
+  </table>
+  <p><strong>Key difference:</strong> APICO is a cozy, casual beekeeping game. Smoke &amp; Honey is an authentic simulation with real biology. You are going deeper than APICO, which could be an advantage (niche authority) or a risk (narrower audience).</p>
+</div>
+
+<div class="card card-red">
+  <h3><span class="tag tag-fact">DATA</span> The Brutal Indie Game Statistics</h3>
+  <table>
+    <tr><th>Statistic</th><th>Number</th></tr>
+    <tr><td>Indie games that are financially viable</td><td class="money-red">~0.5% of releases</td></tr>
+    <tr><td>Steam developers who've ever earned &gt;$100K gross</td><td class="money-red">~10%</td></tr>
+    <tr><td>Steam developers who've ever earned &gt;$1M gross</td><td class="money-red">~3%</td></tr>
+    <tr><td>First-game success rate (any profit)</td><td class="money-red">10&ndash;30%</td></tr>
+    <tr><td>Median indie game annual earnings</td><td class="money-red">Below $20,000</td></tr>
+  </table>
+  <p>The indie game market generated $4.85 billion in 2025, but the top 5 titles capture most of it. The long tail is brutal.</p>
+</div>
+
+<div class="card card-green">
+  <h3><span class="tag tag-fact">DATA</span> But the Simulation/Farming Niche Is Growing</h3>
+  <p>Simulation and sandbox games are growing at 16.78% CAGR. Cozy life sims appeal to broader demographics. Strategy and puzzle niches have lower production costs, allowing micro-studios to survive on modest sales. And 25% of Steam's top sellers went through Early Access &mdash; the model works for games-in-progress.</p>
+  <p>The beekeeping niche is real but small. APICO proved the market exists. Smoke &amp; Honey's deeper simulation and educational angle could carve out a distinct audience &mdash; especially with the agricultural/educational funding angles.</p>
+</div>
+
+<!-- ================================================================= -->
+<!-- FINANCIAL REALITY                                                  -->
+<!-- ================================================================= -->
+<h2>3. The Financial Reality of Going All In</h2>
+
+<div class="card card-amber">
+  <h3>Your Current Situation</h3>
+  <table>
+    <tr><th>Factor</th><th>Current State</th></tr>
+    <tr><td>Your income</td><td>Hospice chaplain salary (~$57K&ndash;$70K/year, varies by region)</td></tr>
+    <tr><td>Wife's income</td><td>Continues working (household has income floor)</td></tr>
+    <tr><td>If you quit</td><td>Household loses your salary but doesn't go to zero</td></tr>
+    <tr><td>Game revenue (today)</td><td class="money-red">$0</td></tr>
+    <tr><td>Time to potential revenue</td><td>3&ndash;6 months (itch.io/Early Access after Phase 2)</td></tr>
+  </table>
+</div>
+
+<div class="card card-blue">
+  <h3>Three Financial Scenarios</h3>
+
+  <div class="scenario">
+    <p class="scenario-title">Scenario A: The Game Does Well (APICO-Level Success)</p>
+    <p>~$260K net revenue over 4 years = ~$65K/year. <strong>Roughly replaces your chaplain salary.</strong> But it takes 1&ndash;2 years to get there, and you'd need to ship a polished product with marketing support. This is the optimistic-but-plausible scenario. APICO had a publisher (Whitethorn) handling marketing; without that, you'd need to be your own marketer.</p>
+  </div>
+
+  <div class="scenario">
+    <p class="scenario-title">Scenario B: Modest Success (Median Niche Indie)</p>
+    <p>$20K&ndash;$60K total over 2&ndash;3 years. <strong>Does not replace your salary. Covers some expenses.</strong> Combined with grants (DANGEN $50K, SBIR $175K+), this could be sustainable. This is the most likely outcome for a well-executed niche simulation.</p>
+  </div>
+
+  <div class="scenario">
+    <p class="scenario-title">Scenario C: It Doesn't Work Out</p>
+    <p>Under $5K total revenue. You've spent months without income. <strong>But your wife's income kept the household running, and you can return to chaplaincy.</strong> Hospice chaplains are in demand &mdash; this is not a career where a gap means you can never go back.</p>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- THE REAL QUESTION: WILL YOU FINISH?                                 -->
+<!-- ================================================================= -->
+<h2>4. The Harder Question: Will You Actually Finish?</h2>
+
+<div class="card card-amber">
+  <h3>Evidence That Says Yes</h3>
+  <ul>
+    <li><span class="tag tag-yes">YES</span> <strong>You wrote 15,419 lines of working code in 6 days.</strong> This is not dabbling. This is someone who sits down and builds.</li>
+    <li><span class="tag tag-yes">YES</span> <strong>You wrote 85,000+ words of design documentation.</strong> People who write detailed design docs finish projects at a much higher rate than people who "just start coding."</li>
+    <li><span class="tag tag-yes">YES</span> <strong>You iterated on art 3 times until it was right.</strong> You have quality standards. You care about the output, not just checking boxes.</li>
+    <li><span class="tag tag-yes">YES</span> <strong>You have deep domain knowledge.</strong> Your simulation isn't a shallow skin. The biology is real, the terminology is accurate, the systems are consistent. This is someone who loves the subject.</li>
+    <li><span class="tag tag-yes">YES</span> <strong>You rebranded and reorganized mid-project.</strong> "BeeKeeper Pro" to "Smoke &amp; Honey" with a full repo migration shows you're thinking about the product holistically, not just writing code. People who rebrand are thinking long-term.</li>
+    <li><span class="tag tag-yes">YES</span> <strong>You're asking this question.</strong> People who abandon side projects don't research funding strategies and ask hard questions about career changes. They just stop opening the file.</li>
+  </ul>
+</div>
+
+<div class="card card-red">
+  <h3>Evidence That Says Be Careful</h3>
+  <ul>
+    <li><span class="tag tag-risk">RISK</span> <strong>Your pace is unsustainable.</strong> 137 changelog entries in 3 days. Multiple entries per hour. Timestamps from 9 AM to 9 PM with no visible breaks. This is a sprint, not a marathon. If you go all-in, you need to pace yourself at 25&ndash;30 hours/week, not 70.</li>
+    <li><span class="tag tag-risk">RISK</span> <strong>35% of your work has been debugging.</strong> 48 out of 137 recent entries are bug fixes. Some are cascading failures (non-ASCII characters breaking script loading, type inference errors across 23 files). The codebase is functional but fragile. Adding major new systems (harvest, quests, economy) will create new categories of bugs.</li>
+    <li><span class="tag tag-risk">RISK</span> <strong>Art perfectionism.</strong> You redrew hive sprites 3 times in 48 hours. The quality improved each time, but this pattern can consume weeks when applied to the 30+ new UI screens Phase 2&ndash;3 will need.</li>
+    <li><span class="tag tag-risk">RISK</span> <strong>You are 6 days in.</strong> Six days of intense passion is not the same as six months of sustained effort. Every creative person has experienced the "honeymoon phase" where everything feels electric. The real test comes at month 3 when you're debugging the inventory-market-save pipeline for the fifth time and the game still doesn't feel fun.</li>
+    <li><span class="tag tag-risk">RISK</span> <strong>You have never shipped a commercial game.</strong> The last 20% of game development (polish, balance, QA, store pages, marketing, launch) takes as long as the first 80%. This is where most indie projects die.</li>
+  </ul>
+</div>
+
+<div class="card card-purple">
+  <h3>The Chaplain Question</h3>
+  <p>Here's something only you can answer, and I want to name it directly: you sit with dying people for a living. That work shapes how you see time, meaning, and what's worth doing. It's possible that Smoke &amp; Honey feels urgent precisely <em>because</em> your daily work reminds you that life is short and you should pursue what matters.</p>
+  <p>That instinct might be right. But it's also possible that the emotional weight of chaplaincy creates a pull toward <em>any</em> creative escape that feels alive and generative &mdash; and that what you're feeling is less "this is my life's work" and more "I need something that isn't about death."</p>
+  <p>Only you know which one it is. But the distinction matters, because one leads to finishing the game and the other leads to starting the next shiny thing once this one gets hard.</p>
+</div>
+
+<!-- ================================================================= -->
+<!-- MY RECOMMENDATION                                                  -->
+<!-- ================================================================= -->
+<h2>5. My Honest Recommendation</h2>
+
+<div class="verdict-box">
+  <h3>Don't Quit Your Job Yet. But Don't Treat This as a Hobby Either.</h3>
+  <p>Here's why, and here's what to do instead:</p>
+</div>
+
+<div class="card card-green">
+  <h3>The 90-Day Prove-It Plan</h3>
+  <p>Instead of quitting now, give yourself a structured 90-day test. This removes the "what if" without the financial risk. If you pass this test, you'll have the evidence (and possibly the funding) to make the leap with confidence instead of hope.</p>
+
+  <table>
+    <tr><th>Month</th><th>Goal</th><th>Success Criteria</th></tr>
+    <tr>
+      <td><strong>Month 1</strong><br>(April 2026)</td>
+      <td>Complete Phase 2 harvest loop while working full-time as chaplain</td>
+      <td>A player can inspect a hive, pull honey frames, extract, grade, bottle, and sell at market. The economic loop works end-to-end. Target: 15&ndash;20 hours/week on game dev.</td>
+    </tr>
+    <tr>
+      <td><strong>Month 2</strong><br>(May 2026)</td>
+      <td>Launch on itch.io + apply for DANGEN grant + set up Ko-fi</td>
+      <td>Playable build uploaded. At least 50 people have played it. You have feedback from real players. Grant application submitted. Ko-fi page live.</td>
+    </tr>
+    <tr>
+      <td><strong>Month 3</strong><br>(June 2026)</td>
+      <td>Evaluate results honestly</td>
+      <td>How much revenue from itch.io? How many wishlists on Steam Coming Soon page? Did the DANGEN grant respond? Are you still excited or are you grinding? Did the pace feel sustainable?</td>
+    </tr>
+  </table>
+</div>
+
+<div class="card card-amber">
+  <h3>What the 90-Day Test Proves</h3>
+  <ul>
+    <li><strong>If you complete Phase 2 while working full-time:</strong> You have the discipline and sustained interest to ship a game. The "will I finish?" question is answered.</li>
+    <li><strong>If real players enjoy it:</strong> The market exists. Not theoretical &mdash; proven with actual humans giving you money and feedback.</li>
+    <li><strong>If grants come through:</strong> You can leave chaplaincy with funding in hand, not on a prayer.</li>
+    <li><strong>If you burn out or lose interest:</strong> You still have your salary, your wife isn't stressed, and you learned something important about yourself without losing anything.</li>
+  </ul>
+</div>
+
+<div class="card card-blue">
+  <h3>When It Makes Sense to Quit the Day Job</h3>
+  <p>Pull the trigger when at least two of these are true:</p>
+  <ul>
+    <li><span class="tag tag-yes">GATE 1</span> Phase 2 is complete and you've sustained 15&ndash;20 hours/week for 3+ months without losing interest</li>
+    <li><span class="tag tag-yes">GATE 2</span> You have grant funding in hand (DANGEN, SBIR, or Indie Fund) or $5K+ in itch.io/Ko-fi revenue</li>
+    <li><span class="tag tag-yes">GATE 3</span> You have 1,000+ Steam wishlists (indicating real market demand)</li>
+    <li><span class="tag tag-yes">GATE 4</span> Your wife is comfortable with the financial plan and timeline</li>
+  </ul>
+  <p>Hitting 2 of these 4 gates means you have evidence, not just enthusiasm. That's when the risk becomes calculated instead of reckless.</p>
+</div>
+
+<!-- ================================================================= -->
+<!-- IS THIS A PASSING FASCINATION?                                     -->
+<!-- ================================================================= -->
+<h2>6. Is This a Passing Fascination?</h2>
+
+<div class="card card-green">
+  <h3>Probably Not. Here's Why.</h3>
+  <p>I've analyzed your codebase, your design documents, your changelog patterns, and your domain knowledge. Here's what I see:</p>
+  <ul>
+    <li><strong>People who are "just fascinated" don't write 85,000 words of systems documentation.</strong> They build a prototype, show it to friends, and move on. You designed a 34-quest economy with calibrated XP values and an 8-month agricultural calendar with custom month names.</li>
+    <li><strong>People who are "just fascinated" don't iterate art 3 times.</strong> They use placeholder assets and say "I'll fix it later." You redrew hive sprites until the anatomy was correct and the perspective matched.</li>
+    <li><strong>People who are "just fascinated" don't model 3D ellipsoid brood geometry.</strong> They'd use a flat grid and call it done. You implemented the real spatial biology because anything less would feel wrong to you.</li>
+    <li><strong>The beekeeping knowledge isn't new to you.</strong> This isn't someone who discovered bees last month and got excited. The depth of domain knowledge suggests this has been a long interest that you're finally building something with.</li>
+  </ul>
+  <p>Your risk isn't losing interest in beekeeping. Your risk is losing stamina during the unglamorous middle &mdash; the months of wiring UI elements, fixing save/load edge cases, and balancing economy numbers. That's the grind that kills indie projects, not lack of passion.</p>
+</div>
+
+<!-- ================================================================= -->
+<!-- THE BOTTOM LINE                                                    -->
+<!-- ================================================================= -->
+<h2>7. The Bottom Line</h2>
+
+<div class="verdict-box">
+  <h3>Is the game worth it? Yes. Is going all-in right now the smart move? Not yet.</h3>
+  <p style="margin-top:12px;">What you've built in 6 days is genuinely impressive. The simulation is real, the design is deep, and the domain knowledge gives you an unfair advantage in a niche with proven demand (APICO: ~$730K gross) and virtually no competition at the simulation-depth level you're targeting.</p>
+  <p>But you're 20&ndash;25% done, you've never shipped a commercial game, and your current pace will burn you out in weeks. The smart move is the 90-Day Prove-It Plan: keep the chaplain salary, build Phase 2 on evenings and weekends, launch on itch.io, apply for grants, and evaluate the results with real data.</p>
+  <p>If you pass that test &mdash; and I think you will &mdash; then you'll quit your job with funding in hand, real player validation, and the proven knowledge that your interest survives the boring parts. That's not playing it safe. That's being strategic about something you care about enough to do right.</p>
+  <p style="margin-top:16px;color:var(--muted);font-size:13px;">And Nathan &mdash; the fact that you're sitting with this question instead of either abandoning it or recklessly jumping? That's the most bullish signal in this entire report. People who take their dreams seriously enough to ask hard questions about them are the ones who actually finish.</p>
+</div>
+
+<div class="separator"></div>
+
+<!-- ================================================================= -->
+<!-- IMMEDIATE ACTIONS                                                  -->
+<!-- ================================================================= -->
+<h2>Appendix: Your Next 7 Days</h2>
+
+<div class="card card-green">
+  <h3>Do These This Week (While Still Employed)</h3>
+  <ol>
+    <li><strong>Set up Ko-fi page</strong> (30 min) &mdash; Start accepting tips now. Zero risk, zero cost.</li>
+    <li><strong>Apply to DANGEN grant</strong> (3&ndash;5 hours) &mdash; You meet every requirement today. This is free money.</li>
+    <li><strong>Create Steam Coming Soon page</strong> (2&ndash;3 hours + $100) &mdash; Start collecting wishlists. This is your market validation metric.</li>
+    <li><strong>Set a sustainable pace</strong> &mdash; 15&ndash;20 hours/week. Track it. If you can't sustain that for 90 days, you definitely can't sustain full-time for 12 months.</li>
+    <li><strong>Talk to your wife about the 90-Day Prove-It Plan</strong> &mdash; Get her buy-in on the timeline and the gate criteria. This is a household decision.</li>
+  </ol>
+</div>
+
+<div class="separator"></div>
+<p style="font-size:12px;color:var(--muted);text-align:center;">
+  Sources: APICO revenue estimates via <a href="https://games-stats.com/steam/game/apico/">games-stats.com</a> and <a href="https://steam-revenue-calculator.com/app/1390190/apico">steam-revenue-calculator.com</a> |
+  Indie game statistics via <a href="https://vginsights.com/insights/article/can-you-be-a-full-time-solo-indie-developer/">Video Game Insights</a> |
+  Market data via <a href="https://www.mordorintelligence.com/industry-reports/indie-game-market">Mordor Intelligence</a> |
+  Salary data via <a href="https://www.glassdoor.com/Salaries/hospice-chaplain-salary-SRCH_KO0,16.htm">Glassdoor</a>, <a href="https://www.payscale.com/research/US/Job=Hospice_Chaplain/Salary">PayScale</a>, <a href="https://www.ziprecruiter.com/Salaries/Hospice-Chaplain-Salary">ZipRecruiter</a><br><br>
+  Smoke &amp; Honey &mdash; Should I Go All In? &mdash; March 26, 2026
+</p>
+
+</body>
+</html>

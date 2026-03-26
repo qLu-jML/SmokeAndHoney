@@ -70,16 +70,28 @@ func _register_map_markers() -> void:
 	var uncle_bob: Node2D = get_node_or_null("World/UncleBob")
 	if uncle_bob:
 		SceneManager.register_scene_poi(uncle_bob.global_position, "Uncle Bob", Color(0.45, 0.85, 0.50))
+		print("[HomeProperty] Registered Uncle Bob at %s" % str(uncle_bob.global_position))
+	else:
+		print("[HomeProperty] WARNING: UncleBob node not found!")
 	var merchant: Node2D = get_node_or_null("World/Merchant")
 	if merchant:
 		SceneManager.register_scene_poi(merchant.global_position, "Merchant", Color(0.70, 0.50, 0.90))
+		print("[HomeProperty] Registered Merchant at %s" % str(merchant.global_position))
+	else:
+		print("[HomeProperty] WARNING: Merchant node not found!")
 	var chest: Node2D = get_node_or_null("World/StorageChest")
 	if chest:
 		SceneManager.register_scene_poi(chest.global_position, "Storage", Color(0.85, 0.70, 0.30))
+		print("[HomeProperty] Registered Storage at %s" % str(chest.global_position))
+	else:
+		print("[HomeProperty] WARNING: StorageChest node not found!")
 	# Hive (spawned at fixed position on fresh game)
 	SceneManager.register_scene_poi(Vector2(300, 350), "Hive", Color(0.95, 0.80, 0.25))
+	print("[HomeProperty] Registered Hive at (300, 350)")
 	# Exits
 	SceneManager.register_scene_exit("right", "County Road")
+	print("[HomeProperty] Registered exit: right -> County Road")
+	print("[HomeProperty] Total POIs: %d, Exits: %d" % [SceneManager._scene_pois.size(), SceneManager._scene_exits.size()])
 
 ## Spawn the starter overwintered hive on a fresh game (no save file).
 ## Placed south-east of the player's starting position in a logical apiary spot.

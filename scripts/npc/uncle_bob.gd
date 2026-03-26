@@ -100,11 +100,11 @@ func _ready() -> void:
 	# "[E] Talk" prompt label -- shown when player is nearby
 	_prompt_label = Label.new()
 	_prompt_label.text = "[E] Talk to Uncle Bob"
-	_prompt_label.add_theme_font_size_override("font_size", 5)
+	_prompt_label.add_theme_font_size_override("font_size", 7)
 	_prompt_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.6, 1.0))
 	_prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_prompt_label.custom_minimum_size = Vector2(96, 8)
-	_prompt_label.position = Vector2(-48, -52)
+	_prompt_label.custom_minimum_size = Vector2(120, 12)
+	_prompt_label.position = Vector2(-60, -70)
 	_prompt_label.z_index = 10
 	_prompt_label.visible = false
 	add_child(_prompt_label)

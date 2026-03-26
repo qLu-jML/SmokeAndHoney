@@ -16,22 +16,22 @@ static func create_exit(parent: Node, edge: String, target_scene: String,
 	exit.collision_mask = 1  # detect player (layer 1)
 
 	# Size and position based on edge
-	# Scene bounds: roughly -320..320 x, -90..180 y (640x270 total)
+	# Scene bounds: roughly -700..700 x, -200..300 y (1400x500 total)
 	var shape := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
 	match edge:
 		"right":
-			rect.size = Vector2(30, 300)
-			exit.position = Vector2(330 + offset, 45)
+			rect.size = Vector2(30, 500)
+			exit.position = Vector2(700 + offset, 50)
 		"left":
-			rect.size = Vector2(30, 300)
-			exit.position = Vector2(-330 + offset, 45)
+			rect.size = Vector2(30, 500)
+			exit.position = Vector2(-700 + offset, 50)
 		"top":
-			rect.size = Vector2(700, 30)
-			exit.position = Vector2(0, -100 + offset)
+			rect.size = Vector2(1400, 30)
+			exit.position = Vector2(0, -200 + offset)
 		"bottom":
-			rect.size = Vector2(700, 30)
-			exit.position = Vector2(0, 100 + offset)
+			rect.size = Vector2(1400, 30)
+			exit.position = Vector2(0, 200 + offset)
 	shape.shape = rect
 	exit.add_child(shape)
 
@@ -94,11 +94,11 @@ static func position_player_from_spawn_side(scene: Node) -> void:
 
 	match side:
 		"left":
-			player.position = Vector2(-280, player.position.y)
+			player.position = Vector2(-620, player.position.y)
 		"right":
-			player.position = Vector2(280, player.position.y)
+			player.position = Vector2(620, player.position.y)
 		"top":
-			player.position = Vector2(player.position.x, -70)
+			player.position = Vector2(player.position.x, -150)
 		"bottom":
-			player.position = Vector2(player.position.x, 70)
+			player.position = Vector2(player.position.x, 150)
 		# else: keep default position

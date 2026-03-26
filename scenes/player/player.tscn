@@ -23,10 +23,10 @@ shape = SubResource("RectangleShape2D_dovo2")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(0.5, 0.5)
-limit_left = -580
-limit_top = -350
-limit_right = 2087
-limit_bottom = 1285
+limit_left = -1200
+limit_top = -600
+limit_right = 3000
+limit_bottom = 2000
 position_smoothing_enabled = true
 position_smoothing_speed = 5.0
 drag_horizontal_enabled = true

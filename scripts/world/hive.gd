@@ -149,6 +149,20 @@ func place_as_complete() -> void:
 		simulation.init_as_nuc()
 	activate_simulation()
 
+## Place a hive with an overwintered colony entering spring.
+## species/grade let the caller control the queen genetics (defaults to
+## Carniolan B, which is the benchmark test colony).
+func place_as_overwintered(p_species: String = "Carniolan", p_grade: String = "B") -> void:
+	build_state = BuildState.COMPLETE
+	frame_count = 10
+	has_lid = true
+	colony_installed = true
+	_is_nuc_hive = true       # bypass lockout -- established colony
+	colony_install_day = 0
+	if simulation:
+		simulation.init_as_overwintered(p_species, p_grade)
+	activate_simulation()
+
 func activate_simulation() -> void:
 	if build_state == BuildState.COMPLETE and colony_installed:
 		if not HiveManager.all_hives_ticked.is_connected(_on_ticked):

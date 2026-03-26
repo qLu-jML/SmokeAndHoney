@@ -379,6 +379,136 @@ func _seed_initial_brood() -> void:
 
 	_sync_honey_to_frames()
 
+# -- Overwintered Colony Initialization ----------------------------------------
+# Called by hive.gd to place a colony that has survived winter and is entering
+# spring (day 1 of Quickening).  Represents a realistic overwintered hive:
+#   - 4 center frames of drawn comb (indices 3,4,5,6), 6 outer = foundation
+#   - Small brood nest -- queen just ramping up from winter cluster
+#   - Reduced winter-bee population (~8,000 adults, no drones yet)
+#   - Remaining honey stores (~12 lbs) and modest pollen (~1.5 lbs)
+#   - Moderate mite load from overwintering (~35 mites)
+#   - Queen is ~1 year old, already laying (no delay)
+# Accepts species/grade overrides so the caller can specify breed and quality.
+# ------------------------------------------------------------------------------
+
+func init_as_overwintered(
+	p_species: String = "Carniolan",
+	p_grade: String = "B"
+) -> void:
+	# Fresh brood box -- all 10 frames start as foundation
+	boxes = []
+	boxes.append(HiveBox.new(false))
+
+	var brood_box = boxes[0]
+
+	# -- 4 drawn frames (center: 3, 4, 5, 6) ----------------------------------
+	# These survived winter with wax intact.  Outer 6 frames are bare foundation
+	# the colony will draw out as spring progresses.
+	const DRAWN_FRAMES := [3, 4, 5, 6]
+	for fi in DRAWN_FRAMES:
+		brood_box.frames[fi].cells.fill(S_DRAWN_EMPTY)
+		brood_box.frames[fi].cells_b.fill(S_DRAWN_EMPTY)
+
+	# -- Small brood nest (queen just starting spring laying) ------------------
+	# Carniolans shut down hard in winter and restart aggressively in spring.
+	# On day 1 of Quickening the queen has been laying for ~7-10 days at a low
+	# rate, so there is a small dome of brood in all stages concentrated on the
+	# two center-most drawn frames (4 and 5) with a trace on flanks (3 and 6).
+	# BROOD_RADIUS 0.30 keeps the nest tight -- roughly 800-1200 total brood
+	# cells, which is realistic for early spring restart.
+	const OW_BROOD_RADIUS := 0.30
+	for fi in DRAWN_FRAMES:
+		var frame = brood_box.frames[fi]
+		for side in [HiveFrame.SIDE_A, HiveFrame.SIDE_B]:
+			for y in FRAME_HEIGHT:
+				for x in FRAME_WIDTH:
+					var dist: float = _cell_3d_dist(fi, x, y)
+					if dist <= OW_BROOD_RADIUS:
+						# Distribute brood across all stages (eggs through
+						# late capped) to reflect ~10 days of laying.
+						# Weighted toward younger brood since the queen is
+						# accelerating her rate as spring begins.
+						var age: int = randi() % 15
+						var state: int
+						if   age < AGE_EGG_TO_LARVA:
+							state = S_EGG
+						elif age < AGE_LARVA_TO_CAPPED:
+							state = S_OPEN_LARVA
+						else:
+							state = S_CAPPED_BROOD
+						frame.set_cell(x, y, state, age, side)
+
+	# -- Seed honey stores into outer drawn frames -----------------------------
+	# Overwintered colony has remaining honey on frames 3 and 6 (the flanking
+	# drawn frames) -- the bees consumed the center honey to heat the cluster
+	# and feed brood.  We place capped honey on the periphery of frames 3 and 6,
+	# outside the brood radius (cells with dist > 0.30 that are still drawn).
+	# This is more realistic than relying on _sync_honey_to_frames() alone.
+	const HONEY_FRAMES := [3, 6]
+	for fi in HONEY_FRAMES:
+		var frame = brood_box.frames[fi]
+		for side in [HiveFrame.SIDE_A, HiveFrame.SIDE_B]:
+			for y in FRAME_HEIGHT:
+				for x in FRAME_WIDTH:
+					var dist: float = _cell_3d_dist(fi, x, y)
+					# Honey arc: outside brood zone but inside the frame's
+					# drawn area.  Top corners and edges get capped honey.
+					if dist > OW_BROOD_RADIUS and dist < 0.80:
+						var cell_state: int = frame.get_cell(x, y, side)
+						if cell_state == S_DRAWN_EMPTY:
+							frame.set_cell(x, y, S_CAPPED_HONEY, 10, side)
+
+	# Also place some pollen (stored as a weight, but visually we leave cells
+	# as drawn-empty -- pollen_stores drives the simulation, not cell art).
+
+	# -- Winter-bee population -------------------------------------------------
+	# Overwintered cluster is ~8,000 adults.  Carniolans winter conservatively.
+	# Mostly long-lived winter bees (diutinus) that have not yet transitioned
+	# to summer roles.  No drones -- they were expelled in fall.
+	nurse_count   = 2500
+	house_count   = 3500
+	forager_count = 2000
+	drone_count   = 0
+
+	# -- Stores ----------------------------------------------------------------
+	# Surviving winter consumed ~20-25 lbs.  ~12 lbs remain heading into spring.
+	# Pollen stores are modest -- some leftover plus early spring forage.
+	honey_stores  = 12.0
+	pollen_stores = 1.5
+
+	# -- Mites -----------------------------------------------------------------
+	# Overwintered mite population -- manageable but present.
+	mite_count = 35.0
+
+	# -- State reset -----------------------------------------------------------
+	days_elapsed           = 0
+	congestion_state       = CongestionState.NORMAL
+	consecutive_congestion = 0
+	disease_flags          = []
+
+	# -- Queen -----------------------------------------------------------------
+	# Established queen entering her second year.  Already laying (no delay).
+	queen = {
+		"present":          true,
+		"species":          p_species,
+		"grade":            p_grade,
+		"age_days":         365,
+		"temperament":      randf_range(0.75, 0.95),
+		"laying_rate":      randi_range(1300, 1600),
+		"skip_probability": randf_range(0.10, 0.15),
+		"laying_delay":     0,
+	}
+
+	# Let _sync_honey_to_frames reconcile any remaining delta between the
+	# manually seeded honey cells and the honey_stores weight.
+	_sync_honey_to_frames()
+
+	# Register with HiveManager for daily ticking
+	HiveManager.register(self)
+
+	# Write initial snapshot
+	last_snapshot = SnapshotWriter.write(self, _calculate_health_score())
+
 # -- Package Bee Initialization ------------------------------------------------
 # Called by hive.gd when player installs Package Bees into a complete empty hive.
 # Replaces nuc-style initialization with realistic package-bee starting conditions:
