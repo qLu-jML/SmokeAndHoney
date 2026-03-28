@@ -3,8 +3,6 @@ extends Node2D
 const HIVE_SCENE   := preload("res://scenes/hive.tscn")
 const FLOWER_SCENE := preload("res://scenes/flowers/flowers.tscn")
 
-const INTERACT_RADIUS := 100.0
-
 # Building door triggers: node_name -> interior scene path
 var _building_triggers: Dictionary = {}
 
@@ -14,6 +12,8 @@ func _ready() -> void:
 		SceneManager.current_zone_name = "Home Property"
 		SceneManager.show_zone_name()
 		_register_map_markers()
+	# -- Weather visuals (overlay tint + rain/snow particles) ------------------
+	WeatherSetup.add_to_scene(self)
 	# -- Priority 1: returning from an interior scene --------------------------
 	# The player walked through a door (house -> exterior).  TimeManager carries
 	# the hive / flower / player-position state across the scene change.
@@ -61,20 +61,24 @@ func _ready() -> void:
 		_spawn_starter_hive()
 
 	# -- Building entry triggers ------------------------------------------------
-	_setup_building_triggers()
+	# Door zones and exit zones are now placed as nodes in the .tscn file
+	# so they are visible and draggable in the Godot editor.
+	# Legacy dynamic creation is kept as a fallback only.
+	if not _has_scene_exit("ExitRight_CountyRoad"):
+		_setup_exits()
+	if not _has_scene_door("FarmhouseDoor"):
+		_setup_building_triggers()
 
-	# -- Walking exits ----------------------------------------------------------
-	_setup_exits()
 	# Position player based on which direction they came from
 	ExitHelper.position_player_from_spawn_side(self)
 
 func _register_map_markers() -> void:
 	SceneManager.clear_scene_markers()
 	# Fixed bounds for the home property map.
-	# Content: player(-14,-26), Bob(380,140), Merchant(565,290),
-	#   Storage(200,220), Hive(300,350), exit-right(330,45).
+	# Content spans from Willow(-160,120) to Cottonwood(620,220),
+	#   ElmDead(280,480), buildings, NPCs, hive(300,350).
 	# Bounds padded ~80px beyond outermost content on each side.
-	SceneManager.set_scene_bounds(Rect2(-100, -110, 750, 550))
+	SceneManager.set_scene_bounds(Rect2(-240, -130, 940, 700))
 	var uncle_bob: Node2D = get_node_or_null("World/UncleBob")
 	if uncle_bob:
 		SceneManager.register_scene_poi(uncle_bob.global_position, "Uncle Bob", Color(0.45, 0.85, 0.50))
@@ -100,6 +104,10 @@ func _register_map_markers() -> void:
 	var honey_house: Node2D = get_node_or_null("World/Buildings/HoneyHouse")
 	if honey_house:
 		SceneManager.register_scene_poi(honey_house.global_position, "Honey House", Color(0.90, 0.70, 0.30))
+	# Nap bench
+	var bench: Node2D = get_node_or_null("World/NapBench")
+	if bench:
+		SceneManager.register_scene_poi(bench.global_position, "Bench", Color(0.55, 0.75, 0.85))
 	# Hive (spawned at fixed position on fresh game)
 	SceneManager.register_scene_poi(Vector2(300, 350), "Hive", Color(0.95, 0.80, 0.25))
 	print("[HomeProperty] Registered Hive at (300, 350)")
@@ -123,52 +131,67 @@ func _spawn_starter_hive() -> void:
 	if hive_node.has_method("place_as_overwintered"):
 		hive_node.place_as_overwintered("Carniolan", "B")
 
+func _has_scene_exit(exit_name: String) -> bool:
+	var world: Node = get_node_or_null("World")
+	if world and world.get_node_or_null(exit_name):
+		return true
+	return false
+
+func _has_scene_door(door_name: String) -> bool:
+	# Check if door zones exist on building children
+	var farmhouse: Node = get_node_or_null("World/Buildings/Farmhouse")
+	if farmhouse and farmhouse.get_node_or_null(door_name):
+		return true
+	return false
+
 func _setup_building_triggers() -> void:
 	_building_triggers = {
 		"Farmhouse":  "res://scenes/house/house_interior.tscn",
 		"HoneyHouse": "res://scenes/world/honey_house.tscn",
 	}
-
-func _process(_delta: float) -> void:
-	var player: Node2D = get_node_or_null("World/player") as Node2D
-	if not player:
-		return
-	# Show/hide hints on buildings based on proximity
+	# Create Area2D door zones on each building for collision-based entry.
+	# The player walks into the door area to enter the building.
 	for bname in _building_triggers.keys():
 		var bnode: Node2D = get_node_or_null("World/Buildings/" + bname) as Node2D
 		if not bnode:
 			continue
-		var dist: float = player.global_position.distance_to(bnode.global_position)
-		var hint: Label = bnode.get_node_or_null("InteractHint") as Label
-		if hint:
-			hint.visible = dist < INTERACT_RADIUS
-
-	# Handle E key to enter buildings
-	if Input.is_action_just_pressed("interact"):
-		_try_enter_building(player)
-
-func _try_enter_building(player: Node2D) -> void:
-	var closest_name: String = ""
-	var closest_dist: float = INF
-	for bname in _building_triggers.keys():
-		var bnode: Node2D = get_node_or_null("World/Buildings/" + bname) as Node2D
-		if not bnode:
+		# Skip if a DoorZone already exists (scene might define one)
+		if bnode.get_node_or_null("DoorZone"):
 			continue
-		var dist: float = player.global_position.distance_to(bnode.global_position)
-		if dist < INTERACT_RADIUS and dist < closest_dist:
-			closest_dist = dist
-			closest_name = bname
-	if closest_name == "":
+		var area: Area2D = Area2D.new()
+		area.name = "DoorZone"
+		# Door zones detect physics bodies (player is on layer 1)
+		area.collision_layer = 0
+		area.collision_mask = 1
+		area.monitoring = true
+		var shape: CollisionShape2D = CollisionShape2D.new()
+		var rect: RectangleShape2D = RectangleShape2D.new()
+		# Door hit zone: centered at bottom of sprite (where the door is)
+		# Farmhouse and HoneyHouse doors are at the bottom-center of the sprite
+		rect.size = Vector2(30, 14)
+		shape.shape = rect
+		# Position the door zone at the bottom of the building sprite
+		# (sprites are centered, so door is roughly at y = sprite_height/2)
+		shape.position = Vector2(0, 60)
+		area.add_child(shape)
+		bnode.add_child(area)
+		# Connect the body_entered signal to our door handler
+		area.body_entered.connect(_on_door_entered.bind(bname))
+		print("[HomeProperty] Created door zone for %s" % bname)
+
+func _on_door_entered(body: Node2D, building_name: String) -> void:
+	# Only the player triggers door entry
+	if body.name != "player":
 		return
-	var target_scene: String = _building_triggers.get(closest_name, "")
+	var target_scene: String = _building_triggers.get(building_name, "")
 	if target_scene == "":
 		return
 	# Save exterior state before entering interior
 	_save_exterior_state()
 	TimeManager.came_from_interior = false
-	TimeManager.player_return_pos = player.global_position
-	print("[HomeProperty] Entering %s -> %s" % [closest_name, target_scene])
-	SceneManager.change_scene(target_scene)
+	TimeManager.player_return_pos = body.global_position
+	print("[HomeProperty] Entering %s -> %s" % [building_name, target_scene])
+	SceneManager.go_to_scene(target_scene)
 
 func _save_exterior_state() -> void:
 	var world: Node = get_node_or_null("World")
