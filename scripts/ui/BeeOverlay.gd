@@ -104,8 +104,8 @@ const SPRITE_BASE := "res://assets/sprites/bees/"
 var _difficulty_rank: int = DiffRank.MEDIUM
 var _queen_spawned: bool = false
 var _temperament_density_mult: float = 1.0
-var _queen_grade: String = "B"
-var _queen_species: String = "Italian"
+var _queen_grade: String = "S"
+var _queen_species: String = "Carniolan"
 var _queen_age_days: int = 0
 var _queen_frame_idx: int = 4
 var _nurse_count: int = 0
@@ -140,8 +140,8 @@ func init_session(sim: HiveSimulation, difficulty_rank: int, queen_spawned: bool
 	_queen_found = false
 
 	# Extract queen data from simulation
-	_queen_grade = sim.queen.get("grade", "B")
-	_queen_species = sim.queen.get("species", "Italian")
+	_queen_grade = sim.queen.get("grade", "S")
+	_queen_species = sim.queen.get("species", "Carniolan")
 	_queen_age_days = sim.queen.get("age_days", 0)
 	_nurse_count = sim.nurse_count
 
@@ -332,6 +332,13 @@ func _create_worker(breed_key: String, spread: float) -> Dictionary:
 		"is_attendant": false,
 		"breed_key": breed_key,
 		"flash_timer": 0.0,
+		"base_speed": speed,
+		"speed_mult": 1.0,
+		"burst_timer": 0.0,
+		"wobble_phase": _rng.randf_range(0.0, TAU),
+		"wobble_amp": _rng.randf_range(0.3, 0.8),
+		"fidget_factor": _rng.randf_range(0.5, 1.5),
+		"idle_behavior": 0,
 	}
 
 func _create_queen(breed_key: String, spread: float) -> Dictionary:
@@ -362,6 +369,13 @@ func _create_queen(breed_key: String, spread: float) -> Dictionary:
 		"is_attendant": false,
 		"breed_key": breed_key,
 		"flash_timer": 0.0,
+		"base_speed": speed,
+		"speed_mult": 1.0,
+		"burst_timer": 0.0,
+		"wobble_phase": _rng.randf_range(0.0, TAU),
+		"wobble_amp": _rng.randf_range(0.2, 0.5),
+		"fidget_factor": _rng.randf_range(0.7, 1.2),
+		"idle_behavior": 0,
 	}
 
 func _create_attendant(breed_key: String, queen: Dictionary, idx: int, total: int) -> Dictionary:
@@ -375,7 +389,7 @@ func _create_attendant(breed_key: String, queen: Dictionary, idx: int, total: in
 		"target_x": ax,
 		"target_y": ay,
 		"direction": _angle_to_dir(atan2(queen["pos_y"] - ay, queen["pos_x"] - ax)),
-		"anim_frame": 4,  # idle facing queen
+		"anim_frame": 4,
 		"anim_timer": _rng.randf_range(0.0, IDLE_FRAME_INTERVAL),
 		"state": BeeState.IDLE,
 		"idle_remaining": 999.0,
@@ -385,6 +399,10 @@ func _create_attendant(breed_key: String, queen: Dictionary, idx: int, total: in
 		"breed_key": breed_key,
 		"flash_timer": 0.0,
 		"slot_angle": angle,
+		"drift_speed": _rng.randf_range(0.05, 0.12),
+		"break_orbit_timer": 0.0,
+		"break_orbit_duration": 0.0,
+		"orbit_radius_wobble": 0.0,
 	}
 
 # =============================================================================
@@ -411,6 +429,11 @@ func _update_bee(bee: Dictionary, delta: float, spread: float) -> void:
 	_advance_animation(bee, delta)
 
 func _update_walking(bee: Dictionary, delta: float, spread: float) -> void:
+	# Handle queen micro-pause mid-walk
+	if bee.get("pause_timer", 0.0) > 0.0:
+		bee["pause_timer"] -= delta
+		return
+
 	var dx: float = bee["target_x"] - bee["pos_x"]
 	var dy: float = bee["target_y"] - bee["pos_y"]
 	var dist: float = sqrt(dx * dx + dy * dy)
@@ -418,37 +441,113 @@ func _update_walking(bee: Dictionary, delta: float, spread: float) -> void:
 	if dist < 2.0:
 		# Arrived at target
 		if bee.get("is_queen", false):
-			# Queen pauses longer
+			# Queen pauses longer - apply fidget factor
 			bee["state"] = BeeState.IDLE
-			bee["idle_remaining"] = _rng.randf_range(QUEEN_IDLE_MIN, QUEEN_IDLE_MAX)
+			var fidget: float = bee.get("fidget_factor", 1.0)
+			bee["idle_remaining"] = _rng.randf_range(QUEEN_IDLE_MIN, QUEEN_IDLE_MAX) * fidget
 			bee["anim_frame"] = 4
 		else:
-			# Workers: 70% idle, 30% new target immediately
+			# Workers: 70% idle, 30% new target immediately - apply fidget factor
 			if _rng.randf() < 0.7:
 				bee["state"] = BeeState.IDLE
-				bee["idle_remaining"] = _rng.randf_range(WORKER_IDLE_MIN, WORKER_IDLE_MAX)
+				var fidget: float = bee.get("fidget_factor", 1.0)
+				bee["idle_remaining"] = _rng.randf_range(WORKER_IDLE_MIN, WORKER_IDLE_MAX) * fidget
 				bee["anim_frame"] = 4
 			else:
 				_pick_new_target(bee, spread)
 		return
 
+	# Calculate speed multiplier based on position in path
+	var total_dist: float = 0.0
+	if bee.get("path_start_dist") == null:
+		bee["path_start_dist"] = dist
+	total_dist = bee.get("path_start_dist", dist)
+
+	var progress: float = 1.0 - (dist / maxf(total_dist, 1.0))
+	var speed_mult: float = 1.0
+
+	# Queen has longer acceleration phase
+	var accel_zone: float = 0.15 if bee.get("is_queen", false) else 0.12
+	var decel_zone: float = (25.0 if bee.get("is_queen", false) else 15.0) / maxf(total_dist, 1.0)
+
+	if progress < accel_zone:
+		# Accelerate at start
+		speed_mult = 0.5 + (progress / accel_zone) * 0.5
+	elif progress > 1.0 - decel_zone:
+		# Decelerate near target
+		speed_mult = 0.4 + ((1.0 - progress) / decel_zone) * 0.3
+	else:
+		# Mid-path: full speed with minor variation
+		speed_mult = 0.95 + _rng.randf_range(-0.05, 0.15)
+
+	# Burst logic: 3% chance per frame of brief speed burst
+	var burst_chance: float = 0.03
+	if _rng.randf() < burst_chance and bee.get("burst_timer", 0.0) <= 0.0:
+		bee["burst_timer"] = _rng.randf_range(0.15, 0.3)
+
+	if bee.get("burst_timer", 0.0) > 0.0:
+		bee["burst_timer"] -= delta
+		speed_mult *= _rng.randf_range(1.8, 2.5)
+
+	bee["speed_mult"] = speed_mult
+
 	# Move toward target
 	var nx: float = dx / dist
 	var ny: float = dy / dist
-	var step: float = bee["speed"] * delta
-	bee["pos_x"] += nx * minf(step, dist)
-	bee["pos_y"] += ny * minf(step, dist)
+	var base_speed: float = bee.get("base_speed", bee["speed"])
+	var step: float = base_speed * speed_mult * delta
+
+	# Add micro-wobble perpendicular to movement direction
+	var perp_x: float = -ny
+	var perp_y: float = nx
+	var wobble: float = sin(bee.get("wobble_phase", 0.0)) * bee.get("wobble_amp", 0.5)
+	var wobble_factor: float = wobble * delta * 60.0
+
+	bee["pos_x"] += nx * minf(step, dist) + perp_x * wobble_factor
+	bee["pos_y"] += ny * minf(step, dist) + perp_y * wobble_factor
+
+	# Update wobble phase for next frame
+	bee["wobble_phase"] = bee.get("wobble_phase", 0.0) + _rng.randf_range(18.0, 30.0) * delta
 
 	# Update direction (8-way quantized)
 	bee["direction"] = _angle_to_dir(atan2(dy, dx))
 
 func _update_idle(bee: Dictionary, delta: float, spread: float) -> void:
+	var idle_behavior: int = bee.get("idle_behavior", 0)
+
 	bee["idle_remaining"] -= delta
 	if bee["idle_remaining"] <= 0.0:
-		_pick_new_target(bee, spread)
-		# Brief turning pause before walking
-		bee["state"] = BeeState.TURNING
-		bee["idle_remaining"] = _rng.randf_range(0.1, 0.2)
+		# Vary idle behavior for more life
+		var roll: float = _rng.randf()
+
+		if roll < 0.15:
+			# Antenna clean: extend idle slightly
+			bee["idle_behavior"] = 1
+			bee["idle_remaining"] = _rng.randf_range(0.3, 0.6)
+		elif roll < 0.25:
+			# 360 scan: rapid direction changes during idle
+			bee["idle_behavior"] = 2
+			bee["idle_remaining"] = _rng.randf_range(0.4, 0.7)
+			bee["scan_direction"] = _rng.randi_range(-1, 1)
+		else:
+			# Normal transition to walking
+			bee["idle_behavior"] = 0
+			_pick_new_target(bee, spread)
+			# Brief turning pause before walking
+			bee["state"] = BeeState.TURNING
+			bee["idle_remaining"] = _rng.randf_range(0.1, 0.2)
+			return
+
+	# Handle antenna clean animation (just extends idle, no visual change)
+	if idle_behavior == 1:
+		pass
+
+	# Handle 360 scan: vary direction
+	if idle_behavior == 2:
+		if bee.get("scan_timer", 0.0) <= 0.0:
+			bee["direction"] = (bee["direction"] + bee.get("scan_direction", 1) + 8) % 8
+			bee["scan_timer"] = _rng.randf_range(0.08, 0.12)
+		bee["scan_timer"] = bee.get("scan_timer", 0.0) - delta
 
 func _update_attendant(bee: Dictionary, delta: float) -> void:
 	if _queen_entity.is_empty():
@@ -458,10 +557,36 @@ func _update_attendant(bee: Dictionary, delta: float) -> void:
 	if bee["flash_timer"] > 0.0:
 		bee["flash_timer"] = maxf(0.0, bee["flash_timer"] - delta)
 
-	# Orbit slowly around queen
-	bee["slot_angle"] = bee.get("slot_angle", 0.0) + ATTENDANT_DRIFT * delta
-	var ideal_x: float = _queen_entity["pos_x"] + cos(bee["slot_angle"]) * ATTENDANT_RADIUS
-	var ideal_y: float = _queen_entity["pos_y"] + sin(bee["slot_angle"]) * ATTENDANT_RADIUS
+	# Orbit with per-attendant drift speed variation
+	var drift: float = bee.get("drift_speed", 0.08)
+	bee["slot_angle"] = bee.get("slot_angle", 0.0) + drift * delta
+
+	# Break orbit behavior: 8% chance per second to temporarily move away
+	bee["break_orbit_timer"] = bee.get("break_orbit_timer", 0.0) - delta
+	var break_chance: float = 0.08 * delta
+	if _rng.randf() < break_chance and bee.get("break_orbit_timer", 0.0) <= 0.0:
+		bee["break_orbit_duration"] = _rng.randf_range(0.3, 0.5)
+		bee["break_orbit_timer"] = bee.get("break_orbit_duration", 0.0)
+
+	var break_orbit_active: bool = bee.get("break_orbit_timer", 0.0) > 0.0
+	var break_progress: float = 0.0
+	if break_orbit_active and bee.get("break_orbit_duration", 0.0) > 0.0:
+		break_progress = 1.0 - (bee.get("break_orbit_timer", 0.0) / bee.get("break_orbit_duration", 0.0))
+
+	# Orbit radius wobble: subtle variation 16-20px around 18px base
+	var wobble_radius: float = ATTENDANT_RADIUS + sin(bee.get("wobble_phase", 0.0)) * 2.0
+	bee["wobble_phase"] = bee.get("wobble_phase", 0.0) + 3.0 * delta
+
+	var ideal_x: float = _queen_entity["pos_x"] + cos(bee["slot_angle"]) * wobble_radius
+	var ideal_y: float = _queen_entity["pos_y"] + sin(bee["slot_angle"]) * wobble_radius
+
+	if break_orbit_active:
+		# During break: move away then back
+		var break_dist: float = _rng.randf_range(5.0, 10.0)
+		var break_angle: float = bee.get("slot_angle", 0.0) + (PI if break_progress < 0.5 else 0.0)
+		var break_phase: float = minf(break_progress * 2.0, 1.0) if break_progress < 0.5 else maxf((1.0 - break_progress) * 2.0, 0.0)
+		ideal_x += cos(break_angle) * break_dist * break_phase
+		ideal_y += sin(break_angle) * break_dist * break_phase
 
 	# Smoothly follow
 	bee["pos_x"] = lerpf(bee["pos_x"], ideal_x, ATTENDANT_FOLLOW * delta)
@@ -481,6 +606,9 @@ func _update_attendant(bee: Dictionary, delta: float) -> void:
 
 func _pick_new_target(bee: Dictionary, spread: float) -> void:
 	var roll: float = _rng.randf()
+
+	# Clear wobble phase when picking new target to reset path tracking
+	bee["path_start_dist"] = null
 
 	if bee.get("is_queen", false):
 		# Queen: 60% continue forward, 25% adjacent, 15% slight turn
@@ -503,6 +631,10 @@ func _pick_new_target(bee: Dictionary, spread: float) -> void:
 			var dir_vec: Vector2 = _dir_to_vector(new_dir)
 			bee["target_x"] = clampf(bee["pos_x"] + dir_vec.x * 20.0, 60.0, float(CANVAS_W) - 60.0)
 			bee["target_y"] = clampf(bee["pos_y"] + dir_vec.y * 20.0, 40.0, float(CANVAS_H) - 40.0)
+
+		# Queen micro-pause: 2-5% chance per walking start to insert brief pause mid-step
+		if _rng.randf() < 0.03:
+			bee["pause_timer"] = _rng.randf_range(0.3, 0.5)
 	else:
 		# Worker: 60% nearby, 30% center-biased, 10% random
 		if roll < 0.60:

@@ -6,7 +6,7 @@
 # Call render_frame(frame) to get back an ImageTexture ready for a TextureRect.
 #
 # Cell atlas layout:
-#   364 x 20 px -- 14 states in one horizontal row, 26 x 20 px each.
+#   390 x 20 px -- 15 states in one horizontal row, 26 x 20 px each.
 #   State N occupies atlas column (N * 26), row 0.
 #
 # Rendered frame size: 70 x 26  by  50 x 20  =  1820 x 1000 px
@@ -34,13 +34,13 @@ const FRAME_COLS := 70
 const FRAME_ROWS := 50
 const FRAME_PX_W := FRAME_COLS * CELL_W   # 1820
 const FRAME_PX_H := FRAME_ROWS * CELL_H   # 1000
-const STATE_COUNT := 14
+const STATE_COUNT := 15
 
 # Path to the cell atlas PNG (relative to res://)
 const ATLAS_PATH := "res://assets/sprites/generated/cells/cell_atlas.png"
 
 # -- LOD Palette -- one colour per state ----------------------------------------
-# Indexed by CellStateTransition state constants (0-13).
+# Indexed by CellStateTransition state constants (0-14).
 const LOD_PALETTE := [
 	Color(0.07, 0.06, 0.05),   #  0 S_EMPTY_FOUNDATION  -- black plastic backing
 	Color(0.82, 0.72, 0.44),   #  1 S_DRAWN_EMPTY        -- pale wax
@@ -56,6 +56,7 @@ const LOD_PALETTE := [
 	Color(0.30, 0.12, 0.08),   # 11 S_AFB                -- very dark brown
 	Color(0.90, 0.75, 0.90),   # 12 S_QUEEN_CELL         -- lavender
 	Color(0.40, 0.35, 0.30),   # 13 S_VACATED            -- grey-brown
+	Color(0.82, 0.59, 0.22),   # 14 S_BEE_BREAD          -- warm amber-orange
 ]
 
 # -- Honeycomb hex-grid layout ------------------------------------------------
@@ -161,17 +162,24 @@ func render_honeycomb(frame, side: int = 0) -> ImageTexture:
 
 	var side_cells = frame.cells if side == 0 else frame.cells_b
 
+	var f_cols: int = frame.grid_cols if frame.has_method("get_cell") else FRAME_COLS
+	var f_rows: int = frame.grid_rows if frame.has_method("get_cell") else FRAME_ROWS
+	var f_size: int = frame.grid_size if frame.has_method("get_cell") else (f_cols * f_rows)
+
+	# Compute canvas size dynamically based on actual frame dimensions
+	var honey_w: int = f_cols * HEX_COL_STEP + HEX_ODD_SHIFT
+	var honey_h: int = f_rows * HEX_ROW_STEP + (CELL_H - HEX_ROW_STEP)
+
 	# Dirty check
 	var h: int = hash(side_cells)
-	if h == _honey_hash and _honey_texture != null:
+	if h == _honey_hash and _honey_texture != null and _honey_image != null and _honey_image.get_width() == honey_w and _honey_image.get_height() == honey_h:
 		return _honey_texture
 
 	_honey_hash = h
 
-	# Create canvas on first use
-	if _honey_image == null:
-		# Fill with a warm wax foundation colour so any tiny gaps look natural
-		_honey_image  = Image.create(HONEY_PX_W, HONEY_PX_H, false, Image.FORMAT_RGBA8)
+	# Recreate canvas when dimensions change or on first use
+	if _honey_image == null or _honey_image.get_width() != honey_w or _honey_image.get_height() != honey_h:
+		_honey_image  = Image.create(honey_w, honey_h, false, Image.FORMAT_RGBA8)
 		_honey_texture = ImageTexture.create_from_image(_honey_image)
 
 	# Fill background with dark tone -- hex cell sprites render on top
@@ -180,9 +188,6 @@ func render_honeycomb(frame, side: int = 0) -> ImageTexture:
 	# Blend each cell from the atlas in hex-offset positions.
 	# blend_rect composites source OVER destination respecting alpha,
 	# so the transparent hex-cell corners don't erase overlapping neighbours.
-	var f_cols: int = frame.grid_cols if frame.has_method("get_cell") else FRAME_COLS
-	var f_size: int = frame.grid_size if frame.has_method("get_cell") else (f_cols * FRAME_ROWS)
-
 	for i in f_size:
 		var state: int = clampi(int(side_cells[i]), 0, STATE_COUNT - 1)
 
@@ -203,6 +208,14 @@ func render_honeycomb(frame, side: int = 0) -> ImageTexture:
 # ------------------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------------------
+
+## Return the honeycomb canvas pixel width for a given column count.
+static func honeycomb_px_w(cols: int = FRAME_COLS) -> int:
+	return cols * HEX_COL_STEP + HEX_ODD_SHIFT
+
+## Return the honeycomb canvas pixel height for a given row count.
+static func honeycomb_px_h(rows: int = FRAME_ROWS) -> int:
+	return rows * HEX_ROW_STEP + (CELL_H - HEX_ROW_STEP)
 
 ## Load the atlas PNG on first use.
 ## Uses Image.load_from_file() with the absolute project path so we read

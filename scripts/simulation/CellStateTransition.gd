@@ -53,8 +53,9 @@ const S_AFB              := 11  # American Foulbrood infection -- spreads to
                                  #   adjacent larvae; stays until treated/burned
 const S_QUEEN_CELL       := 12  # Queen rearing cell -- managed by QueenBehavior
 const S_VACATED          := 13  # Dead brood remnant -- bees clean over time
+const S_BEE_BREAD        := 14  # Pollen stored as bee bread (up to 3 PU per cell)
 
-const STATE_COUNT := 14         # Total number of distinct cell states
+const STATE_COUNT := 15         # Total number of distinct cell states
 
 # -- Biological Timing (cumulative days from egg-lay) --------------------------
 const AGE_EGG_TO_LARVA       := 3   # Day 3:  egg hatches to open larva
@@ -64,7 +65,7 @@ const AGE_DRONE_EMERGE       := 24  # Day 24: drone bee emerges
 
 # -- Honey Curing Chain (days in each state) -----------------------------------
 const DAYS_NECTAR_TO_CURING  := 3   # nectar ripens into uncapped curing honey
-const DAYS_CURING_TO_CAPPED  := 4   # curing honey sealed under wax cap
+const DAYS_CURING_TO_CAPPED  := 5   # curing honey sealed under wax cap (Karpathy Phase 1)
 const DAYS_CAPPED_TO_PREMIUM := 7   # fully cured honey ages to premium grade
 
 # -- Disease & Damage Thresholds -----------------------------------------------

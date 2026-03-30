@@ -278,6 +278,20 @@ func _build_shop_ui() -> void:
 		shop_ui.add_child(btn)
 		row_idx += 1
 
+	# -- Sell Honey button -------------------------------------------------
+	var sell_btn: Button = Button.new()
+	sell_btn.name = "SellHoneyBtn"
+	var sell_ry: int = -112 + row_idx * 30
+	sell_btn.set_anchor_and_offset(SIDE_LEFT,   0.5, -168)
+	sell_btn.set_anchor_and_offset(SIDE_RIGHT,  0.5,  168)
+	sell_btn.set_anchor_and_offset(SIDE_TOP,    0.5,  sell_ry)
+	sell_btn.set_anchor_and_offset(SIDE_BOTTOM, 0.5,  sell_ry + 26)
+	sell_btn.add_theme_font_size_override("font_size", 7)
+	sell_btn.text = ">> SELL HONEY TO CARL  --  $8 / jar <<"
+	sell_btn.add_theme_color_override("font_color", Color(0.40, 0.85, 0.40, 1))
+	sell_btn.pressed.connect(_on_sell_honey)
+	shop_ui.add_child(sell_btn)
+
 	var close_lbl: Label = Label.new()
 	close_lbl.name = "CloseHint"
 	close_lbl.text = "[X] or [ESC] to close"
@@ -365,6 +379,24 @@ func _on_buy(key: String) -> void:
 
 	# Refresh the shop display with updated money
 	_refresh_shop()
+
+# -- Sell Honey ----------------------------------------------------------------
+
+func _on_sell_honey() -> void:
+	_close_shop()
+	var scene: PackedScene = load("res://scenes/ui/sell_screen.tscn") as PackedScene
+	if scene == null:
+		push_error("[Supply] Failed to load sell_screen.tscn")
+		return
+	var sell_ui: Node = scene.instantiate()
+	sell_ui.price_per_jar = 8
+	sell_ui.buyer_name = "Carl"
+	get_tree().root.add_child(sell_ui)
+	sell_ui.closed.connect(_on_sell_closed)
+
+func _on_sell_closed() -> void:
+	# Re-open the shop after selling is done
+	_open_shop()
 
 # -- Bulletin Board UI ---------------------------------------------------------
 

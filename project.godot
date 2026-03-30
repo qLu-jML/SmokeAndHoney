@@ -24,8 +24,10 @@ ForageManager="*res://scripts/autoloads/ForageManager.gd"
 QuestManager="*res://scripts/autoloads/QuestManager.gd"
 SaveManager="*res://scripts/autoloads/SaveManager.gd"
 NotificationManager="*res://scripts/autoloads/NotificationManager.gd"
+WeatherManager="*res://scripts/autoloads/WeatherManager.gd"
 DialogueUI="*res://scripts/ui/DialogueUI.gd"
 SceneManager="*res://scripts/autoloads/SceneManager.gd"
+MusicManager="*res://scripts/autoloads/MusicManager.gd"
 
 [display]
 

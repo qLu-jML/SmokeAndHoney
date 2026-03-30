@@ -2,7 +2,7 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://l15n16lbjq8o"
+uid="uid://yy28kjvhxj6l"
 path="res://.godot/imported/aster.png-6fb074efcf9c37e50e867f4e46dc05a6.ctex"
 metadata={
 "vram_texture": false
@@ -18,7 +18,7 @@ dest_files=["res://.godot/imported/aster.png-6fb074efcf9c37e50e867f4e46dc05a6.ct
 compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

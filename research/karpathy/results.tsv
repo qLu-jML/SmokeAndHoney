@@ -1,0 +1,33 @@
+timestamp	phase	attempt	pass_count	total_tests	status	target_file	description
+2026-03-28 19:36:42	1	1	0	0	EDIT_FAIL	brood_sim.py	Find text not matched
+2026-03-28 19:47:14	1	1	0	0	LOCKED_VIOLATION	brood_sim.py	LOCKED CONSTANT VIOLATION: EGG_DURATION = 3 -> 4. EGG_DURATION is a science-lock
+2026-03-28 19:50:18	1	2	0	0	EDIT_FAIL	brood_sim.py	First line found at line(s) [258], but the full 10-line block didn't match. Like
+2026-03-28 19:53:15	1	3	0	0	EDIT_FAIL	brood_sim.py	First line found at line(s) [258], but the full 2-line block didn't match. Likel
+2026-03-28 19:58:42	1	1	0	0	SCRIPT_CRASH	brood_sim.py	Script crashed - 0 test results
+2026-03-28 19:58:45	1	2	0	0	SCRIPT_CRASH	brood_sim.py	Script crashed - 0 test results
+2026-03-28 19:58:49	1	3	0	0	SCRIPT_CRASH	brood_sim.py	Script crashed - 0 test results
+2026-03-28 19:58:52	1	4	0	0	SCRIPT_CRASH	brood_sim.py	Script crashed - 0 test results
+2026-03-28 19:58:55	1	5	0	0	SCRIPT_CRASH	brood_sim.py	Script crashed - 0 test results
+2026-03-28 19:58:58	1	6	0	0	SCRIPT_CRASH	brood_sim.py	Script crashed - 0 test results
+2026-03-28 19:59:01	1	7	0	0	SCRIPT_CRASH	brood_sim.py	Script crashed - 0 test results
+2026-03-28 19:59:05	1	8	0	0	SCRIPT_CRASH	brood_sim.py	Script crashed - 0 test results
+2026-03-28 19:59:08	1	9	0	0	SCRIPT_CRASH	brood_sim.py	Script crashed - 0 test results
+2026-03-28 20:00:35	1	0	32	32	ALREADY_LOCKED	brood_sim.py	Already passing
+2026-03-28 20:00:35	2	0	17	17	ALREADY_LOCKED	population_sim.py	Already passing
+2026-03-28 20:00:35	3	0	18	18	ALREADY_LOCKED	foraging_sim.py	Already passing
+2026-03-28 20:00:36	4	1	0	0	SCRIPT_CRASH	queen_comb_sim.py	Script crashed - 0 test results
+2026-03-28 20:00:39	4	2	0	0	SCRIPT_CRASH	queen_comb_sim.py	Script crashed - 0 test results
+2026-03-28 20:00:42	4	3	0	0	SCRIPT_CRASH	queen_comb_sim.py	Script crashed - 0 test results
+2026-03-28 20:00:45	4	4	0	0	SCRIPT_CRASH	queen_comb_sim.py	Script crashed - 0 test results
+2026-03-28 20:00:49	4	5	0	0	SCRIPT_CRASH	queen_comb_sim.py	Script crashed - 0 test results
+2026-03-28 20:00:52	4	6	0	0	SCRIPT_CRASH	queen_comb_sim.py	Script crashed - 0 test results
+2026-03-28 20:00:55	4	7	0	0	SCRIPT_CRASH	queen_comb_sim.py	Script crashed - 0 test results
+2026-03-28 20:00:58	4	8	0	0	SCRIPT_CRASH	queen_comb_sim.py	Script crashed - 0 test results
+2026-03-28 20:01:02	4	9	0	0	SCRIPT_CRASH	queen_comb_sim.py	Script crashed - 0 test results
+2026-03-28 20:04:17	1	0	32	32	ALREADY_LOCKED	brood_sim.py	Already passing
+2026-03-28 20:04:17	2	0	17	17	ALREADY_LOCKED	population_sim.py	Already passing
+2026-03-28 20:04:17	3	0	18	18	ALREADY_LOCKED	foraging_sim.py	Already passing
+2026-03-28 20:04:17	4	0	37	37	ALREADY_LOCKED	queen_comb_sim.py	Already passing
+2026-03-28 20:04:17	5	0	24	24	ALREADY_LOCKED	disease_sim.py	Already passing
+2026-03-28 20:04:17	6	0	29	29	ALREADY_LOCKED	environment_sim.py	Already passing
+2026-03-28 20:04:17	7	0	31	31	ALREADY_LOCKED	colony_behavior_sim.py	Already passing

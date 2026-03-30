@@ -7,8 +7,6 @@ extends Node2D
 # -- Scene State ----------------------------------------------------------------
 var _current_scene_path: String = ""
 
-const INTERACT_RADIUS := 120.0
-
 # Building door triggers (populated in _ready from child nodes)
 var _building_triggers: Dictionary = {}  # { node_name: scene_path }
 
@@ -24,6 +22,7 @@ var _market_overlay_active: bool = false
 # -- Lifecycle ------------------------------------------------------------------
 
 func _ready() -> void:
+	_setup_weather()
 	_setup_building_triggers()
 	_apply_seasonal_visuals()
 	_check_saturday_market()
@@ -84,75 +83,62 @@ func _setup_building_triggers() -> void:
 		"GrangeHall":         "",   # Only open on meeting nights -- handled specially
 		"SaturdayMarket":     "",   # Overlay, not a sub-scene
 	}
+	# Create Area2D door zones on each building for collision-based entry.
+	# The player walks into the door area to enter the building.
+	for bname in _building_triggers.keys():
+		if bname == "SaturdayMarket":
+			continue  # Market is an overlay, not a building with a door
+		var bnode: Node2D = get_node_or_null("World/Buildings/" + bname) as Node2D
+		if not bnode:
+			continue
+		if bnode.get_node_or_null("DoorZone"):
+			continue
+		var area: Area2D = Area2D.new()
+		area.name = "DoorZone"
+		area.collision_layer = 0
+		area.collision_mask = 1
+		area.monitoring = true
+		var shape: CollisionShape2D = CollisionShape2D.new()
+		var rect: RectangleShape2D = RectangleShape2D.new()
+		rect.size = Vector2(30, 14)
+		shape.shape = rect
+		# Door is at bottom-center of building sprite
+		shape.position = Vector2(0, 80)
+		area.add_child(shape)
+		bnode.add_child(area)
+		area.body_entered.connect(_on_door_entered.bind(bname))
+		print("[Cedar Bend] Created door zone for %s" % bname)
 
 func _process(delta: float) -> void:
-	_update_interact_hints()
+	_update_market_hint()
 	_update_pedestrians(delta)
 	_ped_timer += delta
 	if _ped_timer >= PEDESTRIAN_SPAWN_INTERVAL:
 		_ped_timer = 0.0
 		_maybe_spawn_pedestrian()
 
-# -- Interaction ----------------------------------------------------------------
+# -- Door Collision Entry -------------------------------------------------------
 
-func _update_interact_hints() -> void:
-	var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
-	if not player:
-		return
-	# Show/hide hints on each building
-	for bname in _building_triggers.keys():
-		var bnode: Node = get_node_or_null("World/Buildings/" + bname)
-		if not bnode:
-			continue
-		var hint: Label = bnode.get_node_or_null("InteractHint") as Label
-		if not hint:
-			continue
-		if bnode is Node2D:
-			var dist: float = player.global_position.distance_to((bnode as Node2D).global_position)
-			hint.visible = (dist <= INTERACT_RADIUS)
-
-func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_E:
-			_try_enter_building()
-
-func _try_enter_building() -> void:
-	var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
-	if not player:
-		return
-	var closest_name: String = ""
-	var closest_dist: float = INF
-
-	for bname in _building_triggers.keys():
-		var bnode: Node2D = get_node_or_null("World/Buildings/" + bname) as Node2D
-		if not bnode:
-			continue
-		var d: float = player.global_position.distance_to(bnode.global_position)
-		if d < closest_dist:
-			closest_dist = d
-			closest_name = bname
-
-	if closest_dist > INTERACT_RADIUS or closest_name == "":
+func _on_door_entered(body: Node2D, building_name: String) -> void:
+	if body.name != "player":
 		return
 
 	# Special cases first
-	if closest_name == "GrangeHall":
+	if building_name == "GrangeHall":
 		_try_enter_grange()
 		return
-	if closest_name == "SaturdayMarket":
-		return  # Market is an overlay already visible, no scene load needed
 
-	var target_scene: String = _building_triggers.get(closest_name, "")
+	var target_scene: String = _building_triggers.get(building_name, "")
 	if target_scene == "":
-		print("[Cedar Bend] %s -- coming soon!" % closest_name)
+		print("[Cedar Bend] %s -- coming soon!" % building_name)
 		return
 
 	# Energy check: entering buildings costs 2 energy
 	if not GameData.deduct_energy(2.0):
-		print("[Cedar Bend] Too tired to go in. Press Z to rest first.")
+		print("[Cedar Bend] Too tired to go in.")
 		return
 
-	print("[Cedar Bend] Entering %s ..." % closest_name)
+	print("[Cedar Bend] Entering %s ..." % building_name)
 	TimeManager.previous_scene = "res://scenes/world/cedar_bend.tscn"
 	TimeManager.next_scene = target_scene
 	get_tree().change_scene_to_file("res://scenes/loading/loading_screen.tscn")
@@ -198,6 +184,54 @@ func _apply_seasonal_visuals() -> void:
 		diner_glow.visible = (hour >= 6.0 and hour <= 21.0)
 
 # -- Saturday Market ------------------------------------------------------------
+
+const MARKET_INTERACT_RADIUS := 48.0
+
+func _input(event: InputEvent) -> void:
+	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+	if event.keycode == KEY_E and _market_overlay_active:
+		_try_market_interact()
+
+func _update_market_hint() -> void:
+	var hint: Label = get_node_or_null("World/SaturdayMarket/FrankNPC/MarketInteractHint") as Label
+	if not hint:
+		return
+	if not _market_overlay_active:
+		hint.visible = false
+		return
+	var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
+	if not player:
+		hint.visible = false
+		return
+	var frank: Node2D = get_node_or_null("World/SaturdayMarket/FrankNPC") as Node2D
+	if not frank:
+		hint.visible = false
+		return
+	var dist: float = player.global_position.distance_to(frank.global_position)
+	hint.visible = dist <= MARKET_INTERACT_RADIUS
+
+func _try_market_interact() -> void:
+	var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
+	if not player:
+		return
+	var frank: Node2D = get_node_or_null("World/SaturdayMarket/FrankNPC") as Node2D
+	if not frank or not frank.visible:
+		return
+	var dist: float = player.global_position.distance_to(frank.global_position)
+	if dist > MARKET_INTERACT_RADIUS:
+		return
+	_open_market_sell()
+
+func _open_market_sell() -> void:
+	var scene: PackedScene = load("res://scenes/ui/sell_screen.tscn") as PackedScene
+	if scene == null:
+		push_error("[Cedar Bend] Failed to load sell_screen.tscn")
+		return
+	var sell_ui: Node = scene.instantiate()
+	sell_ui.price_per_jar = 10
+	sell_ui.buyer_name = "Frank"
+	get_tree().root.add_child(sell_ui)
 
 func _check_saturday_market() -> void:
 	# GDD S13.3: Saturday Market overlay active on spring-fall Saturdays
@@ -312,3 +346,16 @@ func _update_pedestrians(delta: float) -> void:
 
 	for dead in to_remove:
 		_pedestrians.erase(dead)
+
+func _setup_weather() -> void:
+	if get_node_or_null("WeatherOverlay") == null:
+		var overlay: CanvasLayer = CanvasLayer.new()
+		overlay.name = "WeatherOverlay"
+		overlay.set_script(load("res://scripts/world/weather_overlay.gd"))
+		add_child(overlay)
+	var world: Node = get_node_or_null("World")
+	if world != null and world.get_node_or_null("WeatherParticles") == null:
+		var particles: Node2D = Node2D.new()
+		particles.name = "WeatherParticles"
+		particles.set_script(load("res://scripts/world/weather_particles.gd"))
+		world.add_child(particles)

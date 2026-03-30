@@ -67,11 +67,39 @@ const TINT_HEALTHY = Color(1.00, 1.00, 1.00)
 const TINT_WARNING = Color(1.00, 0.92, 0.72)
 const TINT_POOR    = Color(1.00, 0.78, 0.78)
 
+# -- Super honey fill tint gradient ------------------------------------------
+# Empty super: pale/desaturated.  Full capped super: rich warm amber.
+# These tints are multiplied ON TOP of the health tint so both show.
+const SUPER_TINT_EMPTY    = Color(0.85, 0.85, 0.80)  # slightly grey -- no honey
+const SUPER_TINT_NECTAR   = Color(1.00, 0.95, 0.60)  # pale yellow -- nectar arriving
+const SUPER_TINT_FILLING  = Color(1.00, 0.88, 0.45)  # warm gold -- honey curing
+const SUPER_TINT_FULL     = Color(1.00, 0.80, 0.30)  # rich amber -- mostly capped
+const SUPER_TINT_CAPPED   = Color(1.00, 0.75, 0.20)  # deep amber -- fully capped, ready
+
+# Track which sprite indices in the stack are super sprites (for per-super tinting)
+var _super_sprite_indices: Array = []  # [[sprite_child_index, super_data_index], ...]
+
 # -- Winter reserve warning tints --------------------------------------------
+
+# -- Bee swarm cloud (visual activity indicator) ------------------------------
+var _swarm_cloud: BeeSwarmCloud = null
 
 # -- Prompt label -------------------------------------------------------------
 var _prompt_label: Label = null
 const PROMPT_RADIUS := 64.0
+
+# -- Buzz audio ---------------------------------------------------------------
+var _buzz_player: AudioStreamPlayer = null
+# Distance (px) at which buzz is completely silent; ~20 "feet" in game units.
+# At 32px/tile this is roughly 10 tiles away -- tweak to taste.
+const BUZZ_MAX_DIST := 320.0
+# Distance at which buzz is at full volume (right on top of the hive).
+const BUZZ_MIN_DIST := 16.0
+# Exponential curve steepness (higher = sharper ramp near the hive).
+const BUZZ_CURVE_EXP := 3.0
+# Volume range in dB
+const BUZZ_VOL_MAX_DB := -6.0
+const BUZZ_VOL_MIN_DB := -80.0
 
 # Cached player node
 var _player_cache: Node2D = null
@@ -122,9 +150,28 @@ func _ready() -> void:
 	_prompt_label.visible = false
 	add_child(_prompt_label)
 
+	# Bee buzz audio -- looping hum audible near the hive
+	_buzz_player = AudioStreamPlayer.new()
+	_buzz_player.name = "BuzzPlayer"
+	_buzz_player.bus = "SFX"
+	_buzz_player.volume_db = BUZZ_VOL_MIN_DB
+	var buzz_path: String = "res://assets/audio/sfx/bee_buzz_loop.wav"
+	if ResourceLoader.exists(buzz_path):
+		var buzz_stream: Resource = load(buzz_path)
+		if buzz_stream is AudioStreamWAV:
+			var wav: AudioStreamWAV = buzz_stream as AudioStreamWAV
+			wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+			_buzz_player.stream = wav
+		elif buzz_stream is AudioStream:
+			_buzz_player.stream = buzz_stream as AudioStream
+	_buzz_player.finished.connect(_on_buzz_finished)
+	add_child(_buzz_player)
+
 	if build_state == BuildState.COMPLETE and colony_installed:
 		HiveManager.all_hives_ticked.connect(_on_ticked)
 		update_label()
+		_ensure_swarm_cloud()
+		_start_buzz()
 
 	_rebuild_sprite_stack()
 	_update_prompt_text()
@@ -151,8 +198,8 @@ func place_as_complete() -> void:
 
 ## Place a hive with an overwintered colony entering spring.
 ## species/grade let the caller control the queen genetics (defaults to
-## Carniolan B, which is the benchmark test colony).
-func place_as_overwintered(p_species: String = "Carniolan", p_grade: String = "B") -> void:
+## Carniolan S, which is the benchmark test colony).
+func place_as_overwintered(p_species: String = "Carniolan", p_grade: String = "S") -> void:
 	build_state = BuildState.COMPLETE
 	frame_count = 10
 	has_lid = true
@@ -169,6 +216,8 @@ func activate_simulation() -> void:
 			HiveManager.all_hives_ticked.connect(_on_ticked)
 		update_label()
 		_rebuild_sprite_stack()
+		_ensure_swarm_cloud()
+		_start_buzz()
 
 func has_colony() -> bool:
 	return colony_installed
@@ -198,25 +247,65 @@ func install_colony() -> bool:
 	_update_prompt_text()
 	return true
 
+# -- Buzz helpers --------------------------------------------------------------
+func _on_buzz_finished() -> void:
+	# Safety fallback: restart if colony is alive and loop mode failed to engage
+	if colony_installed and _buzz_player != null:
+		_buzz_player.play()
+
+func _start_buzz() -> void:
+	if _buzz_player != null and _buzz_player.stream != null and not _buzz_player.playing:
+		_buzz_player.play()
+
+func _stop_buzz() -> void:
+	if _buzz_player != null and _buzz_player.playing:
+		_buzz_player.stop()
+
+func _update_buzz_volume(dist: float) -> void:
+	if _buzz_player == null or not _buzz_player.playing:
+		return
+	if dist >= BUZZ_MAX_DIST:
+		_buzz_player.volume_db = BUZZ_VOL_MIN_DB
+		return
+	if dist <= BUZZ_MIN_DIST:
+		_buzz_player.volume_db = BUZZ_VOL_MAX_DB
+		return
+	# Normalize distance: 1.0 at hive, 0.0 at max range
+	var t: float = 1.0 - ((dist - BUZZ_MIN_DIST) / (BUZZ_MAX_DIST - BUZZ_MIN_DIST))
+	# Apply exponential curve -- ramps up sharply near the hive
+	var curved: float = pow(t, BUZZ_CURVE_EXP)
+	# Map to dB range
+	_buzz_player.volume_db = lerpf(BUZZ_VOL_MIN_DB, BUZZ_VOL_MAX_DB, curved)
+
 # -- Per-frame update ----------------------------------------------------------
-func _process(delta: float) -> void:
-	# Prompt visibility
-	if _prompt_label != null:
+func _process(_delta: float) -> void:
+	# Prompt visibility and buzz volume both need player distance
+	if _prompt_label != null or (_buzz_player != null and _buzz_player.playing):
 		if not is_instance_valid(_player_cache):
-			var found := get_tree().get_first_node_in_group("player")
-			_player_cache = found as Node2D if found is Node2D else null
+			var found: Node = get_tree().get_first_node_in_group("player")
+			if found is Node2D:
+				_player_cache = found as Node2D
+			else:
+				_player_cache = null
 		if _player_cache != null:
 			var dist: float = _player_cache.global_position.distance_to(global_position)
-			var in_range: bool = dist <= PROMPT_RADIUS
-			_prompt_label.visible = in_range
-			if in_range:
-				_update_prompt_text()
+			# Prompt label
+			if _prompt_label != null:
+				var in_range: bool = dist <= PROMPT_RADIUS
+				_prompt_label.visible = in_range
+				if in_range:
+					_update_prompt_text()
+			# Buzz volume
+			_update_buzz_volume(dist)
 		else:
-			_prompt_label.visible = false
+			if _prompt_label != null:
+				_prompt_label.visible = false
 
 func _on_ticked() -> void:
 	update_label()
 	_update_health_tint()
+	_update_super_fill_tint()
+	_update_swarm_cloud()
 
 # -- Build Methods -------------------------------------------------------------
 func try_add_body() -> bool:
@@ -349,9 +438,12 @@ func can_rotate_deeps() -> bool:
 ## Rebuilds the visual sprite stack from current hive configuration.
 ## Called whenever boxes change (add deep, add super, remove super, etc.)
 func _rebuild_sprite_stack() -> void:
-	# Clear existing stack sprites
-	for child in _sprite_stack.get_children():
-		child.queue_free()
+	# Clear existing stack sprites immediately (not queue_free) so rebuilds
+	# within the same frame do not accumulate stale children.
+	var children := _sprite_stack.get_children()
+	for child in children:
+		_sprite_stack.remove_child(child)
+		child.free()
 
 	# Always hide legacy sprite -- we use modular stack for all states now
 	_legacy_sprite.visible = false
@@ -363,6 +455,9 @@ func _rebuild_sprite_stack() -> void:
 	# The lid sits flush on top, fully covering the box below.
 	var layers: Array = []
 	const GAP_PX := 1  # 1px gap between stacked components
+	# Track which layer indices are super sprites (for honey fill tinting)
+	_super_sprite_indices = []
+	var super_data_idx: int = 0  # index into snapshot super_visuals array
 
 	if build_state == BuildState.STAND_PLACED:
 		layers.append(_tex_stand)
@@ -395,8 +490,11 @@ func _rebuild_sprite_stack() -> void:
 
 			for i in range(simulation.boxes.size()):
 				if simulation.boxes[i].is_super:
+					# Record that this layer index maps to this super's data index
+					_super_sprite_indices.append([layers.size(), super_data_idx])
 					layers.append(_tex_super)
 					super_n += 1
+					super_data_idx += 1
 			print("[Hive] Sprite stack: %d deeps, %d supers, %d total boxes" % [deep_n, super_n, simulation.boxes.size()])
 		else:
 			layers.append(_tex_deep)
@@ -472,14 +570,34 @@ func _rebuild_sprite_stack() -> void:
 	if _prompt_label:
 		_prompt_label.position = Vector2(-40, y_cursor - 12.0)
 
-## Update the interaction Area2D collision to cover the full sprite height.
+	# Reposition swarm cloud to match new stack extents
+	# entrance_y = near bottom (ground level), top_y = top of lid
+	if _swarm_cloud != null:
+		_swarm_cloud.set_hive_extents(-4.0, y_cursor)
+
+## Update both Area2D (interaction) and StaticBody2D (physical blocker)
+## collision shapes to match the current sprite stack height.
 func _update_collision_for_height(total_height: int) -> void:
+	# -- Area2D: interaction zone covers the full visual height ---------------
 	var area := get_node_or_null("Area2D")
 	if area:
 		var col := area.get_node_or_null("CollisionShape2D")
 		if col and col.shape is RectangleShape2D:
 			col.shape.size = Vector2(24, total_height)
 			col.position = Vector2(0, -float(total_height) / 2.0)
+
+	# -- StaticBody2D: physical blocker covers the bottom portion ------------
+	# In a top-down game the body collision represents the ground footprint.
+	# We size it to the full visual width and roughly half the stack height
+	# so the player cannot walk into the sprite from below (south).
+	var body := get_node_or_null("StaticBody2D")
+	if body:
+		var bcol := body.get_node_or_null("CollisionShape2D")
+		if bcol and bcol.shape is RectangleShape2D:
+			# Cover from ground (y=0) up to 60% of the visual height
+			var body_h: float = maxf(float(total_height) * 0.6, 16.0)
+			bcol.shape.size = Vector2(28, body_h)
+			bcol.position = Vector2(0, -body_h / 2.0)
 
 # -- Health Tint ---------------------------------------------------------------
 func _apply_tint_to_stack(tint: Color) -> void:
@@ -505,6 +623,84 @@ func _update_health_tint() -> void:
 		tint = TINT_WARNING.lerp(TINT_POOR, t)
 	_apply_tint_to_stack(tint)
 
+# -- Super Fill Tint -----------------------------------------------------------
+## Apply per-super honey fill tinting. Each super sprite gets a golden tint
+## that intensifies as honey fills and caps. This runs AFTER health tint,
+## overriding just the super sprites (not deeps/base/lid).
+
+func _update_super_fill_tint() -> void:
+	if not simulation or build_state != BuildState.COMPLETE:
+		return
+	if _super_sprite_indices.is_empty():
+		return
+	var snap: Dictionary = simulation.last_snapshot
+	if snap.is_empty():
+		return
+	var super_data: Array = snap.get("super_visuals", [])
+	if super_data.is_empty():
+		return
+
+	var stack_children: Array = _sprite_stack.get_children()
+
+	for pair in _super_sprite_indices:
+		var sprite_idx: int = int(pair[0])
+		var data_idx: int = int(pair[1])
+		if sprite_idx >= stack_children.size() or data_idx >= super_data.size():
+			continue
+		var spr: Sprite2D = stack_children[sprite_idx] as Sprite2D
+		if spr == null:
+			continue
+		var sd: Dictionary = super_data[data_idx]
+		var fill: float = sd.get("fill_pct", 0.0)
+		var cap: float = sd.get("capping_pct", 0.0)
+		var drawn: float = sd.get("drawn_pct", 0.0)
+
+		# Determine the super tint based on fill and capping state.
+		# Progression: empty -> nectar arriving -> filling/curing -> full -> capped
+		var tint: Color
+		if drawn < 0.05:
+			# Foundation not even drawn yet -- just empty plastic/wax
+			tint = SUPER_TINT_EMPTY
+		elif fill < 0.05:
+			# Comb drawn but no honey yet
+			tint = SUPER_TINT_EMPTY.lerp(SUPER_TINT_NECTAR, drawn)
+		elif fill < 0.30:
+			# Nectar starting to arrive
+			var t: float = fill / 0.30
+			tint = SUPER_TINT_NECTAR.lerp(SUPER_TINT_FILLING, t)
+		elif fill < 0.70:
+			# Filling up, honey curing
+			var t: float = (fill - 0.30) / 0.40
+			tint = SUPER_TINT_FILLING.lerp(SUPER_TINT_FULL, t)
+		else:
+			# Nearly full -- blend based on capping percentage
+			var t: float = clampf(cap, 0.0, 1.0)
+			tint = SUPER_TINT_FULL.lerp(SUPER_TINT_CAPPED, t)
+
+		spr.modulate = tint
+
+# -- Bee Swarm Cloud -----------------------------------------------------------
+
+## Create the swarm cloud node if it does not exist yet.
+func _ensure_swarm_cloud() -> void:
+	if _swarm_cloud != null:
+		return
+	_swarm_cloud = BeeSwarmCloud.new()
+	_swarm_cloud.name = "BeeSwarmCloud"
+	add_child(_swarm_cloud)
+	# Give it an initial position estimate; _rebuild_sprite_stack will refine it
+	_swarm_cloud.set_hive_extents(-4.0, -40.0)
+	# Kick-start with current snapshot so bees appear immediately on Day 1
+	# (otherwise they wait for the first day-advance tick)
+	_update_swarm_cloud()
+
+## Feed the latest snapshot to the swarm cloud.
+func _update_swarm_cloud() -> void:
+	if _swarm_cloud == null:
+		return
+	if not simulation:
+		return
+	_swarm_cloud.update_from_snapshot(simulation.last_snapshot)
 
 # -- Prompt Text ---------------------------------------------------------------
 func _update_prompt_text() -> void:
@@ -589,7 +785,7 @@ func update_label() -> void:
 		return
 	var d := simulation.deep_count()
 	var s := simulation.super_count()
-	stat_label.text = "Q:%s/%s A:%d\nMit:%.0f H:%.1f\nHP:%.0f%% %dD/%dS" % [
+	var base_text: String = "Q:%s/%s A:%d\nMit:%.0f H:%.1f\nHP:%.0f%% %dD/%dS" % [
 		snap.get("queen_grade", "?"),
 		snap.get("queen_species", "?").substr(0, 3),
 		snap.get("total_adults", 0),
@@ -598,6 +794,15 @@ func update_label() -> void:
 		snap.get("health_score", 0.0),
 		d, s
 	]
+	# Append per-super fill/capping summary if supers exist
+	var super_data: Array = snap.get("super_visuals", [])
+	if not super_data.is_empty():
+		for si in super_data.size():
+			var sd: Dictionary = super_data[si]
+			var fill_pct: float = sd.get("fill_pct", 0.0) * 100.0
+			var cap_pct: float = sd.get("capping_pct", 0.0) * 100.0
+			base_text += "\nS%d:%.0f%%f/%.0f%%c" % [si + 1, fill_pct, cap_pct]
+	stat_label.text = base_text
 
 # -- Legacy compatibility ------------------------------------------------------
 func advance_day() -> void:

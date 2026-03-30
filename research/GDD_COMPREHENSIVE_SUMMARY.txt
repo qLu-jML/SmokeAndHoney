@@ -1,0 +1,1372 @@
+SMOKE & HONEY - COMPREHENSIVE GDD SUMMARY
+==========================================
+Complete Game Systems, Features, and Mechanics
+
+Generated from: Smoke_and_Honey_GDD.html
+Date: March 28, 2026
+
+================================================================================
+SECTION 1: PLAYER OVERVIEW
+================================================================================
+
+1.1 PLAYER ATTRIBUTES
+- No health bar or combat stats
+- Progression measured by colony health, honey quality, apiary size
+- Beekeeper character "Eli" - full agency over all decisions
+
+1.2 STARTING CONDITIONS
+- One Langstroth hive with Italian B-grade queen
+- Small apiary plot with 2 planted flower beds
+- Basic equipment: hive tool, smoker, veil, gloves, one super, uncapping knife
+- Small cash reserve for one season
+- Access to mentor NPC and farmers market
+
+1.3 REPUTATION/STANDING SYSTEM
+- Earned through completing tasks, successful colony management, quality production
+- Lost through colony failures, neglect, poor trades
+- Affects NPC interaction quality and quest availability
+
+================================================================================
+SECTION 2: HIVE DATA MODEL & SIMULATION
+================================================================================
+
+2.1 HIVE-LEVEL PROPERTIES
+Unique identifier with custom name/tag color per hive
+Location (determines forage radius and local flora)
+Hive Type: Langstroth (8 or 10-frame, default), Warré, Top-bar (unlockable)
+Hive Bodies: Count of deep or medium boxes (determines brood space)
+Supers: Count of shallow honey boxes above brood nest
+Frame Count: Affects comb space and expansion rate
+Entrance Size: Full, reduced, or mouse-guard (affects ventilation and pest access)
+Insulation: None, winter wrap, moisture quilt (affects overwinter survival)
+Equipment Condition: 0-100 scale
+
+EQUIPMENT CONDITION DEGRADATION
+- Degrades weekly from UV, moisture, propolis, physical use
+- Storage in shed with maintenance: -1/week
+- Active use maintained but unsheltered: -2/week
+- No protective paint: -4/week
+- Near standing water/high humidity: -3/week
+- Passive restore in shed: +1/week
+
+Condition Range → Colony Impact:
+- 100-80: No visible wear, no impact
+- 79-50: Weathered, minor paint loss (cosmetic only, warning at 60)
+- 49-30: Warped wood, gaps visible (-10% honey production, +5% small hive beetle risk)
+- 29-15: Significant structural wear (-20% production, +10% pest risk, -5% winter survival)
+- 14-0: Visibly failing (-35% production, +20% pest risk, -0.10 colony stress modifier penalty)
+
+Repair Options:
+- Basic repair kit: $25, 3 energy → +20 condition
+- Full refurbishment: $60, 8 energy → restores to 75 condition
+- Craftable repair pack (beeswax + wood scraps, Level 3): Free materials, 5 energy → +65 condition
+
+2.2 QUEEN SYSTEM
+Queen is the biological engine. All colony outcomes trace back to queen quality.
+
+Queen Properties:
+- Species: Determines temperament, growth pattern, winter behavior, varroa tolerance
+- Grade: S/A/B/C/D/F (overall genetic quality, degrades naturally over 2-3 years)
+- Age: Tracked in seasons, laying rate declines after Year 2
+- Laying Rate: Eggs per day (derived from species base modified by grade, age, season, colony health)
+- Temperament: Affects inspection difficulty (defensive colonies require more smoke/experience)
+- Status: Active/Failing/Missing/Virgin/Cell Present (determined by brood pattern evidence)
+
+QUEEN SPECIES COMPARISON:
+Italian:
+  - Strengths: High honey production, gentle, excellent brood pattern, beginner-friendly
+  - Weaknesses: Heavy spring buildup depletes stores early, less varroa-resistant
+
+Carniolan:
+  - Strengths: Frugal in winter, explosive spring buildup, very gentle, good comb builders
+  - Weaknesses: Prone to swarming without proactive space management
+
+Russian:
+  - Strengths: Strong natural varroa resistance, hardy in cold
+  - Weaknesses: More defensive, slower spring buildup, harder to source
+
+Buckfast:
+  - Strengths: Disease-resistant, calm, consistent honey production
+  - Weaknesses: Unlockable mid-game, more expensive
+
+Caucasian:
+  - Strengths: Excellent foragers, long tongues reach more flower types
+  - Weaknesses: Very slow spring buildup, susceptible to nosema
+
+QUEEN GRADE EFFECTS:
+S Grade: +25% laying rate above base → Exceptional brood pattern, fast population growth, high honey yield
+A Grade: +10% above base → Solid, reliable colony, ideal working hive
+B Grade: Base rate → Average performance, functional
+C Grade: -15% below base → Spotty brood, slower growth, slightly lower honey output
+D Grade: -35% below base → Irregular laying, visible brood gaps, colony at risk
+F Grade: Failing/None → Immediate replacement needed
+
+QUEEN AGE LAYING RATE DECLINE:
+Year 1: ×1.00 multiplier (establishing, solid brood but not peak)
+Year 2: ×1.05 multiplier (peak performance, most productive, maximum population)
+Year 3: ×0.85 multiplier (slight decline, observant players notice smaller brood arc)
+Year 4: ×0.65 multiplier (visible decline, spotty frames, most beekeepers replace)
+Year 5: ×0.40 multiplier (significant failure, population decline accelerating)
+Year 6+: ×0.20 multiplier (effectively failing, may stop laying)
+
+Grade Degradation with Age:
+- S-grade degrades to A after 18 months
+- A degrades to B after 24 months
+- Each subsequent grade drops on 12-month cycle from Year 3 onward
+- Age multiplier and grade degradation stack multiplicatively
+
+2.3 POPULATION SIMULATION
+Colony population simulated at individual bee level. Every bee tracked through complete lifecycle: egg → death. Total population is emergent sum of all living bees across all stages.
+
+THE WORKER BEE LIFECYCLE:
+Stage 1 - Egg: 3 days (laid in cell by queen)
+Stage 2 - Larva: 6 days (fed by nurse bees, grows rapidly)
+Stage 3 - Capped brood: 12 days (metamorphosis inside sealed cell)
+Stage 4 - Emergence: Newborn adult bee, takes ~3 days to develop flight muscles
+Stage 5 - House bee (internal work): 12 days (ages into hive duties - cleaning, nursing, building)
+Stage 6 - Transition: 3-4 days (gradual shift from internal to external duties)
+Stage 7 - Forager (external work): 5-8 weeks depending on season and nectar availability (collects nectar, pollen, water)
+
+Total Lifespan by Season:
+- Spring/Summer: ~6 weeks (21 days development + 35 days adult)
+- Fall: ~10-12 weeks (longer lived as colony prepares for winter)
+- Winter: 4-6 months (cluster together for warmth, metabolize stored honey)
+
+LIFESPAN & MORTALITY:
+Base mortality rates (daily, chance of death for each cohort):
+- Eggs/Larvae: 1% daily (disease, cannibalism by stressed colony)
+- Capped brood: 0.5% daily (emerging failure, chalkbrood)
+- House bee (0-12 days post-emergence): 0.3% daily (natural wear, accidents)
+- House bee (12+ days old): 0.2% daily (normal aging, accidents)
+- Forager (age 0-2 weeks): 1% daily (predation, exhaustion, accidents)
+- Forager (age 2+ weeks): 2% daily (predation increases, metabolic exhaustion)
+- Winter bee (cluster): 0.1-0.3% daily (protected indoors, eating stores)
+
+FORAGER MORTALITY - EXACT FORMULA:
+forager_mortality_rate = BASE_RATE × weather_modifier × season_modifier × hive_health_modifier
+
+BASE_RATE: 1-2% for young foragers, 2-3% for older foragers
+WEATHER_MODIFIER:
+  - Sunny/calm: 1.0
+  - Light wind/overcast: 1.15
+  - Moderate wind: 1.35
+  - Strong wind/rainy: 1.8
+SEASON_MODIFIER:
+  - Spring: 1.1 (allergies, predators returning, longer foraging)
+  - Summer: 1.0 (baseline, good conditions)
+  - Fall: 1.2 (migration season, predators fattening)
+  - Winter: 0.0 (foragers don't fly, live at base rate in cluster)
+HIVE_HEALTH_MODIFIER:
+  - Healthy (HP > 75%): 0.85
+  - Good (HP 50-75%): 1.0
+  - Poor (HP 25-50%): 1.25
+  - Critical (HP < 25%): 1.5
+
+ROLE DISTRIBUTION & COLONY FUNCTION:
+Worker bees fill roles based on life stage and colony needs:
+- Nurses: House bees 3-12 days old, feed larvae and capped brood
+- Builders: House bees 8-18 days old, draw comb, repair cells
+- Cleaners: House bees 0-3 days old, clean cells for queen to lay in
+- Foragers: Bees 21+ days old, collect nectar/pollen/water
+- Guard bees: All ages can become guards when threatened, defend entrance
+
+Ratio depends on colony needs and time of year. Spring buildup = more nurses. Summer = more foragers. Winter = all house bees (no foraging).
+
+WHAT THE PLAYER SEES:
+During inspections, no explicit "Age X days" numbers. Player sees:
+- Visual brood pattern (eggs, larvae, capped brood percentages by frame)
+- Population estimates (Strong/OK/Low/None for each role category at higher tiers)
+- Health indicators (color-coded, visual cues, not raw numbers at normal play tiers)
+- Laying rate inferred from consistency of brood pattern
+
+2.4 DRONES (Male Bees)
+Produced seasonally. Serve single purpose: mate with virgin queens. Consume resources, die after mating or are expelled in fall.
+
+Drone Congregation Area (DCA) - GAME MECHANIC:
+- When player breeds their own queens, virgin queens must fly to DCA for mating
+- DCA is a location on map (unlocked in mid-game, located in designated apiary area)
+- Player receives notification when virgin queen emerges: "Queen ready to mate. Fly her to DCA?"
+- Player must walk virgin queen to DCA location, takes 2-3 in-game hours
+- At DCA, interactive minigame: queen flies through space with drones, player guides (avoid obstacles, hit drones)
+- Success chance based on queen genetics and player skill
+- Failure = queen returns without mating, remains virgin (can retry next day)
+- Successful mating = queen fertilized, returns to hive, begins laying
+
+2.5 HIVE HEALTH SYSTEM
+Overall Health Score (hidden, 0-100):
+- Composite metric combining: population, brood pattern, disease presence, pest pressure, stores, equipment condition
+- Player never sees this number directly
+- Shown as visual state: Healthy (color), OK (amber), Poor (orange), Critical (red)
+- Below 50 triggers warnings and intervention prompts
+
+Health Factors:
+- Population count: Strong = +20 points, OK = neutral, Low = -15
+- Brood pattern quality: Solid = +15, Spotty = -10, None = -30
+- Disease/pest presence: Varroa count, chalkbrood, nosema, etc. → -5 to -20 each
+- Winter food stores: Adequate = +10, Low = -5, Critical = -20
+- Equipment condition: Good (>75) = +5, Poor (<30) = -10
+- Time since last inspection: <1 week = +2, >2 weeks = -5, >3 weeks = -15
+- Swarm status: Queenless = -25, Queen cells present = -10
+
+2.6 PESTS & DISEASE
+
+VARROA DESTRUCTOR:
+- Parasitic mite that weakens bees, spreads viruses
+- Detected through sticky board monitoring or mite count inspections
+- Threshold: 1 mite per 100 bees triggers "Varroa load HIGH" warning
+- Treatment options: Formic acid, oxalic acid (winter only), Apivar strips, sugar roll mite counts
+
+SMALL HIVE BEETLE (SHB):
+- Larva tunnel through combs, foul honey
+- Population controlled through beetle trap maintenance
+- If untreated for 2+ weeks, can destroy brood/honey comb
+
+CHALKBROOD:
+- Fungal disease affecting capped brood
+- Manifests as white mummified pupae visible on frames
+- Triggers when colony is cold and damp; worse in spring
+- Treatment: Improve ventilation, increase insulation, replace queen if genetics poor
+
+NOSEMA:
+- Gut parasite in adult bees
+- Reduces lifespan and foraging efficiency
+- Spread through fecal contamination (poor winter sanitation)
+- Prevention through fall treatment with Fumagillin
+
+AMERICAN FOULBROOD (AFB):
+- Bacterial disease of larvae, devastating and incurable
+- Spores persist decades in equipment
+- Treatment: Destroy colony and burn equipment (game over for that hive)
+- Critical teaching moment: bee biology and responsibility
+
+EUROPEAN FOULBROOD (EFB):
+- Less severe than AFB, manageable
+- Visible as twisted, discolored larvae
+- Treatment: Requeening with resistant genetics or antibiotic treatment
+
+DISEASE CONTAGION - SPREAD MECHANICS:
+- Diseases spread from hive to hive through: equipment sharing, robbing, drifting, poor hygiene
+- If two hives at same location and one is diseased, contagion chance = 5% per day
+- Sharing equipment between hives increases contagion chance
+- Player learns through experience: isolation and equipment hygiene matter
+
+2.7 HIVE TYPES
+Langstroth (default): 8-frame or 10-frame. Standard configuration. All beginner mechanics designed around this.
+Warré (unlockable): Vertical stacking, natural comb building. Slower honey production but excellent swarm genetics.
+Top-Bar (unlockable): Horizontal design, minimal disturbance. Lower yields, but great for observation.
+
+Each type has different frame dimensions, cell grids, and interaction mechanics.
+
+2.8 FRAME INSPECTION & QUEEN LAYING PATTERNS
+
+THE BROOD NEST:
+Typically centered on 3-4 frames at hive's core. Queen lays in progressively larger circles.
+Pattern shows: solid eggs/larvae in center, capped brood surrounding, pollen/honey on edges.
+Spotty patterns indicate queen problem or disease.
+
+FRAME GRID SYSTEM (for game):
+Deep frame: 70 cells wide × 50 cells tall = 3,500 cells per side
+Medium super frame: 70 cells wide × 35 cells tall = 2,450 cells per side
+
+Each cell can be: Empty, Egg, Larva (age 1-6), Capped brood, Nectar, Honey, Pollen, Propolis
+
+Queen laying pattern algorithm (daily tick):
+1. Queen rolls upward through brood nest frames
+2. Checks for empty cells below
+3. Lays egg if:
+   - Cell is empty
+   - Frame has nurse bees present
+   - Not under stress (congestion, disease, temperature)
+4. Determines laying rate based on: grade, age, season, colony health
+5. Produces variable egg count: 1,000-2,000 eggs per day (healthy, peak season)
+
+FRAME & POPULATION SIMULATION (Godot Implementation):
+
+The core simulation is frame-by-frame cellular state tracking. Each frame contains a 2D grid of cells (70×50 for deep frames, 70×35 for supers). Every 24 in-game hours (1 tick):
+
+1. Cell aging: Eggs progress → Larvae (stages 1-6) → Capped brood → Adult emergence
+2. Nurse assignment: House bees check if larvae need feeding, consume honey to produce royal jelly
+3. Queen laying: Queen lays eggs in empty cells, advancing brood pattern
+4. Population updates: New adults emerge, old bees age out, mortality events processed
+5. Resource updates: Honey/pollen consumption tallied, stores updated
+6. Equipment wear: Condition degrades
+
+COLONY STRESS MODIFIER - FORMULA DEFINITION:
+stress_multiplier = 1.0 (baseline)
+
+Factors that INCREASE stress (multiply upward):
+- Brood box > 90% full: ×1.15 (congestion)
+- NO food stores: ×1.20 (starvation risk)
+- Population below colony threshold: ×1.10 (weak colony)
+- Disease/pest load: ×1.25 (varroa > 5%, or chalkbrood visible)
+- Queenless: ×1.50 (critical stress)
+- Repeated inspections (>2 per week): ×1.15 (disturbance)
+
+Factors that DECREASE stress (multiply downward):
+- Strong nectar flow: ×0.85 (abundant food)
+- Adequate space (not congested): ×0.95
+- Healthy queen (A/S grade, young): ×0.90
+
+Final laying rate = base_laying_rate × grade_modifier × age_multiplier × stress_multiplier × season_modifier
+
+High stress can reduce laying rate by 40-60%.
+
+2.8.B CONGESTION DETECTION - BROOD-BOUND & HONEY-BOUND:
+
+BROOD-BOUND:
+- Brood nest fills 85%+ of available frames with no empty comb below for queen
+- Queen cannot find cells to lay in
+- Triggers swarm preparation if not addressed within 3-5 days
+- Solution: Add second brood box or remove capped brood super
+
+HONEY-BOUND:
+- Honey stores surround brood nest, leaving no space for queen to expand
+- Resources are available but spatially inaccessible
+- Triggers swarm or reduced laying
+- Solution: Add honey super above excluder to redirect incoming nectar
+
+Both states are detectable during inspection: "This frame shows..."frames solid brood with no empty cells" / "Brood surrounded by honey stores"
+
+2.9 QUEEN BREEDING & REARING SYSTEM
+
+Players can breed their own queens for genetic improvement and reducing supplier costs.
+
+REQUIREMENTS:
+- Apiary Structures unlock: Breeder Yard (requires Advanced Genetics XP track, 500+ XP)
+- Colony must be queenless or have a queen marked for breeding
+- Supply frame with eggs from target queen (laid within 12 hours)
+
+PROCESS (multi-day):
+Day 1: Grafting
+- Player selects a frame with fresh eggs from target queen
+- Moves eggs into queen cells (taller cells with royal jelly)
+- Game checks for minimum viable egg count (6+ eggs)
+- Stress applied to colony: -15 standing
+
+Days 2-8: Development
+- Queen cells capped on day 8
+- Player cannot remove cells or they'll be damaged
+- Colony is queenless (if intended for queenlessness) or setting up for requeening
+- Daily tick: cells progress through larval development, capping, sealing
+
+Day 9-10: Emergence
+- First virgin queen may emerge
+- Game notifies: "Virgin queen has emerged!"
+- If emergence successful: virgin queen present, colony responds (workers may ball/kill if colony has laying queen)
+- If emergence fails (genetic defect, poor conditions): cell dies
+
+Virgin Queen Characteristics:
+- Grade inherited from mother with ±1 letter variance (A-mother → A/B-daughter)
+- Virgin cannot lay until mated
+- Must be flown to DCA for mating (see §2.4)
+- Lives 15-20 days if unmated (plays behavior sounds, workers may sense failure)
+- After successful mating: ready to lay within 2-3 days
+
+Requeening the Hive:
+- After virgin queen has mated and laid first eggs (confirming success), old queen can be removed
+- OR player can introduce mated queen from Breeder Yard supply (if kept unmated in cage)
+- Old queen removal: remove her carefully or use "caged queen replacement" mechanic
+- Colony accepts new queen: 50-70% success chance (depends on new queen quality and integration time)
+
+================================================================================
+SECTION 3: TIME & CALENDAR SYSTEM
+================================================================================
+
+3.1 CALENDAR STRUCTURE
+Real-time day/night cycle with structured seasonal calendar.
+Time passes continuously during gameplay. Days advance with in-game time progression.
+
+EIGHT MONTHS OF CEDAR BEND (Cedar Bend = game's location, replaces Millhaven):
+Spring Month 1 (Early Spring) - approx. March:
+  - Temperatures: 35-55°F
+  - Hives emerge from winter clustering
+  - First cleansing flights, heavy pollen collection begins
+  - Nectar flow: minimal (early wildflowers)
+
+Spring Month 2 (Mid Spring) - approx. April:
+  - Temperatures: 50-70°F
+  - Rapid population growth, queen laying peaks
+  - Swarm impulse begins building
+  - Nectar flow: moderate (dandelions, fruit trees)
+
+Summer Month 1 (Early Summer) - approx. May:
+  - Temperatures: 65-80°F
+  - Peak hive strength, space critical
+  - First honey super typically added
+  - Nectar flow: strong (clover, wildflowers)
+
+Summer Month 2 (Peak Summer) - approx. June-July:
+  - Temperatures: 75-90°F
+  - Maximum nectar flow
+  - Honey production peaks
+  - Heat management becomes issue
+  - Nectar flow: very strong (all crops blooming)
+
+Fall Month 1 (Early Fall) - approx. August:
+  - Temperatures: 70-85°F
+  - Nectar flow diminishes
+  - Queen laying begins to slow
+  - Drones are expelled
+  - Nectar flow: weak (end of summer plants)
+
+Fall Month 2 (Late Fall) - approx. September:
+  - Temperatures: 50-70°F
+  - Brood production stops
+  - Winter preparations begin
+  - Harvest window closing
+  - Nectar flow: minimal (fall asters, goldenrod)
+
+Winter Month 1 (Early Winter) - approx. October:
+  - Temperatures: 40-50°F
+  - Bees cluster up
+  - Last chance for harvest
+  - Equipment maintenance window
+  - Nectar flow: none
+
+Winter Month 2 (Deep Winter) - approx. November-February:
+  - Temperatures: 0-40°F
+  - Full winter cluster
+  - Honey/pollen consumption high
+  - No outdoor activities
+  - Nectar flow: none
+
+3.2 DAY/NIGHT CYCLE
+24-hour in-game day with continuous time progression
+- Day: 06:00-18:00 (outdoor work possible)
+- Evening: 18:00-20:00 (limited work, poor light)
+- Night: 20:00-06:00 (no work, player must rest)
+- Indoor activities available 24/7 (crafting, reading, planning)
+
+Weather changes hourly with visual/mechanical effects:
+- Sunny: good working conditions, foragers active
+- Overcast: acceptable, some lighting reduction
+- Rainy/Windy: poor for hive work (discouraged by UI warning)
+- Snow: impossible for outdoor work in winter
+
+3.3 DAY ADVANCEMENT
+Each action consumes in-game time:
+- Travel between locations: 15-45 minutes
+- Hive inspection: 30-60 minutes depending on number of frames viewed
+- Feeding/water: 10 minutes
+- Harvesting/extraction: 60-120 minutes
+- Eating at diner: 30 minutes
+- Crafting: 20-90 minutes depending on recipe
+
+Time accelerates when player idles: standing around or in menus advances time at 10x speed. This allows players to "wait" for better weather or advance to next day without grinding.
+
+3.4 PLAYER ENERGY SYSTEM
+Energy bar = player's daily stamina resource. Prevents cramming unlimited tasks into one day.
+
+Maximum Capacity: 100 energy (full bar at start of day after sleep)
+
+Energy Costs by Task Category:
+VERY LIGHT (1-3 energy): Reviewing notes, talking to NPCs, checking hive entrance externally, reviewing market prices
+LIGHT (3-8 energy): Traveling, hive weight check, placing feeding shim, checking sticky board
+MODERATE (10-18 energy): Full hive inspection (one hive), planting flower bed, sugar roll mite count, bottling honey jars
+HEAVY (18-28 energy): Full inspection of multiple hives back-to-back, harvesting super (pulling, transport, uncapping)
+VERY HEAVY (25-40 energy): Full honey extraction day (multiple supers), assembling hive body, splitting hive with new package
+
+Passive drain: 1-2 energy per in-game hour for standing/moving without task
+
+BEE STINGS - ENERGY LOSS HAZARD:
+Sting probability rolled during inspection (see §4.1.1 Sting Probability Model)
+Each sting costs 5-8 energy
+Stings stack if multiple occur in single inspection
+Bee suit worn: 80% reduction in sting probability (×0.20 multiplier)
+Smoker use: 15% reduction (×0.85 multiplier)
+Combined suit + smoke: 95% total reduction (base chance × 0.20 × 0.85)
+
+Example defensive colony (25% base) with suit and smoke = 25% × 0.20 × 0.85 ≈ 4.25% per inspection step
+
+ENERGY RESTORATION:
+Full night's sleep: 100 energy (only way to fully restore, 20:00-04:00 at home)
+Diner meal: 40-50 energy (once per meal period - breakfast/lunch/dinner, small cash cost)
+Packed lunch (crafted): 20 energy (cheaper than diner, less effective)
+Coffee (morning only, before 10:00): 15-energy burst + prevents passive drain 2 hours
+Nap: 2-3 in-game hours → ~25 energy (costs time, can be done at home or in truck)
+
+Design Note: Full day's sleep allows one major task + several supporting tasks. Ambitious players need to eat in town mid-week. This creates natural reason to go to town beyond shopping.
+
+3.5 THE CROSSROADS DINER
+Central hub location in Cedar Bend. Provides meals for energy restoration and some NPC interactions.
+
+CROSSROADS DINER - PRICES:
+Breakfast (6:00-12:00): $6
+  - Restores 45 energy
+  - Can only eat once per period
+
+Lunch (12:00-17:00): $7
+  - Restores 50 energy
+
+Dinner (17:00-22:00): $8
+  - Restores 50 energy
+
+Coffee (available all day): $2
+  - Temporary 15-energy boost
+  - Prevents passive drain for 2 hours
+  - Only effective before 10:00
+  - Time after 10:00 = no effect
+
+Packed lunch (home, morning): $3 to craft
+  - Restores 20 energy when eaten
+  - Takes 10 minutes to prepare
+
+3.6 NECTAR FLOW CALENDAR
+Defines when flowers bloom and provide nectar/pollen to foraging bees.
+
+FLOWER BLOOMING SCHEDULE BY MONTH:
+Early Spring: Willow, maple, skunk cabbage, early crocus (very weak flow)
+Mid Spring: Dandelion, fruit trees (apple, pear, cherry), bleeding heart (moderate flow - ~1,500 lbs potential/location)
+Early Summer: White clover, trefoil, alfalfa (strong flow - ~4,000+ lbs potential)
+Peak Summer: Wildflowers, thistle, linden, borage (very strong, 6,000+ lbs potential peak day)
+Late Summer: Joe-pye weed, ironweed, late wildflowers (weakening)
+Early Fall: Asters, goldenrod, ragweed (weak, pollen mainly)
+Late Fall/Winter: None (dormancy)
+
+FORAGE POOL (see §6 Core Game Systems):
+Each location has forage pool calculated from: local flora bloom phase × available acreage × player care (planted flowers, wild management)
+Forage pool resets monthly based on what's blooming
+Quality varies by location: home apiary typically best maintained, wild locations provide diversity
+
+================================================================================
+SECTION 4: CORE GAME SYSTEMS
+================================================================================
+
+4.1 HOTBAR & ACTIVE ITEM SYSTEM
+10-slot inventory always visible as horizontal bar at bottom of screen
+No separate bag screen - carrying inventory always visible
+Active (selected) slot highlighted with amber border, full name displayed
+
+Controls:
+- Mouse wheel: scroll through slots
+- Number keys 1-10: quick select slot
+- Click slot: select item
+- E key: use active item on target (hive, ground, crafting station, etc.)
+
+ACTIVE ITEM ACTIONS:
+Using an item depends on context and item type:
+
+Equipment items (hive tool, smoker, etc.):
+- Walk to hive, press E → triggers associated action
+- Hive tool: "Open hive for inspection"
+- Smoker (with fuel): "Smoke hive" (puffs smoke before inspection)
+- Veil/gloves: equip/unequip protective gear
+- Bee suit: equip (reduces sting chance 80%)
+
+Container items (supers, deep boxes, frame packages):
+- Walk to hive, press E → "Add [box] to hive"
+- Checks if valid action (can't add super without excluder, etc.)
+- Adds structural component to hive 3D model
+
+Consumables (feed, sugar, pollen patty):
+- Walk to hive entrance, press E → "Feed colony"
+- Costs energy, adds food resource to hive
+- Effects vary by type and season
+
+Crafting materials:
+- Carry to crafting station, interact with station
+- Station combines multiple items into crafted product
+
+Hotbar Item Sprites:
+- Queen cage: small container icon
+- Smoker (empty): grey/black smoker shape
+- Smoker (fueled): same with orange glow around fuel chamber
+- Hive tool: curved metal tool shape
+- Bee suit: folded cloth/armor shape
+- Super box: wooden box shape (smaller than deep)
+- Deep box: wooden box shape (larger)
+- Frame package: bundled frame icon
+- Honey jar (empty): transparent glass jar
+- Honey jar (full): glass jar with amber honey inside
+
+4.2 HIVE INSPECTION SYSTEM - COMPREHENSIVE
+Weekly hive inspection is primary gameplay interaction. Player gathers data, makes observations, decides on interventions.
+
+INSPECTION FLOW:
+1. Approach: Select hive, choose "Inspect" → game checks weather/time warnings
+2. Smoke: Apply smoke (amount affects calmness, over/under-smoking affects quality and stress)
+3. Open Hive: Remove cover, see frame-by-frame view of interior
+4. Observe: Each frame shows brood pattern, honey/pollen stores, bees, queen sighting probability
+5. Note & Act: Log observations, take immediate actions (add frame, mark queen, apply treatment)
+6. Close: Brief summary of findings, new knowledge log entries added
+
+STING PROBABILITY MODEL (detailed):
+Each inspection step (opening, pulling frame, observing) has chance of sting.
+
+Base sting chance per step:
+- Calm colonies: 10%
+- Defensive colonies: 25%
+- Varies by temperament (hard-coded per queen species)
+
+Modifiers (multiplicative):
+- Bee suit worn: ×0.20 (80% reduction)
+- Smoker used pre-inspection: ×0.85 (15% reduction)
+- Combined (suit + smoke): ×0.20 × 0.85 = ×0.17 (95% total reduction)
+- Evening inspection (after 15:00): ×1.25 multiplier (foragers returning)
+
+Sting energy penalty: 5-8 energy per sting (stings stack if multiple occur in one inspection)
+
+QUEEN SIGHTING - VISUAL SEARCH (PHASE 2):
+Replaced probability model with interactive visual search minigame.
+
+When player inspects hive:
+1. Probability-based visibility check: 80% chance queen is visible this inspection
+2. If visible (80% pass): Queen entity spawned on her assigned frame with animated bee sprites
+3. Player clicks on queen to identify her (must click the actual queen sprite among worker bees)
+4. Difficulty rolled (Easy 33%, Medium 33%, Hard 34%) determines:
+   - Bee density: Easy 0.33×, Medium 0.67×, Hard 1.0× normal spacing
+   - Frame spacing: Easy 28px, Medium 17px, Hard 12px
+   - Clustering: Easy 0.28, Medium 0.20, Hard 0.16 Gaussian spread
+5. XP reward:
+   - Easy: +10 XP
+   - Medium: +15 XP
+   - Hard: +25 XP
+
+Visual tells for queen identification:
+- Longer abdomen (~45% elongated vs. workers)
+- Shorter wings (expose abdomen more)
+- Fewer fuzz dots (shinier appearance)
+- Wider leg splay
+- Breed color affects difficulty (Italian easiest, Russian hardest)
+
+Attendant circle:
+- Queen surrounded by orbiting attendant bees
+- Count scales with grade: S=11, B=7, F=0
+- Attendants scale inversely with difficulty: Easy ×1.5, Hard ×0.5
+
+Wrong click penalty: None. Red flash on wrong click, player can keep trying.
+
+Implementation: BeeOverlay.gd manages bee entities, movement, rendering. InspectionOverlay.gd integrates overlay and handles XP on queen found.
+
+INSPECTION KNOWLEDGE TIERS (Player Skill Progression):
+Information available during inspection gated by player experience level.
+
+Player Level 1 (Hobbyist):
+- Tooltips: Hidden
+- Sidebar: Hidden
+- Player must learn to read frame visually alone
+- Pure observation, no numbers
+
+Player Level 2 (Apprentice):
+- Tooltips: Cell state name only (e.g., "Egg", "Capped brood")
+- Sidebar: Hidden
+- Bridges "what am I looking at?" to recognition
+- Still builds mental model without numbers
+
+Player Level 3 (Beekeeper):
+- Tooltips: Cell state name (same as Level 2)
+- Sidebar: Qualitative descriptions ("Solid brood pattern", "Heavy honey stores", "Healthy", "Queen laying well")
+- Natural language that mirrors how working beekeeper talks
+- Reads the frame story without exact numbers
+
+Player Level 4 (Journeyman):
+- Tooltips: Cell state name only
+- Sidebar: Approximate counts with ranges ("Brood: ~1,200 (good)", "Honey: ~30%", "HP: 70–80%", "Strong genetics")
+- Unlocks via "Beekeeper's Eye" knowledge unlock
+- Estimate quantities at glance
+
+Player Level 5 (Master Beekeeper):
+- Tooltips: Cell state name only (coordinates/age in dev mode only)
+- Sidebar: Dynamic percentages per frame side (Eggs X.X%, Larvae X.X%, Capped X.X%, Honey X.X%), Population qualitative (Nurses/Workers/Drones with Good/OK/Low/None), Queen ranking (Q: A/Ita), HP color-coded, Varroa raw count
+- Master's eye - reads frame as dynamic picture
+- Percentages update real-time as frames examined
+- Exact counts/mite data reserved for dev mode
+
+Developer Mode:
+- G key toggles developer overlay
+- Shows Level 5 display regardless of actual player level
+- Clickable level switcher to test each tier
+
+Progressive Accumulation:
+- Stats build as player views frame sides
+- Each side calls _record_current_side()
+- Percentages use cells-seen-so-far as denominator
+- "Seen X/20" indicator in sidebar (10 frames × 2 sides = 20 total)
+- New inspection resets counter to zero
+- Dev mode bypasses accumulation via _get_full_hive_counts()
+
+4.3 FORAGE & FLOWER SYSTEM
+Forage is foundation of honey production. Quality/diversity of forage available determines honey yield, flavor profile, bee health.
+
+FORAGE POOL (detailed in §6 Forage Pool & Nectar Mechanic):
+Each location has forage pool calculated from:
+- Local flora bloom phase
+- Available acreage
+- Player care (planted flowers, wild management)
+- Seasonal nectar calendar
+
+Forage Pool Model:
+- Per-location calculation: total_nectar_available = sum(flower_type_contribution) per location
+- Flower types bloom in phases throughout season
+- Forage quality affects honey grade (better forage = better honey color/flavor)
+- Player can improve forage by planting flowers (home apiary) or managing wild spaces
+
+Nectar & Pollen Interaction:
+- Forage pool provides daily nectar/pollen input to hive
+- High forage = rapid honey production, population growth, fewer nutrition issues
+- Low forage = population stagnation, starvation risk, poor honey yield
+- Seasonal variation: peak summer = 6,000+ lbs potential, early spring = 1,500 lbs potential
+
+4.4 BEE ACQUISITION SYSTEM
+Players acquire new bees in three ways, each with distinct trade-offs.
+
+SUPPLIER TIERS - PRICE & QUALITY REFERENCE:
+
+Tier 1 - Local Hobbyist:
+- Price: $50-80 per package
+- Queen Grade: C/D (average to poor genetics)
+- Availability: Spring only (early/mid spring)
+- Reliability: 60% arrive healthy, 30% arrive weak, 10% DOA
+- Advantages: Cheap, local (can pick up), supports community
+- Disadvantages: Lower quality, less reliable
+
+Tier 2 - Regional Supplier (Midwest):
+- Price: $120-150 per package
+- Queen Grade: B (solid, reliable)
+- Availability: Early spring, 2-week lead time
+- Reliability: 85% arrive healthy, 15% arrive weak
+- Advantages: Reliable genetics, good queen quality
+- Disadvantages: More expensive, shipping risk
+
+Tier 3 - Premium Supplier (Georgia, California):
+- Price: $180-250 per package
+- Queen Grade: A/S (excellent genetics)
+- Availability: Mid/late spring, 3-week lead time
+- Reliability: 95%+ arrive healthy
+- Advantages: Superior genetics, very reliable, established supplier reputation
+- Disadvantages: Most expensive, long lead time, may need specialized equipment
+
+PACKAGE BEE COLONY ESTABLISHMENT:
+Package = 3 lbs of bees (approx. 10,000 bees) + 1 mated queen in cage + sugar candy supply
+Installation process:
+1. Place package on hive with queen cage inside
+2. Bees eat through candy and release queen over 2-3 days
+3. Bees start drawing comb, establishing brood nest
+4. Takes 21-28 days for first adults to emerge and hive to reach viable strength
+
+COMB DRAWING SYSTEM:
+Once bees are installed (package or split), they must draw wax comb on frames from foundation.
+- Foundation = thin wax printed with honeycomb pattern, bees extend it into full cells
+- Drawing rate: ~0.2 cells per bee per day (scales with hive population and nectar flow)
+- Full frame drawing (3,500 cells): 14-21 days depending on hive strength
+- Multiple supers require gradual drawing (place one super at a time, wait for 80% completion before adding next)
+- Uncapped honey visible on partially drawn frames (player sees progress visually)
+
+HIVE TOOL & GLOVES - EQUIPMENT ITEMS:
+Hive tool: Metal tool with flat edge (pry frames apart, remove debris) and hook (scrape propolis)
+- Required for any inspection (cannot open hive without it)
+- Condition: doesn't degrade, always available
+- Cost: $15 (purchased or starts in inventory)
+
+Gloves: Protect hands from stings, allow detailed work
+- Increase inspection difficulty slightly (harder to feel frame details)
+- Reduce sting probability somewhat
+- Cost: $8/pair, limited durability (wear out after 30-40 inspections)
+- Can upgrade to longer-arm cuff versions ($12)
+
+STORAGE CHEST SYSTEM:
+Players can store items not actively carrying. Storage exists at:
+- Home property (large chest, unlimited items)
+- Apiary yards (small chest, 20-item limit per yard)
+- Extraction facility (equipment storage)
+
+Items stored are preserved between days/seasons. Useful for stockpiling supers, frames, equipment not currently needed.
+
+STARTING INVENTORY (beginning of game):
+1. Hive tool (required)
+2. Smoker (empty)
+3. Veil (protective headwear)
+4. Gloves (pair)
+5. One super (honey box)
+6. Uncapping knife (long blade, for removing honey caps)
+7. Queen marker paint (3-color: yellow, white, blue - for marking queen age cohorts)
+8. Sticky board (varroa monitoring)
+9. [Empty slot]
+10. [Empty slot]
+
+Starting Cash: $200
+
+4.5 QUEEN MANAGEMENT SYSTEM
+Queen management is among most complex and rewarding skill areas.
+
+Players can:
+- Requeen failing/aging colonies
+- Breed their own queens (mid-game unlock)
+- Control swarming through reactive requeening
+- Choose breeding pairs for genetic improvement
+
+Requeening Mechanics:
+1. Old queen: Locate and remove from hive
+2. New queen in cage: Place cage between frames, queen inside
+3. Wait 2-3 days: Workers acclimate to queen's pheromone
+4. Release queen: Remove cage, workers accept (50-70% success)
+5. Confirm new queen: Check for eggs within 3-5 days
+
+Breeding Mechanics (mid-game unlock):
+- See §2.9 Queen Breeding & Rearing System
+- Requires Breeder Yard apiary structure
+- Requires eggs from high-quality queen
+- Virgin queens must fly to DCA for mating
+- Success rate based on genetics and player skill
+
+4.6 SWARM MANAGEMENT SYSTEM
+Swarming is natural hive reproduction. When space is tight and resources abundant, colony prepares to split.
+
+Swarm Triggers:
+- Brood-bound condition (>3 days): Swarm impulse +25%
+- Honey-bound condition: Swarm impulse +20%
+- Late spring/early summer (May): Seasonal impulse baseline 10-15%
+- Young, vigorous queen: +10% swarm tendency
+- Poor ventilation: +15%
+
+Swarm Detection:
+- Appears as "Swarm cells visible" during inspection
+- Player sees queen cells (longer, vertical, centered on frame)
+- Warning notification: "This hive is preparing to swarm!"
+- 7-10 day window to intervene
+
+Swarm Interventions:
+Option 1 - Add Space: Place second brood box or super to relieve congestion (-15% swarm impulse)
+Option 2 - Remove Brood: Take frame of capped brood to split/nuc, reduce brood-bound pressure
+Option 3 - Split Hive: Intentionally divide colony into two (controlled split vs. wild swarm)
+Option 4 - Break Swarm Cells: Remove visible queen cells, reset impulse (temporary, must address root cause)
+
+Swarm Occurrence (if not prevented):
+- Hive becomes queenless (old queen leaves with swarm)
+- Population drops ~50% (with departing swarm)
+- Remaining bees are queenless but have queen cells
+- Player can: catch swarm (uncertain), let replacement queen emerge, or requeen manually
+- Game notifies: "A swarm has left the hive!" with map indicator if swarm was caught
+
+4.7 HARVEST SYSTEM - COMPREHENSIVE
+
+Honey harvest is primary payoff moment of year. Every decision converges into: how much honey, how good is it?
+
+PIPELINE:
+Transport super to extraction facility → Uncap frames → Spin extractor → Read moisture → Bottle → Grade → Sell
+
+SUPER & BOX MANAGEMENT (see §2.1 and §3.1 Harvest subsection above for detailed mechanics)
+
+HARVEST DECISION & FRAME MARKING:
+
+Player reviews colony stores during inspection:
+- Shows percentage honey per frame
+- Shows capped vs. uncapped honey
+- Shows adjacent to brood/pollen (can't harvest adjacent to brood during extraction - cross-contamination)
+
+Player marks frames as "ready to harvest":
+- Minimum 75% capped on frame side
+- Minimum 6 frame sides available (3 whole frames)
+- Warning if harvest will leave insufficient winter stores (<60 lbs honey remaining)
+
+Harvest Readiness Indicators:
+- Frame side color indicator: green (ready, >75% capped), yellow (nearly ready, 50-75%), orange (not ready, <50%)
+- Summary per super: "Super 1: 4 frames ready, 2 nearly ready"
+- Tooltip on each frame: "Ready to harvest" / "Not ready (too much brood)"
+
+UNCAPPING MINI-GAME: "THE UNCAPPING SWIPE"
+Purpose: Physically reveal honey cells for extraction
+Mechanic: Timed swipe minigame
+
+Setup:
+- Frame positioned horizontally in uncapping tank
+- Uncapping knife visible at bottom of screen
+- Player controls knife with mouse (drag up frame to swipe) or gamepad
+
+Timing:
+- Window to swipe each frame: 10 seconds real-time
+- Difficulty increases with frame fill percentage:
+  - <50% fill: very forgiving, slow knife speed required
+  - 50-75% fill: moderate, normal knife speed
+  - 75-100% fill: challenging, faster knife needed
+
+Skill Levels:
+- Tool progression: basic uncapping knife (slow) → heated knife (medium) → electric knife (fast)
+- Player can upgrade tools as skill/money improves
+- Higher skill = faster swipe window = more honey revealed per frame
+
+Output per Frame:
+- Successful swipe: 90% of cappings removed, honey flows readily into tank
+- Partial swipe: 60% cappings removed, honey loss to propolis, -10% yield
+- Failed swipe (time out): frame passed to extractor with caps on → reduced yield, quality penalty
+
+Repeat for each frame side (up to 6 frame sides per super).
+
+EXTRACTION & GRADING:
+
+Extraction Flow:
+1. Uncapped frames loaded into centrifuge extractor
+2. Extractor spun: honey forced from cells via centrifugal force
+3. Spinner runs 3-5 cycles (reloading frames for second side) until frames honey level drops to ~10%
+4. Honey flows through strainer into tank
+5. Honey sits in settling tank for 24-48 hours (in real time, player can wait or advance to next day)
+6. Moisture content measured using refractometer or humidity meter
+
+Yield Calculation:
+Base yield = frame_honey_percentage × 3.5 lbs/full-frame × number_of_sides
+Example: 90% full frame (both sides) = 0.90 × 3.5 × 2 = 6.3 lbs honey
+
+Modifiers:
+- Extraction efficiency: uncapping quality affects honey loss (perfect: 95%, partial: 85%, poor: 70%)
+- Extractor condition: poor equipment → -15% efficiency
+- Weather: cold honey spins less efficiently (-10%)
+- Beekeeper experience: higher skill → better extraction technique (+5%)
+
+Final yield = base × efficiency × weather_modifier × skill_modifier
+
+Moisture Calculation:
+Moisture content determined by:
+- Season (early harvest = higher moisture, late harvest = lower)
+- Forage type (clover honey = naturally lower moisture, wildflower = higher)
+- Weather during collection (humid summer = higher, dry fall = lower)
+- Capping percentage (uncapped honey dries to proper moisture slower)
+
+Moisture Grading Scale:
+- Below 18%: Excellent (proper moisture, won't ferment, premium grade)
+- 18-21%: Good (acceptable, standard grade, won't ferment)
+- 21-24%: Fair (high side, risk of fermentation if stored warm)
+- Above 24%: Poor (will ferment if stored, must sell quickly or feed to bees)
+
+In-game, player uses simple refractometer interaction: place drop on lens, read scale. Game calculates moisture based on harvest conditions, shows result.
+
+GRADING TABLE:
+
+Grade    | Color         | Moisture  | Flavor Profile | Price per lb | Market Demand
+---------|---------------|-----------|----------------|--------------|------------------
+Amber    | Deep amber    | <18%      | Rich, complex  | $12-14       | Excellent
+Gold     | Medium amber  | <18%      | Balanced, smooth | $10-12      | Very Good
+Clover   | Light gold    | <18%      | Mild, delicate | $8-10        | Good
+Wildflower| Variable     | <18%      | Variable       | $9-11        | Good
+Spring   | Light/pale    | <18%      | Floral, subtle | $9-11        | Moderate
+Harvest  | Mixed colors  | 18-21%    | Mixed, edible  | $6-8         | Moderate
+Rustic   | Dark/murky    | >21%      | Off-flavors    | $4-5         | Low / Local only
+
+Grading determined by: honey color, moisture content, flavor indicators, pollen/debris presence
+
+BOTTLING & PACKAGING:
+
+Honey jars available:
+- 8 oz jar: $1 cost, holds ~0.5 lbs honey
+- 12 oz jar: $1.25 cost, holds ~0.75 lbs honey
+- 16 oz (1 lb) jar: $1.50 cost, holds 1 lb honey
+- 32 oz (2 lb) jar: $2 cost, holds 2 lbs honey
+- Bulk container (5 lbs): $3 cost
+
+Labeling:
+- Player assigns label with:
+  - Apiary name (e.g., "Cedar Bend Apiary")
+  - Honey type (e.g., "Wildflower")
+  - Harvest year
+  - Grade (auto-filled)
+  - Optional flavor notes (player text)
+
+Jar Metadata (stored in save):
+- Apiary source
+- Forage location
+- Harvest date
+- Honey grade
+- Moisture percentage
+- Flavor profile string
+- Label design (simple/fancy aesthetic)
+
+Sales:
+- Farmers market: bulk sale, haggle for price (base grade price ±20% depending on charisma)
+- Direct to customers (unlocked late game): premium prices (+30%) but require marketing/reputation
+- Diner: restaurant purchases bulk for cooking (fixed but reliable price)
+- Wholesale supplier: guaranteed sale, lowest prices (70% of base grade price)
+
+BEESWAX COLLECTION:
+
+Cappings waste from uncapping = beeswax + honey mixture. Rendered beeswax sold or used in crafting.
+
+Yield:
+- Per frame uncapped: ~0.2 lbs cappings
+- 6 frame sides = ~1.2 lbs cappings total per super
+- Rendering: cappings melted, honey separated, yields ~0.5 lbs pure beeswax per pound cappings
+
+Beeswax uses:
+- Craft candles (sale item, $5-8 per candle)
+- Craft lip balm (sale item, $3-4 per lip balm)
+- Craft mustache wax (niche, $4 per tin)
+- Repair equipment (free crafting cost, replaces honey/wax cost)
+- Waterproofing wood equipment
+
+Beeswax price: $8-10 per pound at market (bulk sale to supplier)
+
+WINTER RESERVE WARNING:
+
+Critical game mechanic: over-harvesting leaves colony without winter stores = starvation = colony death
+
+Check on harvest:
+- Hive requires minimum 60 lbs honey remaining (brood box + any remaining supers)
+- If harvest takes remaining below 40 lbs: RED WARNING, cannot proceed without confirmation
+- Confirmation message: "Harvesting will leave only X lbs honey. This colony may not survive winter without supplemental feeding. Continue?"
+- Supplemental feeding: sugar syrup purchased/crafted, fed to colony in fall (expensive, impacts profit margins)
+
+This forces player decision: squeeze more profit, or play it safe with stores. Consequence if wrong = colony death mid-winter.
+
+EXTRACTION FACILITIES:
+
+Player needs access to extraction equipment (extractor, strainer, settling tanks, refractometer). Options:
+
+Option 1 - On-Apiary Extraction (Home):
+- Unlocked early (craft basic extractor)
+- Limits: 2 supers max per extraction session
+- Speed: slower, manual process
+- Cost: $150 to build, $0 per use
+- Best for: small operations, learning
+
+Option 2 - Community Extraction Facility:
+- Located in Cedar Bend town
+- Shared with other beekeepers
+- Limits: None, but queue time (other beekeepers may be using)
+- Speed: professional equipment, faster
+- Cost: $0 membership (community shared), $1/lb honey processed
+- Best for: mid-scale operations
+
+Option 3 - Commercial Supplier Extraction:
+- Paid service, extract for you
+- Limits: None
+- Speed: instant (you drop off, return next day for packaged honey)
+- Cost: $2/lb honey processed
+- Quality: slightly higher (professional equipment), but you don't participate in process
+- Best for: time-poor players, large operations
+
+4.8 RESOURCE & ECONOMY SYSTEM
+
+Currency: Dollars ($)
+Starting amount: $200
+Income sources: honey sales, beeswax sales, crafting item sales, NPC trades
+Expenses: bee purchases, equipment, repairs, feed, facility access, diner meals, crafting materials
+
+INCOME SOURCES:
+Honey sales (via farmers market or direct): $6-14/lb depending on grade
+Beeswax: $8-10/lb bulk sale
+Crafted items: $3-8 depending on recipe
+Queen sales (if breeding): $20-40 per queen
+Equipment repair work (NPC side quest): $10-30 reward
+
+EXPENSES:
+Package bee colony: $50-250 depending on supplier tier
+Hive boxes/supers: $30-50 each
+Frames (10-pack): $20
+Equipment (smoker, hive tool, etc.): $10-25
+Repairs (paint, wood, etc.): $5-60 depending on extent
+Feed (sugar syrup, pollen patties): $2-5 per unit
+Meals at diner: $6-8 each
+Crafting materials: variable by recipe
+
+Price Reference Tables (summary):
+EQUIPMENT:
+- Hive tool: $15
+- Smoker: $12
+- Gloves: $8/pair
+- Veil: $10
+- Bee suit: $40
+- Deep box (pre-assembled): $35
+- Super box (pre-assembled): $25
+- Frame package (10-pack): $20
+- Foundation sheets: $15 for 10
+- Queen excluder: $8
+- Smoker fuel (wood pellets): $3/lb
+
+CONSUMABLES:
+- Package bee colony (1 lb): $50-250 depending on tier
+- Mated queen (replacement): $15-40 depending on source
+- Sugar syrup (gallon): $4
+- Pollen patty: $2 each
+- Medications (varroa treatment, disease, etc.): $5-15
+- Bee stinger relief salve: $5
+
+FOOD:
+- Diner breakfast: $6
+- Diner lunch: $7
+- Diner dinner: $8
+- Coffee: $2
+- Packed lunch (craft cost): $3
+
+4.9 CRAFTING SYSTEM
+
+Crafting allows players to create items from raw materials. Crafting requires:
+- Recipe unlock (via XP progression or NPC training)
+- Required materials (resources on hand or in storage)
+- Crafting station (home kitchen, apiary workshop, etc.)
+- Energy expenditure (5-15 energy per craft, scales with recipe complexity)
+
+RECIPES (examples, comprehensive list in GDD §6.8):
+
+Recipe Tier 1 (Available immediately):
+- Sugar syrup (sugar + water): 5 energy, cost $4 materials, feeds colony for 3 days
+- Packed lunch (bread + honey + wrap): 10 energy, cost $3 materials, restores 20 energy when eaten
+- Smoker fuel (pellets): 5 energy, cost $2 materials, fuel for smoker (1 use)
+
+Recipe Tier 2 (Unlocked at Beekeeper level):
+- Basic repair kit (wood scraps + wax): 10 energy, cost $15 materials, repairs equipment +20 condition
+- Pollen patty (pollen + sugar + lard): 12 energy, cost $5 materials, emergency feed
+- Candle (beeswax + wick): 8 energy, cost $1 materials, sale item worth $5-8
+
+Recipe Tier 3 (Unlocked at Journeyman level):
+- Advanced repair pack (beeswax + wood + propolis): 15 energy, cost $20 materials, repairs equipment +65 condition
+- Mead starter (honey + water + nutrients): 20 energy, cost $10 materials, produces mead (specialty sales item)
+- Lip balm (beeswax + oil + honey): 10 energy, cost $3 materials, sale item worth $3-4 each
+
+Pesticide Event (special mechanic):
+- Late summer, random chance player discovers pesticide sprayed on flowering plants near apiary
+- Notification: "Farm sprayed pesticide. Some colonies showing signs of poisoning."
+- Choice:
+  Option A - Do nothing: affected colony loses 20-30% population over 3 days, survives with reduced honey
+  Option B - Craft antitoxin: beeswax + activated charcoal + honey (Tier 3 unlock), 25 energy, $15 cost → neutralizes poison, colony recovers
+- Teaches: pesticide consequences and mitigation strategies
+
+4.10 WEATHER SYSTEM
+
+Weather affects gameplay: inspection quality, foraging, overwinter conditions, bee behavior.
+
+Weather Types:
+- Sunny: Best conditions, full foraging, optimal inspections
+- Partly Cloudy: Good conditions, slightly reduced foraging, acceptable inspections
+- Overcast: Acceptable conditions, reduced nectar collection, acceptable inspections
+- Rainy: Poor conditions, no foraging, inspections discouraged (warning), poor data
+- Windy: Reduced foraging, difficult inspections, damage risk
+- Cold: Cluster behavior, no foraging, limited outdoor work
+- Snow: Impossible to work outdoors, hives inaccessible
+
+Weather Transitions:
+- Changes hourly with smooth visual transition
+- Weekly weather pattern (generated at start of each week)
+- Seasonal pattern: spring = variable, summer = mostly clear, fall = increasing rain, winter = cold/snow
+
+Foraging Impact:
+- Sunny/partly cloudy: full forage collection
+- Overcast: -20% forage
+- Rainy: -80% forage (bees stay home)
+- Windy: -40% forage (risky to fly)
+- Cold: -100% forage (bees don't fly below ~55°F)
+
+Inspection Impact:
+- Sunny/partly cloudy: 100% data visibility, optimal quality
+- Overcast: 80% data visibility, acceptable quality
+- Rainy: 40% data visibility, poor quality, warning shown
+- Windy: 60% data visibility, moderate difficulty
+- Poor weather warning: "Weather is poor for hive work. Data may be unreliable."
+
+Winter Survival Impact:
+- Heavy snow: insulation check (colonies with winter wrap survive better)
+- Extreme cold (-20°F): cold clustering energy drain (increased honey consumption)
+- Long cold spell (2+ weeks): survival probability check (weak colonies may not make it)
+
+================================================================================
+SECTION 5: PROGRESSION & UNLOCKS
+================================================================================
+
+5.1 PLAYER EXPERIENCE TRACK
+Progression expressed through parallel tracks:
+1. Player Experience (general XP for learning)
+2. Apiary Structures (building/upgrading facilities)
+3. Skill Trees (specialized knowledge paths - Genetics, Health, Extraction, etc.)
+
+XP Earning (examples):
+- Successful hive inspection: +10 XP
+- Queen sighting: +10-25 XP (depends on difficulty)
+- Harvest: +20 XP
+- Successful colony survival to next season: +50 XP
+- NPC quest completion: +15-30 XP
+- Learning discovery (finding new flower type, etc.): +5 XP
+
+XP Thresholds (reaching next player level):
+- Level 1 → Level 2: 100 XP
+- Level 2 → Level 3: 250 XP total
+- Level 3 → Level 4: 500 XP total
+- Level 4 → Level 5: 1,000 XP total
+- Level 5+: +500 XP per additional level
+
+Each level unlock:
+- Level 2: Access apprentice-tier recipes, improved inspection tooltips
+- Level 3: Access beekeeper-tier recipes, qualitative hive assessment
+- Level 4: Access journeyman-tier recipes, approximate hive counts
+- Level 5: Master beekeeper mode, dynamic percentage tracking, full knowledge access
+
+5.2 APIARY STRUCTURES
+Unlocked via progression:
+- Breeder Yard: Unlock at 300+ Genetics XP, enables queen breeding
+- Extraction Facility: Unlock at 200+ Extraction XP, enables on-apiary extraction
+- Workshop: Unlock at 150 XP, enables advanced crafting
+- Medicinal Garden: Unlock at 250+ Health XP, enables disease treatment crafting
+
+5.3 SKILL TREES (3 parallel tracks):
+GENETICS TRACK (breed better queens):
+- Early unlock: Basic queen observation
+- Mid unlock: Queen breeding mechanics
+- Late unlock: Hybrid breeding (cross-breed species for new traits)
+
+HEALTH TRACK (disease management):
+- Early unlock: Basic pest identification
+- Mid unlock: Treatment crafting
+- Late unlock: Preventive medicine and varroa resistance tracking
+
+EXTRACTION TRACK (honey production):
+- Early unlock: Basic uncapping mini-game
+- Mid unlock: Advanced tool usage
+- Late unlock: Specialized extraction techniques, premium grading
+
+================================================================================
+SECTION 6: QUESTS & EVENTS
+================================================================================
+
+6.1 QUEST TYPES:
+
+Story Quests (NPC-driven, narrative):
+- Multi-part chains spanning multiple seasons
+- Unlock character development, lore, world-building
+- Examples: Uncle Bob's beekeeping story, mentor quests, romance subplot (optional)
+
+Task Quests (objective-driven):
+- Specific goals: "Harvest 10 lbs honey", "Treat varroa in 3 hives", "Build 5 new frames"
+- Repeatable, reward: cash + XP
+- Examples: commission work, town requests
+
+Seasonal Quests:
+- Available only in specific season
+- Spring: "Complete first inspection of the year", "Introduce new colony"
+- Summer: "Achieve swarm prevention", "Prepare for harvest"
+- Fall: "Harvest 50 lbs honey", "Prepare colonies for winter"
+- Winter: "Check winter stores", "Repair equipment"
+
+6.2 CHALLENGE EVENTS:
+Unexpected disruptions requiring player response. Scale in severity with player progression.
+
+Examples:
+- Swarm outbreak (multiple hives swarming in same week): must catch/manage multiple swarms
+- Disease outbreak (varroa spike, chalkbrood detected): must treat multiple hives quickly
+- Predator pressure (bears, wasps, raccoons): must build/upgrade defenses
+- Severe weather (early frost, late freeze, drought): must provide emergency feed
+
+Player reward (on success): $50-200, +30-50 XP, reputation increase
+Consequence (on failure): colony loss, reduced reputation, economic penalty
+
+6.3 NPC QUEST CHAINS:
+Each NPC has multi-quest chain spanning multiple seasons/year. Builds relationships, unlocks rewards.
+
+Examples:
+- Mentor NPC (Uncle Bob): teaches core mechanics, provides early quests, long-term mentorship
+- Beekeeper neighbor: shares equipment, asks for help, develops friendship
+- Apiary supplier: provides better deals as reputation improves, eventually unlocks premium bees
+- Diner owner: develops story, eventually romance subplot (optional, not required for progression)
+
+================================================================================
+SECTION 7: NPCs
+================================================================================
+
+NPCs are functional, not decorative. Each serves role in player's progression and provides automated income/support options.
+
+Key NPCs:
+- Uncle Bob (Mentor): Teaches mechanics, provides guidance, shares equipment initially
+- Supplier contacts: Provide bees, equipment, premium deals
+- Diner owner: Provides meals, social hub, develops character arc
+- Apiary neighbors: Provide side quests, trade opportunities, world-building
+- Veterinary supplier: Provides medications, disease treatment guidance
+
+NPC Interactions:
+- Dialogue driven, time-based
+- NPCs have schedules (available at specific locations/times)
+- Repeat interactions build relationship (reputation affects prices, quest availability)
+- Some NPCs offer automation services (e.g., feed my bees while I'm away, $5/day)
+
+================================================================================
+SECTION 8: SETTINGS & STORY (NARRATIVE CONTEXT)
+================================================================================
+
+Setting: Rural Millhaven County (game calls it Cedar Bend), Iowa
+Year: Contemporary (implied present day)
+Tone: Contemplative, instructional, grounded in real beekeeping
+
+Player character: Eli
+- Retired individual finding purpose in beekeeping
+- Inherits apiary from Uncle Bob (mentor character)
+- Beginning journey of discovery and healing through bees
+
+Story beats (optional/emergent):
+- Spring: Learning the craft, first successful inspections
+- Summer: Building production, managing growth, success and challenges
+- Fall: Harvest payoff, preparation for winter, reflection
+- Winter: Rest, planning next year, personal growth
+
+Optional romance subplot (late game unlock):
+- Can develop relationship with NPC (e.g., diner owner)
+- Doesn't affect core progression
+- Provides social/emotional layer to gameplay
+
+================================================================================
+SECTION 9: ART DIRECTION
+================================================================================
+
+Visual Style: Pixel Art Top-Down, 32×32 tile grid
+- Base asset pack: Pixel Art Top Down – Village by Cainos
+- Color palette: earth tones, honey golds, natural greens
+- Bee/hive sprites: custom pixel art designed for 32×32 grid
+- Seasonal visual changes: spring green, summer golden, fall browns, winter whites
+
+Key Color Palette:
+Wood tones: #261206 (darkest) to #BA8A48 (pale)
+Honey/Amber: #985808 (dark) to #F4CC6E (pale)
+Wax/Cream: #F2E4B2 (wax-cream) to #FCF5D7 (wax-white)
+Cell colors: #E4D498 (empty), #D49E28 (honey), #B48430 (wall)
+Functional: #0F0A04 (background darkest), #1A1208 (background warm), text colors defined per tier
+
+UI Style:
+- Serif font for headings (Playfair Display)
+- Sans-serif for body/UI (Inter)
+- Monospace for data/stats (JetBrains Mono)
+- Warm, earthy color scheme consistent with honey/bee theme
+
+================================================================================
+SECTION 10: KEY NUMBERS & FORMULAS QUICK REFERENCE
+================================================================================
+
+QUEEN & LAYING:
+- Peak laying rate (healthy S-grade queen, Year 2): 1,500-2,000 eggs per day
+- Grade modifier ranges: +25% (S) to -35% (D), -100% (F = failing)
+- Age multiplier ranges: ×1.05 (peak Year 2) to ×0.20 (Year 6+)
+- Grade degradation: S→A (18 mo), A→B (24 mo), then 12-mo cycles
+
+POPULATION:
+- Worker bee lifespan: 6 weeks (spring/summer), 4-6 months (winter)
+- Drone lifecycle: emerges, lives 60-90 days, expelled in fall
+- Larval development: 21 days (egg 3 + larva 6 + capped 12)
+- Base mortality rates: 0.1-3% daily depending on stage
+
+ENERGY:
+- Max capacity: 100
+- Passive drain: 1-2 per hour
+- Task costs: 1-40 depending on type
+- Sting cost: 5-8 per sting
+- Food restoration: sleep (100), diner (40-50), packed lunch (20), coffee (15 temp)
+
+EQUIPMENT:
+- Condition range: 0-100
+- Degradation: -1 to -4 per week depending on storage
+- Restoration: -20 (basic repair), +65 (advanced)
+- Impact threshold: below 50 = -10% production, -5% survival
+
+HARVEST:
+- Frame capacity: deep 3,500 cells, super 2,450 cells
+- Honey weight per frame: 5 lbs (deep full), 3.5 lbs (super full)
+- Moisture threshold: <18% excellent, 18-21% good, >24% poor
+- Winter reserve minimum: 60 lbs per hive (warning below 40 lbs)
+
+DISEASE:
+- Varroa treatment threshold: 1 mite per 100 bees
+- Contagion rate: 5% per day between hives at same location
+- Equipment sharing increases contagion chance significantly
+- AFB = colony death, EFB = treatable with requeening
+
+FORAGE:
+- Peak summer forage: 6,000+ lbs potential per location
+- Early spring forage: 1,500 lbs potential per location
+- Low forage impact: -20% population growth, honey stagnation
+- Diversity bonus: multiple forage sources = better honey grades
+
+================================================================================
+END OF COMPREHENSIVE SUMMARY
+================================================================================
+All major game systems documented with mechanics, numbers, dependencies, and implementation notes.

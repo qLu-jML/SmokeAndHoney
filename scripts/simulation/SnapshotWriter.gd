@@ -31,6 +31,7 @@
 #   congestion_state int     -- HiveSimulation.CongestionState value
 #   health_score    float    -- 0-100 composite score
 #   afb_active      bool     -- true if AFB disease flag is set
+#   super_visuals   Array    -- per-super fill/capping data for overworld tinting
 # -----------------------------------------------------------------------------
 extends RefCounted
 class_name SnapshotWriter
@@ -71,8 +72,8 @@ static func write(hive_sim: HiveSimulation, health_score: float,
 	return {
 		"days_elapsed"     : hive_sim.days_elapsed,
 		"queen_present"    : hive_sim.queen.get("present",     true),
-		"queen_grade"      : hive_sim.queen.get("grade",       "B"),
-		"queen_species"    : hive_sim.queen.get("species",     "Italian"),
+		"queen_grade"      : hive_sim.queen.get("grade",       "S"),
+		"queen_species"    : hive_sim.queen.get("species",     "Carniolan"),
 		"queen_age"        : hive_sim.queen.get("age_days",    0),
 		"egg_count"        : egg_count,
 		"larva_count"      : larva_count,
@@ -90,4 +91,5 @@ static func write(hive_sim: HiveSimulation, health_score: float,
 		"congestion_state" : hive_sim.congestion_state,
 		"health_score"     : health_score,
 		"afb_active"       : hive_sim.disease_flags.has("AFB"),
+		"super_visuals"    : hive_sim.get_super_visual_data(),
 	}

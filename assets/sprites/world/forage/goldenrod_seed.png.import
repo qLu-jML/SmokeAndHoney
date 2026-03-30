@@ -2,7 +2,7 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c3kqynkkt78nu"
+uid="uid://mdbs8g5duorg"
 path="res://.godot/imported/goldenrod_seed.png-1d1bf6c417ea4209df46191a44ad1bed.ctex"
 metadata={
 "vram_texture": false
@@ -18,7 +18,7 @@ dest_files=["res://.godot/imported/goldenrod_seed.png-1d1bf6c417ea4209df46191a44
 compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

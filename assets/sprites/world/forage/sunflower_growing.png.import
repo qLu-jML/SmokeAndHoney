@@ -2,7 +2,7 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dl15lex8c4hav"
+uid="uid://bv12s607r23s6"
 path="res://.godot/imported/sunflower_growing.png-1ad48dcb9a425861aa81e61a27f6c4ad.ctex"
 metadata={
 "vram_texture": false
@@ -18,7 +18,7 @@ dest_files=["res://.godot/imported/sunflower_growing.png-1ad48dcb9a425861aa81e61
 compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

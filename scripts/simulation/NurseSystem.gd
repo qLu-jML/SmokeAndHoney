@@ -1,74 +1,133 @@
 # NurseSystem.gd
 # -----------------------------------------------------------------------------
-# Pipeline Step 3 -- Nurse Bee Brood Care
+# Pipeline Step 3 -- Nurse Bee Night Actions
 #
-# Determines whether the colony has sufficient nurse bees to:
-#   - Feed all open larvae (affects larval nutrition and emergence weight)
-#   - Cap larvae on schedule (delay if understaffed)
-#   - Clean vacated cells (see CellStateTransition VACATED constants)
-#   - Produce royal jelly for queen cells
+# NEW MODEL (Nathan's 2-action nurse system):
+#   Each nurse bee has 2 actions per night. Priority order:
 #
-# OUTPUT (context flags injected into the next tick's CellStateTransition ctx):
+#   ACTION 1 (HIGHEST PRIORITY): Feed brood with PU
+#     - Every open larva cell needs 1 PU to be fed
+#     - Unfed brood is stunted (growth delayed by 1 day, prioritized next night)
+#     - Nurses use incoming PU first, then pull from bee bread stores
+#     - Bee bread stores hold up to 3 PU per cell
+#
+#   ACTION 2 (REMAINING ACTIONS): Store excess PU as bee bread
+#     - Leftover PU after feeding goes into bee bread cells (up to 3 PU/cell)
+#
+#   Then the NU allocation happens (separate from nurse actions):
+#     - 50/50 split: half to wax production, half to honey storage
+#     - If honey storage is full, excess NU converts to wax
+#     - Once brood box comb is complete, overflow NU -> supers as honey ONLY
+#
+# OUTPUTS:
 #   {
-#     "has_nurse_bees" : bool    -- adequate nursing coverage (ratio >= 0.4)
-#     "nurse_ratio"    : float   -- nurses per open larva
-#     "rjelly_surplus" : float   -- surplus royal jelly for queen rearing (0-1)
-#     "capping_delay"  : int     -- 0-2 extra days before larva is capped
+#     "brood_fed"       : int    -- number of brood cells fed this night
+#     "brood_stunted"   : int    -- number of brood cells NOT fed (will stunt)
+#     "pu_used_feeding" : int    -- PU spent on brood feeding
+#     "pu_stored"       : int    -- PU stored as bee bread
+#     "bee_bread_used"  : int    -- PU pulled from bee bread stores for feeding
+#     "has_nurse_bees"  : bool   -- adequate nursing coverage
+#     "nurse_ratio"     : float  -- nurses per open larva
+#     "capping_delay"   : int    -- 0-2 extra days before larva is capped
+#     "total_actions"   : int    -- total nurse actions available
+#     "actions_used"    : int    -- actions consumed
 #   }
 #
 # Science references:
 #   Winston (1987) "The Biology of the Honey Bee" -- nurse:larva ratios
 #   Seeley (1995) "The Wisdom of the Hive" -- colony workforce allocation
-#
-# A healthy summer colony has 6,000-8,000 nurse bees (bees 0-10 days old) and
-# 8,000-10,000 open larvae, giving a nurse:larva ratio of 0.6-1.0.
-# This ratio is fully adequate for brood care.  The previous IDEAL_NURSE_RATIO
-# of 2.0 incorrectly classified healthy colonies as under-staffed.
 # -----------------------------------------------------------------------------
 extends RefCounted
 class_name NurseSystem
 
-# Nurse:larva ratio at which care is considered excellent (royal jelly surplus).
-# Science: 1.0+ nurse per larva = abundant nursing; colonies rarely exceed 1.2
-# except in early spring with few larvae and many overwintered bees.
-const IDEAL_NURSE_RATIO  := 1.2   # was 2.0 -- corrected to match real colony data
+# Actions per nurse per night
+const ACTIONS_PER_NURSE := 2
 
-# Minimum adequate ratio -- below 0.4, capping is significantly delayed.
-const ADEQUATE_RATIO     := 0.4
+# PU required to feed one open larva cell per night
+const PU_PER_LARVA := 1
 
-# Absolute minimum nurse count for any brood care.
-# Science: a colony with <1,500 nurses cannot adequately feed a typical brood
-# nest. Previous threshold of 500 was too low.
-const MIN_NURSE_COUNT    := 1500  # was 500
+# Max PU stored per bee bread cell
+const PU_PER_BEE_BREAD_CELL := 3
 
-static func process(nurse_count: int, open_larva_count: int) -> Dictionary:
-	var ratio := (float(nurse_count) / maxf(1.0, float(open_larva_count)))
+# Nurse staffing thresholds
+const IDEAL_NURSE_RATIO := 1.2   # excellent coverage
+const ADEQUATE_RATIO    := 0.4   # minimum adequate coverage
+const MIN_NURSE_COUNT   := 1500  # absolute minimum for any brood care
 
-	# Adequate = has enough nurses to cover basics (ratio >= ADEQUATE_RATIO * 0.5
-	# AND above MIN_NURSE_COUNT). This controls vacated-cell cleaning rate and
-	# the has_nurse_bees flag injected into CellStateTransition.
-	var adequate := nurse_count >= MIN_NURSE_COUNT and ratio >= (ADEQUATE_RATIO * 0.5)
 
-	# Royal jelly surplus: only produced when ratio exceeds IDEAL_NURSE_RATIO * 0.5.
-	# Science: hypopharyngeal glands produce maximal royal jelly only when nurses
-	# are not fully occupied with routine larval feeding.  At ratio 0.6 (typical),
-	# glands are at capacity; surplus only emerges above ratio ~0.8.
-	var rjelly := clampf((ratio - IDEAL_NURSE_RATIO * 0.5) / IDEAL_NURSE_RATIO, 0.0, 1.0)
+## Process nurse night actions.
+## nurse_count: total nurse bees in colony
+## open_larva_count: cells needing feeding (S_OPEN_LARVA)
+## pu_incoming: PU collected by foragers today
+## bee_bread_stores: current PU stored as bee bread in frames
+## stunted_brood: number of brood cells stunted from previous night (get priority)
+static func process(nurse_count: int,
+                    open_larva_count: int,
+                    pu_incoming: int,
+                    bee_bread_stores: int,
+                    stunted_brood: int) -> Dictionary:
 
-	# Capping delay: when understaffed, larvae are under-fed and take longer to
-	# reach the weight/maturity cue that triggers capping by nurse bees.
-	# Science: delays of 1-2 days observed in colonies with nurse:larva < 0.5.
+	var total_actions: int = nurse_count * ACTIONS_PER_NURSE
+	var actions_used: int = 0
+
+	# -- Nurse ratio and staffing check --
+	var ratio: float = float(nurse_count) / maxf(1.0, float(open_larva_count))
+	var adequate: bool = nurse_count >= MIN_NURSE_COUNT and ratio >= (ADEQUATE_RATIO * 0.5)
+
+	# -- ACTION 1: Feed brood (highest priority) --
+	# Stunted brood from last night gets fed first, then regular brood.
+	# Each feeding action consumes 1 PU and 1 nurse action.
+	var brood_needing_feed: int = open_larva_count
+	# Available PU: incoming first, then bee bread reserves
+	var pu_available: int = pu_incoming + bee_bread_stores
+	var bee_bread_used: int = 0
+
+	# How many brood can we actually feed? Limited by:
+	# 1. Available nurse actions
+	# 2. Available PU (incoming + bee bread)
+	# 3. Actual brood count
+	var can_feed: int = mini(brood_needing_feed, mini(total_actions, pu_available))
+	var brood_fed: int = can_feed
+	var brood_stunted: int = maxi(0, brood_needing_feed - brood_fed)
+
+	# Consume PU -- use incoming first, then tap bee bread
+	var pu_used_feeding: int = brood_fed
+	var pu_from_incoming: int = mini(pu_used_feeding, pu_incoming)
+	var pu_from_bee_bread: int = pu_used_feeding - pu_from_incoming
+	bee_bread_used = pu_from_bee_bread
+
+	# Consume nurse actions for feeding
+	actions_used += brood_fed
+
+	# -- ACTION 2: Store excess PU as bee bread --
+	var remaining_pu: int = pu_incoming - pu_from_incoming
+	var remaining_actions: int = total_actions - actions_used
+	# Each store action puts 1 PU into bee bread
+	var pu_to_store: int = mini(remaining_pu, remaining_actions)
+	actions_used += pu_to_store
+
+	# -- Capping delay (from nurse understaffing) --
 	var capping_delay: int
 	if ratio >= ADEQUATE_RATIO:
-		capping_delay = 0   # Normal: capped on day 9 as expected
+		capping_delay = 0   # Normal: capped on schedule
 	elif ratio >= ADEQUATE_RATIO * 0.5:
-		capping_delay = 1   # Mild stress: capped on day 10
+		capping_delay = 1   # Mild stress: 1 day delay
 	else:
-		capping_delay = 2   # Severe stress: capped on day 11
+		capping_delay = 2   # Severe stress: 2 day delay
+
+	# Royal jelly surplus for queen rearing
+	var rjelly: float = clampf((ratio - IDEAL_NURSE_RATIO * 0.5) / IDEAL_NURSE_RATIO, 0.0, 1.0)
 
 	return {
-		"has_nurse_bees" : adequate,
-		"nurse_ratio"    : ratio,
-		"rjelly_surplus" : rjelly,
-		"capping_delay"  : capping_delay,
+		"brood_fed":        brood_fed,
+		"brood_stunted":    brood_stunted,
+		"pu_used_feeding":  pu_used_feeding,
+		"pu_stored":        pu_to_store,
+		"bee_bread_used":   bee_bread_used,
+		"has_nurse_bees":   adequate,
+		"nurse_ratio":      ratio,
+		"rjelly_surplus":   rjelly,
+		"capping_delay":    capping_delay,
+		"total_actions":    total_actions,
+		"actions_used":     actions_used,
 	}

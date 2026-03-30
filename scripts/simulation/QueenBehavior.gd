@@ -41,15 +41,61 @@ static func should_supersede(queen_age_days: int, queen_health: float) -> bool:
 		return false
 	return randf() < SUPERSEDURE_CHANCE
 
-## Grade modifier table (GDD Table 3.2) -- multiplies laying_rate.
+## Grade modifier table -- multiplies base laying_rate (2000).
+## S-tier queen lays 1500-2000 eggs/day depending on season/age/stress.
+## S=1.00 is the baseline (best real-world queens). Lower grades scale down.
 static func grade_modifier(grade: String) -> float:
 	match grade:
-		"A+": return 1.20
-		"A":  return 1.10
-		"B":  return 1.00
-		"C":  return 0.85
-		"D":  return 0.65
-		_:    return 1.00
+		"S":  return 1.00   # 1500-2000 eggs/day (peak season)
+		"A":  return 0.85   # 1275-1700
+		"B":  return 0.70   # 1050-1400
+		"C":  return 0.55   # 825-1100
+		"D":  return 0.35   # 525-700
+		"F":  return 0.00   # dead or absent queen
+		_:    return 0.70   # default to B-tier
+
+## Queen age curve -- performance peaks year 2, declines after.
+## Validated by Karpathy Phase 4: 5-year lifecycle with natural decline.
+## queen_age_days: total days since queen was introduced.
+static func queen_age_multiplier(queen_age_days: int) -> float:
+	var years: float = float(queen_age_days) / 224.0
+	if years <= 1.0:
+		return 1.00
+	elif years <= 2.0:
+		return 1.05   # peak performance in year 2
+	elif years <= 3.0:
+		return 1.05 - (years - 2.0) * 0.15   # 1.05 -> 0.90
+	elif years <= 4.0:
+		return 0.90 - (years - 3.0) * 0.20   # 0.90 -> 0.70
+	else:
+		return maxf(0.10, 0.70 - (years - 4.0) * 0.15)   # gradual decline
+
+## Congestion penalty on queen laying rate.
+## Validated by Karpathy Phase 4+8: only severe congestion cuts laying.
+static func congestion_laying_modifier(congestion_state: int) -> float:
+	match congestion_state:
+		0: return 1.00   # NORMAL
+		1: return 0.75   # BROOD_BOUND
+		2: return 0.85   # HONEY_BOUND
+		3: return 0.50   # FULLY_CONGESTED
+		_: return 1.00
+
+## Varroa stress on queen laying -- mite load reduces laying rate.
+## mites_per_100: mite count per 100 adult bees.
+## Validated by Karpathy Phase 4: disease pressure on queen performance.
+static func varroa_laying_modifier(mites_per_100: float) -> float:
+	if mites_per_100 < 1.0:
+		return 1.00
+	elif mites_per_100 < 2.0:
+		return 0.95
+	elif mites_per_100 < 3.0:
+		return 0.85
+	elif mites_per_100 < 5.0:
+		return 0.70
+	elif mites_per_100 < 8.0:
+		return 0.50
+	else:
+		return 0.25
 
 ## Species seasonal modifier -- how well the species ramps up/down with season.
 ## season_factor: 0-1 from TimeManager.season_factor().

@@ -4,6 +4,7 @@
 extends Node2D
 
 func _ready() -> void:
+	_setup_weather()
 	TimeManager.current_scene_id = "timber_creek"
 	if get_node_or_null("/root/SceneManager"):
 		SceneManager.current_zone_name = "Timber Creek"
@@ -58,3 +59,16 @@ func _apply_seasonal_visuals() -> void:
 				creek.modulate = Color(0.85, 0.90, 1.0, 1.0)    # icy
 			_:
 				creek.modulate = Color(1.0, 1.0, 1.0, 1.0)
+
+func _setup_weather() -> void:
+	if get_node_or_null("WeatherOverlay") == null:
+		var overlay: CanvasLayer = CanvasLayer.new()
+		overlay.name = "WeatherOverlay"
+		overlay.set_script(load("res://scripts/world/weather_overlay.gd"))
+		add_child(overlay)
+	var world: Node = get_node_or_null("World")
+	if world != null and world.get_node_or_null("WeatherParticles") == null:
+		var particles: Node2D = Node2D.new()
+		particles.name = "WeatherParticles"
+		particles.set_script(load("res://scripts/world/weather_particles.gd"))
+		world.add_child(particles)

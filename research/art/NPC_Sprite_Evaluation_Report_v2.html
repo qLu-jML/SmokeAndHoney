@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smoke & Honey - NPC Sprite Evaluation Report v2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #16c784;
+            padding-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #16c784;
+            text-shadow: 0 2px 10px rgba(22, 199, 132, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            color: #a0a0a0;
+            margin-bottom: 15px;
+        }
+
+        .progress-tracker {
+            display: inline-block;
+            background-color: #252541;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 1em;
+            color: #16c784;
+            font-weight: 600;
+            border: 1px solid #16c784;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            font-size: 1em;
+            border: 2px solid #16c784;
+            background-color: transparent;
+            color: #16c784;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            background-color: #16c784;
+            color: #1a1a2e;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(22, 199, 132, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.reset {
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        .btn.reset:hover {
+            background-color: #ff6b6b;
+            color: #1a1a2e;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #16c784;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #16c784;
+        }
+
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(900px, 1fr));
+            gap: 30px;
+        }
+
+        .character-card {
+            background-color: #252541;
+            border: 1px solid #3a3a5c;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .character-card:hover {
+            border-color: #16c784;
+            box-shadow: 0 5px 20px rgba(22, 199, 132, 0.15);
+        }
+
+        .character-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #3a3a5c;
+        }
+
+        .character-name {
+            font-size: 1.4em;
+            color: #16c784;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .character-description {
+            font-size: 0.95em;
+            color: #a0a0a0;
+            font-style: italic;
+        }
+
+        .view-row {
+            margin-bottom: 25px;
+        }
+
+        .view-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .view-label {
+            font-size: 1em;
+            font-weight: 600;
+            color: #16c784;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .view-label::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background-color: #16c784;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .option {
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 6px;
+            overflow: hidden;
+            background-color: #1a1a2e;
+            border: 2px solid #3a3a5c;
+            aspect-ratio: 1;
+        }
+
+        .option img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .option:hover img {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+
+        .option.selected {
+            border-color: #16c784;
+            box-shadow: 0 0 15px rgba(22, 199, 132, 0.6), inset 0 0 15px rgba(22, 199, 132, 0.2);
+        }
+
+        .option.unselected img {
+            filter: brightness(0.7);
+        }
+
+        .option-label {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background-color: rgba(26, 26, 46, 0.9);
+            color: #16c784;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 700;
+            border: 1px solid #16c784;
+        }
+
+        .option:hover .option-label {
+            background-color: rgba(22, 199, 132, 0.2);
+        }
+
+        .option.selected .option-label {
+            background-color: rgba(22, 199, 132, 0.4);
+            font-weight: 700;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90vh;
+        }
+
+        .modal-content img {
+            max-width: 100%;
+            max-height: 85vh;
+            display: block;
+            border-radius: 8px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background-color: #16c784;
+            color: #1a1a2e;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background-color: #ff6b6b;
+            color: white;
+        }
+
+        @media (max-width: 1024px) {
+            .character-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .options-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid #16c784;
+            text-align: center;
+            color: #a0a0a0;
+            font-size: 0.9em;
+        }
+
+        .export-status {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 0.95em;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .export-status.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .export-status.success {
+            background-color: rgba(22, 199, 132, 0.2);
+            border: 1px solid #16c784;
+            color: #16c784;
+        }
+
+        .export-status.error {
+            background-color: rgba(255, 107, 107, 0.2);
+            border: 1px solid #ff6b6b;
+            color: #ff6b6b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Smoke & Honey - NPC Sprite Evaluation Report v2</h1>
+            <p>Click to select your preferred option for each character view</p>
+            <div class="progress-tracker">
+                <span id="progressCount">0</span> of 36 selections made
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="exportBtn">Export Selections as JSON</button>
+            <button class="btn reset" id="resetBtn">Reset All Selections</button>
+            <div class="export-status" id="exportStatus"></div>
+        </div>
+
+        <!-- Named NPCs Section -->
+        <div class="section">
+            <h2 class="section-title">Named NPCs</h2>
+            <div class="character-grid" id="namedNpcsGrid"></div>
+        </div>
+
+        <!-- Pedestrians Section -->
+        <div class="section">
+            <h2 class="section-title">Pedestrians</h2>
+            <div class="character-grid" id="pedestriansGrid"></div>
+        </div>
+
+        <div class="footer">
+            <p>Sprite evaluation report for game development. All images are Leonardo.ai generated assets.</p>
+        </div>
+    </div>
+
+    <!-- Modal for enlarged image view -->
+    <div class="modal" id="imageModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">Close</button>
+            <img id="modalImage" src="" alt="Enlarged sprite view">
+        </div>
+    </div>
+
+    <script>
+        // Character data structure
+        const characters = {
+            namedNpcs: [
+                {
+                    id: 'uncle_bob',
+                    name: 'Uncle Bob (Robert Whitfield)',
+                    description: 'Late 50s, balding gray hair, denim overalls, plaid flannel, kind farmer',
+                    front: 'c6227638-b03a-4154-bc31-2f2a7436345c',
+                    topdown: '01b07afc-3a8c-4b8b-8f68-93104cb04dd0'
+                },
+                {
+                    id: 'frank',
+                    name: 'Frank Fischbach',
+                    description: 'Middle-aged, green apron, store owner, friendly businessman',
+                    front: 'ee74e263-b13e-44f5-bb1a-9b724e038b73',
+                    topdown: '339c4d77-38de-4931-ab25-6a37dac3f18b'
+                },
+                {
+                    id: 'dr_ellen',
+                    name: 'Dr. Ellen Harwick',
+                    description: '40s woman, khaki field vest, clipboard, extension agent',
+                    front: 'fd6c86c5-a2ed-4ca4-866c-9b5ff0c5e9d9',
+                    topdown: 'b6c262b2-a9f9-47fd-bd72-f6aaaa91188b'
+                },
+                {
+                    id: 'darlene',
+                    name: 'Darlene Kowalski',
+                    description: 'Late 60s, silver hair bun, gardening apron, master beekeeper',
+                    front: 'f3b2a696-6453-43ff-b1ce-d84739bb9100',
+                    topdown: '5493208d-e6f8-4f6e-b5e3-594126ad10f8'
+                },
+                {
+                    id: 'walt',
+                    name: 'Walt Harmon',
+                    description: 'Late 50s, heavyset, farm cap, denim jacket, reserved farmer',
+                    front: '03bb3865-767d-4eed-823a-1d0a3fd8c81c',
+                    topdown: '908aa90a-3536-42e2-ab40-76b8ccebd4a7'
+                },
+                {
+                    id: 'kacey',
+                    name: 'Kacey Harmon',
+                    description: 'Late 20s woman, cargo pants, work jacket, laptop bag, red hair ponytail',
+                    front: 'd8856929-704b-4894-b75d-a426d1f74c08',
+                    topdown: '9781ebcf-7f42-481d-868f-a412b1d2cf1a'
+                },
+                {
+                    id: 'silas',
+                    name: 'Silas Crenshaw',
+                    description: 'Early 70s, lean carpenter, leather work apron, chambray shirt, pencil behind ear',
+                    front: '678d0788-cf1e-4831-85a4-6e3c893a2c60',
+                    topdown: '976cf4af-bef4-470c-9843-ef55963da028'
+                },
+                {
+                    id: 'carl',
+                    name: 'Carl Tanner',
+                    description: '40s, canvas apron, denim shirt, feed store worker',
+                    front: '783415cc-ec7c-4473-8f49-8da2effd6e96',
+                    topdown: 'f21b2fa6-367a-4369-af5b-42a5b132fc49'
+                },
+                {
+                    id: 'june',
+                    name: 'June (Postmaster)',
+                    description: 'Middle-aged woman, blue blouse, reading glasses, post office worker',
+                    front: 'a5ecddd5-8f3d-4e0e-a9fe-6a167266ec0e',
+                    topdown: 'e20ac34a-9831-479f-ba24-f85d2565fc6d'
+                },
+                {
+                    id: 'rose',
+                    name: 'Rose (Waitress)',
+                    description: 'Early 30s woman, cream blouse, small apron, diner waitress',
+                    front: 'e91531e1-e480-416b-abf4-597ea00399a3',
+                    topdown: '851fe455-33bf-48f5-88bb-c3235749ecf1'
+                },
+                {
+                    id: 'lloyd',
+                    name: 'Lloyd Petersen',
+                    description: '60s man, plaid shirt, suspenders, glasses, retiree',
+                    front: '4177d52d-f8a9-4f93-9ed5-4c7a4629d56a',
+                    topdown: 'eae03076-cf59-4bc5-80d9-b1aa2f28a28b'
+                },
+                {
+                    id: 'terri',
+                    name: 'Terri Vogel',
+                    description: '50s woman, cardigan sweater, community member',
+                    front: '73017ed4-f8ba-4aa1-8f3f-9c2371de497b',
+                    topdown: 'ac98f26b-56ff-485c-84ff-f1a2a4328841'
+                }
+            ],
+            pedestrians: [
+                {
+                    id: 'ped_a',
+                    name: 'Pedestrian A',
+                    description: 'Young adult male, t-shirt and jeans',
+                    front: 'ab2a41dc-6d38-48e9-9d0c-29c78cbf361d',
+                    topdown: '1eae421e-3a8d-4a60-b855-2a83ab81222d'
+                },
+                {
+                    id: 'ped_b',
+                    name: 'Pedestrian B',
+                    description: 'Middle-aged female, sundress with cardigan',
+                    front: '0a097474-89f6-44d1-a4f7-93ecbdd2ed84',
+                    topdown: '7bca024f-a907-4d5d-8d05-ca60387bae3b'
+                },
+                {
+                    id: 'ped_c',
+                    name: 'Pedestrian C',
+                    description: 'Middle-aged male, polo shirt and khakis',
+                    front: '9bf68175-251d-4a9d-beb1-445e5b976959',
+                    topdown: '03f9bd0e-ecde-4031-aa6b-3879abe43e98'
+                },
+                {
+                    id: 'ped_d',
+                    name: 'Pedestrian D',
+                    description: 'Young adult female, flannel and jeans, ponytail',
+                    front: 'aaa49a80-ba0a-438b-bedb-4d919a7694dc',
+                    topdown: '22ae3cdb-f30e-4c4f-89be-b6c91a574961'
+                },
+                {
+                    id: 'ped_e',
+                    name: 'Pedestrian E',
+                    description: 'Elderly male, cap and vest, slight stoop',
+                    front: '71877486-b9e7-49b3-971f-4c1a61ce54e7',
+                    topdown: '673e70de-f935-40a1-abc5-4fce22014187'
+                },
+                {
+                    id: 'ped_f',
+                    name: 'Pedestrian F',
+                    description: 'Elderly female, floral blouse, sun hat',
+                    front: '2cd6648b-0b8d-4855-b59c-55199b66b156',
+                    topdown: 'fec24021-b8aa-4fda-8eae-37e5dbc49130'
+                }
+            ]
+        };
+
+        // State management
+        const selections = {};
+
+        // Initialize selections object
+        function initializeSelections() {
+            characters.namedNpcs.concat(characters.pedestrians).forEach(char => {
+                selections[char.id] = {
+                    front: null,
+                    topdown: null
+                };
+            });
+        }
+
+        // Generate image URL
+        function getImageUrl(genId, idx, isTopdown) {
+            const seg = idx + 1; // 1-4 for options A-D
+            const baseUrl = 'https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations';
+            const filename = isTopdown
+                ? `Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_${idx}`
+                : `Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_${idx}`;
+            return `${baseUrl}/${genId}/segments/${seg}:4:1/${filename}.jpg`;
+        }
+
+        // Create character card HTML
+        function createCharacterCard(character) {
+            const html = `
+                <div class="character-card">
+                    <div class="character-header">
+                        <div class="character-name">${character.name}</div>
+                        <div class="character-description">${character.description}</div>
+                    </div>
+
+                    <div class="view-row">
+                        <div class="view-label">Front-Facing (Portrait/Shop)</div>
+                        <div class="options-grid">
+                            ${[0, 1, 2, 3].map(idx => `
+                                <div class="option" data-char="${character.id}" data-view="front" data-option="${idx}">
+                                    <img src="${getImageUrl(character.front, idx, false)}" alt="Option ${String.fromCharCode(65 + idx)}" loading="lazy">
+                                    <div class="option-label">${String.fromCharCode(65 + idx)}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="view-row">
+                        <div class="view-label">Top-Down (Overworld)</div>
+                        <div class="options-grid">
+                            ${[0, 1, 2, 3].map(idx => `
+                                <div class="option" data-char="${character.id}" data-view="topdown" data-option="${idx}">
+                                    <img src="${getImageUrl(character.topdown, idx, true)}" alt="Option ${String.fromCharCode(65 + idx)}" loading="lazy">
+                                    <div class="option-label">${String.fromCharCode(65 + idx)}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            return html;
+        }
+
+        // Render all character cards
+        function renderCharacters() {
+            const namedNpcsHtml = characters.namedNpcs.map(createCharacterCard).join('');
+            document.getElementById('namedNpcsGrid').innerHTML = namedNpcsHtml;
+
+            const pedestriansHtml = characters.pedestrians.map(createCharacterCard).join('');
+            document.getElementById('pedestriansGrid').innerHTML = pedestriansHtml;
+
+            attachEventListeners();
+        }
+
+        // Attach event listeners to options
+        function attachEventListeners() {
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', handleOptionClick);
+            });
+
+            document.querySelectorAll('.option img').forEach(img => {
+                img.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openModal(img.src);
+                });
+            });
+        }
+
+        // Handle option click
+        function handleOptionClick(e) {
+            const charId = this.dataset.char;
+            const view = this.dataset.view;
+            const optionIdx = parseInt(this.dataset.option);
+
+            // Store selection
+            selections[charId][view] = optionIdx;
+
+            // Update UI
+            updateUIForView(charId, view, optionIdx);
+
+            // Update progress
+            updateProgress();
+        }
+
+        // Update UI for a specific view
+        function updateUIForView(charId, view, optionIdx) {
+            const options = document.querySelectorAll(`[data-char="${charId}"][data-view="${view}"]`);
+            const isAnySelected = selections[charId][view] !== null;
+
+            options.forEach((option, idx) => {
+                if (idx === optionIdx) {
+                    option.classList.add('selected');
+                    option.classList.remove('unselected');
+                } else {
+                    option.classList.remove('selected');
+                    if (isAnySelected) {
+                        option.classList.add('unselected');
+                    } else {
+                        option.classList.remove('unselected');
+                    }
+                }
+            });
+        }
+
+        // Update progress tracker
+        function updateProgress() {
+            let total = 0;
+            Object.values(selections).forEach(char => {
+                if (char.front !== null) total++;
+                if (char.topdown !== null) total++;
+            });
+            document.getElementById('progressCount').textContent = total;
+        }
+
+        // Open modal for enlarged view
+        function openModal(imageSrc) {
+            document.getElementById('modalImage').src = imageSrc;
+            document.getElementById('imageModal').classList.add('active');
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('imageModal').classList.remove('active');
+        }
+
+        // Export selections as JSON
+        function exportSelections() {
+            const exportData = {
+                report: 'Smoke & Honey - NPC Sprite Evaluation Report v2',
+                exportDate: new Date().toISOString(),
+                selections: {}
+            };
+
+            Object.entries(selections).forEach(([charId, views]) => {
+                const character = characters.namedNpcs.find(c => c.id === charId) ||
+                                 characters.pedestrians.find(c => c.id === charId);
+                exportData.selections[charId] = {
+                    name: character.name,
+                    front: views.front !== null ? String.fromCharCode(65 + views.front) : null,
+                    topdown: views.topdown !== null ? String.fromCharCode(65 + views.topdown) : null
+                };
+            });
+
+            const jsonString = JSON.stringify(exportData, null, 2);
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(jsonString).then(() => {
+                showExportStatus('Selections copied to clipboard!', 'success');
+            }).catch(() => {
+                showExportStatus('Failed to copy. Please try again.', 'error');
+            });
+        }
+
+        // Show export status message
+        function showExportStatus(message, type) {
+            const statusEl = document.getElementById('exportStatus');
+            statusEl.textContent = message;
+            statusEl.className = `export-status ${type} show`;
+            setTimeout(() => {
+                statusEl.classList.remove('show');
+            }, 3000);
+        }
+
+        // Reset all selections
+        function resetAll() {
+            if (confirm('Are you sure you want to reset all selections? This cannot be undone.')) {
+                initializeSelections();
+                document.querySelectorAll('.option').forEach(option => {
+                    option.classList.remove('selected', 'unselected');
+                });
+                updateProgress();
+            }
+        }
+
+        // Initialize page
+        function init() {
+            initializeSelections();
+            renderCharacters();
+            updateProgress();
+
+            // Event listeners for buttons
+            document.getElementById('exportBtn').addEventListener('click', exportSelections);
+            document.getElementById('resetBtn').addEventListener('click', resetAll);
+            document.getElementById('modalClose').addEventListener('click', closeModal);
+
+            // Close modal on background click
+            document.getElementById('imageModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('imageModal')) {
+                    closeModal();
+                }
+            });
+
+            // Close modal on Escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+        }
+
+        // Run initialization when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>

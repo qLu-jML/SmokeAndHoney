@@ -2,17 +2,26 @@
 # Place as a child of any scene. When the player overlaps this Area2D,
 # transition to the target scene via the loading screen.
 # Use the exported properties to configure each exit.
+# @tool makes collision shapes visible as colored rects in the editor.
+@tool
 extends Area2D
 
 @export var target_scene: String = ""
 @export var exit_label_text: String = ""   # e.g., "-> Cedar Bend"
 @export var spawn_side: String = "left"    # which side player spawns on in target scene
 @export var energy_cost: float = 0.0       # optional energy deduction
+## Color of the debug rectangle drawn in the editor
+@export var debug_color: Color = Color(0.2, 0.6, 1.0, 0.25)
 
 var _transitioning: bool = false
 var _label: Label = null
 
 func _ready() -> void:
+	# In-editor: just draw the debug overlay, skip runtime logic
+	if Engine.is_editor_hint():
+		queue_redraw()
+		return
+
 	# Connect the body_entered signal
 	body_entered.connect(_on_body_entered)
 
@@ -48,6 +57,26 @@ func _ready() -> void:
 		_:
 			arrow.text = ">>"
 	add_child(arrow)
+
+func _draw() -> void:
+	# Draw a colored rectangle matching the collision shape so the zone
+	# is visible in the Godot 2D editor.  Works at both editor-time and
+	# runtime (runtime draw is behind sprites so barely noticeable).
+	for child in get_children():
+		if child is CollisionShape2D:
+			var cshape: CollisionShape2D = child as CollisionShape2D
+			if cshape.shape is RectangleShape2D:
+				var rect_shape: RectangleShape2D = cshape.shape as RectangleShape2D
+				var half: Vector2 = rect_shape.size * 0.5
+				var rect := Rect2(cshape.position - half, rect_shape.size)
+				# Filled rectangle
+				draw_rect(rect, debug_color, true)
+				# Outline
+				var outline_color := Color(debug_color.r, debug_color.g, debug_color.b, 0.8)
+				draw_rect(rect, outline_color, false, 1.0)
+	# Draw the label text in the editor too
+	if exit_label_text != "":
+		draw_string(ThemeDB.fallback_font, Vector2(-30, -8), exit_label_text, HORIZONTAL_ALIGNMENT_CENTER, 60, 5, Color(1, 1, 0.7, 0.9))
 
 func _on_body_entered(body: Node2D) -> void:
 	if _transitioning:

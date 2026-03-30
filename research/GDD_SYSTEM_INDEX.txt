@@ -1,0 +1,199 @@
+SMOKE & HONEY - GDD SYSTEM INDEX (QUICK REFERENCE)
+===================================================
+
+This index provides a fast lookup for all major game systems and their key mechanics.
+Full details in GDD_COMPREHENSIVE_SUMMARY.txt
+
+================================================================================
+MAJOR GAME SYSTEMS
+================================================================================
+
+1. PLAYER SYSTEMS
+   - Player Overview (no combat, progression through apiary growth)
+   - Energy System (100 max, costs 1-40 per action, restored by sleep/food)
+   - Standing/Reputation (earned/lost based on actions)
+
+2. HIVE DATA & SIMULATION
+   - Hive Properties (location, type, bodies, supers, condition 0-100)
+   - Queen System (species, grade S-F, age multipliers ×0.20-×1.05)
+   - Population Simulation (individual bee tracking, 21-day worker lifecycle)
+   - Drones (seasonal, mating role, DCA mechanic)
+   - Health System (hidden 0-100 composite score, visual state indicators)
+   - Pests & Disease (varroa, SHB, chalkbrood, nosema, AFB, EFB)
+   - Frame Inspection & Laying (brood pattern, queen laying algorithm)
+   - Queen Breeding (requires Breeder Yard, virgin queens fly to DCA)
+
+3. TIME & CALENDAR
+   - Calendar Structure (8-month year, real seasonal progression)
+   - Day/Night Cycle (06:00-18:00 outdoor, 20:00-06:00 sleep)
+   - Nectar Flow Calendar (blooming schedule by month/location)
+
+4. CORE GAMEPLAY SYSTEMS
+   - Hotbar & Inventory (10-slot always visible)
+   - Hive Inspection (weekly task, frame-by-frame observation, sting RNG)
+   - Queen Sighting Minigame (visual search, difficulty-based, 80% visibility)
+   - Inspection Knowledge Tiers (5 levels, information gated by experience)
+   - Forage & Flower System (location-based forage pool, nectar/pollen input)
+   - Bee Acquisition (supplier tiers, package colonies, comb drawing)
+   - Swarm Management (congestion triggers, interventions, swarm events)
+   - Harvest System (uncapping minigame, extraction, grading, bottling)
+   - Crafting System (recipes unlock via XP, energy-based production)
+   - Weather System (affects foraging, inspection quality, overwinter survival)
+   - Resource Economy (dollars earned/spent, price tables)
+
+5. PROGRESSION SYSTEMS
+   - Player XP Track (5 levels, unlock tiers and recipes)
+   - Apiary Structures (Breeder Yard, Extraction, Workshop, Garden)
+   - Skill Trees (Genetics, Health, Extraction tracks)
+   - Quests & Events (story, task, seasonal, challenge types)
+   - NPC Chains (multi-part per NPC, relationship building)
+
+================================================================================
+CRITICAL NUMBERS & FORMULAS
+================================================================================
+
+QUEEN PERFORMANCE:
+- Laying rate peak: 1,500-2,000 eggs/day (Year 2, S-grade, healthy)
+- Grade modifier: +25% (S) to -100% (F)
+- Age multiplier: ×1.05 (Year 2 peak) → ×0.20 (Year 6+)
+- Grade degradation: S→A (18 mo), A→B (24 mo), B→C (36 mo), etc.
+
+POPULATION LIFECYCLE:
+- Worker lifespan: 6 weeks (spring/summer), 4-6 months (winter)
+- Larval development: 3 days (egg) + 6 days (larva) + 12 days (capped) = 21 days
+- House bee phase: 12 days internal work, 3-4 days transition
+- Forager phase: 5-8 weeks external work
+- Base mortality: 0.1-3% daily by stage/season
+
+ENERGY SYSTEM:
+- Max: 100
+- Passive drain: 1-2/hour standing
+- Tasks: 1-3 (very light) to 25-40 (very heavy)
+- Sting cost: 5-8 per sting
+- Restoration: full sleep (100), meal (40-50), temp effects (15-25)
+
+EQUIPMENT CONDITION:
+- Range: 0-100
+- Degradation: -1 (maintained/shed) to -4 (unprotected) per week
+- Impact threshold: below 50 = -10% production, -5% survival chance
+- Repair: basic (+20), advanced (+65), craftable (+65)
+
+HARVEST MECHANICS:
+- Frame sizes: deep 3,500 cells, super 2,450 cells
+- Weight per frame: 5 lbs (deep full), 3.5 lbs (super full)
+- Moisture grades: <18% (excellent), 18-21% (good), >24% (poor)
+- Winter reserve minimum: 60 lbs (warning below 40 lbs)
+- Grading affects price: $12-14 (premium) to $4-5 (poor)
+
+DISEASE MECHANICS:
+- Varroa threshold: 1 mite per 100 bees triggers treatment
+- Contagion: 5% per day between hives at same location
+- AFB: colony death, equipment destroyed
+- EFB: treatable with requeening or antibiotics
+- Equipment sharing increases contagion significantly
+
+FORAGE & PRODUCTION:
+- Peak summer forage: 6,000+ lbs potential per location
+- Early spring forage: 1,500 lbs potential per location
+- Low forage impact: -20% population growth, stagnation
+- Diverse forage: better honey grades, multi-color blends
+- Seasonal multiplier: spring 1.0x, summer 1.5x, fall 0.5x, winter 0x
+
+STING PROBABILITY:
+- Base chance: 10% (calm) to 25% (defensive) per inspection step
+- Bee suit modifier: ×0.20 (80% reduction)
+- Smoke modifier: ×0.85 (15% reduction)
+- Combined: ×0.17 (95% total reduction)
+- Evening modifier: ×1.25 (foragers returning)
+
+COLONY STRESS MODIFIER:
+- Baseline: 1.0x laying rate
+- Increases: congestion (×1.15), food shortage (×1.20), disease (×1.25), queenless (×1.50)
+- Decreases: strong forage (×0.85), adequate space (×0.95), healthy queen (×0.90)
+- Can reduce laying rate 40-60% if multiple stressors stack
+
+================================================================================
+SYSTEM DEPENDENCIES & INTEGRATION
+================================================================================
+
+Hive Health depends on:
+- Population count (strong/weak/none)
+- Brood pattern quality (solid/spotty/failing)
+- Disease/pest presence (varroa, chalkbrood, etc.)
+- Winter food stores adequacy
+- Equipment condition (>75 good, <30 poor)
+- Time since last inspection
+- Swarm preparation status
+
+Honey Production depends on:
+- Queen laying rate (driven by grade, age, health, stress)
+- Forage availability (location + season + weather)
+- Colony population (forager count)
+- Hive health (good health = higher efficiency)
+- Time (takes 21 days to develop first adults)
+- Equipment condition (<50% causes -10% production)
+
+Queen Genetics depend on:
+- Breeding selection (player chooses which queens to breed)
+- Virgin queen mating success (DCA minigame, genetic roll)
+- Grade inheritance (mother's grade ±1 letter)
+- Age tracking (degrades over 2-3 years)
+- Disease susceptibility (inherits varroa tolerance, chalkbrood resistance)
+
+Player Progression depends on:
+- XP earning from actions (inspections, harvests, quests)
+- Knowledge accumulation (skill tree unlocks)
+- Economic success (cash from honey sales funding expansions)
+- NPC relationships (quests unlock, prices improve)
+- Seasonal progression (summer = production, winter = planning)
+
+================================================================================
+IMPLEMENTATION PRIORITIES
+================================================================================
+
+Core (Required for playable game):
+1. Hive simulation (population tracking, queen laying)
+2. Inspection system (frame-by-frame viewing, quality variance)
+3. Time/calendar system (day advancement, season changes)
+4. Energy system (limits player actions per day)
+5. Harvest pipeline (uncapping, extraction, grading, bottling)
+6. Basic NPC interaction (dialogue, quest hooks)
+
+Secondary (Adds depth, playable without):
+1. Disease/pest mechanics (varroa, chalkbrood, treatments)
+2. Queen breeding system (genetic improvement track)
+3. Swarm management (prevention and handling)
+4. Crafting system (recipes, tool progression)
+5. Weather effects (impacts foraging, overwinter)
+6. Advanced knowledge tiers (full inspection details)
+
+Polish (Gameplay feel, quality-of-life):
+1. UI animations and juice
+2. Seasonal visual transitions
+3. NPC character development subplots
+4. Sound design (bee ambience, quiet moments)
+5. Tutorial/guided first season
+
+================================================================================
+TESTING CHECKLIST (Implementation Verification)
+================================================================================
+
+When comparing implementation vs. GDD, verify:
+
+[ ] Queen laying rate matches formula: base × grade_mod × age_mult × stress_mult × season_mod
+[ ] Population simulation tracks all lifecycle stages with correct durations
+[ ] Energy system enforces 100-max cap, restores only via sleep/food
+[ ] Sting RNG uses correct probability multipliers (suit ×0.20, smoke ×0.85)
+[ ] Inspection tiers show correct information at each player level
+[ ] Harvest moisture calculation based on season + forage + weather
+[ ] Equipment condition degrades weekly at correct rates (-1 to -4)
+[ ] Hive health score composites correctly: population + brood + disease + stores + condition
+[ ] Winter reserve warning triggers at 60 lbs minimum
+[ ] DCA minigame uses correct difficulty distribution (33% each easy/medium/hard)
+[ ] Frame grid sizes correct: deep 70×50, super 70×35
+[ ] Forage pool recalculates monthly based on local flora bloom phase
+[ ] Swarm impulse calculations use correct stressor multipliers
+[ ] NPC quest chains persist and build relationship over seasons
+[ ] Save/load correctly serializes all hive state and player progress
+
+================================================================================

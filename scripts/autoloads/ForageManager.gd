@@ -16,17 +16,31 @@ extends Node
 # Nectar/pollen values here are whole-number points (1-5 scale), matching
 # FlowerLifecycleManager.FLOWER_TYPES. Trees use higher values per unit
 # because one tree represents a large canopy vs. a single 16px flower tile.
+# Validated by Karpathy Phase 6: Iowa native flower species with bloom windows.
+# Research uses day-of-year (0-223); converted to month indices here.
+# Nectar/pollen values 1-5 scale, matching FlowerLifecycleManager.
 const PLANT_DATA: Dictionary = {
-	"dandelion":   { "start": 0, "end": 1,  "nectar": 2, "pollen": 3 },
-	"willow":      { "start": 0, "end": 0,  "nectar": 1, "pollen": 4 },
-	"fruit_tree":  { "start": 0, "end": 1,  "nectar": 3, "pollen": 3 },
-	"bergamot":    { "start": 2, "end": 3,  "nectar": 3, "pollen": 2 },
-	"clover":      { "start": 1, "end": 4,  "nectar": 4, "pollen": 2 },
-	"coneflower":  { "start": 2, "end": 4,  "nectar": 2, "pollen": 3 },
-	"sunflower":   { "start": 3, "end": 4,  "nectar": 2, "pollen": 4 },
-	"linden":      { "start": 2, "end": 2,  "nectar": 5, "pollen": 2 },
-	"goldenrod":   { "start": 4, "end": 5,  "nectar": 3, "pollen": 1 },
-	"aster":       { "start": 4, "end": 5,  "nectar": 2, "pollen": 2 },
+	# Dandelion days 21-64 -> months 0-2 (overlaps slightly into Wide-Clover)
+	"dandelion":     { "start": 0, "end": 2,  "nectar": 3, "pollen": 3 },
+	# Phase 6: Willow early spring only
+	"willow":        { "start": 0, "end": 0,  "nectar": 1, "pollen": 4 },
+	# Phase 6: Fruit trees (apple/cherry/pear) months 0-1
+	"fruit_tree":    { "start": 0, "end": 1,  "nectar": 3, "pollen": 3 },
+	# Phase 6: Black Locust days 45-65 -> month 1-2
+	"black_locust":  { "start": 1, "end": 2,  "nectar": 5, "pollen": 2 },
+	# Phase 6: White Clover days 40-110 -> months 1-3
+	"clover":        { "start": 1, "end": 3,  "nectar": 4, "pollen": 2 },
+	# Phase 6: Basswood/Linden days 70-95 -> months 2-3
+	"linden":        { "start": 2, "end": 3,  "nectar": 5, "pollen": 2 },
+	# Phase 6: Prairie Clover days 80-130 -> months 2-4
+	"prairie_clover": { "start": 2, "end": 4,  "nectar": 3, "pollen": 3 },
+	"bergamot":      { "start": 2, "end": 3,  "nectar": 3, "pollen": 2 },
+	"coneflower":    { "start": 2, "end": 4,  "nectar": 2, "pollen": 3 },
+	"sunflower":     { "start": 3, "end": 4,  "nectar": 2, "pollen": 4 },
+	# Phase 6: Goldenrod days 115-155 -> months 4-5
+	"goldenrod":     { "start": 4, "end": 5,  "nectar": 3, "pollen": 4 },
+	# Phase 6: Aster days 130-165 -> months 4-5
+	"aster":         { "start": 4, "end": 5,  "nectar": 2, "pollen": 3 },
 }
 
 # -- State --------------------------------------------------------------------
@@ -54,15 +68,10 @@ func calculate_forage_pool(world_position: Vector2) -> float:
 		var nectar: float = forage_data.get("nectar", 0.0)
 		var pollen: float = forage_data.get("pollen", 0.0)
 
-		# Add willow contribution in early spring (willow is a tree, not tile-managed)
-		if month == 0:
-			nectar += 0.5
-			pollen += 2.0
-
-		# Add linden contribution in summer (tree, not tile-managed)
-		if month == 2:
-			nectar += 1.8
-			pollen += 0.7
+		# Add contributions from all placed SeasonalTree instances
+		var tree_forage: Dictionary = _get_tree_forage(month)
+		nectar += tree_forage.get("nectar", 0.0)
+		pollen += tree_forage.get("pollen", 0.0)
 
 		# Combined NU (nectar-weighted since that's what makes honey)
 		var total_nu: float = nectar * 0.7 + pollen * 0.3
@@ -133,6 +142,25 @@ func report_goldenrod_end_of_season(_was_good: bool) -> void:
 	pass  # No longer used -- FlowerLifecycleManager manages all flowers
 
 # -- Internal -----------------------------------------------------------------
+
+## Sum nectar/pollen from all SeasonalTree instances in the "trees" group.
+## Each tree reports its own contribution based on species and bloom window.
+## NU values are divided by NU_SCALE (250) to match flower tile scale.
+func _get_tree_forage(month: int) -> Dictionary:
+	var total_nectar := 0.0
+	var total_pollen := 0.0
+	var trees := get_tree().get_nodes_in_group("trees")
+	for tree_node in trees:
+		if tree_node.has_method("get_forage_contribution"):
+			var contrib: Dictionary = tree_node.get_forage_contribution(month)
+			total_nectar += contrib.get("nectar", 0.0)
+			total_pollen += contrib.get("pollen", 0.0)
+	# Scale tree NU down to match flower tile density scale
+	# One tree with 8 NU total should contribute roughly as much as
+	# a patch of 20-30 mature flower tiles (which yield ~0.5-1.0 after NU_SCALE)
+	# Using /10 so a willow (2 nectar + 6 pollen) gives ~0.2 nectar + 0.6 pollen
+	return { "nectar": total_nectar / 10.0, "pollen": total_pollen / 10.0 }
+
 
 ## Find the FlowerLifecycleManager in the scene tree.
 func _get_flower_manager() -> FlowerLifecycleManager:

@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://sellscreen01"]
+
+[ext_resource type="Script" path="res://scripts/ui/sell_screen.gd" id="1_sell"]
+
+[node name="SellScreen" type="CanvasLayer"]
+script = ExtResource("1_sell")

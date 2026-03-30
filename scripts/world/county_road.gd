@@ -19,11 +19,17 @@ var _map_open: bool = false
 # Pending orders flag (driven by GameData pending deliveries)
 var _mailbox_has_mail: bool = false
 
+# -- Harvestable Trees (woodlot along the roadside) --------------------------
+var _harvestable_trees: Array = []
+var _active_chopping_minigame: CanvasLayer = null
+
 # -- Lifecycle ------------------------------------------------------------------
 
 func _ready() -> void:
+	_setup_weather()
 	_apply_seasonal_visuals()
 	_check_mailbox_state()
+	_spawn_harvestable_trees()
 	TimeManager.day_advanced.connect(_on_day_advanced)
 	TimeManager.current_scene_id = "county_road"
 	if get_node_or_null("/root/SceneManager"):
@@ -143,6 +149,8 @@ func _input(event: InputEvent) -> void:
 # -- Interaction ----------------------------------------------------------------
 
 func _try_interact() -> void:
+	if _active_chopping_minigame:
+		return  # Block interaction while chopping
 	var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
 	if not player:
 		return
@@ -160,6 +168,9 @@ func _try_interact() -> void:
 		if dist <= INTERACT_RADIUS:
 			_interact_mailbox()
 			return
+
+	# Check harvestable trees -- chop for logs
+	_try_chop_nearest_tree()
 
 func _toggle_map() -> void:
 	if _map_open:
@@ -197,3 +208,122 @@ func _interact_mailbox() -> void:
 		print("[Mailbox] All deliveries collected!")
 	else:
 		print("[Mailbox] No pending deliveries.")
+
+# -- Harvestable Tree Spawning ------------------------------------------------
+
+func _spawn_harvestable_trees() -> void:
+	# 8 trees along the right-side tree line of the county road.
+	# Spread along the top portion so they don't block road or exits.
+	var tree_script: GDScript = load("res://scripts/world/harvestable_tree.gd")
+	var tree_data: Array = [
+		{"id": "county_oak_1",    "label": "Oak",     "pos": Vector2(200, -120)},
+		{"id": "county_oak_2",    "label": "Oak",     "pos": Vector2(340, -140)},
+		{"id": "county_maple_1",  "label": "Maple",   "pos": Vector2(480, -110)},
+		{"id": "county_ash_1",    "label": "Ash",     "pos": Vector2(-100, -130)},
+		{"id": "county_ash_2",    "label": "Ash",     "pos": Vector2(50, -115)},
+		{"id": "county_walnut_1", "label": "Walnut",  "pos": Vector2(620, -125)},
+		{"id": "county_elm_1",    "label": "Elm",     "pos": Vector2(-250, -135)},
+		{"id": "county_hickory_1","label": "Hickory", "pos": Vector2(150, -145)},
+	]
+	var world_node: Node = get_node_or_null("World")
+	if not world_node:
+		world_node = self
+	for td in tree_data:
+		var tree_node := Node2D.new()
+		tree_node.set_script(tree_script)
+		tree_node.tree_id = td["id"]
+		tree_node.tree_label = td["label"]
+		tree_node.position = td["pos"]
+		world_node.add_child(tree_node)
+		_harvestable_trees.append(tree_node)
+
+func _process(_delta: float) -> void:
+	if _active_chopping_minigame:
+		return  # Don't update hints while minigame is active
+	var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
+	if not player:
+		return
+	for tree in _harvestable_trees:
+		if tree and tree.has_method("update_hint_visibility"):
+			tree.update_hint_visibility(player.global_position)
+
+# -- Chopping Interaction -----------------------------------------------------
+
+func _try_chop_nearest_tree() -> void:
+	var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
+	if not player:
+		return
+	# Check axe in inventory
+	if player.has_method("get_item_count"):
+		if player.get_item_count(GameData.ITEM_AXE) <= 0:
+			print("[County Road] You need an axe to chop trees. Buy one at the shop.")
+			return
+	# Check energy
+	if GameData.energy < 15.0:
+		print("[County Road] Too tired to chop trees.")
+		return
+	# Find nearest choppable tree in range
+	var best_tree: Node2D = null
+	var best_dist: float = 9999.0
+	for tree in _harvestable_trees:
+		if not tree or not tree.has_method("is_choppable"):
+			continue
+		if not tree.is_choppable():
+			continue
+		if not tree.is_player_in_range(player.global_position):
+			continue
+		var d: float = player.global_position.distance_to(tree.global_position)
+		if d < best_dist:
+			best_dist = d
+			best_tree = tree
+	if best_tree == null:
+		return  # No tree in range
+	_start_chopping(best_tree)
+
+func _start_chopping(tree_node: Node2D) -> void:
+	var mg_script: GDScript = load("res://scripts/ui/chopping_minigame.gd")
+	_active_chopping_minigame = CanvasLayer.new()
+	_active_chopping_minigame.set_script(mg_script)
+	add_child(_active_chopping_minigame)
+
+	_active_chopping_minigame.chopping_complete.connect(
+		func(logs: int) -> void:
+			_on_chopping_complete(tree_node, logs))
+	_active_chopping_minigame.chopping_cancelled.connect(_on_chopping_cancelled)
+
+func _on_chopping_complete(tree_node: Node2D, logs: int) -> void:
+	# Mark tree as chopped (regrows after TREE_REGROW_DAYS)
+	if tree_node and tree_node.has_method("mark_chopped"):
+		tree_node.mark_chopped()
+	# Give player logs
+	var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
+	if player and player.has_method("add_item"):
+		var leftover: int = player.add_item(GameData.ITEM_LOGS, logs)
+		if leftover > 0:
+			print("[County Road] Inventory full! %d logs lost." % leftover)
+	print("[County Road] Chopped tree -- earned %d logs." % logs)
+	_cleanup_chopping_minigame()
+
+func _on_chopping_cancelled() -> void:
+	print("[County Road] Chopping cancelled.")
+	_cleanup_chopping_minigame()
+
+func _cleanup_chopping_minigame() -> void:
+	if _active_chopping_minigame:
+		_active_chopping_minigame.queue_free()
+		_active_chopping_minigame = null
+
+# -- Weather Setup -----------------------------------------------------------
+
+func _setup_weather() -> void:
+	if get_node_or_null("WeatherOverlay") == null:
+		var overlay: CanvasLayer = CanvasLayer.new()
+		overlay.name = "WeatherOverlay"
+		overlay.set_script(load("res://scripts/world/weather_overlay.gd"))
+		add_child(overlay)
+	var world: Node = get_node_or_null("World")
+	if world != null and world.get_node_or_null("WeatherParticles") == null:
+		var particles: Node2D = Node2D.new()
+		particles.name = "WeatherParticles"
+		particles.set_script(load("res://scripts/world/weather_particles.gd"))
+		world.add_child(particles)

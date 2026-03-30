@@ -60,10 +60,14 @@ func _process(delta: float) -> void:
 
 # -- Called by the daily summary "Accept" button -------------------------------
 ## Resets the clock to 6 AM and advances the calendar by one day.
+## Also triggers the daily weather roll.
 func start_new_day() -> void:
 	_midnight_pending = false
 	current_hour = 6.0
 	advance_day()
+	# Roll weather for the new day (after advance_day so month/season are current)
+	if WeatherManager and WeatherManager.has_method("roll_daily_weather"):
+		WeatherManager.roll_daily_weather()
 
 # -- Computed Calendar Properties ---------------------------------------------
 
@@ -88,9 +92,10 @@ func current_season_name() -> String:
 	return SEASON_NAMES[current_month_index() / 2]
 
 ## GDD S5.1 season factor 0.0-1.0 for simulation use.
+## Validated by Karpathy research Phase 2+8: drives population and foraging curves.
 func season_factor() -> float:
 	match current_month_index():
-		0: return 0.65   # Quickening (spring rush)
+		0: return 0.55   # Quickening (spring rush -- validated lower than 0.65)
 		1: return 0.80   # Greening
 		2: return 1.00   # Wide-Clover
 		3: return 1.00   # High-Sun

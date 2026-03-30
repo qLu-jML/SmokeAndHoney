@@ -92,8 +92,8 @@ const FLOWER_TYPES := {
 	# Naturalized weed, appears in lawns/fields as soon as frost breaks.
 	# Moderate nectar, good pollen. Short bloom, but critical for buildup.
 	"dandelion": {
-		"bloom_start": 1,  "bloom_end": 50,
-		"peak_start":  3,  "peak_end":  40,
+		"bloom_start": 21,  "bloom_end": 64,
+		"peak_start":  28,  "peak_end":  50,
 		"nu_nectar": 3,    "nu_pollen": 3,
 		"edge_bias": false,
 	},
@@ -169,6 +169,11 @@ var _grid_cols: int
 var _grid_rows: int
 var _total_tiles: int
 
+# -- No-Spawn Mask (populated from TileMap at _ready) -------------------------
+# Set of Vector2i flower-grid coords where flowers must NOT spawn
+# (dirt paths, buildings, decorations, etc.)
+var _no_spawn_tiles: Dictionary = {}
+
 # -- State --------------------------------------------------------------------
 # Per-season ranking (persists across the year, re-rolled each season)
 var season_rankings: Dictionary = {}
@@ -228,6 +233,9 @@ func _ready() -> void:
 	for type_name in FLOWER_TYPES:
 		flower_grid[type_name] = {}
 
+	# Build the no-spawn mask from the TileMap path layer
+	_build_no_spawn_mask()
+
 	# Compute phase durations for each flower type
 	_compute_phase_durations()
 
@@ -241,6 +249,69 @@ func _ready() -> void:
 
 	_check_year_change()
 	_update_flowers()
+
+# -- No-Spawn Mask Builder -----------------------------------------------------
+# Scans the TileMap for non-grass tiles (dirt paths, building footprints, etc.)
+# and marks overlapping flower-grid cells as no-spawn zones.
+# Also adds a 1-cell buffer around buildings so flowers don't clip walls.
+
+func _build_no_spawn_mask() -> void:
+	_no_spawn_tiles.clear()
+	var tilemap: TileMap = get_node_or_null("../TileMap") as TileMap
+	if tilemap == null:
+		push_warning("FlowerLifecycleManager: No TileMap found -- no-spawn mask empty")
+		return
+
+	var tm_pos: Vector2 = tilemap.position  # should be GRASS_ORIGIN
+	var tm_tile_size := 32  # TileMap uses 32x32 tiles
+
+	# --- Layer 2 = path_ground (dirt paths / roads) ---
+	var path_tiles: Array = tilemap.get_used_cells(2)
+	for tm_tile in path_tiles:
+		_mark_tilemap_cell_no_spawn(tm_tile, tm_pos, tm_tile_size, 1)
+
+	# --- Layer 5 = objects_decorations ---
+	var deco_tiles: Array = tilemap.get_used_cells(5)
+	for tm_tile in deco_tiles:
+		_mark_tilemap_cell_no_spawn(tm_tile, tm_pos, tm_tile_size, 0)
+
+	# --- Building footprints (Sprite2D positions with a buffer) ---
+	for bname in ["Farmhouse", "HoneyHouse"]:
+		var bnode: Node2D = get_node_or_null("../Buildings/" + bname) as Node2D
+		if bnode == null:
+			continue
+		var bpos: Vector2 = bnode.global_position
+		# Approximate building footprint: 80x64 centered, plus 16px buffer
+		var half_w := 56.0
+		var half_h := 48.0
+		var x0: int = int((bpos.x - half_w - GRASS_ORIGIN.x) / TILE_SIZE)
+		var y0: int = int((bpos.y - half_h - GRASS_ORIGIN.y) / TILE_SIZE)
+		var x1: int = int((bpos.x + half_w - GRASS_ORIGIN.x) / TILE_SIZE)
+		var y1: int = int((bpos.y + half_h - GRASS_ORIGIN.y) / TILE_SIZE)
+		for fy in range(maxi(y0, 0), mini(y1 + 1, _grid_rows)):
+			for fx in range(maxi(x0, 0), mini(x1 + 1, _grid_cols)):
+				_no_spawn_tiles[Vector2i(fx, fy)] = true
+
+	# Recount spawnable tiles
+	_total_tiles = (_grid_cols * _grid_rows) - _no_spawn_tiles.size()
+	print("[FlowerLifecycle] No-spawn mask: %d blocked tiles, %d spawnable" % [_no_spawn_tiles.size(), _total_tiles])
+
+func _mark_tilemap_cell_no_spawn(tm_tile: Vector2i, tm_pos: Vector2, tm_tile_size: int, buffer: int) -> void:
+	# Convert a TileMap cell to flower-grid cells and mark as no-spawn
+	# Each 32x32 TileMap cell covers a 2x2 block of 16x16 flower cells
+	var world_x: float = tm_pos.x + float(tm_tile.x) * tm_tile_size
+	var world_y: float = tm_pos.y + float(tm_tile.y) * tm_tile_size
+	var fx0: int = int((world_x - GRASS_ORIGIN.x) / TILE_SIZE) - buffer
+	var fy0: int = int((world_y - GRASS_ORIGIN.y) / TILE_SIZE) - buffer
+	var fx1: int = fx0 + 1 + buffer * 2  # 2 cells wide + buffer on each side
+	var fy1: int = fy0 + 1 + buffer * 2
+
+	for fy in range(maxi(fy0, 0), mini(fy1 + 1, _grid_rows)):
+		for fx in range(maxi(fx0, 0), mini(fx1 + 1, _grid_cols)):
+			_no_spawn_tiles[Vector2i(fx, fy)] = true
+
+func _can_spawn_at(tile: Vector2i) -> bool:
+	return not _no_spawn_tiles.has(tile)
 
 # -- Phase Duration Computation ------------------------------------------------
 # Each flower's bloom window is divided into gameplay-friendly phases.
@@ -313,17 +384,20 @@ func _roll_season_ranking(season_name: String) -> void:
 	elif key in ["deepcold", "kindlemonth"]:
 		key = "winter"
 
-	var roll := _rng.randf()
-	var cumulative := 0.0
-	var rank := "B"
-	for r in RANKS:
-		cumulative += RANK_WEIGHTS[r]
-		if roll <= cumulative:
-			rank = r
-			break
+	# DEV DEFAULT: Force S-rank for all seasons during tuning.
+	# TODO: Restore random roll once honey production is balanced.
+	var rank := "S"
+	#var roll := _rng.randf()
+	#var cumulative := 0.0
+	#var rank := "B"
+	#for r in RANKS:
+	#	cumulative += RANK_WEIGHTS[r]
+	#	if roll <= cumulative:
+	#		rank = r
+	#		break
 
 	season_rankings[key] = rank
-	print("? Season rank for %s: %s" % [key, rank])
+	print("[Season] Rank for %s: %s (dev default)" % [key, rank])
 	season_ranked.emit(key, rank)
 
 func get_current_rank() -> String:
@@ -394,23 +468,63 @@ func _initial_spawn(type_name: String, params: Dictionary, abs_day: int) -> void
 	# immediately when spring arrives, so ~60% spawn already GROWING/MATURE
 	var fast_start: bool = (type_name == "dandelion")
 
-	for row in range(_grid_rows):
-		for col in range(_grid_cols):
-			var tile := Vector2i(col, row)
-			if grid.has(tile):
+	# --- Even distribution via grid-cell sampling ---
+	# Instead of rolling per-tile (which creates random clumps), divide
+	# the map into coarse cells and place a controlled number of flowers
+	# per cell.  This gives an even spread with local randomness.
+	# Cell size controls clump scale: larger = more even, less natural.
+	var cell_size := 6  # 6x6 flower tiles per sampling cell (~96x96 world px)
+	var cells_x: int = (_grid_cols + cell_size - 1) / cell_size
+	var cells_y: int = (_grid_rows + cell_size - 1) / cell_size
+	var tiles_per_cell: float = float(cell_size * cell_size)
+	# Target flower count per cell based on density
+	var target_per_cell: float = tiles_per_cell * density
+
+	for cy in range(cells_y):
+		for cx in range(cells_x):
+			var cell_x0: int = cx * cell_size
+			var cell_y0: int = cy * cell_size
+			var cell_x1: int = mini(cell_x0 + cell_size, _grid_cols)
+			var cell_y1: int = mini(cell_y0 + cell_size, _grid_rows)
+
+			# Check if this cell is near an edge
+			var is_edge_cell := (cy == 0 or cy >= cells_y - 1 or cx == 0 or cx >= cells_x - 1)
+			var effective_target := target_per_cell
+			if edge_bias and is_edge_cell:
+				effective_target *= 1.5
+			elif not edge_bias and is_edge_cell:
+				effective_target *= 0.8
+
+			# How many flowers to place in this cell
+			var count_floor: int = int(effective_target)
+			var frac: float = effective_target - float(count_floor)
+			var flower_count: int = count_floor
+			if _rng.randf() < frac:
+				flower_count += 1
+
+			# Collect valid tiles in this cell
+			var valid_tiles: Array = []
+			for fy in range(cell_y0, cell_y1):
+				for fx in range(cell_x0, cell_x1):
+					var tile := Vector2i(fx, fy)
+					if not grid.has(tile) and _can_spawn_at(tile):
+						valid_tiles.append(tile)
+
+			# Shuffle and pick
+			if valid_tiles.is_empty():
 				continue
+			# Fisher-Yates shuffle (partial -- only need flower_count elements)
+			var pick_count: int = mini(flower_count, valid_tiles.size())
+			for i in range(pick_count):
+				var j: int = _rng.randi_range(i, valid_tiles.size() - 1)
+				var tmp: Vector2i = valid_tiles[i]
+				valid_tiles[i] = valid_tiles[j]
+				valid_tiles[j] = tmp
 
-			var is_edge := (row <= 2 or row >= _grid_rows - 3 or col <= 2 or col >= _grid_cols - 3)
-			var effective_density := density
-			if edge_bias and is_edge:
-				effective_density *= 1.5
-			elif not edge_bias and is_edge:
-				effective_density *= 0.8
-
-			if _rng.randf() < effective_density:
+			for i in range(pick_count):
+				var tile: Vector2i = valid_tiles[i]
 				var start_phase: int = PHASE_SEED
 				if fast_start:
-					# 30% start mature, 30% growing, 20% sprout, 20% seed
 					var roll: float = _rng.randf()
 					if roll < 0.30:
 						start_phase = PHASE_MATURE
@@ -508,6 +622,10 @@ func _spread_flowers(type_name: String, params: Dictionary, abs_day: int) -> voi
 		if target.x < 0 or target.x >= _grid_cols or target.y < 0 or target.y >= _grid_rows:
 			continue
 
+		# Skip no-spawn zones (dirt paths, buildings)
+		if not _can_spawn_at(target):
+			continue
+
 		# Skip if already occupied by ANY phase of this type (including withered)
 		if grid.has(target):
 			continue
@@ -557,11 +675,11 @@ func _update_sprites(type_name: String) -> void:
 			sprite.position = _tile_to_world(tile)
 			sprite.z_index = 1
 
-			# Per-tile visual variation
+			# Per-tile visual variation (subtle -- sprites are already small)
 			var tile_hash := (tile.x * 7919 + tile.y * 6271) & 0xFFFF
 			var t_rng := float(tile_hash) / 65535.0
-			sprite.rotation = (t_rng - 0.5) * 0.35
-			var s := 0.85 + t_rng * 0.25
+			sprite.rotation = (t_rng - 0.5) * 0.25
+			var s := 0.90 + t_rng * 0.20
 			sprite.scale = Vector2(s, s)
 			sprite.flip_h = (tile_hash % 3 == 0)
 

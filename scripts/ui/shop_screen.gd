@@ -12,6 +12,8 @@ const CATALOGUE := [
 	{"id": "super_box",        "label": "Super Box",     "price":  45, "max_qty": 10},
 	{"id": "beehive",          "label": "Complete Hive", "price":  85, "max_qty":  5},
 	{"id": "treatment_oxalic", "label": "Oxalic Acid",   "price":  12, "max_qty": 10},
+	{"id": "axe",              "label": "Axe",           "price":  15, "max_qty":  1},
+	{"id": "hammer",           "label": "Hammer",        "price":  10, "max_qty":  1},
 ]
 
 const PANEL_W   := 240

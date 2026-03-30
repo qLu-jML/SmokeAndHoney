@@ -55,11 +55,16 @@ const DENSITY_RANGE: Dictionary = {
 }
 
 # -- Bloom timing: day-of-spring for first sprouts ----------------------------
-# All dandelions begin sprouting on day 1 of spring (Quickening).
-# Quality affects density and NU contribution, not timing.
-# In real life, dandelion rosettes overwinter and are among the first
-# plants to push green growth as soon as temperatures rise in spring.
-const BLOOM_DAY_SPRING := 1  # sprout day 1 of Quickening
+# Dandelions sprout in late Quickening (last week) through early Greening.
+# Quality shifts the arrival: EXCEPTIONAL arrives earlier, POOR later.
+# S-rank = day 21, F-rank = day 28 (last day of Quickening).
+# bloom_day is day-within-year (not day-within-month).
+const BLOOM_DAY_BY_QUALITY: Dictionary = {
+	QUALITY_EXCEPTIONAL: 21,  # early last week of Quickening
+	QUALITY_GOOD:        23,  # mid last week
+	QUALITY_AVERAGE:     25,  # late last week
+	QUALITY_POOR:        28,  # very end of Quickening / start of Greening
+}
 
 # -- Dandelion tile sprite path ------------------------------------------------
 const DANDELION_SPRITE := "res://assets/sprites/world/forage/dandelion_tile.png"
@@ -97,20 +102,27 @@ func _ready() -> void:
 
 # -- Signal handlers -----------------------------------------------------------
 
+const DANDELION_DEATH_DAY := 64  # Day of year when all dandelions die (Wide-Clover day 8)
+
 func _on_month_changed(month_name: String) -> void:
 	match month_name:
 		"Quickening":
 			# Spring begins -- perform the annual roll
 			_do_annual_roll()
-		"Wide-Clover":
-			# Spring ends -- dandelions naturally disappear
-			_clear_dandelions()
 
 func _on_day_advanced(new_day: int) -> void:
-	if _bloomed or current_outcome.is_empty():
+	# Check for despawn -- dandelions die by day 64 (Wide-Clover day 8)
+	if _bloomed:
+		var year_start: int = (TimeManager.current_year() - 1) * TimeManager.YEAR_LENGTH
+		var day_of_year: int = new_day - year_start
+		if day_of_year >= DANDELION_DEATH_DAY:
+			_clear_dandelions()
+		return
+
+	if current_outcome.is_empty():
 		return
 	# Check if we've hit the bloom day for this spring
-	# bloom_day is stored as day-within-spring (1-56); convert to absolute day
+	# bloom_day is stored as day-within-year (1-224); convert to absolute day
 	var spring_start_day: int = (TimeManager.current_year() - 1) * TimeManager.YEAR_LENGTH + 1
 	var absolute_bloom_day: int = spring_start_day + (bloom_day - 1)
 	if new_day >= absolute_bloom_day:
@@ -170,8 +182,8 @@ func _do_annual_roll() -> void:
 	var d_range: Array = DENSITY_RANGE[current_outcome]
 	current_density = d_range[0] + rng.randf() * (d_range[1] - d_range[0])
 
-	# -- Bloom day -- always day 1 of spring -------------------------------------
-	bloom_day = BLOOM_DAY_SPRING
+	# -- Bloom day -- quality shifts timing within late Quickening --------------
+	bloom_day = BLOOM_DAY_BY_QUALITY.get(current_outcome, 25)
 
 	print("Dandelion Roll - Year %d: %s (density %.2f, bloom day %d)" % [
 		year, current_outcome, current_density, bloom_day
@@ -182,8 +194,7 @@ func _do_annual_roll() -> void:
 	# Inform ForageManager so it can update spring NU
 	ForageManager.set_dandelion_bloom(current_outcome, current_density)
 
-	# Immediately spawn -- dandelions sprout as soon as spring arrives
-	_spawn_dandelions()
+	# Do NOT immediately spawn -- wait for bloom_day via _on_day_advanced()
 
 # -- Spawning -----------------------------------------------------------------
 

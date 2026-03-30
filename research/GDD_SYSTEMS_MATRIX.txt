@@ -1,0 +1,367 @@
+SMOKE & HONEY - GAME SYSTEMS MATRIX
+====================================
+
+Quick reference showing all major systems, their key mechanics, and parameter ranges.
+
+================================================================================
+SYSTEM: HIVE SIMULATION
+================================================================================
+
+Component          | Key Mechanics                                    | Parameters/Range
+-------------------|--------------------------------------------------|------------------
+Queen Grade        | S/A/B/C/D/F, affects laying rate               | +25% (S) to -100% (F)
+Queen Age          | Laying rate multiplier by year                  | ×1.05 (Y2) to ×0.20 (Y6+)
+Population         | Individual bee tracking, lifecycle stages       | 6 weeks (summer) to 4-6 months (winter)
+Worker Lifespan    | Egg(3d) + Larva(6d) + Capped(12d) = 21 days    | +adult 35d (summer) to +5mo (winter)
+Brood Pattern      | Visible on frames, indicates queen health       | Solid/Spotty/Failing
+Frame Capacity     | Cell grid for deep/super frames                 | Deep: 3,500 cells, Super: 2,450 cells
+Nectar/Honey       | Cells filled by foragers, stored for consumption| Visible as amber fill on frames
+Pollen Storage     | Colored cells (orange/yellow) around brood      | Measured as % of frame area
+Equipment Condition| Degrades weekly, affects production/pest risk   | 0-100 scale, -1 to -4 per week
+Colony Health Score| Hidden composite metric                         | 0-100, shown as color state
+Stress Multiplier  | Affects laying rate based on conditions         | ×1.0 baseline to ×0.40 (very stressed)
+
+================================================================================
+SYSTEM: PLAYER ENERGY
+================================================================================
+
+Component          | Mechanic                                        | Value/Range
+-------------------|--------------------------------------------------|------------------
+Max Capacity       | Full bar at game start                           | 100 energy
+Passive Drain      | Per hour standing/traveling                      | 1-2 energy/hour
+Very Light Tasks   | Review notes, talk NPCs                          | 1-3 energy
+Light Tasks        | Travel, weight check, sticky board              | 3-8 energy
+Moderate Tasks     | Full inspection, planting, mite count           | 10-18 energy
+Heavy Tasks        | Multi-hive inspection, harvest                  | 18-28 energy
+Very Heavy Tasks   | Full extraction, assembly, splitting            | 25-40 energy
+Sting Cost         | Per sting during inspection                      | 5-8 energy
+Sleep Restoration  | Full night sleep (20:00-04:00)                  | +100 (full restore)
+Diner Meal         | One meal per period (breakfast/lunch/dinner)    | +40-50 energy
+Packed Lunch       | Home-crafted, carried item                      | +20 energy
+Coffee             | Morning-only temporary boost (before 10:00)     | +15 energy, 2hr drain prevention
+Nap               | 2-3 hour rest (home or truck)                   | +25 energy
+
+================================================================================
+SYSTEM: QUEEN MANAGEMENT
+================================================================================
+
+Component          | Mechanic                                        | Specification
+-------------------|--------------------------------------------------|------------------
+Species           | Italian, Carniolan, Russian, Buckfast, Caucasian | Each affects temperament, growth, tolerance
+Grade             | S/A/B/C/D/F from genetics                       | Degrades with age: S→A(18mo)→B(24mo)
+Laying Rate Mod   | Grade affects eggs/day from base                 | S: +25%, A: +10%, B: 0%, C: -15%, D: -35%, F: -100%
+Age Multiplier    | Year-by-year laying ability                      | Y1: ×1.0, Y2: ×1.05, Y3: ×0.85, Y4: ×0.65, Y5: ×0.40, Y6+: ×0.20
+Status Tracking   | Active/Failing/Missing/Virgin/Cell Present       | Inferred from brood pattern during inspection
+Final Laying Rate  | Formula: base × grade_mod × age_mult × stress_mult × season_mod
+Requeening        | Replace failing/old queen                        | 50-70% integration success
+Breeding          | Raise virgin queens (mid-game unlock)            | Requires Breeder Yard, eggs, DCA mating
+Virgin Mating     | Fly to Drone Congregation Area                   | 15-20 day window, success-based probability
+
+================================================================================
+SYSTEM: EQUIPMENT CONDITION
+================================================================================
+
+Component          | Mechanic                                        | Value/Range
+-------------------|--------------------------------------------------|------------------
+Condition Range    | 0-100 scale tracked per hive                    | 100=new, 0=failed
+Storage Rate       | Shed with maintenance                           | -1/week (slow)
+Active Use         | Unsheltered but maintained                      | -2/week (moderate)
+Unprotected        | No paint/treatment                              | -4/week (fast)
+Humid Storage      | Near standing water                             | -3/week (moisture)
+Passive Restore    | In shed, not in use                             | +1/week (slow recovery)
+Visual State 100-80| No visible wear                                 | No colony impact
+Visual State 79-50 | Weathered, minor paint loss                     | Warning at 60, cosmetic only
+Visual State 49-30 | Warped wood, gaps visible                       | -10% honey production, +5% SHB risk
+Visual State 29-15 | Significant structural wear                     | -20% production, +10% pest risk, -5% winter survival
+Visual State 14-0  | Visibly failing                                 | -35% production, +20% pest risk, -0.10 stress modifier
+Basic Repair       | $25, 3 energy, +20 condition                    | Partial fix
+Advanced Repair    | $60, 8 energy, restores to 75 condition         | Good as new
+Craftable Repair   | Beeswax + wood scraps, Level 3, free, +65       | Tier 3 unlock
+
+================================================================================
+SYSTEM: INSPECTION
+================================================================================
+
+Component          | Mechanic                                        | Specification
+-------------------|--------------------------------------------------|------------------
+Frequency         | Weekly optimal (>2/week adds stress)             | -15 colony stress per >2/week
+Smoke Effect      | Calms bees for inspection                        | -15% sting chance (×0.85 multiplier)
+Weather Impact    | Sunny/clear = best, rain/wind = poor             | Information visibility 40-100%
+Time of Day       | Mid-morning to afternoon optimal                 | Evening (after 15:00) = +25% sting chance
+Sting Base Chance | Per step, varies by temperament                  | 10% (calm) to 25% (defensive)
+Sting Suit Mod    | Bee suit equipped                                | ×0.20 (80% reduction)
+Combined Mod      | Suit + smoke stacked                             | ×0.20 × 0.85 = ×0.17 (95% total)
+Sting Energy Cost | Per sting during inspection                      | 5-8 energy
+Queen Visibility  | Probability of queen present for sighting        | 80% chance (rolled once per inspection)
+Queen Difficulty  | Rolled per inspection (determines density/spacing)| Easy 33%, Medium 33%, Hard 34%
+Easy Difficulty   | Lower bee density, 28px spacing                  | +10 XP reward
+Medium Difficulty | Moderate bee density, 17px spacing               | +15 XP reward
+Hard Difficulty   | High bee density, 12px spacing                   | +25 XP reward
+Attendant Circle  | Bees around queen (grade-dependent)              | S=11, B=7, F=0 attendants
+Wrong Click       | Clicking non-queen                               | Red flash, no penalty, keep trying
+Info Tier 1       | Hobbyist (no info)                               | Visual observation only
+Info Tier 2       | Apprentice (cell names)                          | Tooltips show cell type
+Info Tier 3       | Beekeeper (qualitative)                          | Sidebar shows "Solid brood pattern" etc.
+Info Tier 4       | Journeyman (approximate numbers)                 | "Brood: ~1,200", "HP: 70-80%"
+Info Tier 5       | Master (dynamic percentages)                     | Real-time % by frame side, population roles
+Dev Mode          | Always shows Tier 5 + level switcher             | G key toggles, shows exact coordinates/age
+
+================================================================================
+SYSTEM: POPULATION LIFECYCLE
+================================================================================
+
+Component          | Stage                                           | Duration
+-------------------|--------------------------------------------------|------------------
+Egg               | Laid by queen, develops in cell                 | 3 days
+Larva Stage 1-6   | Fed by nurse bees, rapid growth                 | 6 days (1 day per stage)
+Capped Brood      | Sealed cell, metamorphosis inside                | 12 days
+Adult Emergence   | Young bee develops flight muscles                | ~3 days (in-hive)
+House Bee 0-3 days| Cleaning duties                                  | 3 days
+House Bee 3-12 days| Nursing and building                            | 9 days
+Transition Phase  | Gradual shift to foraging prep                   | 3-4 days
+Forager Young     | Early foraging, age 21-35 days                   | 14 days
+Forager Old       | Experienced forager, age 35+ days                | Variable until death
+Total Lifespan    | Spring/Summer (development + adult work)         | ~6 weeks (35-42 days)
+Total Lifespan    | Fall (longer-lived winter bees)                  | ~10-12 weeks
+Total Lifespan    | Winter (cluster, minimal work)                   | 4-6 months
+
+================================================================================
+SYSTEM: MORTALITY RATES (DAILY)
+================================================================================
+
+Life Stage         | Base Rate (daily)                               | Modifiers
+-------------------|--------------------------------------------------|------------------
+Eggs/Larvae       | 1.0% per day                                    | Disease ×1.5, weak colony ×1.25
+Capped Brood      | 0.5% per day                                    | Temperature stress ×1.2
+House Bee 0-12d   | 0.3% per day                                    | Crowding ×1.15, disease ×1.4
+House Bee 12+d    | 0.2% per day                                    | Malnutrition ×1.3
+Forager Young     | 1.0% per day                                    | Weather ×1.35-1.8, predators ×1.5
+Forager Old       | 2.0% per day                                    | Season (fall +20%), exhaustion ×1.2
+Winter Bee Cluster| 0.1-0.3% per day                                | Extreme cold (-20F) ×1.5, starvation ×2.0
+
+================================================================================
+SYSTEM: FORAGE & NECTAR FLOW
+================================================================================
+
+Component          | Season                                          | Potential/Notes
+-------------------|--------------------------------------------------|------------------
+Early Spring       | Willow, maple, early crocus                     | 500-1000 lbs potential
+Mid Spring         | Dandelions, fruit trees, wildflowers            | 1500 lbs potential
+Early Summer       | White clover, trefoil, alfalfa                  | 4000+ lbs potential
+Peak Summer        | All flowers blooming peak                        | 6000+ lbs potential (peak day)
+Late Summer        | Joe-pye, ironweed, late flowers                 | 2000-3000 lbs potential
+Early Fall         | Asters, goldenrod, ragweed                      | 500-1000 lbs (pollen-heavy)
+Late Fall          | End of bloom, dormancy preparing                | 100-300 lbs
+Winter            | No blooming, dormancy                            | 0 lbs
+Forage Quality    | Affects honey color, flavor, bee health          | Diversity = better grades
+Low Forage Impact  | When available nectar < colony consumption       | -20% pop growth, stagnation
+High Forage Bonus  | When abundant                                    | +Honey production, -starvation risk
+
+================================================================================
+SYSTEM: DISEASE & PESTS
+================================================================================
+
+Component          | Disease/Pest                                    | Mechanics
+-------------------|--------------------------------------------------|------------------
+Varroa            | Parasitic mite, spreads viruses                  | Threshold: 1/100 bees = treat
+Varroa Detection  | Sticky board monitoring or sugar roll            | Monthly monitoring recommended
+Varroa Treatment  | Formic/oxalic acid, Apivar strips                | Multiple options, costs vary
+Small Hive Beetle | Larva tunnel through combs                       | Trap maintenance prevents buildup
+SHB Control       | Beetle trap inspection every 2 weeks             | Untreated 2+ weeks = comb damage
+Chalkbrood        | Fungal disease of larvae                         | White mummified pupae visible
+Chalkbrood Trigger| Colony cold/damp, spring conditions              | Worse in poor ventilation
+Nosema            | Gut parasite in adults                           | Reduces lifespan and efficiency
+Nosema Prevention  | Fall treatment with Fumagillin                   | -Spreads through contamination
+AFB               | Bacterial disease, incurable                     | Kill colony, burn equipment, game over
+EFB               | Less severe, manageable                          | Treat with requeening or antibiotics
+Contagion Rate    | Disease spread between hives at same location    | 5% per day base
+Contagion Modifier| Shared equipment                                 | +Spreads faster
+Equipment Sharing | Risk when using tools across hives               | Practice isolation for safety
+
+================================================================================
+SYSTEM: HARVEST PIPELINE
+================================================================================
+
+Component          | Mechanic                                        | Details
+-------------------|--------------------------------------------------|------------------
+Frame Readiness   | Visual indicator on frame                        | Green (ready >75%), Yellow (50-75%), Orange (<50%)
+Uncapping Game    | Timed swipe mechanic                             | 10 second window, difficulty scales with fill
+Uncapping Tool    | Basic/heated/electric knife                      | Speed varies, affects success rate
+Uncapping Output  | Honey exposed for extraction                     | 90% (perfect) to 70% (poor)
+Extractor Method  | Home/Community/Commercial options                | Cost, speed, and quality tradeoff
+Extraction Yield  | Honey weight by frame fullness                   | Deep frame: 5 lbs full, Super: 3.5 lbs full
+Honey Settling    | 24-48 hours to separate air bubbles/debris       | Player waits or advances time
+Moisture Test     | Refractometer reading                            | Determines grade
+Moisture Grade    | <18% (excellent), 18-21% (good), >24% (poor)     | Affects price and fermentation risk
+Color Grade       | Amber, Gold, Clover, Wildflower, Spring, Harvest, Rustic
+Price per Grade   | $4-14 per lb depending on grade                  | Amber premium, Rustic budget
+Bottling Sizes    | 8oz, 12oz, 16oz, 32oz, bulk 5lb containers      | Cost $1-3 per container
+Labeling         | Apiary name, type, year, grade, notes             | Player customization
+Winter Reserve    | Minimum 60 lbs honey remaining                    | Warning below 40 lbs
+Reserve Consequence| Colony starvation in winter if below minimum      | Supplemental feeding costs money
+
+================================================================================
+SYSTEM: STRESS MODIFIER FORMULA
+================================================================================
+
+Base Laying Rate Calculation:
+final_rate = base × grade_mod × age_mult × stress_mult × season_mod
+
+Stress Multiplier Components:
+Brood-bound (>90% full):           ×1.15
+No food stores (critical):         ×1.20
+Population low:                    ×1.10
+Disease/pest load:                 ×1.25
+Queenless:                         ×1.50
+Inspection >2/week:                ×1.15
+Strong nectar flow:                ×0.85
+Adequate space (not congested):    ×0.95
+Healthy young queen:               ×0.90
+
+Example: Healthy hive with good forage = 1.15 × 0.95 × 0.90 = 0.98x (minor positive)
+Example: Stressed hive with disease = 1.25 × 1.15 = 1.44x (44% reduction in actual laying)
+
+================================================================================
+SYSTEM: SWARM MANAGEMENT
+================================================================================
+
+Component          | Mechanic                                        | Parameter
+-------------------|--------------------------------------------------|------------------
+Swarm Triggers    | Brood-bound (>3 days)                           | +25% impulse
+Swarm Triggers    | Honey-bound                                      | +20% impulse
+Swarm Triggers    | Late spring/early summer                         | 10-15% seasonal baseline
+Swarm Triggers    | Young vigorous queen                             | +10%
+Swarm Triggers    | Poor ventilation                                 | +15%
+Swarm Detection   | Queen cells visible during inspection             | "Swarm cells visible" notification
+Swarm Window      | Time to intervene                                | 7-10 days before departure
+Add Space         | Place second deep or super                       | -15% swarm impulse
+Remove Brood      | Take capped brood frame to split/nuc             | Reduce brood-bound pressure
+Controlled Split  | Intentionally divide colony                      | Create two hives from one
+Break Cells       | Remove visible queen cells                       | Temporary reset, must address root
+Swarm Departure   | If not prevented                                 | Colony becomes queenless, -50% population
+Swarm Catch       | Capture departing swarm (optional)               | Uncertain outcome, variable
+Replacement Queen | Let cells emerge naturally                       | Delay but may work (cheaper)
+Manual Requeening | Install bought/bred queen                        | Reliable 50-70% integration success
+
+================================================================================
+SYSTEM: QUEEN BREEDING
+================================================================================
+
+Component          | Mechanic                                        | Detail
+-------------------|--------------------------------------------------|------------------
+Unlock           | Breeder Yard apiary structure                    | Requires 300+ Genetics XP
+Requirements     | Colony must be queenless or marked for breeding   | Supply frame with fresh eggs
+Grafting Day     | Player marks eggs for queen cells                 | Stress applied to colony: -15 standing
+Development Days | 8 days from graft to capping                     | Player cannot remove or damage
+Capping Day      | Queen cells sealed by bees                        | Development continuing
+Emergence Days   | Day 9-10, virgin queen emerges                   | Notification: "Virgin queen emerged!"
+Emergence Success | Genetic defect or poor conditions may kill cell  | Failure rate: 10-20%
+Virgin Queen Grade| Inherited from mother ±1 letter variation        | A-mother → A/B-daughter possible
+Virgin Maturity  | Must fly to DCA for mating                        | 15-20 day window if unmated
+DCA Mating       | Interactive minigame, queen flies through space   | Success = fertilized, ready to lay
+Mating Success   | Rolls probability based on genetics/distance      | If fail, queen returns unmated
+Failure Window   | Unmated queen lays unfertilized eggs (drones)    | Can retry next day
+Post-Mating      | Mated queen begins laying within 2-3 days         | Confirms genetic success
+Requeening Old   | Remove old, introduce new mated queen             | 50-70% integration success (cage method)
+Grade Degradation| Grade drops as queen ages (like purchased queens) | S→A→B on 12-18mo schedule
+
+================================================================================
+SYSTEM: CRAFTING
+================================================================================
+
+Component          | Tier                                            | Examples/Requirements
+-------------------|--------------------------------------------------|------------------
+Tier 1 (Immediate)| No unlock, available at start                    | Sugar syrup, packed lunch, smoker fuel
+Sugar Syrup       | 5 energy, $4 materials                           | Feeds colony 3 days
+Packed Lunch      | 10 energy, $3 materials                          | Restores 20 energy when eaten
+Smoker Fuel       | 5 energy, $2 materials                           | Fuel for smoker (1 use)
+Tier 2 (Beekeeper)| Unlock at Beekeeper level (3)                    | Basic repairs, pollen patty, candles
+Basic Repair Kit  | 10 energy, $15 materials, +20 condition          | Quick equipment fix
+Pollen Patty      | 12 energy, $5 materials                          | Emergency feed when stores low
+Candles           | 8 energy, $1 materials, sells for $5-8           | Craft income source
+Tier 3 (Journeyman)| Unlock at Journeyman level (4)                   | Advanced repairs, mead, lip balm
+Advanced Repair   | 15 energy, $20 materials, +65 condition          | Full equipment restoration
+Mead Starter      | 20 energy, $10 materials                         | Specialty sales item
+Lip Balm          | 10 energy, $3 materials, sells for $3-4          | Craft income source
+Mustache Wax      | 12 energy, $4 materials, sells for $4            | Niche craft item
+Antitoxin         | 25 energy, $15 materials (pesticide event)       | Neutralize bee poisoning
+Station Requirement| Crafting station (home kitchen, workshop, etc.)  | Different stations unlock different recipes
+
+================================================================================
+SYSTEM: ECONOMY & PRICING
+================================================================================
+
+Income Source      | Price/Amount                                    | Frequency
+-------------------|--------------------------------------------------|------------------
+Honey Grade Amber  | $12-14 per lb                                   | Seasonal harvest (summer)
+Honey Grade Gold   | $10-12 per lb                                   | Seasonal harvest
+Honey Grade Clover | $8-10 per lb                                    | Seasonal harvest
+Honey Grade Spring | $9-11 per lb                                    | Spring harvest only
+Honey Rustic       | $4-5 per lb                                     | Budget/local sales
+Beeswax Bulk       | $8-10 per lb                                    | Post-harvest (cappings rendered)
+Candles            | $5-8 per candle (cost $1 materials)             | Direct sales
+Lip Balm           | $3-4 per lip balm (cost $3 materials)           | Direct sales
+Crafted Items      | $3-8 depending on recipe                        | Variable
+NPC Quest Reward   | $10-30 per quest                                | Periodic
+Farmer's Market    | Base grade price ±20% (haggle mechanic)         | End of summer harvest
+
+Expense            | Cost                                            | Frequency
+-------------------|--------------------------------------------------|------------------
+Package Bee Colony | $50-250 depending on supplier tier              | Spring (1-2x per year)
+Replacement Queen  | $15-40 depending on source                      | As-needed (failed queens)
+Hive Box           | $30-50 (pre-assembled)                          | 1-2 per year
+Frames (10-pack)   | $20                                             | As-needed
+Equipment Item     | $8-40 (smoker, gloves, suit, etc.)              | Occasional
+Equipment Repair   | $5-60 depending on extent                       | Seasonal maintenance
+Feed (sugar syrup) | $4 per gallon                                   | Fall/winter (emergency)
+Feed (pollen patty)| $2 each                                         | Spring/emergency
+Medication/Treatment| $5-15 per type                                  | As-needed (disease/pest)
+Diner Meal         | $6-8 per meal                                   | ~2-3x per week (optional)
+Coffee             | $2 per cup                                      | Optional, morning only
+Crafting Materials | Variable by recipe                              | As-needed
+
+================================================================================
+SYSTEM: NPC RELATIONSHIPS
+================================================================================
+
+NPC              | Function                                         | Quest Types
+-----------------|--------------------------------------------------|------------------
+Mentor (Uncle Bob)| Teaches core mechanics, provides guidance        | Tutorial quests, long-term mentorship
+Supplier Contact | Provides bees, equipment, improves with reputation| Purchase quests, quality unlocks
+Diner Owner      | Social hub, meal source                          | Story arc, optional romance
+Neighbor (Beekeeper)| Trade partner, side quests                      | Equipment loans, skill-sharing
+Vet Supplier     | Provides medications, treatment guidance          | Disease management quests
+Town NPCs        | World-building, optional interactions             | Optional flavor content
+
+Relationship Tracking:
+- Standing/reputation score per NPC
+- Affects: quest availability, prices offered, dialogue tone
+- Improved by: quest completion, successful colony management, visiting/talking
+- Lost by: colony failure, poor trades, neglect, failure to complete quests
+
+================================================================================
+SYSTEM: SAVE/LOAD
+================================================================================
+
+Persistent Data:
+- All hive state (queen, population, frames, equipment condition)
+- Player progress (XP, standing, inventory, cash)
+- Calendar/time (current season, day, time of day)
+- Weather state (current and weekly forecast)
+- NPC relationship status and quest progress
+- Apiary structures unlocked
+- Game settings and player preferences
+
+Serialization Method:
+- JSON or binary format (implementation detail)
+- Automatic save on day transition
+- Manual save available in pause menu
+- Multiple save slots supported (at least 3)
+- Save/load timing: O(n) where n = hive count + NPC count (should be <1 second)
+
+Data Integrity:
+- Checksums prevent save file tampering
+- Backup on save (keep previous version)
+- Graceful handling of corrupted saves
+
+================================================================================

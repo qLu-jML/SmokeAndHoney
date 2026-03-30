@@ -2,7 +2,7 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://y48lkbi7pjuu"
+uid="uid://bowntfj0bdw6e"
 path="res://.godot/imported/sunflower.png-cc508c3cbe8e42d1c6780968c301155d.ctex"
 metadata={
 "vram_texture": false
@@ -18,7 +18,7 @@ dest_files=["res://.godot/imported/sunflower.png-cc508c3cbe8e42d1c6780968c301155
 compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

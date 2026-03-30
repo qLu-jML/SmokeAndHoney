@@ -1,0 +1,53 @@
+
+======================================================================
+SESSION 2026-03-28 19:34:18 | model=qwen2.5-coder:7b
+======================================================================
+[19:36:42] Phase 1 attempt 1: edit failed
+
+======================================================================
+SESSION 2026-03-28 19:44:37 | model=qwen2.5-coder:7b
+======================================================================
+[19:47:14] Phase 1 attempt 1: locked constant violation
+[19:50:18] Phase 1 attempt 2: edit failed -- First line found at line(s) [258], but the full 10-line block didn't match. Like
+[19:53:15] Phase 1 attempt 3: edit failed -- First line found at line(s) [258], but the full 2-line block didn't match. Likel
+
+======================================================================
+SESSION 2026-03-28 19:58:42 | model=qwen2.5-coder:7b
+======================================================================
+[19:58:42] Phase 1 attempt 1: 0/0 crash, restored from backup
+[19:58:45] Phase 1 attempt 2: 0/0 crash, restored from backup
+[19:58:49] Phase 1 attempt 3: 0/0 crash, restored from backup
+[19:58:52] Phase 1 attempt 4: 0/0 crash, restored from backup
+[19:58:55] Phase 1 attempt 5: 0/0 crash, restored from backup
+[19:58:58] Phase 1 attempt 6: 0/0 crash, restored from backup
+[19:59:01] Phase 1 attempt 7: 0/0 crash, restored from backup
+[19:59:05] Phase 1 attempt 8: 0/0 crash, restored from backup
+[19:59:08] Phase 1 attempt 9: 0/0 crash, restored from backup
+
+======================================================================
+SESSION 2026-03-28 20:00:32 | model=qwen2.5-coder:7b
+======================================================================
+[20:00:35] Phase 1: already passing, locked
+[20:00:35] Phase 2: already passing, locked
+[20:00:35] Phase 3: already passing, locked
+[20:00:36] Phase 4 attempt 1: 0/0 crash, no backup available
+[20:00:39] Phase 4 attempt 2: 0/0 crash, no backup available
+[20:00:42] Phase 4 attempt 3: 0/0 crash, no backup available
+[20:00:45] Phase 4 attempt 4: 0/0 crash, no backup available
+[20:00:49] Phase 4 attempt 5: 0/0 crash, no backup available
+[20:00:52] Phase 4 attempt 6: 0/0 crash, no backup available
+[20:00:55] Phase 4 attempt 7: 0/0 crash, no backup available
+[20:00:58] Phase 4 attempt 8: 0/0 crash, no backup available
+[20:01:02] Phase 4 attempt 9: 0/0 crash, no backup available
+
+======================================================================
+SESSION 2026-03-28 20:04:13 | model=qwen2.5-coder:7b
+======================================================================
+[20:04:17] Phase 1: already passing, locked
+[20:04:17] Phase 2: already passing, locked
+[20:04:17] Phase 3: already passing, locked
+[20:04:17] Phase 4: already passing, locked
+[20:04:17] Phase 5: already passing, locked
+[20:04:17] Phase 6: already passing, locked
+[20:04:17] Phase 7: already passing, locked
+[20:04:17] Phase 8: already passing -- COMPLETE

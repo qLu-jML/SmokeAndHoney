@@ -143,17 +143,6 @@ theme_override_font_sizes/font_size = 7
 theme_override_colors/font_color = Color(0.58, 0.51, 0.38, 1)
 horizontal_alignment = 1
 
-[node name="InteractHint" type="Label" parent="World/Buildings/PostOffice"]
-offset_left = -50.0
-offset_top = -92.0
-offset_right = 50.0
-offset_bottom = -80.0
-text = "[E] Enter"
-theme_override_font_sizes/font_size = 8
-theme_override_colors/font_color = Color(0.9, 0.82, 0.6, 1)
-horizontal_alignment = 1
-visible = false
-
 [node name="FeedSupply" type="Sprite2D" parent="World/Buildings"]
 position = Vector2(-300, -68)
 texture = ExtResource("3")
@@ -169,17 +158,6 @@ theme_override_font_sizes/font_size = 7
 theme_override_colors/font_color = Color(0.58, 0.51, 0.38, 1)
 horizontal_alignment = 1
 
-[node name="InteractHint" type="Label" parent="World/Buildings/FeedSupply"]
-offset_left = -50.0
-offset_top = -98.0
-offset_right = 50.0
-offset_bottom = -86.0
-text = "[E] Enter"
-theme_override_font_sizes/font_size = 8
-theme_override_colors/font_color = Color(0.9, 0.82, 0.6, 1)
-horizontal_alignment = 1
-visible = false
-
 [node name="CrossroadsDiner" type="Sprite2D" parent="World/Buildings"]
 position = Vector2(40, -72)
 texture = ExtResource("2")
@@ -194,17 +172,6 @@ text = "The Crossroads Diner"
 theme_override_font_sizes/font_size = 7
 theme_override_colors/font_color = Color(0.58, 0.51, 0.38, 1)
 horizontal_alignment = 1
-
-[node name="InteractHint" type="Label" parent="World/Buildings/CrossroadsDiner"]
-offset_left = -50.0
-offset_top = -106.0
-offset_right = 50.0
-offset_bottom = -94.0
-text = "[E] Enter"
-theme_override_font_sizes/font_size = 8
-theme_override_colors/font_color = Color(0.9, 0.82, 0.6, 1)
-horizontal_alignment = 1
-visible = false
 
 [node name="WindowGlow" type="ColorRect" parent="World/Buildings/CrossroadsDiner"]
 offset_left = -70.0
@@ -228,17 +195,6 @@ text = "Cedar Valley Grange"
 theme_override_font_sizes/font_size = 7
 theme_override_colors/font_color = Color(0.58, 0.51, 0.38, 1)
 horizontal_alignment = 1
-
-[node name="InteractHint" type="Label" parent="World/Buildings/GrangeHall"]
-offset_left = -60.0
-offset_top = -104.0
-offset_right = 60.0
-offset_bottom = -92.0
-text = "[E] Meeting Nights"
-theme_override_font_sizes/font_size = 8
-theme_override_colors/font_color = Color(0.9, 0.82, 0.6, 1)
-horizontal_alignment = 1
-visible = false
 
 [node name="StreetProps" type="Node2D" parent="World"]
 z_index = 2

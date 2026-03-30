@@ -64,6 +64,10 @@ const C_MUTED      := Color(0.55, 0.50, 0.42, 1.0)
 const C_ACCENT     := Color(0.95, 0.78, 0.32, 1.0)
 const C_DANGER     := Color(0.90, 0.35, 0.25, 1.0)
 const C_GOOD       := Color(0.45, 0.82, 0.45, 1.0)
+const C_HARVEST_MK := Color(1.00, 0.85, 0.20, 0.60)  # gold overlay for marked frames
+const C_CAP_GREEN  := Color(0.30, 0.80, 0.30, 1.0)    # >=80% capped
+const C_CAP_YELLOW := Color(0.90, 0.80, 0.20, 1.0)    # 60-79% capped
+const C_CAP_RED    := Color(0.90, 0.30, 0.25, 1.0)    # <60% capped
 
 # -- Energy cost (GDD S2.1) ------------------------------------------------------
 const ENERGY_COST := 10.0
@@ -96,6 +100,32 @@ var _stats_labels:  Array  = []
 var _footer_label:  Label  = null
 var _stats_bg_rect: ColorRect = null   # so we can show/hide it per tier
 var _stats_div:     ColorRect = null
+
+# -- Harvest marking UI ---------------------------------------------------
+var _harvest_mark_rect: ColorRect = null   # gold overlay when frame is marked
+var _harvest_label:     Label     = null   # "MARKED" / capping % indicator
+var _ferment_dialog:    Control   = null   # low capping warning popup
+
+# -- Dynamic frame resizing for deep vs super frames -------------------------
+var _foundation_rect:  ColorRect = null
+var _bar_top_rect:     ColorRect = null
+var _bar_top_hi_rect:  ColorRect = null
+var _bar_top_sh_rect:  ColorRect = null
+var _bar_bot_rect:     ColorRect = null
+var _bar_bot_hi_rect:  ColorRect = null
+var _bar_left_rect:    ColorRect = null
+var _bar_left_hi_rect: ColorRect = null
+var _bar_right_rect:   ColorRect = null
+var _bar_right_sh_rect: ColorRect = null
+var _lug_rects:        Array     = []   # [lug, lug_hi] pairs
+var _wire_rects:       Array     = []
+var _is_super_display: bool      = false   # tracks current display mode
+
+# -- Dev advance buttons (visible only in dev mode) ----------------------------
+var _dev_day_btn:   Button = null
+var _dev_month_btn: Button = null
+var _dev_month_advancing: bool = false
+var _dev_month_days_left: int  = 0
 
 # -- Effective inspection tier ----------------------------------------------------
 # Resolved once in open(). Dev mode forces tier 5.
@@ -142,6 +172,10 @@ func open(hive_node: Node) -> void:
 		var queen_vis: bool = _sim.queen.get("present", false) and randf() < 0.80
 		_bee_overlay.init_session(_sim, diff_roll, queen_vis)
 
+	# Listen for dev mode toggle so we can refresh mid-inspection
+	if not GameData.dev_labels_toggled.is_connected(_on_dev_toggled):
+		GameData.dev_labels_toggled.connect(_on_dev_toggled)
+
 	# Apply tier visibility
 	_apply_tier_visibility()
 
@@ -149,6 +183,7 @@ func open(hive_node: Node) -> void:
 	_record_current_side()
 	_refresh_stats()
 	_populate_bees()
+	_refresh_harvest_overlay()
 
 # ------------------------------------------------------------------------------
 # Lifecycle
@@ -201,24 +236,26 @@ func _ready() -> void:
 	_stats_div.position = Vector2(GRID_W, HEADER_H)
 	bg.add_child(_stats_div)
 
-	var stat_y := HEADER_H + 2
-	for _i in 12:
-		var lbl := _lbl("", 5, Vector2(GRID_W + 2, stat_y), Vector2(STATS_W - 4, 12), C_TEXT)
+	var stat_y := HEADER_H + 1
+	# 21 labels: 15 for current stats + divider + 5 forecast (dev mode uses all)
+	for _i in 21:
+		var lbl := _lbl("", 4, Vector2(GRID_W + 2, stat_y), Vector2(STATS_W - 4, 8), C_TEXT)
 		lbl.clip_text = true
 		bg.add_child(lbl)
 		_stats_labels.append(lbl)
-		stat_y += 12
+		stat_y += 8
 
 	# -- Langstroth frame background --------------------------------------------
 	var cell_x := FRAME_BAR_L
 	var cell_y := HEADER_H + FRAME_BAR_T
 
-	var foundation := ColorRect.new()
-	foundation.color    = C_FOUNDATION
-	foundation.size     = Vector2(CELL_AREA_W, CELL_AREA_H)
-	foundation.position = Vector2(cell_x, cell_y)
-	bg.add_child(foundation)
+	_foundation_rect = ColorRect.new()
+	_foundation_rect.color    = C_FOUNDATION
+	_foundation_rect.size     = Vector2(CELL_AREA_W, CELL_AREA_H)
+	_foundation_rect.position = Vector2(cell_x, cell_y)
+	bg.add_child(_foundation_rect)
 
+	_wire_rects.clear()
 	for wi in 3:
 		var wy := cell_y + int((wi + 1) * CELL_AREA_H / 4)
 		var wire := ColorRect.new()
@@ -226,26 +263,28 @@ func _ready() -> void:
 		wire.size     = Vector2(CELL_AREA_W, 1)
 		wire.position = Vector2(cell_x, wy)
 		bg.add_child(wire)
+		_wire_rects.append(wire)
 
 	# Top bar
-	var bar_top := ColorRect.new()
-	bar_top.color    = C_WOOD
-	bar_top.size     = Vector2(GRID_W, FRAME_BAR_T)
-	bar_top.position = Vector2(0, HEADER_H)
-	bg.add_child(bar_top)
+	_bar_top_rect = ColorRect.new()
+	_bar_top_rect.color    = C_WOOD
+	_bar_top_rect.size     = Vector2(GRID_W, FRAME_BAR_T)
+	_bar_top_rect.position = Vector2(0, HEADER_H)
+	bg.add_child(_bar_top_rect)
 
-	var bar_top_hi := ColorRect.new()
-	bar_top_hi.color    = C_WOOD_HI
-	bar_top_hi.size     = Vector2(GRID_W, 1)
-	bar_top_hi.position = Vector2(0, HEADER_H)
-	bg.add_child(bar_top_hi)
+	_bar_top_hi_rect = ColorRect.new()
+	_bar_top_hi_rect.color    = C_WOOD_HI
+	_bar_top_hi_rect.size     = Vector2(GRID_W, 1)
+	_bar_top_hi_rect.position = Vector2(0, HEADER_H)
+	bg.add_child(_bar_top_hi_rect)
 
-	var bar_top_sh := ColorRect.new()
-	bar_top_sh.color    = C_WOOD_SH
-	bar_top_sh.size     = Vector2(GRID_W, 1)
-	bar_top_sh.position = Vector2(0, cell_y - 1)
-	bg.add_child(bar_top_sh)
+	_bar_top_sh_rect = ColorRect.new()
+	_bar_top_sh_rect.color    = C_WOOD_SH
+	_bar_top_sh_rect.size     = Vector2(GRID_W, 1)
+	_bar_top_sh_rect.position = Vector2(0, cell_y - 1)
+	bg.add_child(_bar_top_sh_rect)
 
+	_lug_rects.clear()
 	for lug_x in [0, GRID_W - 14]:
 		var lug := ColorRect.new()
 		lug.color    = C_WOOD_LUG
@@ -257,45 +296,46 @@ func _ready() -> void:
 		lug_hi.size     = Vector2(14, 1)
 		lug_hi.position = Vector2(lug_x, HEADER_H)
 		bg.add_child(lug_hi)
+		_lug_rects.append([lug, lug_hi])
 
 	# Bottom bar
-	var bar_bot := ColorRect.new()
-	bar_bot.color    = C_WOOD
-	bar_bot.size     = Vector2(GRID_W, FRAME_BAR_B)
-	bar_bot.position = Vector2(0, HEADER_H + GRID_H - FRAME_BAR_B)
-	bg.add_child(bar_bot)
+	_bar_bot_rect = ColorRect.new()
+	_bar_bot_rect.color    = C_WOOD
+	_bar_bot_rect.size     = Vector2(GRID_W, FRAME_BAR_B)
+	_bar_bot_rect.position = Vector2(0, HEADER_H + GRID_H - FRAME_BAR_B)
+	bg.add_child(_bar_bot_rect)
 
-	var bar_bot_hi := ColorRect.new()
-	bar_bot_hi.color    = C_WOOD_HI
-	bar_bot_hi.size     = Vector2(GRID_W, 1)
-	bar_bot_hi.position = Vector2(0, HEADER_H + GRID_H - FRAME_BAR_B)
-	bg.add_child(bar_bot_hi)
+	_bar_bot_hi_rect = ColorRect.new()
+	_bar_bot_hi_rect.color    = C_WOOD_HI
+	_bar_bot_hi_rect.size     = Vector2(GRID_W, 1)
+	_bar_bot_hi_rect.position = Vector2(0, HEADER_H + GRID_H - FRAME_BAR_B)
+	bg.add_child(_bar_bot_hi_rect)
 
 	# Left side bar
-	var bar_left := ColorRect.new()
-	bar_left.color    = C_WOOD
-	bar_left.size     = Vector2(FRAME_BAR_L, CELL_AREA_H)
-	bar_left.position = Vector2(0, cell_y)
-	bg.add_child(bar_left)
+	_bar_left_rect = ColorRect.new()
+	_bar_left_rect.color    = C_WOOD
+	_bar_left_rect.size     = Vector2(FRAME_BAR_L, CELL_AREA_H)
+	_bar_left_rect.position = Vector2(0, cell_y)
+	bg.add_child(_bar_left_rect)
 
-	var bar_left_hi := ColorRect.new()
-	bar_left_hi.color    = C_WOOD_HI
-	bar_left_hi.size     = Vector2(1, CELL_AREA_H)
-	bar_left_hi.position = Vector2(FRAME_BAR_L - 1, cell_y)
-	bg.add_child(bar_left_hi)
+	_bar_left_hi_rect = ColorRect.new()
+	_bar_left_hi_rect.color    = C_WOOD_HI
+	_bar_left_hi_rect.size     = Vector2(1, CELL_AREA_H)
+	_bar_left_hi_rect.position = Vector2(FRAME_BAR_L - 1, cell_y)
+	bg.add_child(_bar_left_hi_rect)
 
 	# Right side bar
-	var bar_right := ColorRect.new()
-	bar_right.color    = C_WOOD
-	bar_right.size     = Vector2(FRAME_BAR_R, CELL_AREA_H)
-	bar_right.position = Vector2(GRID_W - FRAME_BAR_R, cell_y)
-	bg.add_child(bar_right)
+	_bar_right_rect = ColorRect.new()
+	_bar_right_rect.color    = C_WOOD
+	_bar_right_rect.size     = Vector2(FRAME_BAR_R, CELL_AREA_H)
+	_bar_right_rect.position = Vector2(GRID_W - FRAME_BAR_R, cell_y)
+	bg.add_child(_bar_right_rect)
 
-	var bar_right_sh := ColorRect.new()
-	bar_right_sh.color    = C_WOOD_SH
-	bar_right_sh.size     = Vector2(1, CELL_AREA_H)
-	bar_right_sh.position = Vector2(GRID_W - FRAME_BAR_R, cell_y)
-	bg.add_child(bar_right_sh)
+	_bar_right_sh_rect = ColorRect.new()
+	_bar_right_sh_rect.color    = C_WOOD_SH
+	_bar_right_sh_rect.size     = Vector2(1, CELL_AREA_H)
+	_bar_right_sh_rect.position = Vector2(GRID_W - FRAME_BAR_R, cell_y)
+	bg.add_child(_bar_right_sh_rect)
 
 	# -- Cell grid (TextureRect) -----------------------------------------------
 	_cell_rect = TextureRect.new()
@@ -319,6 +359,23 @@ func _ready() -> void:
 	_bee_rect.mouse_filter      = Control.MOUSE_FILTER_PASS
 	_bee_rect.z_index           = 1   # Above cell grid
 	bg.add_child(_bee_rect)
+
+	# -- Harvest mark overlay (gold tint when frame is marked) ----------------
+	_harvest_mark_rect = ColorRect.new()
+	_harvest_mark_rect.color    = C_HARVEST_MK
+	_harvest_mark_rect.position = Vector2(cell_x, cell_y)
+	_harvest_mark_rect.size     = Vector2(CELL_AREA_W, CELL_AREA_H)
+	_harvest_mark_rect.visible  = false
+	_harvest_mark_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_harvest_mark_rect.z_index  = 2
+	bg.add_child(_harvest_mark_rect)
+
+	# -- Harvest status label (top-left of frame: "MARKED" + capping %) ------
+	_harvest_label = _lbl("", 5, Vector2(cell_x + 2, cell_y + 2),
+		Vector2(CELL_AREA_W - 4, 8), C_ACCENT)
+	_harvest_label.z_index = 3
+	_harvest_label.visible = false
+	bg.add_child(_harvest_label)
 
 	# -- Tooltip (black box with orange border, follows mouse) -----------------
 	_tooltip_panel = PanelContainer.new()
@@ -353,12 +410,137 @@ func _ready() -> void:
 	footer_bg.position = Vector2(0, VP_H - FOOTER_H)
 	bg.add_child(footer_bg)
 
-	_footer_label = _lbl("[A/D] Frame  [F] Flip  [W/S] Box  [Click] Find Queen  [ESC] Close",
+	_footer_label = _lbl("[A/D] Frame  [F] Flip  [W/S] Box  [H] Mark  [Click] Queen  [ESC] Close",
 		5, Vector2(2, VP_H - FOOTER_H + 2), Vector2(VP_W - 4, 8), C_MUTED)
 	bg.add_child(_footer_label)
 
+	# -- Dev mode advance buttons (top-right of stats panel) -------------------
+	_build_dev_advance_buttons(bg)
+
+func _build_dev_advance_buttons(bg: Control) -> void:
+	var btn_w: int = 36
+	var btn_h: int = 10
+	var gap: int = 2
+	# Position in the stats sidebar area, just below the header
+	var bx: int = GRID_W + 2
+	var by: int = HEADER_H + GRID_H - btn_h * 2 - gap - 2  # bottom of stats area
+
+	_dev_day_btn = _make_dev_btn("+ Day", bx, by, btn_w, btn_h, C_ACCENT)
+	_dev_day_btn.pressed.connect(_on_dev_advance_day_inspection)
+	bg.add_child(_dev_day_btn)
+
+	_dev_month_btn = _make_dev_btn("+ Month", bx, by + btn_h + gap, btn_w, btn_h,
+		Color(0.95, 0.65, 0.20))
+	_dev_month_btn.pressed.connect(_on_dev_advance_month_inspection)
+	bg.add_child(_dev_month_btn)
+
+	# Only visible in dev mode
+	var vis: bool = GameData.dev_labels_visible
+	_dev_day_btn.visible = vis
+	_dev_month_btn.visible = vis
+
+func _make_dev_btn(label: String, x: int, y: int, w: int, h: int, col: Color) -> Button:
+	var btn := Button.new()
+	btn.text = label
+	btn.clip_text = true
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.add_theme_font_size_override("font_size", 4)
+	btn.add_theme_color_override("font_color", Color(0.95, 0.90, 0.75))
+	btn.add_theme_color_override("font_hover_color", col)
+	btn.add_theme_color_override("font_pressed_color", Color(1.0, 1.0, 1.0))
+	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
+		var sb := StyleBoxFlat.new()
+		if state == "hover":
+			sb.bg_color = Color(0.22, 0.16, 0.08, 0.95)
+		elif state == "pressed":
+			sb.bg_color = Color(0.30, 0.22, 0.10, 0.95)
+		elif state == "focus":
+			sb.bg_color = Color(0, 0, 0, 0)
+		else:
+			sb.bg_color = Color(0.15, 0.10, 0.05, 0.95)
+		sb.border_color = col
+		sb.set_border_width_all(1)
+		sb.set_content_margin_all(0)
+		btn.add_theme_stylebox_override(state, sb)
+	btn.position = Vector2(x, y)
+	btn.size = Vector2(w, h)
+	btn.z_index = 25
+	return btn
+
+# -- Dev advance: run one simulation day and refresh the inspection view -------
+func _on_dev_advance_day_inspection() -> void:
+	_dev_sim_one_day()
+	_refresh_frame()
+	_refresh_stats()
+	_populate_bees()
+	_refresh_harvest_overlay()
+
+func _on_dev_advance_month_inspection() -> void:
+	if _dev_month_advancing:
+		return
+	_dev_month_advancing = true
+	_dev_month_days_left = 28
+	if _dev_month_btn:
+		_dev_month_btn.text = "28..."
+		_dev_month_btn.disabled = true
+	var timer := Timer.new()
+	timer.name = "DevMonthTimer"
+	timer.wait_time = 0.05
+	timer.one_shot = false
+	timer.timeout.connect(_dev_month_tick_inspection.bind(timer))
+	add_child(timer)
+	timer.start()
+
+func _dev_month_tick_inspection(timer: Timer) -> void:
+	if _dev_month_days_left <= 0:
+		timer.stop()
+		timer.queue_free()
+		_dev_month_finish_inspection()
+		return
+	_dev_sim_one_day()
+	_dev_month_days_left -= 1
+	# Live-refresh the frame view each day so you can watch changes
+	_refresh_frame()
+	_refresh_stats()
+	if _dev_month_btn:
+		_dev_month_btn.text = "%d..." % _dev_month_days_left
+	if _dev_month_days_left <= 0:
+		timer.stop()
+		timer.queue_free()
+		_dev_month_finish_inspection()
+
+func _dev_month_finish_inspection() -> void:
+	_dev_month_advancing = false
+	if _dev_month_btn:
+		_dev_month_btn.text = "+ Month"
+		_dev_month_btn.disabled = false
+	_refresh_frame()
+	_refresh_stats()
+	_populate_bees()
+	_refresh_harvest_overlay()
+
+## Shared day-advance logic (same as HUD _dev_sim_one_day).
+func _dev_sim_one_day() -> void:
+	for h in get_tree().get_nodes_in_group("hive"):
+		if h.has_method("advance_day"):
+			h.advance_day()
+	for fl in get_tree().get_nodes_in_group("flowers"):
+		if fl.has_method("advance_day_with_global"):
+			fl.advance_day_with_global(TimeManager.current_day + 1)
+	TimeManager.start_new_day()
+	GameData.full_restore_energy()
+
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+	# If fermentation warning dialog is open, only accept Y/N/Escape
+	if _ferment_dialog and _ferment_dialog.visible:
+		match event.keycode:
+			KEY_Y:
+				_confirm_mark_despite_fermentation()
+			KEY_N, KEY_ESCAPE:
+				_dismiss_fermentation_warning()
+		get_viewport().set_input_as_handled()
 		return
 	match event.keycode:
 		KEY_ESCAPE:
@@ -373,6 +555,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			_switch_box(+1)
 		KEY_F:
 			_flip_side()
+		KEY_H:
+			if event.shift_pressed:
+				_mark_entire_super()
+			else:
+				_toggle_frame_harvest_mark()
 		KEY_E:
 			_harvest_from_overlay()
 	get_viewport().set_input_as_handled()
@@ -419,7 +606,26 @@ func _apply_tier_visibility() -> void:
 	for lbl in _stats_labels:
 		(lbl as Label).visible = show_stats
 
-	# Tooltip: disabled at tier 1 (handled in _on_grid_mouse_entered)
+	# Tooltip: enabled at tier 2+. Also force-show when dev mode toggled
+	# mid-inspection (mouse may already be over grid, so entered() won't re-fire).
+	if _tooltip_panel:
+		_tooltip_panel.visible = _tier >= 2
+
+## React to dev mode being toggled while the inspection overlay is open.
+func _on_dev_toggled(_visible: bool) -> void:
+	if GameData.dev_labels_visible:
+		_tier = 5
+	else:
+		_tier = clampi(GameData.player_level, 1, 5)
+	_apply_tier_visibility()
+	# Show/hide dev advance buttons
+	var show_dev: bool = GameData.dev_labels_visible
+	if _dev_day_btn:
+		_dev_day_btn.visible = show_dev
+	if _dev_month_btn:
+		_dev_month_btn.visible = show_dev
+	_refresh_frame()
+	_refresh_stats()
 
 # ------------------------------------------------------------------------------
 # Frame Navigation
@@ -438,6 +644,7 @@ func _navigate(dir: int) -> void:
 	_record_current_side()
 	_refresh_stats()
 	_populate_bees()
+	_refresh_harvest_overlay()
 
 func _switch_box(dir: int) -> void:
 	if _sim == null or _sim.boxes.size() <= 1:
@@ -449,6 +656,7 @@ func _switch_box(dir: int) -> void:
 	_record_current_side()
 	_refresh_stats()
 	_populate_bees()
+	_refresh_harvest_overlay()
 
 func _flip_side() -> void:
 	_current_side = 1 - _current_side
@@ -477,12 +685,80 @@ func _current_box() -> Variant:
 # Rendering
 # ------------------------------------------------------------------------------
 
+## Resize all frame display elements to fit super (35-row) or deep (50-row) frames.
+## Super frames are shorter; the wooden frame + cell area shrink to match, centered
+## vertically in the available GRID_H space so there is no black gap.
+func _resize_for_frame_type(is_super: bool) -> void:
+	if is_super == _is_super_display:
+		return   # already sized correctly
+	_is_super_display = is_super
+
+	var rows: int = 35 if is_super else 50
+	var effective_cell_h: int = int(CELL_AREA_H * rows / 50)
+	var effective_grid_h: int = FRAME_BAR_T + effective_cell_h + FRAME_BAR_B
+	# Center the shorter frame vertically in the available GRID_H space
+	var y_offset: int = HEADER_H + (GRID_H - effective_grid_h) / 2
+	var cell_x: int = FRAME_BAR_L
+	var cell_y: int = y_offset + FRAME_BAR_T
+
+	# Top bar
+	if _bar_top_rect:
+		_bar_top_rect.position    = Vector2(0, y_offset)
+		_bar_top_hi_rect.position = Vector2(0, y_offset)
+		_bar_top_sh_rect.position = Vector2(0, cell_y - 1)
+	for lug_pair in _lug_rects:
+		lug_pair[0].position.y = y_offset
+		lug_pair[1].position.y = y_offset
+
+	# Foundation background
+	if _foundation_rect:
+		_foundation_rect.position = Vector2(cell_x, cell_y)
+		_foundation_rect.size     = Vector2(CELL_AREA_W, effective_cell_h)
+
+	# Wires (evenly spaced within cell area)
+	for wi in _wire_rects.size():
+		var wy: int = cell_y + int((wi + 1) * effective_cell_h / 4)
+		_wire_rects[wi].position = Vector2(cell_x, wy)
+
+	# Bottom bar
+	if _bar_bot_rect:
+		_bar_bot_rect.position    = Vector2(0, cell_y + effective_cell_h)
+		_bar_bot_hi_rect.position = Vector2(0, cell_y + effective_cell_h)
+
+	# Side bars
+	if _bar_left_rect:
+		_bar_left_rect.position    = Vector2(0, cell_y)
+		_bar_left_rect.size        = Vector2(FRAME_BAR_L, effective_cell_h)
+		_bar_left_hi_rect.position = Vector2(FRAME_BAR_L - 1, cell_y)
+		_bar_left_hi_rect.size     = Vector2(1, effective_cell_h)
+
+	if _bar_right_rect:
+		_bar_right_rect.position    = Vector2(GRID_W - FRAME_BAR_R, cell_y)
+		_bar_right_rect.size        = Vector2(FRAME_BAR_R, effective_cell_h)
+		_bar_right_sh_rect.position = Vector2(GRID_W - FRAME_BAR_R, cell_y)
+		_bar_right_sh_rect.size     = Vector2(1, effective_cell_h)
+
+	# Cell display, bee overlay, harvest overlay
+	if _cell_rect:
+		_cell_rect.position = Vector2(cell_x, cell_y)
+		_cell_rect.size     = Vector2(CELL_AREA_W, effective_cell_h)
+	if _bee_rect:
+		_bee_rect.position = Vector2(cell_x, cell_y)
+		_bee_rect.size     = Vector2(CELL_AREA_W, effective_cell_h)
+	if _harvest_mark_rect:
+		_harvest_mark_rect.position = Vector2(cell_x, cell_y)
+		_harvest_mark_rect.size     = Vector2(CELL_AREA_W, effective_cell_h)
+	if _harvest_label:
+		_harvest_label.position = Vector2(cell_x + 2, cell_y + 2)
+
 func _refresh_frame() -> void:
 	if _sim == null or _renderer == null:
 		return
 	var box: Variant = _current_box()
 	if box == null or _frame_idx >= box.frames.size():
 		return
+	# Resize frame display if switching between deep and super
+	_resize_for_frame_type(box.is_super)
 	var frame: Variant = box.frames[_frame_idx]
 	_cell_rect.texture = _renderer.render_honeycomb(frame, _current_side)
 	var frame_count: int = box.frames.size()
@@ -587,8 +863,11 @@ func _build_qualitative_rows(counts: Dictionary, snap: Dictionary, cells_seen: i
 	var brood: int = counts.get(CellStateTransition.S_EGG, 0) \
 				+ counts.get(CellStateTransition.S_OPEN_LARVA, 0) \
 				+ counts.get(CellStateTransition.S_CAPPED_BROOD, 0)
+	var nectar: int = counts.get(CellStateTransition.S_NECTAR, 0) \
+				   + counts.get(CellStateTransition.S_CURING_HONEY, 0)
 	var honey: int = counts.get(CellStateTransition.S_CAPPED_HONEY, 0) \
 				   + counts.get(CellStateTransition.S_PREMIUM_HONEY, 0)
+	var bee_bread: int = counts.get(CellStateTransition.S_BEE_BREAD, 0)
 	var hp: float  = snap.get("health_score", 100.0)
 
 	# Brood pattern assessment
@@ -658,13 +937,46 @@ func _build_qualitative_rows(counts: Dictionary, snap: Dictionary, cells_seen: i
 	# Sides examined indicator
 	var examined: String = "%d/%d" % [_viewed_sides.size(), _total_inspectable_sides()]
 
+	# Nectar flow (incoming nectar + curing)
+	var nectar_desc: String
+	var nectar_color: Color = C_TEXT
+	var nectar_pct: float = float(nectar) / denom
+	if nectar_pct > 0.15:
+		nectar_desc = "Flow on"
+		nectar_color = Color(0.70, 0.85, 0.40)
+	elif nectar_pct > 0.03:
+		nectar_desc = "Some nectar"
+		nectar_color = Color(0.70, 0.85, 0.40)
+	elif nectar > 0:
+		nectar_desc = "Trickle"
+		nectar_color = C_MUTED
+	else:
+		nectar_desc = "No nectar"
+		nectar_color = C_MUTED
+
+	# Bee bread stores
+	var bread_desc: String
+	var bread_color: Color = C_TEXT
+	var bread_pct: float = float(bee_bread) / denom
+	if bread_pct > 0.10:
+		bread_desc = "Good pollen"
+		bread_color = Color(0.85, 0.60, 0.20)
+	elif bread_pct > 0.03:
+		bread_desc = "Some pollen"
+		bread_color = Color(0.85, 0.60, 0.20)
+	elif bee_bread > 0:
+		bread_desc = "Low pollen"
+		bread_color = C_ACCENT
+	else:
+		bread_desc = "No pollen"
+		bread_color = C_MUTED
+
 	return [
 		[brood_desc, "", brood_color],
-		[""],
+		[nectar_desc, "", nectar_color],
 		[honey_desc, "", honey_color],
-		[""],
+		[bread_desc, "", bread_color],
 		[hp_desc, "", hp_color],
-		[""],
 		[queen_desc, "", queen_color],
 		[""],
 		["Seen", examined, C_MUTED],
@@ -678,8 +990,11 @@ func _build_approximate_rows(counts: Dictionary, snap: Dictionary, cells_seen: i
 	var larvae: int  = counts.get(CellStateTransition.S_OPEN_LARVA, 0)
 	var brood: int   = counts.get(CellStateTransition.S_CAPPED_BROOD, 0)
 	var drones: int  = counts.get(CellStateTransition.S_CAPPED_DRONE, 0)
+	var nectar: int  = counts.get(CellStateTransition.S_NECTAR, 0) \
+					 + counts.get(CellStateTransition.S_CURING_HONEY, 0)
 	var honey: int   = counts.get(CellStateTransition.S_CAPPED_HONEY, 0) \
 					 + counts.get(CellStateTransition.S_PREMIUM_HONEY, 0)
+	var bee_bread: int = counts.get(CellStateTransition.S_BEE_BREAD, 0)
 	var hp: float    = snap.get("health_score", 100.0)
 	var adults: int  = snap.get("total_adults", 0)
 
@@ -727,16 +1042,49 @@ func _build_approximate_rows(counts: Dictionary, snap: Dictionary, cells_seen: i
 	# Sides examined indicator
 	var examined: String = "%d/%d" % [_viewed_sides.size(), _total_inspectable_sides()]
 
+	# Nectar assessment (nectar + curing combined)
+	var nectar_pct: float = float(nectar) / denom * 100.0
+	var nectar_desc: String
+	var nectar_color: Color
+	if nectar_pct > 15.0:
+		nectar_desc = "Heavy"
+		nectar_color = Color(0.70, 0.85, 0.40)
+	elif nectar_pct > 5.0:
+		nectar_desc = "Some"
+		nectar_color = Color(0.70, 0.85, 0.40)
+	elif nectar_pct > 0.0:
+		nectar_desc = "Light"
+		nectar_color = C_MUTED
+	else:
+		nectar_desc = "None"
+		nectar_color = C_MUTED
+
+	# Bee bread assessment
+	var bread_pct: float = float(bee_bread) / denom * 100.0
+	var bread_desc: String
+	var bread_color: Color
+	if bread_pct > 10.0:
+		bread_desc = "Good"
+		bread_color = Color(0.85, 0.60, 0.20)
+	elif bread_pct > 3.0:
+		bread_desc = "Some"
+		bread_color = Color(0.85, 0.60, 0.20)
+	elif bread_pct > 0.0:
+		bread_desc = "Low"
+		bread_color = C_ACCENT
+	else:
+		bread_desc = "None"
+		bread_color = C_MUTED
+
 	return [
 		["Brood", "~%s (%s)" % [_approx_count(total_brood), brood_qual], brood_color],
 		["Drones", "~%s" % _approx_count(drones)],
+		["Nectar", nectar_desc, nectar_color],
 		["Honey", "~%d%%" % roundi(honey_pct)],
-		[""],
+		["Bread", bread_desc, bread_color],
 		["Adults", "~%s" % _approx_k(adults)],
 		["HP", "%d-%d%%" % [hp_lo, hp_hi], hp_color],
-		[""],
 		[queen_hint, "", C_TEXT],
-		[""],
 		["Seen", examined, C_MUTED],
 	]
 
@@ -748,13 +1096,19 @@ func _build_exact_rows(counts: Dictionary, snap: Dictionary, cells_seen: int) ->
 	var eggs: int    = counts.get(CellStateTransition.S_EGG, 0)
 	var larvae: int  = counts.get(CellStateTransition.S_OPEN_LARVA, 0)
 	var capped: int  = counts.get(CellStateTransition.S_CAPPED_BROOD, 0)
+	var nectar: int  = counts.get(CellStateTransition.S_NECTAR, 0)
+	var curing: int  = counts.get(CellStateTransition.S_CURING_HONEY, 0)
 	var honey: int   = counts.get(CellStateTransition.S_CAPPED_HONEY, 0) \
 					 + counts.get(CellStateTransition.S_PREMIUM_HONEY, 0)
+	var bee_bread: int = counts.get(CellStateTransition.S_BEE_BREAD, 0)
 
 	var egg_pct: String   = "%.1f%%" % (float(eggs)   / denom * 100.0)
 	var larva_pct: String = "%.1f%%" % (float(larvae)  / denom * 100.0)
 	var cap_pct: String   = "%.1f%%" % (float(capped)  / denom * 100.0)
+	var nectar_pct: String = "%.1f%%" % (float(nectar) / denom * 100.0)
+	var curing_pct: String = "%.1f%%" % (float(curing) / denom * 100.0)
 	var honey_pct: String = "%.1f%%" % (float(honey)   / denom * 100.0)
+	var bread_pct: String = "%.1f%%" % (float(bee_bread) / denom * 100.0)
 
 	# Queen ranking
 	var grade: String   = snap.get("queen_grade", "?")
@@ -832,14 +1186,15 @@ func _build_exact_rows(counts: Dictionary, snap: Dictionary, cells_seen: int) ->
 		["Eggs", egg_pct, C_TEXT],
 		["Larvae", larva_pct, C_TEXT],
 		["Capped", cap_pct, C_TEXT],
+		["Nectar", nectar_pct, Color(0.70, 0.85, 0.40)],
+		["Curing", curing_pct, Color(0.90, 0.75, 0.30)],
 		["Honey", honey_pct, C_TEXT],
+		["Bread", bread_pct, Color(0.85, 0.60, 0.20)],
 		["HP", "%.0f%%" % hp, hp_color],
-		[""],
 		[nurse_desc, "", nurse_color],
 		[worker_desc, "", worker_color],
 		[drone_desc, "", drone_color],
 		[queen_str, "", C_ACCENT],
-		[""],
 		["Seen", examined, C_MUTED],
 	]
 
@@ -866,8 +1221,11 @@ func _build_dev_rows(counts: Dictionary, snap: Dictionary) -> Array:
 	var eggs: int    = counts.get(CellStateTransition.S_EGG, 0)
 	var larvae: int  = counts.get(CellStateTransition.S_OPEN_LARVA, 0)
 	var capped: int  = counts.get(CellStateTransition.S_CAPPED_BROOD, 0)
+	var nectar: int  = counts.get(CellStateTransition.S_NECTAR, 0)
+	var curing: int  = counts.get(CellStateTransition.S_CURING_HONEY, 0)
 	var honey: int   = counts.get(CellStateTransition.S_CAPPED_HONEY, 0) \
 					 + counts.get(CellStateTransition.S_PREMIUM_HONEY, 0)
+	var bee_bread: int = counts.get(CellStateTransition.S_BEE_BREAD, 0)
 	var varroa: int  = counts.get(CellStateTransition.S_VARROA, 0)
 	var hp: float    = snap.get("health_score", 100.0)
 	var mites: float = snap.get("mite_count", 0.0)
@@ -885,11 +1243,24 @@ func _build_dev_rows(counts: Dictionary, snap: Dictionary) -> Array:
 	var grade: String   = snap.get("queen_grade", "?")
 	var species: String = snap.get("queen_species", "?")
 
+	# -- Tomorrow forecast (dev only) --
+	var forecast: Dictionary = _sim.forecast_tomorrow()
+	var f_wax: int      = forecast.get("wax_cells", 0)
+	var f_bb: int       = forecast.get("bee_bread_cells", 0)
+	var f_honey: int    = forecast.get("honey_cells", 0)
+	var f_eggs: int     = forecast.get("eggs_laid", 0)
+
+	var bb_color: Color = C_GOOD if f_bb > 0 else (C_DANGER if f_bb < 0 else C_MUTED)
+	var honey_fc: Color = C_GOOD if f_honey > 0 else C_MUTED
+
 	return [
 		["Eggs", "%d (%.1f%%)" % [eggs, float(eggs) / total * 100.0], C_TEXT],
 		["Larvae", "%d (%.1f%%)" % [larvae, float(larvae) / total * 100.0], C_TEXT],
 		["Capped", "%d (%.1f%%)" % [capped, float(capped) / total * 100.0], C_TEXT],
+		["Nectar", "%d (%.1f%%)" % [nectar, float(nectar) / total * 100.0], Color(0.70, 0.85, 0.40)],
+		["Curing", "%d (%.1f%%)" % [curing, float(curing) / total * 100.0], Color(0.90, 0.75, 0.30)],
 		["Honey", "%d (%.1f%%)" % [honey, float(honey) / total * 100.0], C_TEXT],
+		["Bread", "%d (%.1f%%)" % [bee_bread, float(bee_bread) / total * 100.0], Color(0.85, 0.60, 0.20)],
 		["Varroa", str(varroa), mite_color],
 		["Mites", "%.0f" % mites, mite_color],
 		["HP", "%.0f%%" % hp, hp_color],
@@ -898,6 +1269,11 @@ func _build_dev_rows(counts: Dictionary, snap: Dictionary) -> Array:
 		["Workers", _fmt_k(snap.get("house_count", 0) + snap.get("forager_count", 0)), C_TEXT],
 		["Drones", _fmt_k(snap.get("drone_count", 0)), C_TEXT],
 		["Q: %s/%s" % [grade, species.substr(0, 3)], "", C_ACCENT],
+		["-- TOMORROW --", "", C_ACCENT],
+		["+Wax", str(f_wax), C_GOOD if f_wax > 0 else C_MUTED],
+		["+Bread", "%+d" % f_bb, bb_color],
+		["+Honey", str(f_honey), honey_fc],
+		["+Eggs", str(f_eggs), C_GOOD if f_eggs > 0 else C_MUTED],
 	]
 
 # ------------------------------------------------------------------------------
@@ -924,15 +1300,21 @@ func _refresh_tooltip() -> void:
 	if _current_box() == null or _frame_idx >= _current_box().frames.size():
 		return
 
-	var mouse_local: Vector2 = _cell_rect.get_local_mouse_position()
-	var hx: float = mouse_local.x / float(CELL_AREA_W) * float(FrameRenderer.HONEY_PX_W)
-	var hy: float = mouse_local.y / float(CELL_AREA_H) * float(FrameRenderer.HONEY_PX_H)
-	var row := clampi(int(hy / float(FrameRenderer.HEX_ROW_STEP)), 0, FRAME_ROWS - 1)
-	var x_offset: float = float(FrameRenderer.HEX_ODD_SHIFT) if (row % 2 == 1) else 0.0
-	var col := clampi(int((hx - x_offset) / float(FrameRenderer.HEX_COL_STEP)), 0, FRAME_COLS - 1)
 	var frame = _current_box().frames[_frame_idx]
+	var f_cols: int = frame.grid_cols
+	var f_rows: int = frame.grid_rows
+	var honey_w: float = float(FrameRenderer.honeycomb_px_w(f_cols))
+	var honey_h: float = float(FrameRenderer.honeycomb_px_h(f_rows))
+	var cell_h: float = _cell_rect.size.y   # dynamic -- accounts for super/deep
+
+	var mouse_local: Vector2 = _cell_rect.get_local_mouse_position()
+	var hx: float = mouse_local.x / float(CELL_AREA_W) * honey_w
+	var hy: float = mouse_local.y / cell_h * honey_h
+	var row := clampi(int(hy / float(FrameRenderer.HEX_ROW_STEP)), 0, f_rows - 1)
+	var x_offset: float = float(FrameRenderer.HEX_ODD_SHIFT) if (row % 2 == 1) else 0.0
+	var col := clampi(int((hx - x_offset) / float(FrameRenderer.HEX_COL_STEP)), 0, f_cols - 1)
 	var state: int = frame.get_cell(col, row, _current_side)
-	var idx := row * FRAME_COLS + col
+	var idx := row * f_cols + col
 
 	# Build tooltip text -- players see cell kind only; dev mode gets full debug info
 	if GameData.dev_labels_visible:
@@ -972,21 +1354,21 @@ func _viewport_to_canvas(viewport_pos: Vector2) -> Vector2:
 	if _bee_rect == null:
 		return Vector2(-1.0, -1.0)
 
-	# The bee_rect is positioned at (FRAME_BAR_L, HEADER_H + FRAME_BAR_T)
-	# and sized CELL_AREA_W x CELL_AREA_H in the viewport.
-	# The canvas is CANVAS_W x CANVAS_H (1833 x 755) scaled down to fit.
-	var cell_x: float = float(FRAME_BAR_L)
-	var cell_y: float = float(HEADER_H + FRAME_BAR_T)
+	# Use the bee_rect's current position and size (dynamic for deep/super).
+	var cell_x: float = _bee_rect.position.x
+	var cell_y: float = _bee_rect.position.y
+	var cell_w: float = _bee_rect.size.x
+	var cell_h: float = _bee_rect.size.y
 
 	var local_x: float = viewport_pos.x - cell_x
 	var local_y: float = viewport_pos.y - cell_y
 
-	if local_x < 0.0 or local_x >= float(CELL_AREA_W) or local_y < 0.0 or local_y >= float(CELL_AREA_H):
+	if local_x < 0.0 or local_x >= cell_w or local_y < 0.0 or local_y >= cell_h:
 		return Vector2(-1.0, -1.0)
 
 	# Scale from viewport cell area to honeycomb canvas
-	var canvas_x: float = local_x / float(CELL_AREA_W) * float(BeeOverlay.CANVAS_W)
-	var canvas_y: float = local_y / float(CELL_AREA_H) * float(BeeOverlay.CANVAS_H)
+	var canvas_x: float = local_x / cell_w * float(BeeOverlay.CANVAS_W)
+	var canvas_y: float = local_y / cell_h * float(BeeOverlay.CANVAS_H)
 	return Vector2(canvas_x, canvas_y)
 
 ## Phase 2 notification: XP scales with difficulty rank.
@@ -1030,6 +1412,216 @@ func _show_queen_notification_phase2(xp_amount: int) -> void:
 	timer.timeout.connect(note.queue_free)
 
 # (Phase 1 queen sighting removed -- replaced by Phase 2 visual search above)
+
+# ------------------------------------------------------------------------------
+# Harvest Marking -- [H] marks frames, [Shift+H] marks entire super
+# ------------------------------------------------------------------------------
+
+## Calculate capping percentage for the current frame (both sides).
+func _calc_frame_capping_pct() -> float:
+	var box: Variant = _current_box()
+	if box == null or _frame_idx >= box.frames.size():
+		return 0.0
+	var frame: Variant = box.frames[_frame_idx]
+	var capped := 0
+	var total_honey := 0
+	for side_cells in [frame.cells, frame.cells_b]:
+		for i in frame.grid_size:
+			var s: int = int(side_cells[i])
+			if s == CellStateTransition.S_CAPPED_HONEY or s == CellStateTransition.S_PREMIUM_HONEY:
+				capped += 1
+				total_honey += 1
+			elif s == CellStateTransition.S_CURING_HONEY or s == CellStateTransition.S_NECTAR:
+				total_honey += 1
+	if total_honey == 0:
+		return 100.0
+	return (float(capped) / float(total_honey)) * 100.0
+
+## Toggle harvest mark on the current frame. Only works on super frames.
+func _toggle_frame_harvest_mark() -> void:
+	var box: Variant = _current_box()
+	if box == null or not box.is_super:
+		_show_temp_message("Only super frames can be harvested.")
+		return
+	if _frame_idx >= box.frames.size():
+		return
+	var frame: Variant = box.frames[_frame_idx]
+	if frame.marked_for_harvest:
+		# Unmark
+		frame.marked_for_harvest = false
+		_show_temp_message("Frame %d unmarked." % (_frame_idx + 1))
+	else:
+		# Check capping percentage for fermentation warning
+		var cap_pct: float = _calc_frame_capping_pct()
+		if cap_pct < 80.0:
+			_show_fermentation_warning(cap_pct)
+			return
+		frame.marked_for_harvest = true
+		_show_temp_message("Frame %d marked for harvest!" % (_frame_idx + 1))
+	_refresh_harvest_overlay()
+
+## Mark all frames in the current super box for harvest.
+func _mark_entire_super() -> void:
+	var box: Variant = _current_box()
+	if box == null or not box.is_super:
+		_show_temp_message("Only super frames can be harvested.")
+		return
+	# Check if already all marked -- if so, unmark all
+	var all_marked := true
+	for frame in box.frames:
+		if not frame.marked_for_harvest:
+			all_marked = false
+			break
+	if all_marked:
+		for frame in box.frames:
+			frame.marked_for_harvest = false
+		_show_temp_message("All frames in super unmarked.")
+	else:
+		# Check worst capping in the super
+		var worst_cap: float = 100.0
+		for f_idx in box.frames.size():
+			var f: Variant = box.frames[f_idx]
+			var fc := 0
+			var ft := 0
+			for side_cells in [f.cells, f.cells_b]:
+				for i in f.grid_size:
+					var s: int = int(side_cells[i])
+					if s == CellStateTransition.S_CAPPED_HONEY or s == CellStateTransition.S_PREMIUM_HONEY:
+						fc += 1
+						ft += 1
+					elif s == CellStateTransition.S_CURING_HONEY or s == CellStateTransition.S_NECTAR:
+						ft += 1
+			var pct: float = 100.0 if ft == 0 else (float(fc) / float(ft)) * 100.0
+			if pct < worst_cap:
+				worst_cap = pct
+		if worst_cap < 80.0:
+			_show_fermentation_warning(worst_cap, true)
+			return
+		for frame in box.frames:
+			frame.marked_for_harvest = true
+		_show_temp_message("All %d frames marked for harvest!" % box.frames.size())
+	_refresh_harvest_overlay()
+
+## Variable to track if marking entire super after fermentation confirm
+var _pending_mark_super: bool = false
+
+## Show fermentation warning dialog.
+func _show_fermentation_warning(cap_pct: float, is_super: bool = false) -> void:
+	_pending_mark_super = is_super
+	if _ferment_dialog != null:
+		_ferment_dialog.queue_free()
+	var bg_node := get_child(0)
+
+	# Dark overlay
+	_ferment_dialog = Control.new()
+	_ferment_dialog.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_ferment_dialog.z_index = 50
+	_ferment_dialog.mouse_filter = Control.MOUSE_FILTER_STOP
+
+	var dim := ColorRect.new()
+	dim.color = Color(0.0, 0.0, 0.0, 0.6)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_ferment_dialog.add_child(dim)
+
+	# Warning panel
+	var panel := ColorRect.new()
+	panel.color = Color(0.12, 0.08, 0.04, 0.95)
+	panel.size = Vector2(200, 60)
+	@warning_ignore("INTEGER_DIVISION")
+	panel.position = Vector2((VP_W - 200) / 2, (VP_H - 60) / 2)
+	_ferment_dialog.add_child(panel)
+
+	var border := ColorRect.new()
+	border.color = C_DANGER
+	border.size = Vector2(200, 1)
+	border.position = panel.position
+	_ferment_dialog.add_child(border)
+
+	var msg: String = "Only %.0f%% capped! Uncapped honey\nhas high moisture and may ferment.\nHarvest anyway?" % cap_pct
+	var warn_lbl := _lbl(msg, 5,
+		panel.position + Vector2(6, 6), Vector2(188, 30), C_DANGER)
+	_ferment_dialog.add_child(warn_lbl)
+
+	var choice_lbl := _lbl("[Y] Harvest Anyway   [N] Wait", 5,
+		panel.position + Vector2(6, 44), Vector2(188, 10), C_MUTED)
+	choice_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_ferment_dialog.add_child(choice_lbl)
+
+	bg_node.add_child(_ferment_dialog)
+
+## Player confirmed marking despite low capping.
+func _confirm_mark_despite_fermentation() -> void:
+	var box: Variant = _current_box()
+	if box == null:
+		_dismiss_fermentation_warning()
+		return
+	if _pending_mark_super:
+		for frame in box.frames:
+			frame.marked_for_harvest = true
+		_show_temp_message("All frames marked (fermentation risk!).")
+	else:
+		if _frame_idx < box.frames.size():
+			box.frames[_frame_idx].marked_for_harvest = true
+		_show_temp_message("Frame %d marked (fermentation risk!)." % (_frame_idx + 1))
+	_dismiss_fermentation_warning()
+	_refresh_harvest_overlay()
+
+func _dismiss_fermentation_warning() -> void:
+	if _ferment_dialog:
+		_ferment_dialog.queue_free()
+		_ferment_dialog = null
+	_pending_mark_super = false
+
+## Update the gold overlay and label to reflect current frame's mark state.
+func _refresh_harvest_overlay() -> void:
+	var box: Variant = _current_box()
+	if box == null or _frame_idx >= box.frames.size():
+		if _harvest_mark_rect:
+			_harvest_mark_rect.visible = false
+		if _harvest_label:
+			_harvest_label.visible = false
+		return
+
+	var frame: Variant = box.frames[_frame_idx]
+	var is_super: bool = box.is_super
+
+	if _harvest_mark_rect:
+		_harvest_mark_rect.visible = frame.marked_for_harvest
+
+	if _harvest_label and is_super:
+		var cap_pct: float = _calc_frame_capping_pct()
+		var cap_color: Color
+		var cap_icon: String
+		if cap_pct >= 80.0:
+			cap_color = C_CAP_GREEN
+			cap_icon = "Ready"
+		elif cap_pct >= 60.0:
+			cap_color = C_CAP_YELLOW
+			cap_icon = "Wait"
+		else:
+			cap_color = C_CAP_RED
+			cap_icon = "Risk"
+		var mark_str: String = " [MARKED]" if frame.marked_for_harvest else ""
+		_harvest_label.text = "Cap: %.0f%% %s%s" % [cap_pct, cap_icon, mark_str]
+		_harvest_label.add_theme_color_override("font_color", cap_color)
+		_harvest_label.visible = true
+	elif _harvest_label:
+		_harvest_label.visible = false
+
+## Show a temporary notification message on the overlay.
+func _show_temp_message(msg: String) -> void:
+	var bg_node := get_child(0)
+	var note := Label.new()
+	note.text = msg
+	note.add_theme_font_size_override("font_size", 6)
+	note.add_theme_color_override("font_color", C_ACCENT)
+	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	@warning_ignore("INTEGER_DIVISION")
+	note.position = Vector2(0, VP_H / 2 + 20)
+	note.size = Vector2(VP_W, 10)
+	note.z_index = 30
+	bg_node.add_child(note)
+	get_tree().create_timer(2.0).timeout.connect(note.queue_free)
 
 # ------------------------------------------------------------------------------
 # Harvest shortcut from inside the overlay

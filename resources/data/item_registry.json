@@ -287,6 +287,44 @@
       "buy_price": 15.00
     },
 
+    "comb_scraper": {
+      "display_name": "Comb Scraper",
+      "description": "A flat-bladed scraping tool for removing wax cappings from honey frames. Slower than the hot knife but gets the job done.",
+      "sprite": "res://assets/sprites/items/uncapping_knife.png",
+      "sprite_size": [32, 32],
+      "category": "tool",
+      "stackable": false,
+      "max_stack": 1,
+      "base_sell_price": 0.0,
+      "buy_price": 12.00,
+      "_note": "Tier 0 uncapping tool. Shares uncapping_knife sprite as placeholder."
+    },
+
+    "honey_bucket": {
+      "display_name": "Honey Bucket",
+      "description": "A white 5-gallon bucket filled with freshly extracted honey. Take it to the canning table to fill jars.",
+      "sprite": "res://assets/sprites/items/honey_bulk.png",
+      "sprite_size": [32, 32],
+      "category": "material",
+      "stackable": false,
+      "max_stack": 1,
+      "base_sell_price": 0.0,
+      "_note": "Intermediate harvest pipeline item. Not sold directly -- fill jars at canning table."
+    },
+
+    "barrel_feeder": {
+      "display_name": "Barrel Feeder",
+      "description": "A sugar syrup barrel feeder. Place near hives to supply 100 NU per day for 10 days. Essential for early spring feeding before natural forage is available.",
+      "sprite": "res://assets/sprites/items/barrel_feeder.png",
+      "sprite_size": [32, 32],
+      "category": "equipment",
+      "stackable": true,
+      "max_stack": 5,
+      "base_sell_price": 0.0,
+      "base_buy_price": 25.0,
+      "_note": "Placeable world item. 100 NU/day for 10 days. Helps colonies survive the spring dearth before dandelions bloom."
+    },
+
     "chest": {
       "display_name": "Storage Chest",
       "description": "A sturdy wooden chest with 50 storage slots. Place it in the world to store items.",

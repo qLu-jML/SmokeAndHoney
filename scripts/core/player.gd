@@ -32,6 +32,10 @@ func get_max_stack(item_name: String) -> int:
 		GameData.ITEM_HONEY_BULK: return 20
 		GameData.ITEM_FERMENTED_HONEY: return 20
 		GameData.ITEM_CHEST:      return 5
+		GameData.ITEM_LOGS:       return 20
+		GameData.ITEM_LUMBER:     return 20
+		GameData.ITEM_AXE:        return 1
+		GameData.ITEM_HAMMER:     return 1
 		_:                        return 20
 
 # -- Initialisation ------------------------------------------------------------
@@ -39,18 +43,16 @@ func get_max_stack(item_name: String) -> int:
 func _ready():
 	inventory.resize(INVENTORY_SIZE)
 	inventory.fill(null)
-	# Starting inventory: hive tool first (default selected), then build kit
-	add_item(GameData.ITEM_HIVE_TOOL,  1)
-	add_item(GameData.ITEM_GLOVES,     1)
-	add_item(GameData.ITEM_HIVE_STAND, 1)
-	add_item(GameData.ITEM_DEEP_BODY,  2)
-	add_item(GameData.ITEM_FRAMES,     20)
-	add_item(GameData.ITEM_LID,        1)
-	add_item(GameData.ITEM_PACKAGE_BEES, 1)
-	add_item(GameData.ITEM_SUPER_BOX,  5)
+	# Starting inventory: essentials only, everything else goes to chest
+	add_item(GameData.ITEM_HIVE_TOOL,      1)
+	add_item(GameData.ITEM_GLOVES,         1)
+	add_item(GameData.ITEM_QUEEN_EXCLUDER, 1)
+	add_item(GameData.ITEM_SUPER_BOX,      5)
 	# Deferred: stock the storage chest with remaining items after scene loads
 	call_deferred("_stock_starting_chest")
 	add_to_group("player")
+	# Sync grid overlay when dev mode toggles (G key handled by GameData globally)
+	GameData.dev_labels_toggled.connect(_on_dev_labels_toggled)
 	# Load beekeeper spritesheet at runtime (bypasses import pipeline)
 	_load_spritesheet()
 	call_deferred("_grab_window_focus")
@@ -88,18 +90,21 @@ func _stock_starting_chest() -> void:
 	var chest: Node = get_tree().get_first_node_in_group("chest")
 	if chest == null or not chest.has_method("add_item"):
 		return
-	# Overflow items stored in the chest for the player to retrieve later
-	chest.add_item(GameData.ITEM_HIVE_STAND, 4)
-	chest.add_item(GameData.ITEM_DEEP_BODY, 3)
-	chest.add_item(GameData.ITEM_FRAMES, 30)
-	chest.add_item(GameData.ITEM_LID, 4)
+	# All non-essential starting items stored in the chest
+	chest.add_item(GameData.ITEM_HIVE_STAND, 5)
+	chest.add_item(GameData.ITEM_DEEP_BODY, 5)
+	chest.add_item(GameData.ITEM_FRAMES, 50)
+	chest.add_item(GameData.ITEM_LID, 5)
 	chest.add_item(GameData.ITEM_BEEHIVE, 5)
 	chest.add_item(GameData.ITEM_SEEDS, 5)
-	chest.add_item(GameData.ITEM_PACKAGE_BEES, 4)
-	chest.add_item(GameData.ITEM_QUEEN_EXCLUDER, 5)
+	chest.add_item(GameData.ITEM_PACKAGE_BEES, 5)
+	chest.add_item(GameData.ITEM_QUEEN_EXCLUDER, 4)
 	chest.add_item(GameData.ITEM_SUPER_BOX, 5)
 	chest.add_item(GameData.ITEM_DEEP_BOX, 3)
 	chest.add_item(GameData.ITEM_JAR, 20)
+	chest.add_item(GameData.ITEM_COMB_SCRAPER, 1)
+	chest.add_item(GameData.ITEM_AXE, 1)
+	chest.add_item(GameData.ITEM_HAMMER, 1)
 	print("[Player] Overflow items stocked in storage chest.")
 
 # -- Modes ----------------------------------------------------------------------
@@ -238,8 +243,7 @@ var _chest_script: GDScript = null
 @onready var tilemap:      TileMap = get_node_or_null("../TileMap")
 @onready var grid_overlay          = get_node_or_null("../GridOverlay")
 
-func _toggle_dev_mode() -> void:
-	GameData.toggle_dev_labels()
+func _on_dev_labels_toggled(_visible: bool) -> void:
 	_sync_grid_overlay()
 
 # -- Input ---------------------------------------------------------------------
@@ -271,7 +275,6 @@ func _input(event: InputEvent) -> void:
 	if _is_ui_blocking():
 		return
 	match event.keycode:
-		KEY_G: _toggle_dev_mode()
 		KEY_T: _set_mode(Mode.TILL)
 		KEY_F: _set_mode(Mode.PLANT)
 		KEY_0:
@@ -297,6 +300,7 @@ func _input(event: InputEvent) -> void:
 # current placement mode or active item.
 #
 # Priority order:
+#   0. Harvest Yard stations (outdoor processing)
 #   1. Merchant   (within INTERACT_RADIUS)
 #   2. Hive       (within INTERACT_RADIUS) -> inspect (complete) or build (incomplete)
 #   3. Uncle Bob  (within INTERACT_RADIUS) -> tutorial hints
@@ -307,6 +311,12 @@ func _input(event: InputEvent) -> void:
 const INTERACT_RADIUS := 64.0
 
 func _perform_action() -> void:
+	# -- 0. Harvest Yard Stations (outdoor processing) -------------------------
+	var harvest_yard: Node = get_tree().get_first_node_in_group("harvest_yard")
+	if harvest_yard and harvest_yard.has_method("try_interact"):
+		if harvest_yard.try_interact(self):
+			return
+
 	# -- 1. Merchant -----------------------------------------------------------
 	var nearby_merchant := _closest_in_group("merchant", INTERACT_RADIUS)
 	if nearby_merchant and nearby_merchant.has_method("open_shop"):
@@ -322,6 +332,20 @@ func _perform_action() -> void:
 	# -- 1c. Place chest from inventory ----------------------------------------
 	if get_active_item_name() == GameData.ITEM_CHEST and nearby_chest == null:
 		_action_place_chest()
+		return
+
+	# -- 1d. Pick up empty barrel feeder or place new one ---------------------
+	var nearby_feeder := _closest_in_group("barrel_feeder", INTERACT_RADIUS)
+	if nearby_feeder and nearby_feeder.has_method("try_pickup") and nearby_feeder.try_pickup():
+		add_item(GameData.ITEM_BARREL_FEEDER, 1)
+		nearby_feeder.remove_feeder()
+		update_hud_inventory()
+		var nm_f = get_tree().root.get_node_or_null("NotificationManager")
+		if nm_f and nm_f.has_method("notify"):
+			nm_f.notify("Picked up empty barrel feeder.")
+		return
+	if get_active_item_name() == GameData.ITEM_BARREL_FEEDER:
+		_action_place_barrel_feeder()
 		return
 
 	# -- 2. Hive -- inspect complete, or continue building incomplete ----------
@@ -382,16 +406,26 @@ func _perform_action() -> void:
 					if consume_item(GameData.ITEM_PACKAGE_BEES, 1):
 						nearby_hive.install_colony()
 						update_hud_inventory()
-						print("Colony installed! Bees are now active in this hive.")
+						var nm_c = get_tree().root.get_node_or_null("NotificationManager")
+						if nm_c and nm_c.has_method("notify"):
+							nm_c.notify("Colony installed! Bees are now active in this hive.")
 					else:
-						print("No Package Bees in inventory!")
+						var nm_c2 = get_tree().root.get_node_or_null("NotificationManager")
+						if nm_c2 and nm_c2.has_method("notify"):
+							nm_c2.notify("No Package Bees in inventory!")
 				else:
-					print("Select Package Bees in your toolbar to install a colony!")
+					var nm_c3 = get_tree().root.get_node_or_null("NotificationManager")
+					if nm_c3 and nm_c3.has_method("notify"):
+						nm_c3.notify("Select Package Bees to install a colony!")
 				return
 			# Check 7-day establishment lockout for inspection actions
 			var can_inspect: bool = (not nearby_hive.has_method("can_inspect")) or nearby_hive.can_inspect()
 			if not can_inspect:
-				print("Colony is still establishing -- give them a few more days!")
+				var nm0 = get_tree().root.get_node_or_null("NotificationManager")
+				if nm0 and nm0.has_method("notify"):
+					nm0.notify("Colony is still establishing -- give them a few more days!")
+				else:
+					print("Colony is still establishing -- give them a few more days!")
 				return
 			# Remove a fully-marked super for harvest transport
 			if nearby_hive.has_method("has_marked_super") and nearby_hive.has_marked_super():
@@ -401,16 +435,24 @@ func _perform_action() -> void:
 					update_hud_inventory()
 					var nm = get_tree().root.get_node_or_null("NotificationManager")
 					if nm and nm.has_method("notify"):
-						nm.notify("Super removed -- take it to the extraction table!")
+						nm.notify("Super removed -- take it to the Honey House!")
 				return
 			# Hive tool must be selected in hotbar to inspect
 			if held != GameData.ITEM_HIVE_TOOL:
-				print("Select the Hive Tool in your toolbar to inspect!")
+				var nm1 = get_tree().root.get_node_or_null("NotificationManager")
+				if nm1 and nm1.has_method("notify"):
+					nm1.notify("Select the Hive Tool in your toolbar to inspect!")
+				else:
+					print("Select the Hive Tool in your toolbar to inspect!")
 				return
 			if GameData.energy >= 10.0:
 				nearby_hive.open_inspection()
 			else:
-				push_warning("Too tired to inspect -- energy: %d" % int(GameData.energy))
+				var nm2 = get_tree().root.get_node_or_null("NotificationManager")
+				if nm2 and nm2.has_method("notify"):
+					nm2.notify("Too tired to inspect -- need 10 energy!")
+				else:
+					push_warning("Too tired to inspect -- energy: %d" % int(GameData.energy))
 		else:
 			_try_build_hive(nearby_hive)
 		return
@@ -523,6 +565,31 @@ func _action_place_chest() -> void:
 	chest_node.global_position = tilemap.to_global(tilemap.map_to_local(map_coords))
 	update_hud_inventory()
 
+var _barrel_feeder_script: GDScript = null
+
+func _action_place_barrel_feeder() -> void:
+	if not tilemap:
+		return
+	var map_coords = get_target_tile_coords(tilemap)
+	if not consume_item(GameData.ITEM_BARREL_FEEDER, 1):
+		var nm_bf = get_tree().root.get_node_or_null("NotificationManager")
+		if nm_bf and nm_bf.has_method("notify"):
+			nm_bf.notify("No barrel feeder in inventory!")
+		return
+	if _barrel_feeder_script == null:
+		_barrel_feeder_script = load("res://scripts/world/barrel_feeder.gd") as GDScript
+	if _barrel_feeder_script == null:
+		print("ERROR: Could not load barrel_feeder.gd!")
+		return
+	var feeder_node := Node2D.new()
+	feeder_node.set_script(_barrel_feeder_script)
+	get_parent().add_child(feeder_node)
+	feeder_node.global_position = tilemap.to_global(tilemap.map_to_local(map_coords))
+	update_hud_inventory()
+	var nm_bf2 = get_tree().root.get_node_or_null("NotificationManager")
+	if nm_bf2 and nm_bf2.has_method("notify"):
+		nm_bf2.notify("Barrel feeder placed! 100 NU/day for 10 days.")
+
 ## Rotate deep bodies in a nearby hive (R key). Moves bottom deep to top.
 ## Requires hive tool selected and a hive with 2+ deeps nearby.
 func _action_rotate_boxes() -> void:
@@ -606,7 +673,7 @@ func _action_place_hive() -> void:
 	get_parent().add_child(new_hive)
 	new_hive.global_position = tilemap.to_global(tilemap.map_to_local(map_coords))
 	new_hive.set_meta("tile_coords", map_coords)
-	# Legacy hive is a fully operational overwintered colony (Carniolan B benchmark).
+	# Legacy hive is a fully operational overwintered colony (Carniolan S benchmark).
 	# place_as_overwintered() sets up 4 drawn frames, small spring brood nest,
 	# adequate stores, and a 1-year-old queen -- realistic spring Day 1 start.
 	if new_hive.has_method("place_as_overwintered"):

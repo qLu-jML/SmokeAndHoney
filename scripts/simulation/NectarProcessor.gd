@@ -23,7 +23,7 @@ extends RefCounted
 class_name NectarProcessor
 
 const LBS_PER_FULL_DEEP  := 5.0    # lbs honey in a full deep frame
-const LBS_PER_FULL_SUPER := 3.5    # lbs honey in a full super frame
+const LBS_PER_FULL_SUPER := 4.0    # lbs honey in a full super frame (40 lbs per 10-frame super)
 const DEEP_SIZE          := 3500
 const SUPER_SIZE         := 2450
 

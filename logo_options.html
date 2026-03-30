@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smoke &amp; Honey - Logo Options v2</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    color: #F2E4B2;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 20px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 2.5em;
+    color: #E6A220;
+    margin-bottom: 8px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  }
+  .subtitle {
+    text-align: center;
+    color: #BA8A48;
+    font-size: 1.1em;
+    margin-bottom: 40px;
+  }
+  .concept-section {
+    margin-bottom: 50px;
+    background: #16213e;
+    border-radius: 16px;
+    padding: 30px;
+    border: 2px solid #46260C;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  .concept-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+  .concept-number {
+    background: #C8820C;
+    color: #261206;
+    font-weight: 900;
+    font-size: 1.4em;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  h2 {
+    font-size: 1.8em;
+    color: #E6A220;
+  }
+  .concept-desc {
+    color: #BA8A48;
+    font-size: 1em;
+    margin-bottom: 24px;
+    padding-left: 64px;
+    line-height: 1.5;
+  }
+  .image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .image-card {
+    background: #0f0f23;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #46260C;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    position: relative;
+  }
+  .image-card:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 30px rgba(200, 130, 12, 0.3);
+    border-color: #C8820C;
+  }
+  .image-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .image-label {
+    padding: 10px 14px;
+    font-size: 0.9em;
+    color: #F4CC6E;
+    text-align: center;
+    background: #261206;
+  }
+  .lightbox {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+  .lightbox.active { display: flex; }
+  .lightbox img {
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 12px;
+    box-shadow: 0 0 40px rgba(200, 130, 12, 0.4);
+  }
+  .lightbox-close {
+    position: fixed;
+    top: 20px; right: 30px;
+    font-size: 2em;
+    color: #E6A220;
+    cursor: pointer;
+    z-index: 1001;
+  }
+  footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px;
+    color: #6C4016;
+    font-size: 0.9em;
+  }
+  @media (max-width: 600px) {
+    h1 { font-size: 1.6em; }
+    .concept-section { padding: 16px; }
+    .concept-desc { padding-left: 0; }
+    .image-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Smoke &amp; Honey</h1>
+<p class="subtitle">Logo Concept Options v2 - March 2026</p>
+
+<!-- Concept 1: Homestead Label -->
+<div class="concept-section">
+  <div class="concept-header">
+    <div class="concept-number">1</div>
+    <h2>The Homestead Label</h2>
+  </div>
+  <p class="concept-desc">
+    Vintage oval honey jar label design. Smoker and honey jar flanking the title.
+    Warm brown wood-tone border with honeycomb accents. Feels like a roadside farmstand product label, pixelated.
+  </p>
+  <div class="image-grid">
+    <div class="image-card" onclick="openLightbox(this)">
+      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/67255338-1eaf-49f7-8739-ed8f565bf9a9/segments/4:4:1/Lucid_Origin_Pixel_art_game_logo_vintage_oval_honey_jar_label__3.jpg?w=800" alt="Homestead Label A" loading="lazy">
+      <div class="image-label">Option 1A</div>
+    </div>
+    <div class="image-card" onclick="openLightbox(this)">
+      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/67255338-1eaf-49f7-8739-ed8f565bf9a9/segments/3:4:1/Lucid_Origin_Pixel_art_game_logo_vintage_oval_honey_jar_label__2.jpg?w=800" alt="Homestead Label B" loading="lazy">
+      <div class="image-label">Option 1B</div>
+    </div>
+    <div class="image-card" onclick="openLightbox(this)">
+      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/67255338-1eaf-49f7-8739-ed8f565bf9a9/segments/2:4:1/Lucid_Origin_Pixel_art_game_logo_vintage_oval_honey_jar_label__1.jpg?w=800" alt="Homestead Label C" loading="lazy">
+      <div class="image-label">Option 1C</div>
+    </div>
+    <div class="image-card" onclick="openLightbox(this)">
+      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/67255338-1eaf-49f7-8739-ed8f565bf9a9/segments/1:4:1/Lucid_Origin_Pixel_art_game_logo_vintage_oval_honey_jar_label__0.jpg?w=800" alt="Homestead Label D" loading="lazy">
+      <div class="image-label">Option 1D</div>
+    </div>
+  </div>
+</div>
+
+<!-- Concept 2: Smoke & Drip -->
+<div class="concept-section">
+  <div class="concept-header">
+    <div class="concept-number">2</div>
+    <h2>Smoke &amp; Drip</h2>
+  </div>
+  <p class="concept-desc">
+    Whimsical design. Smoke curls from the smoker blending into the word "Smoke."
+    Honey drips from a tilted jar forming "Honey." A tiny bee serves as the ampersand. Playful and storytelling.
+  </p>
+  <div class="image-grid">
+    <div class="image-card" onclick="openLightbox(this)">
+      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/5634fcdc-cf92-4a8c-b604-a4540088d09f/segments/4:4:1/Lucid_Origin_Pixel_art_game_logo_whimsical_design_the_text_Smo_3.jpg?w=800" alt="Smoke and Drip A" loading="lazy">
+      <div class="image-label">Option 2A</div>
+    </div>
+    <div class="image-card" onclick="openLightbox(this)">
+      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/5634fcdc-cf92-4a8c-b604-a4540088d09f/segments/3:4:1/Lucid_Origin_Pixel_art_game_logo_whimsical_design_the_text_Smo_2.jpg?w=800" alt="Smoke and Drip B" loading="lazy">
+      <div class="image-label">Option 2B</div>
+    </div>
+    <div class="image-card" onclick="openLightbox(this)">
+      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/5634fcdc-cf92-4a8c-b604-a4540088d09f/segments/2:4:1/Lucid_Origin_Pixel_art_game_logo_whimsical_design_the_text_Smo_1.jpg?w=800" alt="Smoke and Drip C" loading="lazy">
+      <div class="image-label">Option 2C</div>
+    </div>
+    <div class="image-card" onclick="openLightbox(this)">
+      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/5634fcdc-cf92-4a8c-b604-a4540088d09f/segments/1:4:1/Lucid_Origin_Pixel_art_game_logo_whimsical_design_the_text_Smo_0.jpg?w=800" alt="Smoke and Drip D" loading="lazy">
+      <div class="image-label">Option 2D</div>
+    </div>
+  </div>
+</div>
+
+<!-- Concept 3: Woodburned Badge -->
+<div class="concept-section">
+  <div class="concept-header">
+    <div class="concept-number">3</div>
+    <h2>The Woodburned Badge</h2>
+  </div>
+  <p class="concept-desc">
+    Circular stamp/badge like a woodcut brand on a crate. Smoker and honey jar centered.
+    Title arcs around the top. Hand-crafted, vintage seal aesthetic in warm brown tones.
+  </p>
+  <div class="image-grid">
+    <div class="image-card" onclick="openLightbox(this)">
+      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/0b8fe7aa-ed13-40d6-a875-998596aafa9f/segments/4:4:1/Lucid_Origin_Pixel_art_game_logo_circular_woodburned_stamp_bad_3.jpg?w=800" alt="Woodburned Badge A" loading="lazy">
+      <div class="image-label">Option 3A</div>
+    </div>
+    <div class="image-card" onclick="openLightbox(this)">
+      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/0b8fe7aa-ed13-40d6-a875-998596aafa9f/segments/3:4:1/Lucid_Origin_Pixel_art_game_logo_circular_woodburned_stamp_bad_2.jpg?w=800" alt="Woodburned Badge B" loading="lazy">
+      <div class="image-label">Option 3B</div>
+    </div>
+    <div class="image-card" onclick="openLightbox(this)">
+      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/0b8fe7aa-ed13-40d6-a875-998596aafa9f/segments/2:4:1/Lucid_Origin_Pixel_art_game_logo_circular_woodburned_stamp_bad_1.jpg?w=800" alt="Woodburned Badge C" loading="lazy">
+      <div class="image-label">Option 3C</div>
+    </div>
+    <div class="image-card" onclick="openLightbox(this)">
+      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/0b8fe7aa-ed13-40d6-a875-998596aafa9f/segments/1:4:1/Lucid_Origin_Pixel_art_game_logo_circular_woodburned_stamp_bad_0.jpg?w=800" alt="Woodburned Badge D" loading="lazy">
+      <div class="image-label">Option 3D</div>
+    </div>
+  </div>
+</div>
+
+<!-- Concept 4: The Shelf -->
+<div class="concept-section">
+  <div class="concept-header">
+    <div class="concept-number">4</div>
+    <h2>The Shelf</h2>
+  </div>
+  <p class="concept-desc">
+    Cozy pixel scene: bee smoker and honey jar on a wooden shelf/windowsill with warm amber light.
+    Title in chunky pixel lettering below. Inviting, warm, makes you want to play immediately.
+  </p>
+  <div class="image-grid">
+    <div class="image-card" onclick="openLightbox(this)">
+      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/c5db1e5e-29e6-47be-b30b-b8123643e125/segments/4:4:1/Lucid_Origin_Pixel_art_game_logo_cozy_scene_of_a_wooden_shelf__3.jpg?w=800" alt="The Shelf A" loading="lazy">
+      <div class="image-label">Option 4A</div>
+    </div>
+    <div class="image-card" onclick="openLightbox(this)">
+      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/c5db1e5e-29e6-47be-b30b-b8123643e125/segments/3:4:1/Lucid_Origin_Pixel_art_game_logo_cozy_scene_of_a_wooden_shelf__2.jpg?w=800" alt="The Shelf B" loading="lazy">
+      <div class="image-label">Option 4B</div>
+    </div>
+    <div class="image-card" onclick="openLightbox(this)">
+      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/c5db1e5e-29e6-47be-b30b-b8123643e125/segments/2:4:1/Lucid_Origin_Pixel_art_game_logo_cozy_scene_of_a_wooden_shelf__1.jpg?w=800" alt="The Shelf C" loading="lazy">
+      <div class="image-label">Option 4C</div>
+    </div>
+    <div class="image-card" onclick="openLightbox(this)">
+      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/c5db1e5e-29e6-47be-b30b-b8123643e125/segments/1:4:1/Lucid_Origin_Pixel_art_game_logo_cozy_scene_of_a_wooden_shelf__0.jpg?w=800" alt="The Shelf D" loading="lazy">
+      <div class="image-label">Option 4D</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Smoke &amp; Honey Logo Concepts v2 - Generated with Leonardo AI (Lucid Origin) - March 2026
+</footer>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <span class="lightbox-close">&times;</span>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<script>
+function openLightbox(card) {
+  var img = card.querySelector('img');
+  var lb = document.getElementById('lightbox');
+  var lbImg = document.getElementById('lightbox-img');
+  // Load full res version
+  lbImg.src = img.src.replace('w=800', 'w=1875');
+  lbImg.alt = img.alt;
+  lb.classList.add('active');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('active');
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeLightbox();
+});
+</script>
+
+</body>
+</html>

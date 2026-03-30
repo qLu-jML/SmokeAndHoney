@@ -13,6 +13,16 @@ signal dev_labels_toggled(visible: bool)
 # When true, debug/dev labels (hive stats, flower stages, bed names) are shown.
 var dev_labels_visible: bool = false
 
+# Global G-key handler -- uses _input so it fires BEFORE any scene's
+# _unhandled_key_input / _unhandled_input, letting dev mode toggle from
+# any screen (inspection overlay, shop, chest, pause menu, etc.).
+func _input(event: InputEvent) -> void:
+	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+	if event.keycode == KEY_G:
+		toggle_dev_labels()
+		get_viewport().set_input_as_handled()
+
 func toggle_dev_labels() -> void:
 	dev_labels_visible = not dev_labels_visible
 	dev_labels_toggled.emit(dev_labels_visible)
@@ -131,6 +141,48 @@ const ITEM_FERMENTED_HONEY   := "fermented_honey"
 const ITEM_SUGAR_SYRUP       := "sugar_syrup"
 const ITEM_CHEST             := "chest"
 const ITEM_GLOVES            := "gloves"
+const ITEM_COMB_SCRAPER      := "comb_scraper"     # Tier 0 de-capping tool
+const ITEM_HONEY_BUCKET      := "honey_bucket"     # White bucket intermediate (harvest pipeline)
+const ITEM_BARREL_FEEDER     := "barrel_feeder"    # Placeable feeder: 100 NU/day for 10 days
+const ITEM_LOGS              := "logs"             # Raw logs from chopping trees
+const ITEM_LUMBER            := "lumber"           # Processed lumber for crafting
+const ITEM_AXE               := "axe"              # Tool: required for tree chopping
+const ITEM_HAMMER            := "hammer"           # Tool: required for workbench crafting
+
+# -- Crafting Recipes (lumber costs) -----------------------------------------
+# Each recipe: {"result": item_id, "result_count": N, "lumber_cost": N, "label": "..."}
+const WORKBENCH_RECIPES: Array = [
+	{"result": "frames", "result_count": 10, "lumber_cost": 3, "energy_cost": 10.0,
+	 "label": "Frames (10-pack)", "desc": "Ten wooden frames for hive bodies or supers"},
+	{"result": "super_box", "result_count": 1, "lumber_cost": 4, "energy_cost": 12.0,
+	 "label": "Super Box", "desc": "Empty honey super box (holds ~8 frames)"},
+	{"result": "deep_body", "result_count": 1, "lumber_cost": 5, "energy_cost": 15.0,
+	 "label": "Deep Body", "desc": "Deep brood box (holds 10 frames)"},
+	{"result": "hive_stand", "result_count": 1, "lumber_cost": 2, "energy_cost": 8.0,
+	 "label": "Hive Stand", "desc": "Wooden stand to elevate a hive off the ground"},
+	{"result": "hive_lid", "result_count": 1, "lumber_cost": 2, "energy_cost": 8.0,
+	 "label": "Hive Lid", "desc": "Telescoping outer cover for a hive"},
+]
+
+# -- Tree Regrowth Tracking --------------------------------------------------
+# Dict of { tree_id: regrow_day } -- the game-day when a chopped tree grows back
+var chopped_trees: Dictionary = {}
+
+# Days until a chopped tree regrows (roughly 3 in-game weeks)
+const TREE_REGROW_DAYS := 21
+
+## Mark a tree as chopped. It will regrow after TREE_REGROW_DAYS.
+func chop_tree(tree_id: String) -> void:
+	chopped_trees[tree_id] = TimeManager.current_day + TREE_REGROW_DAYS
+
+## Returns true if a tree is currently chopped (not yet regrown).
+func is_tree_chopped(tree_id: String) -> bool:
+	if not chopped_trees.has(tree_id):
+		return false
+	if TimeManager.current_day >= chopped_trees[tree_id]:
+		chopped_trees.erase(tree_id)
+		return false
+	return true
 
 # -- Beeswax fractional tracking (sub-1lb remainder between harvests) --------
 var beeswax_fractional: float = 0.0

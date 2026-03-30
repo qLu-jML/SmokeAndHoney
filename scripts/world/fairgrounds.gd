@@ -6,6 +6,7 @@ extends Node2D
 const INTERACT_RADIUS := 60.0
 
 func _ready() -> void:
+	_setup_weather()
 	TimeManager.current_scene_id = "fairgrounds"
 	if get_node_or_null("/root/SceneManager"):
 		SceneManager.current_zone_name = "County Fairgrounds"
@@ -64,3 +65,16 @@ func _try_interact() -> void:
 		if dist <= INTERACT_RADIUS:
 			print("[Fairgrounds] Ellen Harwick's office -- 'The county fair is coming up!'")
 			return
+
+func _setup_weather() -> void:
+	if get_node_or_null("WeatherOverlay") == null:
+		var overlay: CanvasLayer = CanvasLayer.new()
+		overlay.name = "WeatherOverlay"
+		overlay.set_script(load("res://scripts/world/weather_overlay.gd"))
+		add_child(overlay)
+	var world: Node = get_node_or_null("World")
+	if world != null and world.get_node_or_null("WeatherParticles") == null:
+		var particles: Node2D = Node2D.new()
+		particles.name = "WeatherParticles"
+		particles.set_script(load("res://scripts/world/weather_particles.gd"))
+		world.add_child(particles)

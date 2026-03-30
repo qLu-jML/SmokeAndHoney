@@ -36,6 +36,7 @@ const S_VARROA           := CellStateTransition.S_VARROA
 const S_AFB              := CellStateTransition.S_AFB
 const S_QUEEN_CELL       := CellStateTransition.S_QUEEN_CELL
 const S_VACATED          := CellStateTransition.S_VACATED
+const S_BEE_BREAD        := CellStateTransition.S_BEE_BREAD
 
 # -- Legacy aliases (kept for any code that references the old names) -----------
 const CELL_EMPTY        := S_DRAWN_EMPTY
@@ -44,7 +45,7 @@ const CELL_OPEN_LARVA   := S_OPEN_LARVA
 const CELL_CAPPED_LARVA := S_CAPPED_BROOD
 const CELL_PUPA         := S_CAPPED_BROOD   # merged: pupa IS capped brood
 const CELL_HATCHED      := S_DRAWN_EMPTY    # hatched -> immediately drawn_empty
-const CELL_BEEBREAD     := S_DRAWN_EMPTY    # TODO: beebread gets its own state later
+const CELL_BEEBREAD     := S_BEE_BREAD      # now a real state
 const CELL_NECTAR       := S_NECTAR
 const CELL_CAPPED_HONEY := S_CAPPED_HONEY
 const CELL_DAMAGED      := S_VACATED        # damaged -> vacated
@@ -94,8 +95,14 @@ const AGE_LARVA_TO_CAPPED := CellStateTransition.AGE_LARVA_TO_CAPPED
 const AGE_CAPPED_TO_PUPA  := CellStateTransition.AGE_LARVA_TO_CAPPED   # same threshold
 const AGE_PUPA_TO_HATCHED := CellStateTransition.AGE_WORKER_EMERGE
 
-# -- Honey Capacity ------------------------------------------------------------
+# -- Honey Capacity & Production -----------------------------------------------
 const LBS_PER_FULL_FRAME := 5.0
+# How many lbs of honey one Nectar Unit produces after processing.
+# Tuned so an S-rank colony yields 80-120 lbs harvestable honey per year
+# (enough to fill 2 supers by fall). At peak summer NU ~800/day:
+#   nu_for_honey=400 -> 2.0 lbs/day, minus ~0.5 consumption = ~1.5 net/day.
+#   Over 80 productive days = ~120 lbs gross, ~80 lbs net harvestable.
+const LBS_PER_NU := 0.005
 
 # ------------------------------------------------------------------------------
 # HiveFrame -- one removable wax frame inside a box.
@@ -119,7 +126,7 @@ class HiveFrame:
 	const SUPER_ROWS  := 35
 	const SUPER_SIZE  := 2450   # SUPER_COLS * SUPER_ROWS
 	const LBS_PER_FULL_DEEP  := 5.0
-	const LBS_PER_FULL_SUPER := 3.5
+	const LBS_PER_FULL_SUPER := 4.0
 
 	var is_super_frame: bool = false
 	var grid_cols: int = DEEP_COLS
@@ -274,13 +281,14 @@ class HiveBox:
 # -- Queen Data ----------------------------------------------------------------
 var queen: Dictionary = {
 	"present":          true,
-	"species":          "Italian",
-	"grade":            "B",
+	"species":          "Carniolan",
+	"grade":            "S",
 	"age_days":         0,
 	"temperament":      1.0,
-	"laying_rate":      1500,    # eggs/day target at peak
-	"skip_probability": 0.12,    # chance queen skips an empty cell
-	"laying_delay":     0,       # days queen waits before starting to lay (package bees)
+	# S-rank queen: 2000 eggs/day peak. Nail the best outcome first.
+	"laying_rate":      2000,
+	"skip_probability": 0.08,
+	"laying_delay":     0,
 }
 
 # -- Boxes ---------------------------------------------------------------------
@@ -296,11 +304,15 @@ var house_count:   int = 4000
 var forager_count: int = 2500
 var drone_count:   int = 200
 
-# -- Colony Resources ----------------------------------------------------------
-# Nuc starts with modest stores -- enough for a few days but needs forage quickly.
+# -- Colony Resources (NU/PU discrete unit economy) ----------------------------
+# honey_stores: total NU currently stored as honey (in frame cells)
+# pollen_stores: total PU currently stored as bee bread (in frame cells, 3 PU/cell)
 var honey_stores:  float = 8.0    # ~1.5 lbs per nuc frame
 var pollen_stores: float = 2.0
 var mite_count:    float = 50.0   # lower mite load in a fresh nuc
+
+# Stunted brood tracking -- brood not fed PU last night get priority next night
+var stunted_brood_count: int = 0
 
 # -- Disease Flags -------------------------------------------------------------
 var disease_flags: Array = []   # String list: "AFB", "EFB", "SHB", etc.
@@ -393,7 +405,7 @@ func _seed_initial_brood() -> void:
 
 func init_as_overwintered(
 	p_species: String = "Carniolan",
-	p_grade: String = "B"
+	p_grade: String = "S"
 ) -> void:
 	# Fresh brood box -- all 10 frames start as foundation
 	boxes = []
@@ -458,8 +470,37 @@ func init_as_overwintered(
 						if cell_state == S_DRAWN_EMPTY:
 							frame.set_cell(x, y, S_CAPPED_HONEY, 10, side)
 
-	# Also place some pollen (stored as a weight, but visually we leave cells
-	# as drawn-empty -- pollen_stores drives the simulation, not cell art).
+	# -- Seed bee bread cells on flanking drawn frames (3 and 6) ----------------
+	# Overwintered colonies have modest pollen stores.  Place S_BEE_BREAD cells
+	# near the brood nest perimeter (just outside the brood radius) on the same
+	# drawn frames that have honey.  Each bee bread cell holds 3 PU.  With
+	# pollen_stores = 1.5 lbs we need a small ring of bee bread cells to give
+	# the NurseSystem something to pull from on the first few ticks.
+	# We seed ~20-30 cells (60-90 PU equivalent) to match realistic stores.
+	const BB_FRAMES := [3, 4, 5, 6]
+	var bb_placed: int = 0
+	var bb_target: int = 25  # ~75 PU worth of bee bread
+	for fi in BB_FRAMES:
+		if bb_placed >= bb_target:
+			break
+		var frame = brood_box.frames[fi]
+		for side in [HiveFrame.SIDE_A, HiveFrame.SIDE_B]:
+			if bb_placed >= bb_target:
+				break
+			for y in FRAME_HEIGHT:
+				if bb_placed >= bb_target:
+					break
+				for x in FRAME_WIDTH:
+					if bb_placed >= bb_target:
+						break
+					var dist: float = _cell_3d_dist(fi, x, y)
+					# Bee bread ring: just outside brood zone, inside honey zone
+					if dist > OW_BROOD_RADIUS and dist < 0.50:
+						var cell_state: int = frame.get_cell(x, y, side)
+						if cell_state == S_DRAWN_EMPTY:
+							# age field stores PU count for bee bread (3 = full)
+							frame.set_cell(x, y, S_BEE_BREAD, 3, side)
+							bb_placed += 1
 
 	# -- Winter-bee population -------------------------------------------------
 	# Overwintered cluster is ~8,000 adults.  Carniolans winter conservatively.
@@ -472,9 +513,9 @@ func init_as_overwintered(
 
 	# -- Stores ----------------------------------------------------------------
 	# Surviving winter consumed ~20-25 lbs.  ~12 lbs remain heading into spring.
-	# Pollen stores are modest -- some leftover plus early spring forage.
+	# Pollen stores derived from actual seeded bee bread cells above.
 	honey_stores  = 12.0
-	pollen_stores = 1.5
+	pollen_stores = float(bb_placed * NurseSystem.PU_PER_BEE_BREAD_CELL)
 
 	# -- Mites -----------------------------------------------------------------
 	# Overwintered mite population -- manageable but present.
@@ -487,15 +528,15 @@ func init_as_overwintered(
 	disease_flags          = []
 
 	# -- Queen -----------------------------------------------------------------
-	# Established queen entering her second year.  Already laying (no delay).
+	# Uses caller-specified species and grade. Second year, already laying.
 	queen = {
 		"present":          true,
 		"species":          p_species,
 		"grade":            p_grade,
-		"age_days":         365,
-		"temperament":      randf_range(0.75, 0.95),
-		"laying_rate":      randi_range(1300, 1600),
-		"skip_probability": randf_range(0.10, 0.15),
+		"age_days":         224,
+		"temperament":      randf_range(0.90, 1.0),
+		"laying_rate":      2000,
+		"skip_probability": 0.08,
 		"laying_delay":     0,
 	}
 
@@ -521,7 +562,7 @@ func init_as_overwintered(
 #   - Random queen grade and species for variety
 # ------------------------------------------------------------------------------
 
-func init_as_package() -> void:
+func init_as_package(p_species: String = "Carniolan") -> void:
 	# Reset boxes -- all 10 frames are empty foundation
 	boxes = []
 	boxes.append(HiveBox.new(false))
@@ -533,9 +574,11 @@ func init_as_package() -> void:
 	forager_count = 1800
 	drone_count   = 50
 
-	# Minimal stores -- sugar syrup from the package can
-	honey_stores  = 2.0     # ~2 lbs equivalent (much less than a nuc)
-	pollen_stores = 0.3     # almost none -- need to forage immediately
+	# Starting stores -- sugar syrup from the package can plus beekeeper feeding.
+	# Real package beekeepers feed 1:1 sugar syrup for the first 2-4 weeks to
+	# stimulate comb drawing. 4 lbs simulates this standard practice.
+	honey_stores  = 4.0     # ~4 lbs equivalent (syrup can + initial feeding)
+	pollen_stores = 0.0     # no drawn comb yet, so no bee bread cells possible
 
 	# Very low mite load -- packages are typically treated before shipping
 	mite_count = 15.0
@@ -546,17 +589,16 @@ func init_as_package() -> void:
 	consecutive_congestion = 0
 	disease_flags          = []
 
-	# Randomize queen -- she's a fresh caged queen from the package supplier
-	var species_pool := ["Italian", "Carniolan", "Russian", "Buckfast", "Caucasian"]
-	var grade_pool   := ["S", "A", "A", "B", "B", "B", "C", "C", "D"]
+	# Queen -- always S-rank for now (nail the best outcome first, tune down later).
+	# Species comes from the starting bee species parameter.
 	queen = {
 		"present":          true,
-		"species":          species_pool[randi() % species_pool.size()],
-		"grade":            grade_pool[randi() % grade_pool.size()],
+		"species":          p_species,
+		"grade":            "S",
 		"age_days":         0,
-		"temperament":      randf_range(0.7, 1.0),
-		"laying_rate":      randi_range(1200, 1800),
-		"skip_probability": randf_range(0.08, 0.18),
+		"temperament":      randf_range(0.85, 1.0),
+		"laying_rate":      2000,    # S-tier: 2000 eggs/day peak
+		"skip_probability": 0.08,    # S-tier: minimal skipping
 		"laying_delay":     randi_range(4, 6),   # 4-6 days before queen starts laying
 	}
 
@@ -573,22 +615,14 @@ func tick() -> void:
 	queen["age_days"] += 1
 
 	var s_factor: float = TimeManager.season_factor()
-	var forage:   float = ForageManager.calculate_forage_pool(Vector2.ZERO)
 
 	# -- Pre-CST full-count pass ------------------------------------------------
-	# One sum_frame_counts() pass over all 10 brood-box frames (35,000 cell reads)
-	# replaces 2 former separate scans (count_state(S_OPEN_LARVA) + count_brood)
-	# that each scanned the same 35,000 cells independently.
 	var pre_counts: Dictionary = CellStateTransition.sum_frame_counts(boxes[0].frames)
 	var open_larva_count: int = pre_counts[S_OPEN_LARVA]
-
-	# -- Step 3: NurseSystem -- computed first to inform CellStateTransition ctx -
-	var nurse_result: Dictionary = NurseSystem.process(nurse_count, open_larva_count)
 
 	# -- Step 1: CellStateTransition -- age/transition every cell ---------------
 	var total_adults := nurse_count + house_count + forager_count
 	var mite_rate    := clampf(mite_count / maxf(1.0, float(total_adults)), 0.0, 1.0)
-	# total_brood mirrors HiveBox.count_brood() which covers S_EGG..S_CAPPED_DRONE.
 	var total_brood: int = (pre_counts[S_EGG] + pre_counts[S_OPEN_LARVA]
 		+ pre_counts[S_CAPPED_BROOD] + pre_counts[S_CAPPED_DRONE])
 	var chill_risk  := 0.0
@@ -598,37 +632,48 @@ func tick() -> void:
 			0.0, 0.06
 		)
 
+	# Nurse staffing check (lightweight -- just for CST context flags)
+	var nurse_ratio: float = float(nurse_count) / maxf(1.0, float(open_larva_count))
+	var has_nurses: bool = nurse_count >= 1500 and nurse_ratio >= 0.2
+	var capping_delay: int = 0
+	if nurse_ratio < 0.4:
+		capping_delay = 1
+	if nurse_ratio < 0.2:
+		capping_delay = 2
+
 	var ctx := {
 		"mite_rate":      mite_rate,
 		"chill_risk":     chill_risk,
 		"afb_active":     disease_flags.has("AFB"),
-		"has_nurse_bees": nurse_result["has_nurse_bees"],
-		# NurseSystem now provides a capping_delay (0-2 days) when understaffed.
-		# CellStateTransition uses this to delay larva->capped transition.
-		"capping_delay":  nurse_result.get("capping_delay", 0),
+		"has_nurse_bees": has_nurses,
+		"capping_delay":  capping_delay,
 	}
 
 	var emerged_workers := 0
 	var emerged_drones  := 0
 
-	for frame in boxes[0].frames:
-		# Side A
-		var result_a: Dictionary = CellStateTransition.process_frame(frame, ctx)
-		emerged_workers += result_a["emerged_workers"]
-		emerged_drones  += result_a["emerged_drones"]
-		# Side B -- swap arrays so process_frame operates on side B data
-		var save_cells = frame.cells
-		var save_ages  = frame.cell_age
-		frame.cells    = frame.cells_b
-		frame.cell_age = frame.cell_age_b
-		var result_b: Dictionary = CellStateTransition.process_frame(frame, ctx)
-		emerged_workers += result_b["emerged_workers"]
-		emerged_drones  += result_b["emerged_drones"]
-		# Restore: save modified B back, restore A
-		frame.cells_b    = frame.cells
-		frame.cell_age_b = frame.cell_age
-		frame.cells      = save_cells
-		frame.cell_age   = save_ages
+	# Process ALL boxes (brood + supers) so honey in supers ages properly.
+	for box_idx in boxes.size():
+		var box = boxes[box_idx]
+		for frame in box.frames:
+			# Side A
+			var result_a: Dictionary = CellStateTransition.process_frame(frame, ctx)
+			if box_idx == 0:
+				emerged_workers += result_a["emerged_workers"]
+				emerged_drones  += result_a["emerged_drones"]
+			# Side B
+			var save_cells = frame.cells
+			var save_ages  = frame.cell_age
+			frame.cells    = frame.cells_b
+			frame.cell_age = frame.cell_age_b
+			var result_b: Dictionary = CellStateTransition.process_frame(frame, ctx)
+			if box_idx == 0:
+				emerged_workers += result_b["emerged_workers"]
+				emerged_drones  += result_b["emerged_drones"]
+			frame.cells_b    = frame.cells
+			frame.cell_age_b = frame.cell_age
+			frame.cells      = save_cells
+			frame.cell_age   = save_ages
 
 	# -- Step 2: PopulationCohortManager -- age adult cohorts -------------------
 	var transition_result := {
@@ -637,34 +682,130 @@ func tick() -> void:
 	}
 	PopulationCohortManager.process(self, transition_result, s_factor)
 
-	# -- Step 4: ForagerSystem -- nectar/pollen collection ----------------------
+	# =========================================================================
+	# FORAGER COLLECTION (NU/PU discrete unit economy)
+	# =========================================================================
+	# 1. Get zone NU/PU totals
+	# 2. Divide by number of colonies in zone
+	# 3. Each forager collects 2-6 NU and 1-2 PU, capped by zone share
+	# =========================================================================
+	var zone_nu: int = _get_zone_nu()
+	var zone_pu: int = _get_zone_pu()
+	var colony_count: int = maxi(1, HiveManager.hive_count())
+	@warning_ignore("INTEGER_DIVISION")
+	var my_nu: int = zone_nu / colony_count
+	@warning_ignore("INTEGER_DIVISION")
+	var my_pu: int = zone_pu / colony_count
+
+	var weather_mult: float = 1.0
+	if WeatherManager:
+		weather_mult = WeatherManager.get_forage_multiplier()
+
 	var forage_result := ForagerSystem.process(
-		forager_count, forage, s_factor, int(congestion_state))
-	var nectar_in: float = forage_result["nectar_collected"]
-	var pollen_in: float = forage_result["pollen_collected"]
+		forager_count, my_nu, my_pu, s_factor * weather_mult, int(congestion_state))
+	var nu_in: int = forage_result["nu_collected"]
+	var pu_in: int = forage_result["pu_collected"]
 
-	# -- Step 5: Stores update + honey frame sync -------------------------------
-	# Science fix (HS-1): nectar->honey conversion factor corrected to 0.20.
-	# Standard ratio is 5 lbs nectar -> 1 lb honey (dehydration from ~80% to <18%
-	# water content).  Previous factor 0.15 underproduced honey by 25%.
-	honey_stores  = maxf(0.0, honey_stores + nectar_in * 0.20 - _daily_consumption())
-	pollen_stores = maxf(0.0, pollen_stores + pollen_in - float(nurse_count) * 0.00003)
-	if pollen_stores < 2.0 and forage > 0.5:
-		pollen_stores += forage * 0.3
+	# =========================================================================
+	# NURSE NIGHT ACTIONS (2 actions per nurse)
+	# =========================================================================
+	# Priority 1: Feed all brood with PU (incoming PU, then bee bread reserves)
+	# Priority 2: Store excess PU as bee bread
+	# Unfed brood is stunted (delayed 1 day, prioritized next night)
+	# =========================================================================
+	var bee_bread_cell_count: int = pre_counts.get(S_BEE_BREAD, 0)
+	var bee_bread_pu: int = bee_bread_cell_count * NurseSystem.PU_PER_BEE_BREAD_CELL
 
+	var nurse_result: Dictionary = NurseSystem.process(
+		nurse_count, open_larva_count, pu_in, bee_bread_pu, stunted_brood_count)
+
+	stunted_brood_count = nurse_result["brood_stunted"]
+
+	# Update bee bread stores in frames based on nurse result
+	var pu_stored: int = nurse_result["pu_stored"]
+	var bb_used: int = nurse_result["bee_bread_used"]
+	# Net change to bee bread: stored - used
+	var bb_delta: int = pu_stored - bb_used
+	if bb_delta > 0:
+		_store_bee_bread(bb_delta)
+	elif bb_delta < 0:
+		_consume_bee_bread(absi(bb_delta))
+
+	# Update pollen_stores tracking variable
+	pollen_stores = float(_count_bee_bread_cells() * NurseSystem.PU_PER_BEE_BREAD_CELL)
+
+	# =========================================================================
+	# NU ALLOCATION (stores-first, then wax, then extra storage)
+	# =========================================================================
+	# Real bee behavior:
+	#   1. Colony eats daily (subtract consumption from stores).
+	#   2. If stores < 2-week consumption forecast: ALL NU -> honey stores.
+	#      This is survival mode -- no wax, just bank everything.
+	#   3. Once 2-week stores are secure: NU goes to WAX FIRST (comb drawing),
+	#      then any leftover NU goes to honey storage.
+	#
+	# In fall the queen slows laying, fewer mouths to feed, BUT the colony
+	# still needs to fill the brood box with winter stores.  Goldenrod/aster
+	# flow goes to stores until the 2-week buffer is full, then excess builds
+	# comb (if any foundation remains) or overflows into more honey.
+	# =========================================================================
+	var daily_cost: float = _daily_consumption()
+	honey_stores = maxf(0.0, honey_stores - daily_cost)
+
+	var two_week_need: float = daily_cost * 14.0
+	var stores_secure: bool = honey_stores >= two_week_need and two_week_need > 0.0
+
+	var nu_for_wax: int = 0
+	var nu_for_honey: int = 0
+
+	if not stores_secure:
+		# Survival mode: ALL NU -> honey stores, no wax investment
+		nu_for_wax = 0
+		nu_for_honey = nu_in
+	else:
+		# Stores are healthy -- WAX FIRST, remainder to honey.
+		# Cap wax at 50% of NU so bees always bank some honey even when flush.
+		@warning_ignore("INTEGER_DIVISION")
+		nu_for_wax = nu_in / 2
+		nu_for_honey = nu_in - nu_for_wax
+
+	# Convert NU to honey (LBS_PER_NU tuned for 80-120 lbs/year harvestable)
+	honey_stores += float(nu_for_honey) * LBS_PER_NU
+
+	if days_elapsed % 7 == 0:
+		print("[NU ALLOC d%d] stores=%.2f lbs | 2wk_need=%.2f | secure=%s | NU_in=%d wax=%d honey=%d | daily_cost=%.3f" % [
+			days_elapsed, honey_stores, two_week_need, str(stores_secure),
+			nu_in, nu_for_wax, nu_for_honey, daily_cost])
+
+	# Sync honey stores to frame cells
 	_sync_honey_to_frames()
 
-	# -- Step 5.5: Comb drawing (package bees -- workers draw foundation) ------
-	# Package colonies start with all empty foundation. Workers progressively
-	# draw comb outward from center. Rate scales with house bee count AND forage
-	# availability -- bees need incoming nectar to produce wax (6-7 lbs honey per
-	# 1 lb wax). Good forage months = fast comb drawing; dearth = near stall.
+	# -- Comb drawing with wax NU --
+	# Only fires when stores are secure (nu_for_wax > 0).
 	var foundation_total: int = boxes[0].count_state(S_EMPTY_FOUNDATION)
-	if foundation_total > 0:
-		_draw_comb(foundation_total, forage)
+	if foundation_total > 0 and nu_for_wax > 0:
+		_draw_comb_with_nu(foundation_total, nu_for_wax)
+
+	# Super comb drawing -- once brood box is mostly drawn, use wax NU for
+	# super comb too. Real bees work supers as soon as brood box is ~60% drawn
+	# and a flow is on. Supers store honey ONLY (no brood with queen excluder).
+	var brood_drawn_pct: float = 1.0 - float(foundation_total) / 70000.0
+	if brood_drawn_pct > 0.60 and boxes.size() > 1 and nu_for_wax > 0:
+		for bi in range(1, boxes.size()):
+			if boxes[bi].is_super:
+				var super_foundation: int = boxes[bi].count_state(S_EMPTY_FOUNDATION)
+				if super_foundation > 0:
+					_draw_super_comb(bi, super_foundation, 0.5)
+
+	# NOTE: _sync_honey_to_frames() already overflows into supers when brood box
+	# has insufficient drawn-empty cells.  _overflow_honey_to_supers() is now
+	# redundant and was causing double-deposit conflicts (supers got extra nectar
+	# cells beyond what honey_stores warranted, then next tick delta went negative
+	# and removed cells from brood box).  Disabled to let sync be the single
+	# source of truth for cell<->stores alignment.
+	# _overflow_honey_to_supers()
 
 	# -- Step 6: QueenBehavior -- lay eggs --------------------------------------
-	# Respect laying_delay for package bee queens still in their cage / acclimating
 	var laying_delay: int = queen.get("laying_delay", 0)
 	if laying_delay > 0:
 		queen["laying_delay"] = laying_delay - 1
@@ -672,37 +813,21 @@ func tick() -> void:
 		_queen_lay(s_factor)
 
 	# -- Post-lay full-count pass -----------------------------------------------
-	# Second (and final) full scan this tick. Covers mite reproduction, congestion
-	# detection, and snapshot writing. Replaces 5 formerly-separate count calls
-	# (count_statex3 + count_brood + count_honey) that totalled ~175,000 cell reads.
-	# Queen laying only writes S_EGG so capped-brood counts are stable vs. pre-lay.
 	var post_counts: Dictionary = CellStateTransition.sum_frame_counts(boxes[0].frames)
 
-	# Mite reproduction inside capped brood.
-	# Science fix (HS-3): Varroa population growth is exponential w.r.t. mite count,
-	# not linear w.r.t. brood count.  Each mite in a brood cell produces ~1.5
-	# daughters over 12 days = ~0.125 daughters/mite/day.  Population doubles in
-	# ~40-60 days in summer (untreated) -- this is the well-documented epidemiological
-	# curve (Calis et al. 1999).
-	# Formula: mites added = mite_count x 0.017 x brood_availability_factor
-	# where brood_availability_factor = capped_cells / healthy_brood_baseline.
-	# At low mite/brood loads this is comparable to the old formula; at high loads
-	# it correctly produces exponential growth rather than flat-rate additions.
-	var capped_brood: int = post_counts[S_CAPPED_BROOD] + post_counts[S_VARROA]
-	# Baseline doubled from 8000->16000 because each frame now has two sides.
+	# Mite reproduction
+	var capped_brood: int = post_counts[S_CAPPED_BROOD] + post_counts.get(S_VARROA, 0)
 	var brood_avail := clampf(float(capped_brood) / 16000.0, 0.0, 1.0)
 	mite_count += mite_count * 0.017 * brood_avail
 	mite_count  = minf(mite_count, 5000.0)
 
-	# -- Step 7: CongestionDetector -- space stress analysis --------------------
+	# -- Step 7: CongestionDetector --
 	var brood_cells: int = (post_counts[S_EGG] + post_counts[S_OPEN_LARVA]
 		+ post_counts[S_CAPPED_BROOD] + post_counts[S_CAPPED_DRONE]
-		+ post_counts[S_VARROA])
+		+ post_counts.get(S_VARROA, 0))
 	var honey_cells: int  = post_counts[S_CAPPED_HONEY] + post_counts[S_PREMIUM_HONEY]
 	var foundation_c: int = post_counts[S_EMPTY_FOUNDATION]
 	var total_drawn  := FRAME_SIZE * FRAMES_PER_BOX - foundation_c
-	# CongestionDetector now returns a dict: {state, swarm_prep}.
-	# Pass consecutive_congestion so swarm prep can be gated on sustained pressure.
 	var cong_result := CongestionDetector.evaluate(
 		brood_cells, honey_cells, total_drawn, consecutive_congestion)
 	var new_cong: int = cong_result["state"]
@@ -711,16 +836,41 @@ func tick() -> void:
 	else:
 		consecutive_congestion = 0
 	congestion_state = new_cong as CongestionState
-	# swarm_prep flag: wire this into QueenBehavior / HiveManager when ready.
-	# For now, store it in the snapshot via last_snapshot so UI can display it.
-	var _swarm_prep_ready: bool = cong_result.get("swarm_prep", false)
 
-	# -- Step 8: HiveHealthCalculator -- composite health score -----------------
+	# -- Step 8: Health score --
 	var health_score := _calculate_health_score()
 
-	# -- Step 9: SnapshotWriter -- write read-only snapshot dict ----------------
-	# Pass post_counts so SnapshotWriter reuses already-computed totals.
+	# -- Step 9: Snapshot --
 	last_snapshot = SnapshotWriter.write(self, health_score, post_counts)
+
+	# -- Dev diagnostic (every 7 days) --
+	if days_elapsed % 7 == 0:
+		var total_pop := nurse_count + house_count + forager_count
+		var super_honey_cells := 0
+		for bi in range(1, boxes.size()):
+			if boxes[bi].is_super:
+				for frame in boxes[bi].frames:
+					super_honey_cells += _count_honey_cells_in_frame(frame)
+		var brood_foundation: int = boxes[0].count_state(S_EMPTY_FOUNDATION)
+		# Count all honey-chain cells in brood box for diagnostic
+		var brood_honey_cells := 0
+		for frame in boxes[0].frames:
+			brood_honey_cells += _count_honey_cells_in_frame(frame)
+		# Count nectar-specific cells (not yet cured)
+		var nectar_cells: int = 0
+		for frame in boxes[0].frames:
+			for i in frame.grid_size:
+				if int(frame.cells[i]) == S_NECTAR:
+					nectar_cells += 1
+				if int(frame.cells_b[i]) == S_NECTAR:
+					nectar_cells += 1
+		print("[SIM d%d] pop=%d (n=%d h=%d f=%d) honey=%.1f lbs | zoneNU=%d zonePU=%d | NU_in=%d (wax=%d honey=%d)" % [
+			days_elapsed, total_pop, nurse_count, house_count, forager_count,
+			honey_stores, zone_nu, zone_pu, nu_in, nu_for_wax, nu_for_honey])
+		print("  comb=%.0f%% | brood_honey=%d nectar=%d | supers=%d s_honey=%d | bb=%d PU" % [
+			(1.0 - float(brood_foundation) / 70000.0) * 100.0,
+			brood_honey_cells, nectar_cells,
+			super_count(), super_honey_cells, int(pollen_stores)])
 
 # -- 3D Ellipsoid Distance ----------------------------------------------------
 # Returns the normalized 3D distance of a cell from the ellipsoid center.
@@ -735,77 +885,55 @@ static func _cell_3d_dist(frame_idx: int, x: int, y: int) -> float:
 	return sqrt(dz * dz + dx * dx + dy * dy)
 
 # -- Comb Drawing (3D ellipsoid -- center-out) --------------------------------
-# Workers convert S_EMPTY_FOUNDATION -> S_DRAWN_EMPTY expanding outward from
-# the 3D center of the hive. The draw frontier is a growing ellipsoid shell:
-# cells closest to center get drawn first, creating the dome shape that real
-# bees build. Rate scales with house bee count AND forage level.
-
-func _draw_comb(foundation_remaining: int, forage: float) -> void:
-	# Wax production depends on multiple colony factors.
-	# Strongest driver: nectar/honey stores (bees consume 6-7 lbs honey per 1 lb wax).
-	# Secondary: forager count (more foragers = more incoming nectar stimulus).
-	# Tertiary: overall hive health (sick/stressed colonies draw slowly).
-	#
-	# Below 0.5 lb stores = starvation, no wax at all.
-	if honey_stores < 0.5:
+## Draw comb in a super box. Simpler than brood box -- no 3D ellipsoid,
+## bees just draw center-out on each frame. Rate is ~60% of brood box rate
+## since bees prefer to work in the brood nest area.
+func _draw_super_comb(box_idx: int, _foundation_remaining: int, forage: float) -> void:
+	if honey_stores < 1.0:
 		return
 
-	# -- Nectar/honey stores multiplier (STRONGEST factor, 0.2 - 1.5 range) --
-	# Abundant stores trigger a building boom; scarce stores throttle hard.
+	# Store multiplier -- scales up as stores increase, encouraging faster
+	# drawing during strong flows when the colony has surplus honey.
 	var store_mult: float = 1.5
-	if honey_stores < 2.0:
-		store_mult = 0.20 + 0.30 * (honey_stores - 0.5) / 1.5
-	elif honey_stores < 5.0:
-		store_mult = 0.50 + 0.30 * (honey_stores - 2.0) / 3.0
-	elif honey_stores < 12.0:
-		store_mult = 0.80 + 0.40 * (honey_stores - 5.0) / 7.0
-	elif honey_stores < 25.0:
-		store_mult = 1.20 + 0.30 * (honey_stores - 12.0) / 13.0
+	if honey_stores < 3.0:
+		store_mult = 0.50 + 0.50 * (honey_stores - 1.0) / 2.0
+	elif honey_stores < 8.0:
+		store_mult = 1.0 + 0.20 * (honey_stores - 3.0) / 5.0
+	else:
+		store_mult = 1.2 + 0.50 * minf(1.0, (honey_stores - 8.0) / 20.0)
 
-	# -- Forager multiplier (0.3 - 1.2 range) --
-	# Active foragers signal nectar flow; bees ramp up wax glands in response.
 	var forager_ratio: float = float(forager_count) / 3000.0
 	var forager_mult: float = clampf(0.30 + 0.90 * forager_ratio, 0.30, 1.20)
-
-	# -- Health multiplier (0.4 - 1.0 range) --
-	# Sick or stressed colonies divert energy from building to survival.
-	var health: float = _calculate_health_score()
-	var health_mult: float = clampf(0.40 + 0.60 * (health / 100.0), 0.40, 1.0)
-
-	# -- Forage availability (incoming nectar stimulus) --
 	var forage_mult: float = 0.15 + 0.85 * forage
-
-	# -- Base rate from house bee count (wax gland workers) --
-	# Tuned so a B-grade colony (4000 house, 9lb stores, 2500 foragers, 75 health,
-	# B month 0.65 forage, Italian B queen) draws ~30% more cells/day than the
-	# queen lays (~975 eggs/day at B conditions -> target ~1268 cells/day).
-	var base_rate: float = float(house_count) * 0.49
-	var draw_rate: int = int(base_rate * store_mult * forager_mult * health_mult * forage_mult)
-	draw_rate = clampi(draw_rate, 0, 5000)
+	# During a strong flow bees draw super comb eagerly (real beekeepers see
+	# a super fully drawn in 1-2 weeks during peak). 0.80 per house bee
+	# with multipliers gives ~2000-4000 cells/day at mature colony size.
+	var base_rate: float = float(house_count) * 0.80
+	var draw_rate: int = int(base_rate * store_mult * forager_mult * forage_mult)
+	draw_rate = clampi(draw_rate, 0, 8000)
 	if draw_rate <= 0:
 		return
 
-	# Collect all foundation cells with their 3D distance from hive center.
-	# Then sort by distance and draw the closest ones first -- this produces
-	# the natural dome/ellipsoid expansion pattern real bees create.
-	var candidates: Array = []   # [dist, frame_idx, side, cell_idx]
-	var brood_box = boxes[0]
-
-	for fi in range(FRAMES_PER_BOX):
-		var frame = brood_box.frames[fi]
+	var super_box = boxes[box_idx]
+	# Draw center frames first (index 4,5 outward), both sides
+	var candidates: Array = []
+	for fi in range(super_box.frames.size()):
+		var frame = super_box.frames[fi]
+		var frame_dist: float = absf(float(fi) - 4.5) / 5.0
 		for side in [HiveFrame.SIDE_A, HiveFrame.SIDE_B]:
 			var side_cells: PackedByteArray = frame.cells if side == 0 else frame.cells_b
-			for y in FRAME_HEIGHT:
-				for x in FRAME_WIDTH:
-					var idx := y * FRAME_WIDTH + x
+			for y in frame.grid_rows:
+				for x in frame.grid_cols:
+					var idx: int = y * frame.grid_cols + x
 					if int(side_cells[idx]) == S_EMPTY_FOUNDATION:
-						var dist: float = _cell_3d_dist(fi, x, y)
+						# Simple distance from center of frame
+						var dx: float = absf(float(x) - float(frame.grid_cols) / 2.0)
+						var dy: float = absf(float(y) - float(frame.grid_rows) / 2.0)
+						var dist: float = frame_dist + (dx / float(frame.grid_cols) + dy / float(frame.grid_rows))
 						candidates.append([dist, fi, side, idx])
 
-	# Sort by 3D distance -- closest to center first
 	candidates.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
 
-	# Draw the closest cells up to draw_rate
 	var drawn := 0
 	for c in candidates:
 		if drawn >= draw_rate:
@@ -813,18 +941,16 @@ func _draw_comb(foundation_remaining: int, forage: float) -> void:
 		var fi: int   = int(c[1])
 		var sd: int   = int(c[2])
 		var idx: int  = int(c[3])
-		var frame = brood_box.frames[fi]
+		var frame = super_box.frames[fi]
 		if sd == HiveFrame.SIDE_A:
 			frame.cells[idx] = S_DRAWN_EMPTY
 		else:
 			frame.cells_b[idx] = S_DRAWN_EMPTY
 		drawn += 1
 
-	# Wax production costs honey -- ~7 lbs honey per 1 lb wax.
-	# ~70,000 total cells = ~3-4 lbs wax = ~21-28 lbs honey.
-	# Each cell costs roughly 0.0004 lbs of honey.
 	var honey_cost: float = float(drawn) * 0.0004
 	honey_stores = maxf(0.0, honey_stores - honey_cost)
+
 
 # -- Hex Adjacency Check ------------------------------------------------------
 # Pointy-top hex offset grid (odd rows shift right by half a cell).
@@ -878,48 +1004,73 @@ func _cell_walled_in(side_cells: PackedByteArray, x: int, y: int) -> bool:
 func _queen_lay(s_factor: float) -> void:
 	var grade_mod: float   = _grade_modifier(queen["grade"])
 	var species_mod: float = _species_seasonal_modifier(queen["species"], s_factor)
-	var target: int        = int(float(queen["laying_rate"]) * s_factor * species_mod * grade_mod)
+	# Karpathy Phase 4+8: queen age curve and varroa/congestion modifiers.
+	var age_mod: float     = QueenBehavior.queen_age_multiplier(queen["age_days"])
+	var total_adults: int  = nurse_count + house_count + forager_count
+	var mites_per_100: float = mite_count / maxf(1.0, float(total_adults)) * 100.0
+	var varroa_mod: float  = QueenBehavior.varroa_laying_modifier(mites_per_100)
+	var cong_mod: float    = QueenBehavior.congestion_laying_modifier(int(congestion_state))
+	# Phase 8 validated: cap congestion penalty at 20% to prevent colony crashes.
+	cong_mod = maxf(0.80, cong_mod)
+	var target: int = int(float(queen["laying_rate"]) * s_factor * species_mod \
+						  * grade_mod * age_mod * varroa_mod * cong_mod)
 	if target <= 0:
 		return
 
 	var skip_prob: float = queen["skip_probability"]
-	var brood_box = boxes[0]
+
+	# Queen lays in brood box first. Without a queen excluder, she can also
+	# move up into supers and lay there (wastes super space with brood).
+	# With an excluder installed, queen is restricted to brood box only.
+	var layable_boxes: Array = [0]   # always includes brood box
+	if not has_excluder and boxes.size() > 1:
+		for bi in range(1, boxes.size()):
+			if boxes[bi].is_super:
+				layable_boxes.append(bi)
 
 	# Collect all eligible cells (drawn, empty, walled-in) with 3D distances.
-	var candidates: Array = []   # [dist, frame_idx, side, cell_idx]
+	var candidates: Array = []   # [dist, box_idx, frame_idx, side, cell_idx]
 
-	for fi in range(FRAMES_PER_BOX):
-		var frame = brood_box.frames[fi]
-		for side in [HiveFrame.SIDE_A, HiveFrame.SIDE_B]:
-			var side_cells: PackedByteArray = frame.cells if side == 0 else frame.cells_b
-			for y in FRAME_HEIGHT:
-				for x in FRAME_WIDTH:
-					var idx := y * FRAME_WIDTH + x
-					var state: int = int(side_cells[idx])
-					if state != S_DRAWN_EMPTY:
-						continue
-					if not _cell_walled_in(side_cells, x, y):
-						continue
-					var dist: float = _cell_3d_dist(fi, x, y)
-					# Only lay within the ellipsoid boundary (dist <= 1.0)
-					if dist > 1.0:
-						continue
-					candidates.append([dist, fi, side, idx])
+	for bi in layable_boxes:
+		var box = boxes[bi]
+		var frames_in_box: int = box.frames.size()
+		for fi in range(frames_in_box):
+			var frame = box.frames[fi]
+			var f_width: int = frame.grid_cols
+			var f_height: int = frame.grid_rows
+			for side in [HiveFrame.SIDE_A, HiveFrame.SIDE_B]:
+				var side_cells: PackedByteArray = frame.cells if side == 0 else frame.cells_b
+				for y in f_height:
+					for x in f_width:
+						var idx: int = y * f_width + x
+						var state: int = int(side_cells[idx])
+						if state != S_DRAWN_EMPTY:
+							continue
+						# Walled-in check only for brood box (full hex adjacency)
+						if bi == 0 and not _cell_walled_in(side_cells, x, y):
+							continue
+						var dist: float = _cell_3d_dist(fi, x, y)
+						# Brood box: ellipsoid boundary. Supers: queen wanders freely.
+						if bi == 0 and dist > 1.0:
+							continue
+						# Add penalty for super boxes so queen prefers brood box
+						var box_penalty: float = float(bi) * 2.0
+						candidates.append([dist + box_penalty, bi, fi, side, idx])
 
-	# Sort by 3D distance -- queen fills closest to center first
+	# Sort by distance -- queen fills closest to center first
 	candidates.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
 
-	# Lay eggs in order of proximity to 3D center
+	# Lay eggs in order of proximity
 	var laid := 0
 	for c in candidates:
 		if laid >= target:
 			break
-		# Skip probability -- queen occasionally skips cells (realistic)
 		if randf() > skip_prob:
-			var fi: int   = int(c[1])
-			var sd: int   = int(c[2])
-			var idx: int  = int(c[3])
-			var frame = brood_box.frames[fi]
+			var c_bi: int  = int(c[1])
+			var fi: int    = int(c[2])
+			var sd: int    = int(c[3])
+			var idx: int   = int(c[4])
+			var frame = boxes[c_bi].frames[fi]
 			if sd == HiveFrame.SIDE_A:
 				frame.cells[idx]    = S_EGG
 				frame.cell_age[idx] = 0
@@ -937,72 +1088,347 @@ func _sync_honey_to_frames() -> void:
 	# cells to keep frames roughly in line with honey_stores, WITHOUT wiping the
 	# natural nectar -> curing -> capped -> premium cell-state progression that
 	# CellStateTransition manages each tick.
+	#
+	# Priority: ALL drawn-empty cells in the hive are eligible for honey deposit.
+	# Brood box outer honey frames fill first, then inner frame margins, then
+	# super boxes (just like real bees -- fill down, then move up).
 	var brood_box = boxes[0]
 
-	# Count existing honey-chain cells across honey frames (indices 4-9 in laying order)
+	# Count existing honey-chain cells across ALL boxes (brood + supers)
 	var existing_honey_cells := 0
-	for order_idx in range(4, 10):
-		var fi: int = QUEEN_FRAME_ORDER[order_idx]
-		var frame = brood_box.frames[fi]
-		for i in frame.grid_size:
-			var s: int = int(frame.cells[i])
-			if s >= CellStateTransition.S_NECTAR and s <= CellStateTransition.S_PREMIUM_HONEY:
-				existing_honey_cells += 1
-			var sb: int = int(frame.cells_b[i])
-			if sb >= CellStateTransition.S_NECTAR and sb <= CellStateTransition.S_PREMIUM_HONEY:
-				existing_honey_cells += 1
+	for frame in brood_box.frames:
+		existing_honey_cells += _count_honey_cells_in_frame(frame)
+	for bi in range(1, boxes.size()):
+		if boxes[bi].is_super:
+			for frame in boxes[bi].frames:
+				existing_honey_cells += _count_honey_cells_in_frame(frame)
 
 	var cells_target: int = int(honey_stores / LBS_PER_FULL_FRAME * float(FRAME_SIZE))
 	var delta: int = cells_target - existing_honey_cells
 
 	if delta > 0:
-		# Need to deposit more nectar cells (new nectar came in)
+		# Need to deposit more nectar cells (new nectar came in).
+		# Fill brood box honey frames first, then overflow into supers.
 		var remaining: int = delta
+		# Brood box outer frames (outermost first)
 		for order_idx in [9, 8, 7, 6, 5, 4]:
 			if remaining <= 0:
 				break
 			var fi: int = QUEEN_FRAME_ORDER[order_idx]
-			var frame = brood_box.frames[fi]
-			# Deposit as S_NECTAR on drawn-empty cells (not S_CAPPED_HONEY)
-			# so the visual progression plays out naturally
-			for i in frame.grid_size:
+			remaining = _deposit_nectar_in_frame(brood_box.frames[fi], remaining)
+		# Fallback: inner brood frames (queen center) -- bees store honey in
+		# the corners/edges of brood frames too, above and beside the brood nest.
+		if remaining > 0:
+			for order_idx in [3, 2, 1, 0]:
 				if remaining <= 0:
 					break
-				if int(frame.cells[i]) == CellStateTransition.S_DRAWN_EMPTY:
-					frame.cells[i]    = CellStateTransition.S_NECTAR
-					frame.cell_age[i] = 0
-					remaining -= 1
-			for i in frame.grid_size:
+				var fi: int = QUEEN_FRAME_ORDER[order_idx]
+				remaining = _deposit_nectar_in_frame(brood_box.frames[fi], remaining)
+		# Overflow into supers (bottom super first, then upward)
+		for bi in range(1, boxes.size()):
+			if remaining <= 0:
+				break
+			if not boxes[bi].is_super:
+				continue
+			for frame in boxes[bi].frames:
 				if remaining <= 0:
 					break
-				if int(frame.cells_b[i]) == CellStateTransition.S_DRAWN_EMPTY:
-					frame.cells_b[i]    = CellStateTransition.S_NECTAR
-					frame.cell_age_b[i] = 0
-					remaining -= 1
+				remaining = _deposit_nectar_in_frame(frame, remaining)
+		if days_elapsed % 7 == 0 or remaining > 0:
+			print("[HONEY SYNC d%d] stores=%.2f lbs target=%d existing=%d delta=%d deposited=%d still_remaining=%d boxes=%d" % [
+				days_elapsed, honey_stores, cells_target, existing_honey_cells,
+				delta, delta - remaining, remaining, boxes.size()])
 	elif delta < -10:
-		# Honey consumed -- remove some capped/premium cells (oldest first)
+		# Honey consumed -- remove from brood box first (supers are savings)
 		var to_remove: int = absi(delta)
 		for order_idx in range(4, 10):
 			if to_remove <= 0:
 				break
 			var fi: int = QUEEN_FRAME_ORDER[order_idx]
-			var frame = brood_box.frames[fi]
-			for i in frame.grid_size:
-				if to_remove <= 0:
-					break
-				var s: int = int(frame.cells[i])
-				if s == CellStateTransition.S_CAPPED_HONEY or s == CellStateTransition.S_PREMIUM_HONEY:
-					frame.cells[i]    = CellStateTransition.S_DRAWN_EMPTY
+			to_remove = _remove_honey_from_frame(brood_box.frames[fi], to_remove)
+
+
+## Count honey-chain cells (nectar through premium) on both sides of a frame.
+func _count_honey_cells_in_frame(frame: HiveFrame) -> int:
+	var count := 0
+	for i in frame.grid_size:
+		var s: int = int(frame.cells[i])
+		if s >= CellStateTransition.S_NECTAR and s <= CellStateTransition.S_PREMIUM_HONEY:
+			count += 1
+		var sb: int = int(frame.cells_b[i])
+		if sb >= CellStateTransition.S_NECTAR and sb <= CellStateTransition.S_PREMIUM_HONEY:
+			count += 1
+	return count
+
+
+## Deposit S_NECTAR into drawn-empty cells on both sides. Returns remaining to deposit.
+func _deposit_nectar_in_frame(frame: HiveFrame, remaining: int) -> int:
+	for i in frame.grid_size:
+		if remaining <= 0:
+			break
+		if int(frame.cells[i]) == CellStateTransition.S_DRAWN_EMPTY:
+			frame.cells[i]    = CellStateTransition.S_NECTAR
+			frame.cell_age[i] = 0
+			remaining -= 1
+	for i in frame.grid_size:
+		if remaining <= 0:
+			break
+		if int(frame.cells_b[i]) == CellStateTransition.S_DRAWN_EMPTY:
+			frame.cells_b[i]    = CellStateTransition.S_NECTAR
+			frame.cell_age_b[i] = 0
+			remaining -= 1
+	return remaining
+
+
+## Remove capped/premium honey cells from both sides. Returns remaining to remove.
+func _remove_honey_from_frame(frame: HiveFrame, to_remove: int) -> int:
+	for i in frame.grid_size:
+		if to_remove <= 0:
+			break
+		var s: int = int(frame.cells[i])
+		if s == CellStateTransition.S_CAPPED_HONEY or s == CellStateTransition.S_PREMIUM_HONEY:
+			frame.cells[i]    = CellStateTransition.S_DRAWN_EMPTY
+			frame.cell_age[i] = 0
+			to_remove -= 1
+	for i in frame.grid_size:
+		if to_remove <= 0:
+			break
+		var sb: int = int(frame.cells_b[i])
+		if sb == CellStateTransition.S_CAPPED_HONEY or sb == CellStateTransition.S_PREMIUM_HONEY:
+			frame.cells_b[i]    = CellStateTransition.S_DRAWN_EMPTY
+			frame.cell_age_b[i] = 0
+			to_remove -= 1
+	return to_remove
+
+# -- Zone NU/PU Queries --------------------------------------------------------
+
+## Get total NU available in the zone from FlowerLifecycleManager.
+func _get_zone_nu() -> int:
+	var managers = get_tree().get_nodes_in_group("flower_lifecycle_manager")
+	var total: int = 0
+	for mgr in managers:
+		if mgr.has_method("get_total_zone_nectar"):
+			total += int(mgr.get_total_zone_nectar())
+	# Also add tree forage contributions
+	var month: int = TimeManager.current_month_index()
+	if month < 6:
+		var trees = get_tree().get_nodes_in_group("trees")
+		for tree_node in trees:
+			if tree_node.has_method("get_forage_contribution"):
+				var contrib: Dictionary = tree_node.get_forage_contribution(month)
+				total += int(contrib.get("nectar", 0.0))
+	# Add barrel feeder NU (feeders inject directly into zone pool)
+	var feeders = get_tree().get_nodes_in_group("barrel_feeder")
+	for feeder in feeders:
+		if "days_remaining" in feeder and feeder.days_remaining > 0:
+			total += 100  # FEED_NU_PER_DAY
+	# Ambient forage hack removed -- real SeasonalTree nodes on home_property
+	# now provide proper NU through the "trees" group forage system above.
+	return maxi(0, total)
+
+## Get total PU available in the zone from FlowerLifecycleManager.
+func _get_zone_pu() -> int:
+	var managers = get_tree().get_nodes_in_group("flower_lifecycle_manager")
+	var total: int = 0
+	for mgr in managers:
+		if mgr.has_method("get_total_zone_pollen"):
+			total += int(mgr.get_total_zone_pollen())
+	var month: int = TimeManager.current_month_index()
+	if month < 6:
+		var trees = get_tree().get_nodes_in_group("trees")
+		for tree_node in trees:
+			if tree_node.has_method("get_forage_contribution"):
+				var contrib: Dictionary = tree_node.get_forage_contribution(month)
+				total += int(contrib.get("pollen", 0.0))
+	# Ambient pollen hack removed -- real SeasonalTree nodes now provide PU.
+	return maxi(0, total)
+
+# -- Bee Bread Management -----------------------------------------------------
+
+## Store PU as bee bread in drawn-empty cells of the brood box (outer frames).
+## Each bee bread cell holds up to 3 PU (tracked via cell_age as PU count).
+func _store_bee_bread(pu_to_store: int) -> void:
+	var remaining: int = pu_to_store
+	var brood_box = boxes[0]
+	# First, top up existing bee bread cells that have < 3 PU
+	for fi in range(FRAMES_PER_BOX):
+		var frame = brood_box.frames[fi]
+		for i in frame.grid_size:
+			if remaining <= 0:
+				return
+			if int(frame.cells[i]) == S_BEE_BREAD and int(frame.cell_age[i]) < 3:
+				var space: int = 3 - int(frame.cell_age[i])
+				var add: int = mini(space, remaining)
+				frame.cell_age[i] = frame.cell_age[i] + add
+				remaining -= add
+			if int(frame.cells_b[i]) == S_BEE_BREAD and int(frame.cell_age_b[i]) < 3:
+				var space: int = 3 - int(frame.cell_age_b[i])
+				var add: int = mini(space, remaining)
+				frame.cell_age_b[i] = frame.cell_age_b[i] + add
+				remaining -= add
+	# Then create new bee bread cells from drawn-empty cells (outer frames first)
+	for order_idx in [9, 8, 7, 6, 5, 4]:
+		if remaining <= 0:
+			return
+		var fi: int = QUEEN_FRAME_ORDER[order_idx]
+		var frame = brood_box.frames[fi]
+		for i in frame.grid_size:
+			if remaining <= 0:
+				return
+			if int(frame.cells[i]) == S_DRAWN_EMPTY:
+				frame.cells[i] = S_BEE_BREAD
+				var pu: int = mini(3, remaining)
+				frame.cell_age[i] = pu
+				remaining -= pu
+		for i in frame.grid_size:
+			if remaining <= 0:
+				return
+			if int(frame.cells_b[i]) == S_DRAWN_EMPTY:
+				frame.cells_b[i] = S_BEE_BREAD
+				var pu: int = mini(3, remaining)
+				frame.cell_age_b[i] = pu
+				remaining -= pu
+
+
+## Consume PU from bee bread cells. Empties cells once depleted.
+func _consume_bee_bread(pu_to_consume: int) -> void:
+	var remaining: int = pu_to_consume
+	var brood_box = boxes[0]
+	for fi in range(FRAMES_PER_BOX):
+		var frame = brood_box.frames[fi]
+		for i in frame.grid_size:
+			if remaining <= 0:
+				return
+			if int(frame.cells[i]) == S_BEE_BREAD:
+				var avail: int = int(frame.cell_age[i])
+				var take: int = mini(avail, remaining)
+				frame.cell_age[i] = avail - take
+				remaining -= take
+				if frame.cell_age[i] <= 0:
+					frame.cells[i] = S_DRAWN_EMPTY
 					frame.cell_age[i] = 0
-					to_remove -= 1
-			for i in frame.grid_size:
-				if to_remove <= 0:
-					break
-				var sb: int = int(frame.cells_b[i])
-				if sb == CellStateTransition.S_CAPPED_HONEY or sb == CellStateTransition.S_PREMIUM_HONEY:
-					frame.cells_b[i]    = CellStateTransition.S_DRAWN_EMPTY
+			if int(frame.cells_b[i]) == S_BEE_BREAD:
+				var avail: int = int(frame.cell_age_b[i])
+				var take: int = mini(avail, remaining)
+				frame.cell_age_b[i] = avail - take
+				remaining -= take
+				if frame.cell_age_b[i] <= 0:
+					frame.cells_b[i] = S_DRAWN_EMPTY
 					frame.cell_age_b[i] = 0
-					to_remove -= 1
+
+
+## Count total bee bread cells in the brood box.
+func _count_bee_bread_cells() -> int:
+	var count: int = 0
+	for frame in boxes[0].frames:
+		for i in frame.grid_size:
+			if int(frame.cells[i]) == S_BEE_BREAD:
+				count += 1
+			if int(frame.cells_b[i]) == S_BEE_BREAD:
+				count += 1
+	return count
+
+
+# -- NU-based Comb Drawing -----------------------------------------------------
+
+## Draw comb using NU wax budget. Each NU of wax draws ~2-3 cells.
+## Replaces the old store_mult-based system with direct NU input.
+func _draw_comb_with_nu(foundation_remaining: int, nu_wax: int) -> void:
+	# Stores check now handled upstream by wax_fraction allocation.
+	# nu_wax will be 0 if stores are too low.
+	# Each NU of wax draws ~3 cells (game balance tuning)
+	var draw_rate: int = nu_wax * 3
+	# Also factor in house bee count -- need workers to actually build
+	var house_factor: float = clampf(float(house_count) / 2000.0, 0.1, 1.5)
+	draw_rate = int(float(draw_rate) * house_factor)
+	draw_rate = clampi(draw_rate, 0, 5000)
+	if draw_rate <= 0:
+		return
+
+	# Collect all foundation cells with 3D distance, sort center-out
+	var candidates: Array = []
+	var brood_box = boxes[0]
+	for fi in range(FRAMES_PER_BOX):
+		var frame = brood_box.frames[fi]
+		for side in [HiveFrame.SIDE_A, HiveFrame.SIDE_B]:
+			var side_cells: PackedByteArray = frame.cells if side == 0 else frame.cells_b
+			for y in FRAME_HEIGHT:
+				for x in FRAME_WIDTH:
+					var idx: int = y * FRAME_WIDTH + x
+					if int(side_cells[idx]) == S_EMPTY_FOUNDATION:
+						var dist: float = _cell_3d_dist(fi, x, y)
+						candidates.append([dist, fi, side, idx])
+
+	candidates.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
+
+	var drawn := 0
+	for c in candidates:
+		if drawn >= draw_rate:
+			break
+		var fi: int   = int(c[1])
+		var sd: int   = int(c[2])
+		var idx: int  = int(c[3])
+		var frame = brood_box.frames[fi]
+		if sd == HiveFrame.SIDE_A:
+			frame.cells[idx] = S_DRAWN_EMPTY
+		else:
+			frame.cells_b[idx] = S_DRAWN_EMPTY
+		drawn += 1
+
+	# Wax costs honey
+	var honey_cost: float = float(drawn) * 0.0004
+	honey_stores = maxf(0.0, honey_stores - honey_cost)
+
+
+# -- Overflow honey into supers ------------------------------------------------
+
+## Once brood box honey frames are full, push excess into super boxes.
+## Supers store honey ONLY -- no brood, no bee bread.
+func _overflow_honey_to_supers() -> void:
+	if boxes.size() <= 1:
+		return
+	# Check if brood box honey frames have space
+	var brood_box = boxes[0]
+	var brood_honey_capacity: int = 0
+	var brood_honey_current: int = 0
+	for order_idx in range(4, 10):
+		var fi: int = QUEEN_FRAME_ORDER[order_idx]
+		var frame = brood_box.frames[fi]
+		for i in frame.grid_size:
+			var s: int = int(frame.cells[i])
+			if s == S_DRAWN_EMPTY:
+				brood_honey_capacity += 1
+			elif s >= S_NECTAR and s <= S_PREMIUM_HONEY:
+				brood_honey_current += 1
+		for i in frame.grid_size:
+			var sb: int = int(frame.cells_b[i])
+			if sb == S_DRAWN_EMPTY:
+				brood_honey_capacity += 1
+			elif sb >= S_NECTAR and sb <= S_PREMIUM_HONEY:
+				brood_honey_current += 1
+
+	# If brood box still has room, no overflow needed
+	if brood_honey_capacity > 100:
+		return
+
+	# Calculate how much honey should go to supers
+	var excess_honey: float = honey_stores - float(brood_honey_current) * 0.00143
+	if excess_honey <= 0.0:
+		return
+
+	# Deposit excess into super frames
+	var cells_to_deposit: int = int(excess_honey / 0.00143)
+	var remaining: int = cells_to_deposit
+	for bi in range(1, boxes.size()):
+		if remaining <= 0:
+			break
+		if not boxes[bi].is_super:
+			continue
+		for frame in boxes[bi].frames:
+			if remaining <= 0:
+				break
+			remaining = _deposit_nectar_in_frame(frame, remaining)
+
 
 # -- (Congestion detection now in CongestionDetector; snapshot in SnapshotWriter) --
 
@@ -1105,7 +1531,7 @@ func get_harvestable_frames() -> Array:
 					elif s == CellStateTransition.S_CURING_HONEY or s == CellStateTransition.S_NECTAR:
 						total_honey += 1
 			var cap_pct: float = 100.0 if total_honey == 0 else (float(capped) / float(total_honey)) * 100.0
-			var honey_lbs := (float(capped) / float(frame.grid_size * 2)) * frame.lbs_per_full_frame()
+			var honey_lbs: float = (float(capped) / float(frame.grid_size * 2)) * frame.lbs_per_full_frame()
 			result.append({
 				"box_idx": b_idx,
 				"frame_idx": f_idx,
@@ -1115,6 +1541,49 @@ func get_harvestable_frames() -> Array:
 				"total_honey_cells": total_honey,
 				"is_super": true
 			})
+	return result
+
+## Returns per-super visual data for the overworld hive sprite system.
+## Each entry is a dict: { fill_pct, capping_pct, drawn_pct, honey_cells,
+## capped_cells, total_honey_cells, capacity }
+## fill_pct: 0.0-1.0, fraction of super capacity holding any honey-chain cell.
+## capping_pct: 0.0-1.0, fraction of honey-chain cells that are capped/premium.
+## drawn_pct: 0.0-1.0, fraction of foundation that has been drawn into comb.
+func get_super_visual_data() -> Array:
+	var result: Array = []
+	for bi in boxes.size():
+		var box: HiveBox = boxes[bi]
+		if not box.is_super:
+			continue
+		var capacity: int = 0   # total cells on both sides
+		var drawn: int = 0      # non-foundation cells
+		var honey_total: int = 0
+		var capped: int = 0
+		for frame in box.frames:
+			var fs: int = frame.grid_size
+			capacity += fs * 2
+			for side_cells in [frame.cells, frame.cells_b]:
+				for i in fs:
+					var s: int = int(side_cells[i])
+					if s != CellStateTransition.S_EMPTY_FOUNDATION:
+						drawn += 1
+					if s == CellStateTransition.S_NECTAR or s == CellStateTransition.S_CURING_HONEY:
+						honey_total += 1
+					elif s == CellStateTransition.S_CAPPED_HONEY or s == CellStateTransition.S_PREMIUM_HONEY:
+						honey_total += 1
+						capped += 1
+		var fill_pct: float = float(honey_total) / maxf(1.0, float(capacity))
+		var cap_pct: float = float(capped) / maxf(1.0, float(honey_total)) if honey_total > 0 else 0.0
+		var drawn_pct: float = float(drawn) / maxf(1.0, float(capacity))
+		result.append({
+			"box_idx": bi,
+			"fill_pct": fill_pct,
+			"capping_pct": cap_pct,
+			"drawn_pct": drawn_pct,
+			"honey_cells": honey_total,
+			"capped_cells": capped,
+			"capacity": capacity,
+		})
 	return result
 
 ## Check if an entire super box has all frames marked for harvest.
@@ -1152,23 +1621,12 @@ func treat_mites(reduction: float) -> void:
 # -- Helpers -------------------------------------------------------------------
 
 func _grade_modifier(grade: String) -> float:
-	match grade:
-		"S": return 1.25
-		"A": return 1.10
-		"B": return 1.00
-		"C": return 0.85
-		"D": return 0.65
-		"F": return 0.0
-	return 1.0
+	# Validated by Karpathy Phase 4: S-tier = 1.00 baseline (best real queens).
+	# S is the ceiling, lower grades scale down from there.
+	return QueenBehavior.grade_modifier(grade)
 
 func _species_seasonal_modifier(species: String, s_factor: float) -> float:
-	match species:
-		"Italian":   return 1.0
-		"Carniolan": return clampf(1.0 + (s_factor - 0.5) * 0.4, 0.5, 1.3)
-		"Russian":   return 0.90
-		"Buckfast":  return 1.05
-		"Caucasian": return clampf(0.7 + s_factor * 0.6, 0.7, 1.1)
-	return 1.0
+	return QueenBehavior.species_seasonal_modifier(species, s_factor)
 
 func _daily_consumption() -> float:
 	var total := float(nurse_count + house_count + forager_count + drone_count)
@@ -1208,3 +1666,112 @@ func _calculate_health_score() -> float:
 
 	score -= float(disease_flags.size()) * 5.0
 	return clampf(score, 0.0, 100.0)
+
+
+# -- Tomorrow Forecast (dev mode) --------------------------------------------
+# Estimates how many wax cells, bee bread cells, and honey cells will be
+# created tomorrow.  Uses the SAME formulas as tick() but without mutating
+# any state.  Returns a Dictionary with keys:
+#   "wax_cells"       : int  -- new comb cells drawn from foundation
+#   "bee_bread_cells"  : int  -- net new bee bread cells stored
+#   "honey_cells"      : int  -- net new honey cells deposited
+#   "eggs_laid"        : int  -- queen eggs laid tomorrow (estimate)
+# All values are estimates (weather variance and random forager rolls are
+# replaced with their expected-value averages).
+
+func forecast_tomorrow() -> Dictionary:
+	# -- Season / weather -------------------------------------------------
+	var s_factor: float = TimeManager.season_factor()
+	var weather_mult: float = 1.0
+	if WeatherManager:
+		weather_mult = WeatherManager.get_forage_multiplier()
+
+	# -- Zone resources ---------------------------------------------------
+	var zone_nu: int = _get_zone_nu()
+	var zone_pu: int = _get_zone_pu()
+	var colony_count: int = maxi(1, HiveManager.hive_count())
+	@warning_ignore("INTEGER_DIVISION")
+	var my_nu: int = zone_nu / colony_count
+	@warning_ignore("INTEGER_DIVISION")
+	var my_pu: int = zone_pu / colony_count
+
+	# -- Forager collection (expected value, no random roll) ---------------
+	var avg_nu_per: float = float(ForagerSystem.NU_PER_FORAGER_MIN + ForagerSystem.NU_PER_FORAGER_MAX) / 2.0
+	var avg_pu_per: float = float(ForagerSystem.PU_PER_FORAGER_MIN + ForagerSystem.PU_PER_FORAGER_MAX) / 2.0
+	var raw_nu: int = int(float(forager_count) * avg_nu_per * s_factor * weather_mult)
+	var raw_pu: int = int(float(forager_count) * avg_pu_per * s_factor * weather_mult)
+	if int(congestion_state) == 3:
+		raw_nu = int(float(raw_nu) * (1.0 - ForagerSystem.CONGESTION_PENALTY))
+		raw_pu = int(float(raw_pu) * (1.0 - ForagerSystem.CONGESTION_PENALTY))
+	var nu_in: int = mini(raw_nu, my_nu)
+	var pu_in: int = mini(raw_pu, my_pu)
+
+	# -- NU allocation (stores-first, then wax, then storage) ---------------
+	var f_daily_cost: float = _daily_consumption()
+	var f_two_week: float = f_daily_cost * 14.0
+	var f_stores_ok: bool = honey_stores >= f_two_week and f_two_week > 0.0
+	var nu_for_wax: int = 0
+	var nu_for_honey: int = nu_in
+	if f_stores_ok:
+		@warning_ignore("INTEGER_DIVISION")
+		nu_for_wax = nu_in / 2
+		nu_for_honey = nu_in - nu_for_wax
+
+	# -- Wax cells forecast ------------------------------------------------
+	var est_wax: int = 0
+	if nu_for_wax > 0:
+		var draw_rate: int = nu_for_wax * 3
+		var house_factor: float = clampf(float(house_count) / 2000.0, 0.1, 1.5)
+		draw_rate = int(float(draw_rate) * house_factor)
+		var foundation_total: int = boxes[0].count_state(S_EMPTY_FOUNDATION)
+		est_wax = clampi(draw_rate, 0, foundation_total)
+
+	# -- Bee bread forecast ------------------------------------------------
+	# Nurses feed brood first (1 PU per open larva), then store excess as
+	# bee bread.  Each bee bread cell holds 3 PU.
+	var open_larva: int = 0
+	var pre_counts: Dictionary = CellStateTransition.sum_frame_counts(boxes[0].frames)
+	open_larva = pre_counts.get(S_OPEN_LARVA, 0)
+	var pu_for_brood: int = mini(pu_in, open_larva)
+	var pu_leftover: int = maxi(0, pu_in - pu_for_brood)
+	# Net bee bread = stored - consumed from reserves
+	# If incoming PU was enough to feed all brood, no reserves consumed.
+	# If not, reserves are consumed (negative bb delta).
+	var pu_from_reserves: int = 0
+	if pu_for_brood < open_larva:
+		pu_from_reserves = mini(open_larva - pu_for_brood,
+			_count_bee_bread_cells() * NurseSystem.PU_PER_BEE_BREAD_CELL)
+	@warning_ignore("INTEGER_DIVISION")
+	var est_bb_new: int = pu_leftover / NurseSystem.PU_PER_BEE_BREAD_CELL
+	@warning_ignore("INTEGER_DIVISION")
+	var est_bb_consumed: int = pu_from_reserves / NurseSystem.PU_PER_BEE_BREAD_CELL
+	var est_bb_net: int = est_bb_new - est_bb_consumed
+
+	# -- Honey cells forecast ----------------------------------------------
+	# New honey = NU for honey converted to lbs, then to cells.
+	# LBS_PER_NU lbs per NU.  Each honey cell ~ 0.00143 lbs.
+	var new_honey_lbs: float = float(nu_for_honey) * LBS_PER_NU
+	var consumption: float = _daily_consumption()
+	var net_honey_lbs: float = new_honey_lbs - consumption
+	# Approximate cells: 1 cell ~ 0.00143 lbs (from LBS_PER_FULL_SUPER / cells)
+	var est_honey: int = int(net_honey_lbs / 0.00143) if net_honey_lbs > 0.0 else 0
+
+	# -- Eggs forecast -----------------------------------------------------
+	var est_eggs: int = 0
+	var laying_delay: int = queen.get("laying_delay", 0)
+	if laying_delay <= 1 and queen["present"]:
+		var grade_mod: float = _grade_modifier(queen["grade"])
+		var species_mod: float = _species_seasonal_modifier(queen["species"], s_factor)
+		var age_mod: float = QueenBehavior.queen_age_multiplier(queen["age_days"])
+		var total_adults: int = nurse_count + house_count + forager_count
+		var mites_per_100: float = mite_count / maxf(1.0, float(total_adults)) * 100.0
+		var varroa_mod: float = QueenBehavior.varroa_laying_modifier(mites_per_100)
+		var cong_mod: float = maxf(0.80, QueenBehavior.congestion_laying_modifier(int(congestion_state)))
+		est_eggs = int(float(queen["laying_rate"]) * s_factor * species_mod * grade_mod * age_mod * varroa_mod * cong_mod)
+
+	return {
+		"wax_cells": est_wax,
+		"bee_bread_cells": est_bb_net,
+		"honey_cells": est_honey,
+		"eggs_laid": est_eggs,
+	}

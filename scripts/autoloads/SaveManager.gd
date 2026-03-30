@@ -156,6 +156,10 @@ func save() -> bool:
 	# Uncle Bob's hint-rotation index so he doesn't repeat tips after a reload.
 	data["npc_flags"] = _collect_npc_flags()
 
+	# -- Weather state ---------------------------------------------------------
+	if WeatherManager and WeatherManager.has_method("collect_save_data"):
+		data["weather"] = WeatherManager.collect_save_data()
+
 	# -- Write to disk ---------------------------------------------------------
 	var json_text: String = JSON.stringify(data, "\t")
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
@@ -294,6 +298,13 @@ func apply_to_scene(scene_root: Node) -> void:
 	# -- NPC flags -------------------------------------------------------------
 	if d.has("npc_flags"):
 		_apply_npc_flags(d["npc_flags"])
+
+	# -- Weather state ---------------------------------------------------------
+	if d.has("weather") and WeatherManager and WeatherManager.has_method("apply_save_data"):
+		WeatherManager.apply_save_data(d["weather"])
+	elif WeatherManager and WeatherManager.has_method("roll_daily_weather"):
+		# No saved weather -- roll fresh for this day
+		WeatherManager.roll_daily_weather()
 
 	# Clear pending state so a second call is a no-op.
 	has_pending_load = false

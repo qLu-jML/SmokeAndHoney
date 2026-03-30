@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smoke & Honey - Bee Sprite Selection Review</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a2e;
+            color: #e8d5c4;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 3px solid #C8820C;
+            padding-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #C8820C;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            color: #d4a574;
+            margin-bottom: 15px;
+        }
+
+        .instructions {
+            background-color: #252540;
+            border-left: 4px solid #C8820C;
+            padding: 15px 20px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+            font-size: 0.95em;
+            line-height: 1.8;
+        }
+
+        .instructions p {
+            margin-bottom: 8px;
+        }
+
+        .breed-guide {
+            background-color: #252540;
+            border: 1px solid #C8820C;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+
+        .breed-guide h3 {
+            color: #C8820C;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .breed-colors {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .breed-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .breed-swatch {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            flex-shrink: 0;
+        }
+
+        .breed-item strong {
+            color: #d4a574;
+            min-width: 120px;
+        }
+
+        .generation-sets {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .generation-set {
+            background-color: #252540;
+            border: 2px solid #3a3a50;
+            border-radius: 8px;
+            padding: 25px;
+            transition: border-color 0.3s ease;
+        }
+
+        .generation-set:hover {
+            border-color: #C8820C;
+        }
+
+        .gen-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #3a3a50;
+            flex-wrap: wrap;
+        }
+
+        .gen-title {
+            font-size: 1.2em;
+            color: #C8820C;
+            font-weight: bold;
+        }
+
+        .gen-id {
+            font-size: 0.75em;
+            color: #999;
+            font-family: monospace;
+            word-break: break-all;
+        }
+
+        .gen-controls {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-label {
+            font-size: 0.9em;
+            color: #d4a574;
+            font-weight: 600;
+        }
+
+        select {
+            background-color: #1a1a2e;
+            color: #e8d5c4;
+            border: 1px solid #C8820C;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        select:hover {
+            background-color: #2a2a3e;
+        }
+
+        select:focus {
+            outline: none;
+            box-shadow: 0 0 8px rgba(200, 130, 12, 0.5);
+        }
+
+        .images-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .image-wrapper {
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .image-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border: 3px solid #3a3a50;
+            border-radius: 6px;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+            background-color: #1a1a2e;
+        }
+
+        .image-wrapper:hover img {
+            transform: scale(1.02);
+            border-color: #8a6c1a;
+        }
+
+        .image-wrapper.selected img {
+            border-color: #C8820C;
+            box-shadow: 0 0 12px rgba(200, 130, 12, 0.6);
+        }
+
+        .image-label {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #C8820C;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        .variant-selection {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .radio-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .radio-group input[type="radio"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .radio-group label {
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .summary-section {
+            background-color: #252540;
+            border: 2px solid #C8820C;
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 40px;
+        }
+
+        .summary-section h2 {
+            color: #C8820C;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .summary-item {
+            background-color: #1a1a2e;
+            padding: 15px;
+            border-left: 3px solid #C8820C;
+            border-radius: 4px;
+        }
+
+        .summary-set-title {
+            color: #C8820C;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .summary-set-info {
+            font-size: 0.9em;
+            color: #d4a574;
+            line-height: 1.6;
+        }
+
+        .summary-set-info div {
+            margin-bottom: 5px;
+        }
+
+        .not-set {
+            color: #999;
+            font-style: italic;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #3a3a50;
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 1024px) {
+            .images-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .gen-controls {
+                flex-direction: column;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .images-container {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .gen-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Smoke & Honey - Bee Sprite Selection Review</h1>
+            <p class="subtitle">Generated 2026-03-29</p>
+        </header>
+
+        <div class="instructions">
+            <p><strong>Important Note:</strong> Some prompts were concatenated during rapid generation, so bee type-to-generation mapping requires visual identification. Please review each sprite set and assign it to the appropriate breed based on visual characteristics. Your selections will help establish the breed-to-appearance mapping for the game.</p>
+            <p><strong>Instructions:</strong> For each generation set below, select the breed that best matches the bee's visual characteristics, choose your favorite variant (A/B/C/D), then click the image to highlight it. All selections will be summarized at the bottom of the page.</p>
+        </div>
+
+        <div class="breed-guide">
+            <h3>Breed Color Reference Guide</h3>
+            <div class="breed-colors">
+                <div class="breed-item">
+                    <div class="breed-swatch" style="background-color: #FFD700;"></div>
+                    <strong>Italian:</strong> <span>Bright gold / golden yellow</span>
+                </div>
+                <div class="breed-item">
+                    <div class="breed-swatch" style="background-color: #D2691E;"></div>
+                    <strong>Buckfast:</strong> <span>Amber-orange / reddish-brown</span>
+                </div>
+                <div class="breed-item">
+                    <div class="breed-swatch" style="background-color: #8B7355;"></div>
+                    <strong>Carniolan:</strong> <span>Grey-brown / dark brown</span>
+                </div>
+                <div class="breed-item">
+                    <div class="breed-swatch" style="background-color: #C0C0C0;"></div>
+                    <strong>Caucasian:</strong> <span>Silvery-grey / light grey</span>
+                </div>
+                <div class="breed-item">
+                    <div class="breed-swatch" style="background-color: #1C1C1C;"></div>
+                    <strong>Russian:</strong> <span>Near-black / very dark</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="generation-sets">
+            <!-- Set 1: Worker -->
+            <div class="generation-set">
+                <div class="gen-header">
+                    <div>
+                        <div class="gen-title">Set 1 - Worker</div>
+                        <div class="gen-id">ID: 7a205c1b-0dd2-40a2-a80a-e789b4c110bd</div>
+                    </div>
+                    <div class="gen-controls">
+                        <div class="control-group">
+                            <label class="control-label">Assign Breed:</label>
+                            <select name="set1-breed" onchange="updateSummary('set1')">
+                                <option value="">-- Select Breed --</option>
+                                <option value="Italian">Italian</option>
+                                <option value="Buckfast">Buckfast</option>
+                                <option value="Carniolan">Carniolan</option>
+                                <option value="Caucasian">Caucasian</option>
+                                <option value="Russian">Russian</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="images-container">
+                    <div class="image-wrapper" onclick="selectImage(this, 'set1', 'A')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/7a205c1b-0dd2-40a2-a80a-e789b4c110bd/segments/4:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_3.jpg?w=512" alt="Variant A">
+                        <div class="image-label">A</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set1', 'B')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/7a205c1b-0dd2-40a2-a80a-e789b4c110bd/segments/3:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_2.jpg?w=512" alt="Variant B">
+                        <div class="image-label">B</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set1', 'C')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/7a205c1b-0dd2-40a2-a80a-e789b4c110bd/segments/2:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_1.jpg?w=512" alt="Variant C">
+                        <div class="image-label">C</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set1', 'D')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/7a205c1b-0dd2-40a2-a80a-e789b4c110bd/segments/1:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_0.jpg?w=512" alt="Variant D">
+                        <div class="image-label">D</div>
+                    </div>
+                </div>
+                <div class="variant-selection">
+                    <div class="radio-group">
+                        <input type="radio" id="set1-varA" name="set1-variant" value="A" onchange="updateSummary('set1')">
+                        <label for="set1-varA">Favorite: A</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set1-varB" name="set1-variant" value="B" onchange="updateSummary('set1')">
+                        <label for="set1-varB">Favorite: B</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set1-varC" name="set1-variant" value="C" onchange="updateSummary('set1')">
+                        <label for="set1-varC">Favorite: C</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set1-varD" name="set1-variant" value="D" onchange="updateSummary('set1')">
+                        <label for="set1-varD">Favorite: D</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Set 2: Queen -->
+            <div class="generation-set">
+                <div class="gen-header">
+                    <div>
+                        <div class="gen-title">Set 2 - Queen</div>
+                        <div class="gen-id">ID: 7331fc91-3d2b-43cd-b921-86c70d86291e</div>
+                    </div>
+                    <div class="gen-controls">
+                        <div class="control-group">
+                            <label class="control-label">Assign Breed:</label>
+                            <select name="set2-breed" onchange="updateSummary('set2')">
+                                <option value="">-- Select Breed --</option>
+                                <option value="Italian">Italian</option>
+                                <option value="Buckfast">Buckfast</option>
+                                <option value="Carniolan">Carniolan</option>
+                                <option value="Caucasian">Caucasian</option>
+                                <option value="Russian">Russian</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="images-container">
+                    <div class="image-wrapper" onclick="selectImage(this, 'set2', 'A')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/7331fc91-3d2b-43cd-b921-86c70d86291e/segments/4:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_queen_seen_3.jpg?w=512" alt="Variant A">
+                        <div class="image-label">A</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set2', 'B')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/7331fc91-3d2b-43cd-b921-86c70d86291e/segments/3:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_queen_seen_2.jpg?w=512" alt="Variant B">
+                        <div class="image-label">B</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set2', 'C')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/7331fc91-3d2b-43cd-b921-86c70d86291e/segments/2:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_queen_seen_1.jpg?w=512" alt="Variant C">
+                        <div class="image-label">C</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set2', 'D')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/7331fc91-3d2b-43cd-b921-86c70d86291e/segments/1:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_queen_seen_0.jpg?w=512" alt="Variant D">
+                        <div class="image-label">D</div>
+                    </div>
+                </div>
+                <div class="variant-selection">
+                    <div class="radio-group">
+                        <input type="radio" id="set2-varA" name="set2-variant" value="A" onchange="updateSummary('set2')">
+                        <label for="set2-varA">Favorite: A</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set2-varB" name="set2-variant" value="B" onchange="updateSummary('set2')">
+                        <label for="set2-varB">Favorite: B</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set2-varC" name="set2-variant" value="C" onchange="updateSummary('set2')">
+                        <label for="set2-varC">Favorite: C</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set2-varD" name="set2-variant" value="D" onchange="updateSummary('set2')">
+                        <label for="set2-varD">Favorite: D</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Set 3: Worker -->
+            <div class="generation-set">
+                <div class="gen-header">
+                    <div>
+                        <div class="gen-title">Set 3 - Worker</div>
+                        <div class="gen-id">ID: 84f8eba3-758d-47f3-8228-b36e7c72caa2</div>
+                    </div>
+                    <div class="gen-controls">
+                        <div class="control-group">
+                            <label class="control-label">Assign Breed:</label>
+                            <select name="set3-breed" onchange="updateSummary('set3')">
+                                <option value="">-- Select Breed --</option>
+                                <option value="Italian">Italian</option>
+                                <option value="Buckfast">Buckfast</option>
+                                <option value="Carniolan">Carniolan</option>
+                                <option value="Caucasian">Caucasian</option>
+                                <option value="Russian">Russian</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="images-container">
+                    <div class="image-wrapper" onclick="selectImage(this, 'set3', 'A')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/84f8eba3-758d-47f3-8228-b36e7c72caa2/segments/4:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_3.jpg?w=512" alt="Variant A">
+                        <div class="image-label">A</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set3', 'B')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/84f8eba3-758d-47f3-8228-b36e7c72caa2/segments/3:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_2.jpg?w=512" alt="Variant B">
+                        <div class="image-label">B</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set3', 'C')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/84f8eba3-758d-47f3-8228-b36e7c72caa2/segments/2:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_1.jpg?w=512" alt="Variant C">
+                        <div class="image-label">C</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set3', 'D')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/84f8eba3-758d-47f3-8228-b36e7c72caa2/segments/1:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_0.jpg?w=512" alt="Variant D">
+                        <div class="image-label">D</div>
+                    </div>
+                </div>
+                <div class="variant-selection">
+                    <div class="radio-group">
+                        <input type="radio" id="set3-varA" name="set3-variant" value="A" onchange="updateSummary('set3')">
+                        <label for="set3-varA">Favorite: A</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set3-varB" name="set3-variant" value="B" onchange="updateSummary('set3')">
+                        <label for="set3-varB">Favorite: B</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set3-varC" name="set3-variant" value="C" onchange="updateSummary('set3')">
+                        <label for="set3-varC">Favorite: C</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set3-varD" name="set3-variant" value="D" onchange="updateSummary('set3')">
+                        <label for="set3-varD">Favorite: D</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Set 4: Worker -->
+            <div class="generation-set">
+                <div class="gen-header">
+                    <div>
+                        <div class="gen-title">Set 4 - Worker</div>
+                        <div class="gen-id">ID: 898e1533-51da-4a32-9b38-e9b87cc51c0d</div>
+                    </div>
+                    <div class="gen-controls">
+                        <div class="control-group">
+                            <label class="control-label">Assign Breed:</label>
+                            <select name="set4-breed" onchange="updateSummary('set4')">
+                                <option value="">-- Select Breed --</option>
+                                <option value="Italian">Italian</option>
+                                <option value="Buckfast">Buckfast</option>
+                                <option value="Carniolan">Carniolan</option>
+                                <option value="Caucasian">Caucasian</option>
+                                <option value="Russian">Russian</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="images-container">
+                    <div class="image-wrapper" onclick="selectImage(this, 'set4', 'A')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/898e1533-51da-4a32-9b38-e9b87cc51c0d/segments/4:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_3.jpg?w=512" alt="Variant A">
+                        <div class="image-label">A</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set4', 'B')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/898e1533-51da-4a32-9b38-e9b87cc51c0d/segments/3:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_2.jpg?w=512" alt="Variant B">
+                        <div class="image-label">B</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set4', 'C')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/898e1533-51da-4a32-9b38-e9b87cc51c0d/segments/2:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_1.jpg?w=512" alt="Variant C">
+                        <div class="image-label">C</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set4', 'D')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/898e1533-51da-4a32-9b38-e9b87cc51c0d/segments/1:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_0.jpg?w=512" alt="Variant D">
+                        <div class="image-label">D</div>
+                    </div>
+                </div>
+                <div class="variant-selection">
+                    <div class="radio-group">
+                        <input type="radio" id="set4-varA" name="set4-variant" value="A" onchange="updateSummary('set4')">
+                        <label for="set4-varA">Favorite: A</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set4-varB" name="set4-variant" value="B" onchange="updateSummary('set4')">
+                        <label for="set4-varB">Favorite: B</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set4-varC" name="set4-variant" value="C" onchange="updateSummary('set4')">
+                        <label for="set4-varC">Favorite: C</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set4-varD" name="set4-variant" value="D" onchange="updateSummary('set4')">
+                        <label for="set4-varD">Favorite: D</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Set 5: Worker -->
+            <div class="generation-set">
+                <div class="gen-header">
+                    <div>
+                        <div class="gen-title">Set 5 - Worker</div>
+                        <div class="gen-id">ID: 1897a8cf-52de-4271-99b8-c76162e50203</div>
+                    </div>
+                    <div class="gen-controls">
+                        <div class="control-group">
+                            <label class="control-label">Assign Breed:</label>
+                            <select name="set5-breed" onchange="updateSummary('set5')">
+                                <option value="">-- Select Breed --</option>
+                                <option value="Italian">Italian</option>
+                                <option value="Buckfast">Buckfast</option>
+                                <option value="Carniolan">Carniolan</option>
+                                <option value="Caucasian">Caucasian</option>
+                                <option value="Russian">Russian</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="images-container">
+                    <div class="image-wrapper" onclick="selectImage(this, 'set5', 'A')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1897a8cf-52de-4271-99b8-c76162e50203/segments/1:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_0.jpg?w=512" alt="Variant A">
+                        <div class="image-label">A</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set5', 'B')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1897a8cf-52de-4271-99b8-c76162e50203/segments/2:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_1.jpg?w=512" alt="Variant B">
+                        <div class="image-label">B</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set5', 'C')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1897a8cf-52de-4271-99b8-c76162e50203/segments/3:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_2.jpg?w=512" alt="Variant C">
+                        <div class="image-label">C</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set5', 'D')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1897a8cf-52de-4271-99b8-c76162e50203/segments/4:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_3.jpg?w=512" alt="Variant D">
+                        <div class="image-label">D</div>
+                    </div>
+                </div>
+                <div class="variant-selection">
+                    <div class="radio-group">
+                        <input type="radio" id="set5-varA" name="set5-variant" value="A" onchange="updateSummary('set5')">
+                        <label for="set5-varA">Favorite: A</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set5-varB" name="set5-variant" value="B" onchange="updateSummary('set5')">
+                        <label for="set5-varB">Favorite: B</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set5-varC" name="set5-variant" value="C" onchange="updateSummary('set5')">
+                        <label for="set5-varC">Favorite: C</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set5-varD" name="set5-variant" value="D" onchange="updateSummary('set5')">
+                        <label for="set5-varD">Favorite: D</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Set 6: Worker -->
+            <div class="generation-set">
+                <div class="gen-header">
+                    <div>
+                        <div class="gen-title">Set 6 - Worker</div>
+                        <div class="gen-id">ID: 936869e6-766b-4f8e-8806-7182dda0a894</div>
+                    </div>
+                    <div class="gen-controls">
+                        <div class="control-group">
+                            <label class="control-label">Assign Breed:</label>
+                            <select name="set6-breed" onchange="updateSummary('set6')">
+                                <option value="">-- Select Breed --</option>
+                                <option value="Italian">Italian</option>
+                                <option value="Buckfast">Buckfast</option>
+                                <option value="Carniolan">Carniolan</option>
+                                <option value="Caucasian">Caucasian</option>
+                                <option value="Russian">Russian</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="images-container">
+                    <div class="image-wrapper" onclick="selectImage(this, 'set6', 'A')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/936869e6-766b-4f8e-8806-7182dda0a894/segments/1:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_0.jpg?w=512" alt="Variant A">
+                        <div class="image-label">A</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set6', 'B')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/936869e6-766b-4f8e-8806-7182dda0a894/segments/2:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_1.jpg?w=512" alt="Variant B">
+                        <div class="image-label">B</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set6', 'C')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/936869e6-766b-4f8e-8806-7182dda0a894/segments/3:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_2.jpg?w=512" alt="Variant C">
+                        <div class="image-label">C</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set6', 'D')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/936869e6-766b-4f8e-8806-7182dda0a894/segments/4:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_3.jpg?w=512" alt="Variant D">
+                        <div class="image-label">D</div>
+                    </div>
+                </div>
+                <div class="variant-selection">
+                    <div class="radio-group">
+                        <input type="radio" id="set6-varA" name="set6-variant" value="A" onchange="updateSummary('set6')">
+                        <label for="set6-varA">Favorite: A</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set6-varB" name="set6-variant" value="B" onchange="updateSummary('set6')">
+                        <label for="set6-varB">Favorite: B</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set6-varC" name="set6-variant" value="C" onchange="updateSummary('set6')">
+                        <label for="set6-varC">Favorite: C</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set6-varD" name="set6-variant" value="D" onchange="updateSummary('set6')">
+                        <label for="set6-varD">Favorite: D</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Set 7: Worker -->
+            <div class="generation-set">
+                <div class="gen-header">
+                    <div>
+                        <div class="gen-title">Set 7 - Worker</div>
+                        <div class="gen-id">ID: 91466d09-b4c1-495b-bde4-f4c0f5b07113</div>
+                    </div>
+                    <div class="gen-controls">
+                        <div class="control-group">
+                            <label class="control-label">Assign Breed:</label>
+                            <select name="set7-breed" onchange="updateSummary('set7')">
+                                <option value="">-- Select Breed --</option>
+                                <option value="Italian">Italian</option>
+                                <option value="Buckfast">Buckfast</option>
+                                <option value="Carniolan">Carniolan</option>
+                                <option value="Caucasian">Caucasian</option>
+                                <option value="Russian">Russian</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="images-container">
+                    <div class="image-wrapper" onclick="selectImage(this, 'set7', 'A')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/91466d09-b4c1-495b-bde4-f4c0f5b07113/segments/1:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_0.jpg?w=512" alt="Variant A">
+                        <div class="image-label">A</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set7', 'B')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/91466d09-b4c1-495b-bde4-f4c0f5b07113/segments/2:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_1.jpg?w=512" alt="Variant B">
+                        <div class="image-label">B</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set7', 'C')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/91466d09-b4c1-495b-bde4-f4c0f5b07113/segments/3:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_2.jpg?w=512" alt="Variant C">
+                        <div class="image-label">C</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set7', 'D')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/91466d09-b4c1-495b-bde4-f4c0f5b07113/segments/4:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_3.jpg?w=512" alt="Variant D">
+                        <div class="image-label">D</div>
+                    </div>
+                </div>
+                <div class="variant-selection">
+                    <div class="radio-group">
+                        <input type="radio" id="set7-varA" name="set7-variant" value="A" onchange="updateSummary('set7')">
+                        <label for="set7-varA">Favorite: A</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set7-varB" name="set7-variant" value="B" onchange="updateSummary('set7')">
+                        <label for="set7-varB">Favorite: B</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set7-varC" name="set7-variant" value="C" onchange="updateSummary('set7')">
+                        <label for="set7-varC">Favorite: C</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set7-varD" name="set7-variant" value="D" onchange="updateSummary('set7')">
+                        <label for="set7-varD">Favorite: D</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Set 8: Worker -->
+            <div class="generation-set">
+                <div class="gen-header">
+                    <div>
+                        <div class="gen-title">Set 8 - Worker</div>
+                        <div class="gen-id">ID: 29f181b8-1ea1-4f71-a7dd-e6010cef9a74</div>
+                    </div>
+                    <div class="gen-controls">
+                        <div class="control-group">
+                            <label class="control-label">Assign Breed:</label>
+                            <select name="set8-breed" onchange="updateSummary('set8')">
+                                <option value="">-- Select Breed --</option>
+                                <option value="Italian">Italian</option>
+                                <option value="Buckfast">Buckfast</option>
+                                <option value="Carniolan">Carniolan</option>
+                                <option value="Caucasian">Caucasian</option>
+                                <option value="Russian">Russian</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="images-container">
+                    <div class="image-wrapper" onclick="selectImage(this, 'set8', 'A')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/29f181b8-1ea1-4f71-a7dd-e6010cef9a74/segments/1:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_0.jpg?w=512" alt="Variant A">
+                        <div class="image-label">A</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set8', 'B')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/29f181b8-1ea1-4f71-a7dd-e6010cef9a74/segments/2:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_1.jpg?w=512" alt="Variant B">
+                        <div class="image-label">B</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set8', 'C')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/29f181b8-1ea1-4f71-a7dd-e6010cef9a74/segments/3:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_2.jpg?w=512" alt="Variant C">
+                        <div class="image-label">C</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set8', 'D')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/29f181b8-1ea1-4f71-a7dd-e6010cef9a74/segments/4:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_3.jpg?w=512" alt="Variant D">
+                        <div class="image-label">D</div>
+                    </div>
+                </div>
+                <div class="variant-selection">
+                    <div class="radio-group">
+                        <input type="radio" id="set8-varA" name="set8-variant" value="A" onchange="updateSummary('set8')">
+                        <label for="set8-varA">Favorite: A</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set8-varB" name="set8-variant" value="B" onchange="updateSummary('set8')">
+                        <label for="set8-varB">Favorite: B</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set8-varC" name="set8-variant" value="C" onchange="updateSummary('set8')">
+                        <label for="set8-varC">Favorite: C</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set8-varD" name="set8-variant" value="D" onchange="updateSummary('set8')">
+                        <label for="set8-varD">Favorite: D</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Set 9: Worker -->
+            <div class="generation-set">
+                <div class="gen-header">
+                    <div>
+                        <div class="gen-title">Set 9 - Worker</div>
+                        <div class="gen-id">ID: 92c521ac-e77d-406a-b72f-66d958c4af85</div>
+                    </div>
+                    <div class="gen-controls">
+                        <div class="control-group">
+                            <label class="control-label">Assign Breed:</label>
+                            <select name="set9-breed" onchange="updateSummary('set9')">
+                                <option value="">-- Select Breed --</option>
+                                <option value="Italian">Italian</option>
+                                <option value="Buckfast">Buckfast</option>
+                                <option value="Carniolan">Carniolan</option>
+                                <option value="Caucasian">Caucasian</option>
+                                <option value="Russian">Russian</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="images-container">
+                    <div class="image-wrapper" onclick="selectImage(this, 'set9', 'A')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/92c521ac-e77d-406a-b72f-66d958c4af85/segments/1:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_0.jpg?w=512" alt="Variant A">
+                        <div class="image-label">A</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set9', 'B')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/92c521ac-e77d-406a-b72f-66d958c4af85/segments/2:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_1.jpg?w=512" alt="Variant B">
+                        <div class="image-label">B</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set9', 'C')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/92c521ac-e77d-406a-b72f-66d958c4af85/segments/3:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_2.jpg?w=512" alt="Variant C">
+                        <div class="image-label">C</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set9', 'D')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/92c521ac-e77d-406a-b72f-66d958c4af85/segments/4:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_3.jpg?w=512" alt="Variant D">
+                        <div class="image-label">D</div>
+                    </div>
+                </div>
+                <div class="variant-selection">
+                    <div class="radio-group">
+                        <input type="radio" id="set9-varA" name="set9-variant" value="A" onchange="updateSummary('set9')">
+                        <label for="set9-varA">Favorite: A</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set9-varB" name="set9-variant" value="B" onchange="updateSummary('set9')">
+                        <label for="set9-varB">Favorite: B</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set9-varC" name="set9-variant" value="C" onchange="updateSummary('set9')">
+                        <label for="set9-varC">Favorite: C</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set9-varD" name="set9-variant" value="D" onchange="updateSummary('set9')">
+                        <label for="set9-varD">Favorite: D</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Set 10: Worker -->
+            <div class="generation-set">
+                <div class="gen-header">
+                    <div>
+                        <div class="gen-title">Set 10 - Worker</div>
+                        <div class="gen-id">ID: 4c6aa3f0-c38e-4a01-a366-1434abcba9c7</div>
+                    </div>
+                    <div class="gen-controls">
+                        <div class="control-group">
+                            <label class="control-label">Assign Breed:</label>
+                            <select name="set10-breed" onchange="updateSummary('set10')">
+                                <option value="">-- Select Breed --</option>
+                                <option value="Italian">Italian</option>
+                                <option value="Buckfast">Buckfast</option>
+                                <option value="Carniolan">Carniolan</option>
+                                <option value="Caucasian">Caucasian</option>
+                                <option value="Russian">Russian</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="images-container">
+                    <div class="image-wrapper" onclick="selectImage(this, 'set10', 'A')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/4c6aa3f0-c38e-4a01-a366-1434abcba9c7/segments/1:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_0.jpg?w=512" alt="Variant A">
+                        <div class="image-label">A</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set10', 'B')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/4c6aa3f0-c38e-4a01-a366-1434abcba9c7/segments/2:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_1.jpg?w=512" alt="Variant B">
+                        <div class="image-label">B</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set10', 'C')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/4c6aa3f0-c38e-4a01-a366-1434abcba9c7/segments/3:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_2.jpg?w=512" alt="Variant C">
+                        <div class="image-label">C</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'set10', 'D')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/4c6aa3f0-c38e-4a01-a366-1434abcba9c7/segments/4:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_3.jpg?w=512" alt="Variant D">
+                        <div class="image-label">D</div>
+                    </div>
+                </div>
+                <div class="variant-selection">
+                    <div class="radio-group">
+                        <input type="radio" id="set10-varA" name="set10-variant" value="A" onchange="updateSummary('set10')">
+                        <label for="set10-varA">Favorite: A</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set10-varB" name="set10-variant" value="B" onchange="updateSummary('set10')">
+                        <label for="set10-varB">Favorite: B</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set10-varC" name="set10-variant" value="C" onchange="updateSummary('set10')">
+                        <label for="set10-varC">Favorite: C</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="set10-varD" name="set10-variant" value="D" onchange="updateSummary('set10')">
+                        <label for="set10-varD">Favorite: D</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bonus Set A: Multi-Pose Sheet -->
+            <div class="generation-set">
+                <div class="gen-header">
+                    <div>
+                        <div class="gen-title">Bonus Set A - Multi-Pose Sheet (non pixel-art)</div>
+                        <div class="gen-id">ID: 84278e47-1bb8-4d30-8423-7de6dd45725e</div>
+                    </div>
+                    <div class="gen-controls">
+                        <div class="control-group">
+                            <label class="control-label">Assign Breed:</label>
+                            <select name="setA-breed" onchange="updateSummary('setA')">
+                                <option value="">-- Select Breed --</option>
+                                <option value="Italian">Italian</option>
+                                <option value="Buckfast">Buckfast</option>
+                                <option value="Carniolan">Carniolan</option>
+                                <option value="Caucasian">Caucasian</option>
+                                <option value="Russian">Russian</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="images-container">
+                    <div class="image-wrapper" onclick="selectImage(this, 'setA', 'A')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/84278e47-1bb8-4d30-8423-7de6dd45725e/segments/4:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_3.jpg?w=512" alt="Variant A">
+                        <div class="image-label">A</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'setA', 'B')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/84278e47-1bb8-4d30-8423-7de6dd45725e/segments/3:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_2.jpg?w=512" alt="Variant B">
+                        <div class="image-label">B</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'setA', 'C')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/84278e47-1bb8-4d30-8423-7de6dd45725e/segments/2:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_1.jpg?w=512" alt="Variant C">
+                        <div class="image-label">C</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'setA', 'D')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/84278e47-1bb8-4d30-8423-7de6dd45725e/segments/1:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_0.jpg?w=512" alt="Variant D">
+                        <div class="image-label">D</div>
+                    </div>
+                </div>
+                <div class="variant-selection">
+                    <div class="radio-group">
+                        <input type="radio" id="setA-varA" name="setA-variant" value="A" onchange="updateSummary('setA')">
+                        <label for="setA-varA">Favorite: A</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="setA-varB" name="setA-variant" value="B" onchange="updateSummary('setA')">
+                        <label for="setA-varB">Favorite: B</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="setA-varC" name="setA-variant" value="C" onchange="updateSummary('setA')">
+                        <label for="setA-varC">Favorite: C</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="setA-varD" name="setA-variant" value="D" onchange="updateSummary('setA')">
+                        <label for="setA-varD">Favorite: D</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bonus Set B: First Batch -->
+            <div class="generation-set">
+                <div class="gen-header">
+                    <div>
+                        <div class="gen-title">Bonus Set B - First Batch (non pixel-art)</div>
+                        <div class="gen-id">ID: b6612cf0-7519-409a-9c39-2da5cfbf069c</div>
+                    </div>
+                    <div class="gen-controls">
+                        <div class="control-group">
+                            <label class="control-label">Assign Breed:</label>
+                            <select name="setB-breed" onchange="updateSummary('setB')">
+                                <option value="">-- Select Breed --</option>
+                                <option value="Italian">Italian</option>
+                                <option value="Buckfast">Buckfast</option>
+                                <option value="Carniolan">Carniolan</option>
+                                <option value="Caucasian">Caucasian</option>
+                                <option value="Russian">Russian</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="images-container">
+                    <div class="image-wrapper" onclick="selectImage(this, 'setB', 'A')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/b6612cf0-7519-409a-9c39-2da5cfbf069c/segments/4:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_3.jpg?w=512" alt="Variant A">
+                        <div class="image-label">A</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'setB', 'B')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/b6612cf0-7519-409a-9c39-2da5cfbf069c/segments/3:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_2.jpg?w=512" alt="Variant B">
+                        <div class="image-label">B</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'setB', 'C')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/b6612cf0-7519-409a-9c39-2da5cfbf069c/segments/2:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_1.jpg?w=512" alt="Variant C">
+                        <div class="image-label">C</div>
+                    </div>
+                    <div class="image-wrapper" onclick="selectImage(this, 'setB', 'D')">
+                        <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/b6612cf0-7519-409a-9c39-2da5cfbf069c/segments/1:4:1/Lucid_Origin_Strict_32x32_pixel_art_single_honeybee_worker_see_0.jpg?w=512" alt="Variant D">
+                        <div class="image-label">D</div>
+                    </div>
+                </div>
+                <div class="variant-selection">
+                    <div class="radio-group">
+                        <input type="radio" id="setB-varA" name="setB-variant" value="A" onchange="updateSummary('setB')">
+                        <label for="setB-varA">Favorite: A</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="setB-varB" name="setB-variant" value="B" onchange="updateSummary('setB')">
+                        <label for="setB-varB">Favorite: B</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="setB-varC" name="setB-variant" value="C" onchange="updateSummary('setB')">
+                        <label for="setB-varC">Favorite: C</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="setB-varD" name="setB-variant" value="D" onchange="updateSummary('setB')">
+                        <label for="setB-varD">Favorite: D</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary-section">
+            <h2>Selection Summary</h2>
+            <div class="summary-grid" id="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-set-title">Set 1</div>
+                    <div class="summary-set-info">
+                        <div>Breed: <span id="sum-set1-breed" class="not-set">Not assigned</span></div>
+                        <div>Favorite: <span id="sum-set1-variant" class="not-set">Not selected</span></div>
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-set-title">Set 2</div>
+                    <div class="summary-set-info">
+                        <div>Breed: <span id="sum-set2-breed" class="not-set">Not assigned</span></div>
+                        <div>Favorite: <span id="sum-set2-variant" class="not-set">Not selected</span></div>
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-set-title">Set 3</div>
+                    <div class="summary-set-info">
+                        <div>Breed: <span id="sum-set3-breed" class="not-set">Not assigned</span></div>
+                        <div>Favorite: <span id="sum-set3-variant" class="not-set">Not selected</span></div>
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-set-title">Set 4</div>
+                    <div class="summary-set-info">
+                        <div>Breed: <span id="sum-set4-breed" class="not-set">Not assigned</span></div>
+                        <div>Favorite: <span id="sum-set4-variant" class="not-set">Not selected</span></div>
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-set-title">Set 5</div>
+                    <div class="summary-set-info">
+                        <div>Breed: <span id="sum-set5-breed" class="not-set">Not assigned</span></div>
+                        <div>Favorite: <span id="sum-set5-variant" class="not-set">Not selected</span></div>
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-set-title">Set 6</div>
+                    <div class="summary-set-info">
+                        <div>Breed: <span id="sum-set6-breed" class="not-set">Not assigned</span></div>
+                        <div>Favorite: <span id="sum-set6-variant" class="not-set">Not selected</span></div>
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-set-title">Set 7</div>
+                    <div class="summary-set-info">
+                        <div>Breed: <span id="sum-set7-breed" class="not-set">Not assigned</span></div>
+                        <div>Favorite: <span id="sum-set7-variant" class="not-set">Not selected</span></div>
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-set-title">Set 8</div>
+                    <div class="summary-set-info">
+                        <div>Breed: <span id="sum-set8-breed" class="not-set">Not assigned</span></div>
+                        <div>Favorite: <span id="sum-set8-variant" class="not-set">Not selected</span></div>
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-set-title">Set 9</div>
+                    <div class="summary-set-info">
+                        <div>Breed: <span id="sum-set9-breed" class="not-set">Not assigned</span></div>
+                        <div>Favorite: <span id="sum-set9-variant" class="not-set">Not selected</span></div>
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-set-title">Set 10</div>
+                    <div class="summary-set-info">
+                        <div>Breed: <span id="sum-set10-breed" class="not-set">Not assigned</span></div>
+                        <div>Favorite: <span id="sum-set10-variant" class="not-set">Not selected</span></div>
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-set-title">Bonus A</div>
+                    <div class="summary-set-info">
+                        <div>Breed: <span id="sum-setA-breed" class="not-set">Not assigned</span></div>
+                        <div>Favorite: <span id="sum-setA-variant" class="not-set">Not selected</span></div>
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-set-title">Bonus B</div>
+                    <div class="summary-set-info">
+                        <div>Breed: <span id="sum-setB-breed" class="not-set">Not assigned</span></div>
+                        <div>Favorite: <span id="sum-setB-variant" class="not-set">Not selected</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Smoke & Honey - Bee Sprite Generation Review | Generated 2026-03-29</p>
+        </footer>
+    </div>
+
+    <script>
+        function selectImage(element, setId, variant) {
+            var container = element.parentElement;
+            var siblings = container.parentElement.querySelectorAll('.image-wrapper');
+            siblings.forEach(function(sibling) {
+                sibling.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            document.getElementById(setId + '-var' + variant).checked = true;
+            updateSummary(setId);
+        }
+
+        function updateSummary(setId) {
+            var breedSelect = document.querySelector('select[name="' + setId + '-breed"]');
+            var variantRadios = document.querySelectorAll('input[name="' + setId + '-variant"]');
+            var selectedVariant = null;
+
+            variantRadios.forEach(function(radio) {
+                if (radio.checked) {
+                    selectedVariant = radio.value;
+                }
+            });
+
+            var breedText = breedSelect.value || 'Not assigned';
+            var variantText = selectedVariant || 'Not selected';
+
+            if (breedSelect.value) {
+                document.getElementById('sum-' + setId + '-breed').textContent = breedSelect.value;
+                document.getElementById('sum-' + setId + '-breed').classList.remove('not-set');
+            } else {
+                document.getElementById('sum-' + setId + '-breed').textContent = 'Not assigned';
+                document.getElementById('sum-' + setId + '-breed').classList.add('not-set');
+            }
+
+            if (selectedVariant) {
+                document.getElementById('sum-' + setId + '-variant').textContent = selectedVariant;
+                document.getElementById('sum-' + setId + '-variant').classList.remove('not-set');
+            } else {
+                document.getElementById('sum-' + setId + '-variant').textContent = 'Not selected';
+                document.getElementById('sum-' + setId + '-variant').classList.add('not-set');
+            }
+        }
+    </script>
+</body>
+</html>

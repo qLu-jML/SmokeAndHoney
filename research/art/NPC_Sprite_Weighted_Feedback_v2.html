@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smoke &amp; Honey - NPC Sprite Weighted Feedback &amp; Refined Prompts (v2)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #1a1a2e; color: #e0d6c8; min-height: 100vh; }
+
+  .cover {
+    min-height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 2rem; border-bottom: 4px solid #f0a500;
+  }
+  .cover h1 { font-family: 'Lora', serif; font-size: 2.6rem; color: #f0a500; margin-bottom: 0.5rem; }
+  .cover h2 { font-family: 'Lora', serif; font-size: 1.5rem; color: #e0d6c8; margin-bottom: 1.5rem; font-weight: 400; }
+  .cover .meta { color: rgba(224,214,200,0.6); font-size: 0.9rem; }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 2rem; }
+
+  .section { background: rgba(255,255,255,0.04); border: 1px solid rgba(240,165,0,0.2); border-radius: 8px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; }
+  .section h2 { font-family: 'Lora', serif; font-size: 1.4rem; color: #f0a500; margin-bottom: 1rem; border-bottom: 1px solid rgba(240,165,0,0.2); padding-bottom: 0.5rem; }
+  .section h3 { font-size: 1.1rem; color: #e6c875; margin: 1rem 0 0.5rem; }
+
+  .weight-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+  .weight-table th { background: rgba(240,165,0,0.15); color: #f0a500; text-align: left; padding: 8px 12px; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; }
+  .weight-table td { padding: 8px 12px; border-bottom: 1px solid rgba(240,165,0,0.1); font-size: 0.9rem; }
+  .weight-table tr:hover td { background: rgba(240,165,0,0.05); }
+
+  .npc-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(240,165,0,0.15); border-radius: 6px; padding: 1.5rem; margin-bottom: 1.5rem; }
+  .npc-card h3 { font-family: 'Lora', serif; font-size: 1.3rem; color: #f0a500; margin-bottom: 0.5rem; }
+  .npc-card .npc-role { color: rgba(224,214,200,0.6); font-size: 0.85rem; margin-bottom: 1rem; }
+
+  .view-block { margin: 1rem 0; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 4px; }
+  .view-block h4 { color: #e6c875; font-size: 0.95rem; margin-bottom: 0.5rem; }
+  .view-block .votes { font-size: 0.85rem; color: rgba(224,214,200,0.7); margin-bottom: 0.5rem; }
+  .view-block .winner { color: #5acc88; font-weight: 600; }
+  .view-block .mods { font-size: 0.9rem; color: #e0d6c8; margin: 0.5rem 0; }
+
+  .prompt-box { background: rgba(240,165,0,0.08); border: 1px solid rgba(240,165,0,0.25); border-radius: 4px; padding: 1rem; margin: 0.75rem 0; font-family: 'Courier New', monospace; font-size: 0.82rem; line-height: 1.6; color: #e0d6c8; position: relative; cursor: pointer; }
+  .prompt-box:hover { background: rgba(240,165,0,0.12); }
+  .prompt-box::after { content: 'Click to copy'; position: absolute; top: 6px; right: 8px; font-size: 0.7rem; color: rgba(224,214,200,0.4); font-family: 'Inter', sans-serif; }
+  .prompt-box.copied::after { content: 'Copied!'; color: #5acc88; }
+
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 0.7rem; font-weight: 600; margin-right: 4px; }
+  .tag-nathan { background: rgba(90,204,136,0.15); color: #5acc88; }
+  .tag-kari { background: rgba(90,154,204,0.15); color: #5a9acc; }
+  .tag-daniel { background: rgba(204,170,68,0.15); color: #ccaa44; }
+  .tag-aadyn { background: rgba(187,136,238,0.15); color: #bb88ee; }
+
+  .pedestrian-section { border-top: 2px solid rgba(240,165,0,0.3); margin-top: 2rem; padding-top: 1rem; }
+
+  @media print { body { background: #fff; color: #333; } .section, .npc-card { border-color: #ccc; } }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>NPC Sprite Refinement Report</h1>
+  <h2>Weighted Feedback Synthesis &amp; New Leonardo Prompts</h2>
+  <p class="meta">Smoke &amp; Honey | March 29, 2026 | Version 2</p>
+</div>
+
+<div class="container">
+
+<!-- METHODOLOGY -->
+<div class="section">
+  <h2>Weight Methodology</h2>
+  <p style="margin-bottom:1rem;">Four reviewers provided feedback on NPC sprite options (A/B/C/D) for front-facing (portrait/shop) and top-down (overworld) views. Weights were assigned per Nathan's instructions and normalized to 100%.</p>
+
+  <table class="weight-table">
+    <thead><tr><th>Reviewer</th><th>Raw Weight</th><th>Normalized</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag tag-nathan">Nathan</span></td><td>60</td><td><strong>30%</strong></td><td>Lead / Creative Director</td></tr>
+      <tr><td><span class="tag tag-kari">Kari</span></td><td>40</td><td><strong>20%</strong></td><td>Reviewer</td></tr>
+      <tr><td><span class="tag tag-daniel">Daniel</span></td><td>50</td><td><strong>25%</strong></td><td>Reviewer (equal w/ Aadyn)</td></tr>
+      <tr><td><span class="tag tag-aadyn">Aadyn</span></td><td>50</td><td><strong>25%</strong></td><td>Reviewer (equal w/ Daniel)</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:0.85rem; color:rgba(224,214,200,0.6);">Raw total: 200. Each weight divided by 2 to normalize to 100%. Consensus is determined by summing normalized weights for each option pick.</p>
+</div>
+
+<!-- INSTRUCTIONS -->
+<div class="section">
+  <h2>How to Use This Report</h2>
+  <p style="margin-bottom:0.5rem;">For each NPC below, you'll find the weighted consensus (which option won) with specific refinement notes, plus a ready-to-paste Leonardo prompt. The prompts incorporate the base style tags from the project's prompt library and fold in every reviewer's feedback proportional to their weight.</p>
+  <p style="font-size:0.85rem; color:rgba(224,214,200,0.6);">Click any prompt box to copy it to clipboard. Generate 4 variations per prompt in Leonardo, referencing the "Smoke and Honey" collection.</p>
+</div>
+
+<!-- ==================== NAMED NPCs ==================== -->
+
+<!-- 1. UNCLE BOB -->
+<div class="npc-card">
+  <h3>1. Uncle Bob (Robert "Bob" Whitfield)</h3>
+  <p class="npc-role">Late 50s farmer, mentor figure. Balding, overalls, flannel.</p>
+
+  <div class="view-block">
+    <h4>Front-Facing (Portrait/Shop)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> B (keep chonkiness) |
+      <span class="tag tag-kari">Kari 20%</span> D (B too big) |
+      <span class="tag tag-daniel">Daniel 25%</span> B (less fat) |
+      <span class="tag tag-aadyn">Aadyn 25%</span> B/C too fat+angry, slim/soften
+    </p>
+    <p class="mods"><span class="winner">Winner: Option B (55%)</span> -- Keep B's sturdy farmer build but moderate the heaviness. Soften facial expression to warm/kind (not angry). Maintain chonkiness but not exaggerated.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">pixel art RPG character sprite, 32x32 tile grid, front-facing idle pose, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral mood, Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, older man late 50s, balding gray hair, denim overalls over red plaid flannel shirt, sturdy heavyset farmer build but not exaggerated, warm kind face with gentle expression, weathered skin, warm skin tones, sturdy work boots, relaxed hands-ready posture, content tired look</div>
+  </div>
+
+  <div class="view-block">
+    <h4>Top-Down (Overworld)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> D (reflect chonkiness from B) |
+      <span class="tag tag-kari">Kari 20%</span> D |
+      <span class="tag tag-daniel">Daniel 25%</span> D (match B, less hair) |
+      <span class="tag tag-aadyn">Aadyn 25%</span> A (realistic scale)
+    </p>
+    <p class="mods"><span class="winner">Winner: Option D (75%)</span> -- D's top-down layout with sturdy/stocky build matching portrait. Realistic proportions (Aadyn). Less visible hair on balding head.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">top-down RPG pixel art character, 32x32 tile grid, slight north-tilt perspective, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, soft drop shadow, older man late 50s, balding head with minimal gray hair visible from above, denim overalls, plaid flannel shirt, stocky sturdy build, realistic proportions, work boots</div>
+  </div>
+</div>
+
+<!-- 2. FRANK FISCHBACH -->
+<div class="npc-card">
+  <h3>2. Frank Fischbach</h3>
+  <p class="npc-role">General store / market vendor. Middle-aged, green apron, friendly businessman.</p>
+
+  <div class="view-block">
+    <h4>Front-Facing (Portrait/Shop)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> B |
+      <span class="tag tag-kari">Kari 20%</span> B or D, slim B |
+      <span class="tag tag-daniel">Daniel 25%</span> B |
+      <span class="tag tag-aadyn">Aadyn 25%</span> B best
+    </p>
+    <p class="mods"><span class="winner">Winner: Option B (unanimous)</span> -- Slim down B slightly (Kari). Keep friendly store owner energy. Less "fake" looking (Aadyn).</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">pixel art RPG character sprite, 32x32 tile grid, front-facing idle pose, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral mood, Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, middle-aged man, general store owner, green apron over button-up shirt, rolled sleeves, friendly approachable face, average build with slight belly, practical khaki pants, warm natural complexion, realistic proportions</div>
+  </div>
+
+  <div class="view-block">
+    <h4>Top-Down (Overworld)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> B (match portrait) |
+      <span class="tag tag-kari">Kari 20%</span> -- |
+      <span class="tag tag-daniel">Daniel 25%</span> A (match style) |
+      <span class="tag tag-aadyn">Aadyn 25%</span> C (consistent)
+    </p>
+    <p class="mods"><span class="winner">Winner: Option B (30%)</span> -- Must match portrait/front-facing version. Consistent style across both views (Aadyn/Daniel).</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">top-down RPG pixel art character, 32x32 tile grid, slight north-tilt perspective, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, soft drop shadow, middle-aged man, green apron, button-up shirt, khaki pants, average build, store owner stance, must match front-facing portrait version</div>
+  </div>
+</div>
+
+<!-- 3. DR. ELLEN HARWICK -->
+<div class="npc-card">
+  <h3>3. Dr. Ellen Harwick</h3>
+  <p class="npc-role">Extension agent, 40s. Professional field vest, clipboard, reading glasses.</p>
+
+  <div class="view-block">
+    <h4>Front-Facing (Portrait/Shop)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> C |
+      <span class="tag tag-kari">Kari 20%</span> C |
+      <span class="tag tag-daniel">Daniel 25%</span> B (change face) |
+      <span class="tag tag-aadyn">Aadyn 25%</span> A &amp; C
+    </p>
+    <p class="mods"><span class="winner">Winner: Option C (62.5%)</span> -- Strong consensus on C. Face should match character description properly (Daniel). Professional but approachable.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">pixel art RPG character sprite, 32x32 tile grid, front-facing idle pose, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral mood, Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, professional woman in her 40s, short practical brown hair, khaki field vest over collared shirt, clipboard in hand, reading glasses pushed up on head, confident approachable stance, field boots, smart practical appearance</div>
+  </div>
+
+  <div class="view-block">
+    <h4>Top-Down (Overworld)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> C |
+      <span class="tag tag-kari">Kari 20%</span> A |
+      <span class="tag tag-daniel">Daniel 25%</span> match style |
+      <span class="tag tag-aadyn">Aadyn 25%</span> A
+    </p>
+    <p class="mods"><span class="winner">Winner: Option A (45%)</span> -- A's layout preferred, must match portrait C's character details. Professional field look from above.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">top-down RPG pixel art character, 32x32 tile grid, slight north-tilt perspective, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, soft drop shadow, professional woman, khaki field vest, collared shirt, short brown hair, field boots, clipboard, confident stance</div>
+  </div>
+</div>
+
+<!-- 4. DARLENE KOWALSKI -->
+<div class="npc-card">
+  <h3>4. Darlene Kowalski</h3>
+  <p class="npc-role">Retired master beekeeper, late 60s. Silver hair bun, gardening apron, eccentric.</p>
+
+  <div class="view-block">
+    <h4>Front-Facing (Portrait/Shop)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> B |
+      <span class="tag tag-kari">Kari 20%</span> C |
+      <span class="tag tag-daniel">Daniel 25%</span> D |
+      <span class="tag tag-aadyn">Aadyn 25%</span> A &amp; D
+    </p>
+    <p class="mods"><span class="winner">Winner: Option D (37.5%)</span> -- Close race (B=30%). Incorporate Nathan's note: frazzled hair for eccentric old beekeeper vibe. More pixelated feel. Sturdy no-nonsense grandmother.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">pixel art RPG character sprite, 32x32 tile grid, front-facing idle pose, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral mood, Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, elderly woman late 60s, warm eccentric smile, silver hair in slightly frazzled bun with wisps, gardening apron over flannel, sturdy no-nonsense stance, work gloves tucked in apron, sensible shoes, weathered gentle face, third-generation beekeeper energy</div>
+  </div>
+
+  <div class="view-block">
+    <h4>Top-Down (Overworld)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> C (more pixelated, frazzled hair) |
+      <span class="tag tag-kari">Kari 20%</span> D |
+      <span class="tag tag-daniel">Daniel 25%</span> A (match clothing) |
+      <span class="tag tag-aadyn">Aadyn 25%</span> B
+    </p>
+    <p class="mods"><span class="winner">Winner: Option C (30%)</span> -- Very tight race. More pixelated top-down (Nathan). Match portrait clothing and frazzled hair. Consistent character read from above.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">top-down RPG pixel art character, 32x32 tile grid, slight north-tilt perspective, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, soft drop shadow, elderly woman, silver frazzled hair bun visible from above, gardening apron, flannel shirt, sturdy build, sensible shoes, match front-facing portrait version</div>
+  </div>
+</div>
+
+<!-- 5. WALT HARMON -->
+<div class="npc-card">
+  <h3>5. Walt Harmon</h3>
+  <p class="npc-role">Family farmer, late 50s. Heavyset, denim, farm cap. Reserved, arms crossed.</p>
+
+  <div class="view-block">
+    <h4>Front-Facing (Portrait/Shop)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> A (less mean, more spaced-out, like C's face but not sad) |
+      <span class="tag tag-kari">Kari 20%</span> D (less mad, softer) |
+      <span class="tag tag-daniel">Daniel 25%</span> A (less stern) |
+      <span class="tag tag-aadyn">Aadyn 25%</span> C (great shape)
+    </p>
+    <p class="mods"><span class="winner">Winner: Option A (55%)</span> -- A's body/pose but soften expression significantly. Not mean, not sad -- more distant/spaced-out/not-quite-there look. C's face quality on A's build.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">pixel art RPG character sprite, 32x32 tile grid, front-facing idle pose, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral mood, Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, heavyset man late 50s, worn blue denim jacket, green farm cap, arms at sides relaxed, distant faraway expression not angry not sad, ruddy weathered face, work boots, barrel-chested farmer build, soft unfocused eyes</div>
+  </div>
+
+  <div class="view-block">
+    <h4>Top-Down (Overworld)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> match A softer |
+      <span class="tag tag-kari">Kari 20%</span> D |
+      <span class="tag tag-daniel">Daniel 25%</span> A (taller) |
+      <span class="tag tag-aadyn">Aadyn 25%</span> C or D
+    </p>
+    <p class="mods"><span class="winner">Winner: Option A (55%)</span> -- Match portrait A. Slightly taller proportions (Daniel). Soft posture, not aggressive.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">top-down RPG pixel art character, 32x32 tile grid, slight north-tilt perspective, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, soft drop shadow, heavyset farmer, green cap, denim jacket, broad shoulders, work boots, relaxed not aggressive stance, slightly tall proportions</div>
+  </div>
+</div>
+
+<!-- 6. KACEY HARMON -->
+<div class="npc-card">
+  <h3>6. Kacey Harmon</h3>
+  <p class="npc-role">Agronomist, late 20s. Walt's daughter. Cargo pants, laptop bag, ponytail.</p>
+
+  <div class="view-block">
+    <h4>Front-Facing (Portrait/Shop)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> D (with red hair like B) |
+      <span class="tag tag-kari">Kari 20%</span> D |
+      <span class="tag tag-daniel">Daniel 25%</span> C |
+      <span class="tag tag-aadyn">Aadyn 25%</span> B
+    </p>
+    <p class="mods"><span class="winner">Winner: Option D (50%)</span> -- D's pose and outfit with red hair from B. Energetic practical working woman look.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">pixel art RPG character sprite, 32x32 tile grid, front-facing idle pose, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral mood, Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, young woman late 20s, red hair in ponytail, practical outdoor clothes, olive cargo pants, fitted work jacket, laptop bag slung over shoulder, confident energetic stance, work boots</div>
+  </div>
+
+  <div class="view-block">
+    <h4>Top-Down (Overworld)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> D |
+      <span class="tag tag-kari">Kari 20%</span> B |
+      <span class="tag tag-daniel">Daniel 25%</span> C |
+      <span class="tag tag-aadyn">Aadyn 25%</span> C
+    </p>
+    <p class="mods"><span class="winner">Winner: Option C (50%)</span> -- C's overworld layout. Must match portrait: red ponytail, cargo pants, laptop bag. Purposeful movement.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">top-down RPG pixel art character, 32x32 tile grid, slight north-tilt perspective, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, soft drop shadow, young woman, red hair ponytail, cargo pants, work jacket, laptop bag over shoulder, purposeful walking stance</div>
+  </div>
+</div>
+
+<!-- 7. SILAS CRENSHAW -->
+<div class="npc-card">
+  <h3>7. Silas Crenshaw</h3>
+  <p class="npc-role">Semi-retired carpenter, early 70s. Lean, weathered, leather work apron, pencil behind ear.</p>
+
+  <div class="view-block">
+    <h4>Front-Facing (Portrait/Shop)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> A |
+      <span class="tag tag-kari">Kari 20%</span> D |
+      <span class="tag tag-daniel">Daniel 25%</span> B |
+      <span class="tag tag-aadyn">Aadyn 25%</span> B
+    </p>
+    <p class="mods"><span class="winner">Winner: Option B (50%)</span> -- B's carpenter look. Lean and precise feel. Opinionated knowing eyes, white stubble.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">pixel art RPG character sprite, 32x32 tile grid, front-facing idle pose, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral mood, Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, lean elderly man early 70s, carpenter, worn leather work apron, rolled-up chambray shirt sleeves, pencil behind ear, white stubble, squinting knowing eyes, dusty work pants, old well-worn boots, precise quiet demeanor</div>
+  </div>
+
+  <div class="view-block">
+    <h4>Top-Down (Overworld)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> D (match A's look) |
+      <span class="tag tag-kari">Kari 20%</span> C |
+      <span class="tag tag-daniel">Daniel 25%</span> A |
+      <span class="tag tag-aadyn">Aadyn 25%</span> D
+    </p>
+    <p class="mods"><span class="winner">Winner: Option D (55%)</span> -- D's overworld layout, match portrait character details. Lean carpenter silhouette from above.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">top-down RPG pixel art character, 32x32 tile grid, slight north-tilt perspective, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, soft drop shadow, lean elderly man, leather work apron, chambray shirt, white hair, carpenter stance, thin build</div>
+  </div>
+</div>
+
+<!-- 8. CARL TANNER -->
+<div class="npc-card">
+  <h3>8. Carl Tanner</h3>
+  <p class="npc-role">Feed &amp; Supply worker, 40s. Brown canvas apron, denim shirt, friendly.</p>
+
+  <div class="view-block">
+    <h4>Front-Facing (Portrait/Shop)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> D |
+      <span class="tag tag-kari">Kari 20%</span> -- |
+      <span class="tag tag-daniel">Daniel 25%</span> B |
+      <span class="tag tag-aadyn">Aadyn 25%</span> D (feels real)
+    </p>
+    <p class="mods"><span class="winner">Winner: Option D (55%)</span> -- D's realistic feed store worker feel. Friendly open face, practical work clothes.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">pixel art RPG character sprite, 32x32 tile grid, front-facing idle pose, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral mood, Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, man in his 40s, feed store worker, brown canvas apron, denim shirt, friendly open face, slight stubble, sturdy realistic build, work boots, natural approachable stance</div>
+  </div>
+
+  <div class="view-block">
+    <h4>Top-Down (Overworld)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> D (truer to portrait) |
+      <span class="tag tag-kari">Kari 20%</span> C |
+      <span class="tag tag-daniel">Daniel 25%</span> B (match style) |
+      <span class="tag tag-aadyn">Aadyn 25%</span> D
+    </p>
+    <p class="mods"><span class="winner">Winner: Option D (55%)</span> -- D for both views. Must match portrait precisely. Canvas apron and denim visible from above.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">top-down RPG pixel art character, 32x32 tile grid, slight north-tilt perspective, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, soft drop shadow, man in his 40s, canvas apron, denim shirt, feed store worker, sturdy build, must match front-facing portrait</div>
+  </div>
+</div>
+
+<!-- 9. JUNE (POSTMASTER) -->
+<div class="npc-card">
+  <h3>9. June (Postmaster)</h3>
+  <p class="npc-role">Post office worker. Neat blue blouse, reading glasses, efficient and friendly.</p>
+
+  <div class="view-block">
+    <h4>Front-Facing (Portrait/Shop)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> A |
+      <span class="tag tag-kari">Kari 20%</span> A |
+      <span class="tag tag-daniel">Daniel 25%</span> B |
+      <span class="tag tag-aadyn">Aadyn 25%</span> D
+    </p>
+    <p class="mods"><span class="winner">Winner: Option A (50%)</span> -- A's neat professional postmaster look. Warm smile, organized appearance. Dark hair (Kari's note).</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">pixel art RPG character sprite, 32x32 tile grid, front-facing idle pose, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral mood, Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, middle-aged woman, post office worker, neat blue button-up blouse, dark hair, reading glasses, organized efficient look, warm friendly smile, sensible shoes, name tag visible</div>
+  </div>
+
+  <div class="view-block">
+    <h4>Top-Down (Overworld)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> C (proportionate) |
+      <span class="tag tag-kari">Kari 20%</span> D (clean up, dark hair) |
+      <span class="tag tag-daniel">Daniel 25%</span> D (match style) |
+      <span class="tag tag-aadyn">Aadyn 25%</span> A (matches shop)
+    </p>
+    <p class="mods"><span class="winner">Winner: Option D (45%)</span> -- D cleaned up with proper proportions. Dark hair. Must match portrait A's character.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">top-down RPG pixel art character, 32x32 tile grid, slight north-tilt perspective, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, soft drop shadow, middle-aged woman, blue blouse, dark hair, reading glasses, neat organized appearance, proper proportions, must match front-facing portrait</div>
+  </div>
+</div>
+
+<!-- 10. ROSE (WAITRESS) -->
+<div class="npc-card">
+  <h3>10. Rose (Waitress)</h3>
+  <p class="npc-role">Crossroads Diner waitress, early 30s. Cream blouse, apron, order pad, friendly.</p>
+
+  <div class="view-block">
+    <h4>Front-Facing (Portrait/Shop)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> C |
+      <span class="tag tag-kari">Kari 20%</span> C |
+      <span class="tag tag-daniel">Daniel 25%</span> D |
+      <span class="tag tag-aadyn">Aadyn 25%</span> D
+    </p>
+    <p class="mods"><span class="winner">Winner: Tie C/D (50/50)</span> -- Nathan's higher individual weight breaks tie to C. Warm friendly waitress, classic diner look. Incorporate D's realism.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">pixel art RPG character sprite, 32x32 tile grid, front-facing idle pose, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral mood, Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, young woman early 30s, diner waitress, cream-colored blouse with small apron, order pad in hand, friendly warm smile, hair tied back, comfortable shoes, realistic proportions, welcoming stance</div>
+  </div>
+
+  <div class="view-block">
+    <h4>Top-Down (Overworld)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> D (match C) |
+      <span class="tag tag-kari">Kari 20%</span> A |
+      <span class="tag tag-daniel">Daniel 25%</span> A |
+      <span class="tag tag-aadyn">Aadyn 25%</span> D
+    </p>
+    <p class="mods"><span class="winner">Winner: D (55%)</span> -- D's overworld layout. Must match portrait. Cream blouse and apron visible from above.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">top-down RPG pixel art character, 32x32 tile grid, slight north-tilt perspective, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, soft drop shadow, young woman, diner waitress apron, cream blouse, hair tied back, holding notepad, must match front-facing portrait</div>
+  </div>
+</div>
+
+<!-- 11. LLOYD PETERSEN -->
+<div class="npc-card">
+  <h3>11. Lloyd Petersen</h3>
+  <p class="npc-role">Local retiree, 60s. Plaid shirt, suspenders, glasses. Diner regular.</p>
+
+  <div class="view-block">
+    <h4>Front-Facing (Portrait/Shop)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> D |
+      <span class="tag tag-kari">Kari 20%</span> A |
+      <span class="tag tag-daniel">Daniel 25%</span> A |
+      <span class="tag tag-aadyn">Aadyn 25%</span> A
+    </p>
+    <p class="mods"><span class="winner">Winner: Option A (70%)</span> -- Strong consensus on A. Gentle relaxed retiree. Plaid, suspenders, glasses, thinning hair.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">pixel art RPG character sprite, 32x32 tile grid, front-facing idle pose, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral mood, Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, older man in his 60s, small-town retiree, plaid button-up shirt, suspenders, khaki pants, friendly gentle face, thinning hair, glasses, relaxed easygoing posture</div>
+  </div>
+
+  <div class="view-block">
+    <h4>Top-Down (Overworld)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> B (match D) |
+      <span class="tag tag-kari">Kari 20%</span> D |
+      <span class="tag tag-daniel">Daniel 25%</span> C (match height) |
+      <span class="tag tag-aadyn">Aadyn 25%</span> D
+    </p>
+    <p class="mods"><span class="winner">Winner: Option D (45%)</span> -- D's layout. Match portrait A's character. Proper height proportions (Daniel). Suspenders visible from above.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">top-down RPG pixel art character, 32x32 tile grid, slight north-tilt perspective, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, soft drop shadow, older man, plaid shirt, suspenders, glasses, relaxed stance, proper height proportions, must match front-facing portrait</div>
+  </div>
+</div>
+
+<!-- 12. TERRY VOGEL -->
+<div class="npc-card">
+  <h3>12. Terry Vogel</h3>
+  <p class="npc-role">Community member, 50s. Cardigan sweater, blouse, practical hairstyle.</p>
+
+  <div class="view-block">
+    <h4>Front-Facing (Portrait/Shop)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> C |
+      <span class="tag tag-kari">Kari 20%</span> A |
+      <span class="tag tag-daniel">Daniel 25%</span> B |
+      <span class="tag tag-aadyn">Aadyn 25%</span> D
+    </p>
+    <p class="mods"><span class="winner">Winner: Option C (30%)</span> -- Very split. C has creative lead weight. Active community member look, warm face, practical style.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">pixel art RPG character sprite, 32x32 tile grid, front-facing idle pose, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral mood, Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, woman in her 50s, active community member, cardigan sweater over blouse, modest small-town style, warm friendly face, practical hairstyle, comfortable shoes</div>
+  </div>
+
+  <div class="view-block">
+    <h4>Top-Down (Overworld)</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> A (consistent look) |
+      <span class="tag tag-kari">Kari 20%</span> D |
+      <span class="tag tag-daniel">Daniel 25%</span> new matching B |
+      <span class="tag tag-aadyn">Aadyn 25%</span> D
+    </p>
+    <p class="mods"><span class="winner">Winner: Option D (45%)</span> -- D's overworld layout. Must match portrait C. Cardigan and practical look visible from above.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">top-down RPG pixel art character, 32x32 tile grid, slight north-tilt perspective, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, soft drop shadow, woman in her 50s, cardigan sweater, blouse, practical hairstyle, must match front-facing portrait</div>
+  </div>
+</div>
+
+<!-- ==================== PEDESTRIANS ==================== -->
+<div class="pedestrian-section">
+  <h2 style="font-family:'Lora',serif; font-size:1.6rem; color:#f0a500; margin-bottom:1rem;">Pedestrians (6 Types)</h2>
+  <p style="color:rgba(224,214,200,0.6); margin-bottom:1.5rem;">Not all reviewers provided feedback on pedestrians. Aadyn's feedback did not cover pedestrians specifically. Weights are renormalized where feedback is missing.</p>
+</div>
+
+<!-- PED A -->
+<div class="npc-card">
+  <h3>Pedestrian A</h3>
+  <p class="npc-role">Generic young adult male. T-shirt and jeans, casual small-town.</p>
+  <div class="view-block">
+    <h4>Front-Facing</h4>
+    <p class="votes">
+      <span class="tag tag-daniel">Daniel 25%</span> No loading/skip |
+      Others: no specific pick
+    </p>
+    <p class="mods"><span class="winner">No clear consensus</span> -- Regenerate clean. Casual young man, realistic proportions.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">pixel art RPG character sprite, 32x32 tile grid, front-facing idle pose, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral mood, Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, young adult male townsperson, t-shirt and jeans, casual small-town look, brown hair, realistic proportions, relaxed posture</div>
+  </div>
+  <div class="view-block">
+    <h4>Top-Down</h4>
+    <p class="votes"><span class="tag tag-kari">Kari 20%</span> D</p>
+    <p class="mods"><span class="winner">Option D (Kari's pick)</span> -- Match portrait. Casual walk pose.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">top-down RPG pixel art character, 32x32 tile grid, slight north-tilt perspective, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, soft drop shadow, young adult male, t-shirt, jeans, casual walk pose</div>
+  </div>
+</div>
+
+<!-- PED B -->
+<div class="npc-card">
+  <h3>Pedestrian B</h3>
+  <p class="npc-role">Generic middle-aged female. Sundress with light cardigan.</p>
+  <div class="view-block">
+    <h4>Front-Facing</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> C (chonky lady) |
+      <span class="tag tag-kari">Kari 20%</span> D |
+      <span class="tag tag-daniel">Daniel 25%</span> D
+    </p>
+    <p class="mods"><span class="winner">Winner: Option D (45%)</span> -- D's look but incorporate Nathan's "chonky lady" note. Heavier build, sundress, cardigan.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">pixel art RPG character sprite, 32x32 tile grid, front-facing idle pose, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral mood, Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, middle-aged woman, heavier build, sundress with light cardigan, small-town look, warm face, comfortable stance</div>
+  </div>
+  <div class="view-block">
+    <h4>Top-Down</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> B (match portrait) |
+      <span class="tag tag-daniel">Daniel 25%</span> B
+    </p>
+    <p class="mods"><span class="winner">Winner: Option B (55%)</span> -- Match portrait. Heavier build visible from above.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">top-down RPG pixel art character, 32x32 tile grid, slight north-tilt perspective, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, soft drop shadow, middle-aged woman, sundress, light cardigan, heavier build, walking pose</div>
+  </div>
+</div>
+
+<!-- PED C -->
+<div class="npc-card">
+  <h3>Pedestrian C</h3>
+  <p class="npc-role">Generic middle-aged male. Polo shirt, khakis, dad look.</p>
+  <div class="view-block">
+    <h4>Front-Facing</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> C |
+      <span class="tag tag-kari">Kari 20%</span> A |
+      <span class="tag tag-daniel">Daniel 25%</span> A
+    </p>
+    <p class="mods"><span class="winner">Winner: Option A (45%)</span> -- A's dad look. Average build, polo and khakis.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">pixel art RPG character sprite, 32x32 tile grid, front-facing idle pose, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral mood, Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, middle-aged male townsperson, polo shirt and khakis, dad look, average build, casual stance</div>
+  </div>
+  <div class="view-block">
+    <h4>Top-Down</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> B |
+      <span class="tag tag-daniel">Daniel 25%</span> A (match clothing)
+    </p>
+    <p class="mods"><span class="winner">Winner: Option B (30%)</span> -- Match portrait clothing. Polo and khakis from above.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">top-down RPG pixel art character, 32x32 tile grid, slight north-tilt perspective, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, soft drop shadow, middle-aged man, polo shirt, khakis, walking pose, match front-facing version</div>
+  </div>
+</div>
+
+<!-- PED D -->
+<div class="npc-card">
+  <h3>Pedestrian D</h3>
+  <p class="npc-role">Generic young adult female. Flannel and jeans, ponytail, rural casual.</p>
+  <div class="view-block">
+    <h4>Front-Facing</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> C
+    </p>
+    <p class="mods"><span class="winner">Winner: Option C (Nathan's pick)</span> -- Rural casual young woman.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">pixel art RPG character sprite, 32x32 tile grid, front-facing idle pose, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral mood, Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, young adult female townsperson, flannel and jeans, ponytail, casual rural look, realistic proportions</div>
+  </div>
+  <div class="view-block">
+    <h4>Top-Down</h4>
+    <p class="votes">
+      <span class="tag tag-kari">Kari 20%</span> D (scale down) |
+      <span class="tag tag-daniel">Daniel 25%</span> B
+    </p>
+    <p class="mods"><span class="winner">Winner: Option B (25%)</span> -- Proper scale, not too tall. Match portrait.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">top-down RPG pixel art character, 32x32 tile grid, slight north-tilt perspective, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, soft drop shadow, young woman, flannel shirt, jeans, ponytail, walking pose, proper scale proportions</div>
+  </div>
+</div>
+
+<!-- PED E -->
+<div class="npc-card">
+  <h3>Pedestrian E</h3>
+  <p class="npc-role">Generic elderly male. Cap and vest, slight stoop, kind face.</p>
+  <div class="view-block">
+    <h4>Front-Facing</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> A |
+      <span class="tag tag-kari">Kari 20%</span> A |
+      <span class="tag tag-daniel">Daniel 25%</span> A
+    </p>
+    <p class="mods"><span class="winner">Winner: Option A (unanimous 75%)</span> -- Strong consensus. Kind elderly man.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">pixel art RPG character sprite, 32x32 tile grid, front-facing idle pose, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral mood, Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, elderly male townsperson, cap and vest, walking with slight stoop, kind warm face, realistic proportions</div>
+  </div>
+  <div class="view-block">
+    <h4>Top-Down</h4>
+    <p class="mods"><span class="winner">Match portrait</span> -- Elderly man, cap, vest, slight stoop from above.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">top-down RPG pixel art character, 32x32 tile grid, slight north-tilt perspective, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, soft drop shadow, elderly man, cap, vest, slight stoop, slow walking pose, match front-facing portrait</div>
+  </div>
+</div>
+
+<!-- PED F -->
+<div class="npc-card">
+  <h3>Pedestrian F</h3>
+  <p class="npc-role">Generic elderly female. Floral blouse, sun hat, small bag, gentle pace.</p>
+  <div class="view-block">
+    <h4>Front-Facing</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> A |
+      <span class="tag tag-kari">Kari 20%</span> B |
+      <span class="tag tag-daniel">Daniel 25%</span> B
+    </p>
+    <p class="mods"><span class="winner">Winner: Option B (45%)</span> -- B's elderly lady look. Floral blouse, sun hat, small bag.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">pixel art RPG character sprite, 32x32 tile grid, front-facing idle pose, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral mood, Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, elderly female townsperson, floral blouse, sun hat, carrying small bag, gentle warm face, realistic proportions</div>
+  </div>
+  <div class="view-block">
+    <h4>Top-Down</h4>
+    <p class="votes">
+      <span class="tag tag-nathan">Nathan 30%</span> A |
+      <span class="tag tag-kari">Kari 20%</span> B |
+      <span class="tag tag-daniel">Daniel 25%</span> C
+    </p>
+    <p class="mods"><span class="winner">Winner: Option A (30%)</span> -- Very split. A by Nathan's weight. Sun hat visible from above, match portrait.</p>
+    <div class="prompt-box" onclick="copyPrompt(this)">top-down RPG pixel art character, 32x32 tile grid, slight north-tilt perspective, warm muted earthy palette, 2-3 shade depth shading, no hard black outlines use darkened hue for edges, cozy pastoral Stardew Valley aesthetic, rural Iowa setting, transparent background, single character centered, soft drop shadow, elderly woman, sun hat, floral blouse, carrying small bag, gentle pace, match front-facing portrait</div>
+  </div>
+</div>
+
+<!-- GLOBAL NOTES -->
+<div class="section" style="margin-top:2rem;">
+  <h2>Global Refinement Notes (All Reviewers)</h2>
+  <p style="margin-bottom:0.5rem;"><strong>Nathan (30%):</strong> Every overworld sprite MUST match its portrait -- same proportions, colors, details, mood. Fix inconsistencies first.</p>
+  <p style="margin-bottom:0.5rem;"><strong>Kari (20%):</strong> Prioritize realistic sizing, softer moods, clean lines, dark hair where specified. Fix scaling on oversized ones.</p>
+  <p style="margin-bottom:0.5rem;"><strong>Daniel (25%):</strong> Slim/fat fixes, softer expressions, height scaling, clothing consistency across views, face/style matching.</p>
+  <p style="margin-bottom:0.5rem;"><strong>Aadyn (25%):</strong> Prioritize realism, proportion, mood. Avoid cartoonish extremes. Generate improved versions of weak options.</p>
+</div>
+
+<!-- GENERATION CHECKLIST -->
+<div class="section">
+  <h2>Leonardo Generation Checklist</h2>
+  <p style="margin-bottom:0.5rem;">For each NPC, generate 4 variations using the refined prompt above:</p>
+  <ul style="padding-left:1.5rem; margin-top:0.5rem;">
+    <li>Reference the <strong>"Smoke and Honey" collection</strong> in Leonardo for style consistency</li>
+    <li>Use <strong>32x32 grid</strong> (NOT 16x16)</li>
+    <li>Generate <strong>front-facing first</strong>, then top-down matching the chosen front-facing</li>
+    <li>Final sprites: 120x120px per frame for game use</li>
+    <li>No pure black outlines -- darkened hue edges only</li>
+    <li>Muted earthy palette -- no bright saturated colors</li>
+    <li>Transparent backgrounds</li>
+    <li>All results shown to Nathan for approval before adding to project</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function copyPrompt(el) {
+  var text = el.textContent.replace('Click to copy', '').replace('Copied!', '').trim();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      el.classList.add('copied');
+      setTimeout(function() { el.classList.remove('copied'); }, 1500);
+    });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    el.classList.add('copied');
+    setTimeout(function() { el.classList.remove('copied'); }, 1500);
+  }
+}
+</script>
+
+</body>
+</html>

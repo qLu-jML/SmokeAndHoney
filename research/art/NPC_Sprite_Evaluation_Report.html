@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smoke &amp; Honey - NPC Sprite Evaluation Report</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #1a1a2e;
+    color: #e0d6c8;
+    min-height: 100vh;
+  }
+
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 2rem;
+    border-bottom: 4px solid #f0a500;
+  }
+
+  .cover h1 {
+    font-family: 'Lora', serif;
+    font-size: 3rem;
+    color: #f0a500;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+  }
+
+  .cover h2 {
+    font-family: 'Lora', serif;
+    font-size: 1.8rem;
+    color: #e0d6c8;
+    margin-bottom: 2rem;
+    font-weight: 400;
+  }
+
+  .cover .instructions {
+    max-width: 700px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(240,165,0,0.3);
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    text-align: left;
+    line-height: 1.7;
+    font-size: 0.95rem;
+  }
+
+  .cover .instructions h3 {
+    color: #f0a500;
+    margin-bottom: 0.8rem;
+    font-size: 1.1rem;
+  }
+
+  .cover .instructions p {
+    margin-bottom: 0.5rem;
+  }
+
+  .cover .stats {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .cover .stat-box {
+    background: rgba(240,165,0,0.1);
+    border: 1px solid rgba(240,165,0,0.3);
+    border-radius: 8px;
+    padding: 0.8rem 1.5rem;
+    text-align: center;
+  }
+
+  .cover .stat-box .num {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #f0a500;
+  }
+
+  .cover .stat-box .label {
+    font-size: 0.85rem;
+    color: #a0a0a0;
+  }
+
+  .toc {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+  }
+
+  .toc h2 {
+    font-family: 'Lora', serif;
+    color: #f0a500;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid rgba(240,165,0,0.3);
+    padding-bottom: 0.5rem;
+  }
+
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 0.8rem;
+  }
+
+  .toc-grid a {
+    display: block;
+    padding: 0.7rem 1rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    color: #e0d6c8;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .toc-grid a:hover {
+    background: rgba(240,165,0,0.1);
+    border-color: rgba(240,165,0,0.4);
+    color: #f0a500;
+  }
+
+  .toc-grid a .type-tag {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+    display: block;
+    margin-top: 2px;
+  }
+
+  .section-divider {
+    max-width: 1200px;
+    margin: 3rem auto 1rem;
+    padding: 0 2rem;
+  }
+
+  .section-divider h2 {
+    font-family: 'Lora', serif;
+    font-size: 2rem;
+    color: #f0a500;
+    border-bottom: 3px solid #f0a500;
+    padding-bottom: 0.5rem;
+  }
+
+  .character-section {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+  }
+
+  .char-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .char-header h3 {
+    font-family: 'Lora', serif;
+    font-size: 1.5rem;
+    color: #f0a500;
+  }
+
+  .char-header .desc {
+    font-size: 0.9rem;
+    color: #a0a0a0;
+    font-style: italic;
+  }
+
+  .view-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #888;
+    margin: 1rem 0 0.5rem;
+    padding-left: 4px;
+  }
+
+  .sprite-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .sprite-card {
+    background: rgba(255,255,255,0.03);
+    border: 2px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.2s;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .sprite-card:hover {
+    border-color: rgba(240,165,0,0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+
+  .sprite-card.selected {
+    border-color: #f0a500;
+    box-shadow: 0 0 20px rgba(240,165,0,0.3);
+  }
+
+  .sprite-card.selected::after {
+    content: 'SELECTED';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #f0a500;
+    color: #1a1a2e;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .sprite-card img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+    background: #2a2a3e;
+    display: block;
+    image-rendering: pixelated;
+  }
+
+  .sprite-card .option-label {
+    text-align: center;
+    padding: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #ccc;
+    background: rgba(0,0,0,0.2);
+  }
+
+  .selection-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 0.5rem 0 2rem;
+    padding: 0.6rem 1rem;
+    background: rgba(240,165,0,0.05);
+    border: 1px solid rgba(240,165,0,0.15);
+    border-radius: 6px;
+    font-size: 0.9rem;
+  }
+
+  .selection-row label {
+    color: #f0a500;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .selection-row input[type="text"] {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 4px;
+    padding: 0.4rem 0.8rem;
+    color: #e0d6c8;
+    font-size: 0.9rem;
+    font-family: inherit;
+  }
+
+  .selection-row input[type="text"]:focus {
+    outline: none;
+    border-color: #f0a500;
+  }
+
+  hr.char-divider {
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    margin: 2rem 0;
+  }
+
+  .summary-section {
+    max-width: 1200px;
+    margin: 3rem auto;
+    padding: 2rem;
+  }
+
+  .summary-section h2 {
+    font-family: 'Lora', serif;
+    color: #f0a500;
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  .summary-table th {
+    background: rgba(240,165,0,0.15);
+    color: #f0a500;
+    text-align: left;
+    padding: 0.6rem 1rem;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .summary-table td {
+    padding: 0.5rem 1rem;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .summary-table tr:nth-child(even) {
+    background: rgba(255,255,255,0.02);
+  }
+
+  .export-btn {
+    display: inline-block;
+    margin-top: 1.5rem;
+    padding: 0.8rem 2rem;
+    background: #f0a500;
+    color: #1a1a2e;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .export-btn:hover {
+    background: #d49400;
+  }
+
+  @media print {
+    body { background: white; color: #333; }
+    .cover { min-height: auto; padding: 2rem; background: white; border-bottom-color: #f0a500; }
+    .cover h1 { color: #d49400; text-shadow: none; }
+    .cover h2, .cover .instructions, .char-header .desc { color: #555; }
+    .sprite-card { border-color: #ddd; }
+    .sprite-card img { background: #f5f5f5; }
+    .export-btn { display: none; }
+  }
+
+  @media (max-width: 768px) {
+    .sprite-grid { grid-template-columns: repeat(2, 1fr); }
+    .cover h1 { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER PAGE -->
+<div class="cover">
+  <h1>Smoke &amp; Honey</h1>
+  <h2>NPC Sprite Evaluation Report</h2>
+
+  <div class="stats">
+    <div class="stat-box"><div class="num">17</div><div class="label">Characters</div></div>
+    <div class="stat-box"><div class="num">2</div><div class="label">View Types</div></div>
+    <div class="stat-box"><div class="num">4</div><div class="label">Options Each</div></div>
+    <div class="stat-box"><div class="num">140</div><div class="label">Total Sprites</div></div>
+  </div>
+
+  <div class="instructions" style="margin-top: 2rem;">
+    <h3>How to Use This Report</h3>
+    <p>Each character has 4 options (A, B, C, D) for both front-facing and top-down views.</p>
+    <p><strong>Click any sprite</strong> to select it. Your selection will be highlighted in gold.</p>
+    <p>Use the text field below each view to note your choice or add comments.</p>
+    <p>When done, click <strong>"Export Selections"</strong> at the bottom to copy your picks.</p>
+    <p style="color: #888; margin-top: 0.5rem; font-size: 0.85rem;">Generated March 29, 2026 | Leonardo AI - Lucid Origin model</p>
+  </div>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+  <h2>Characters</h2>
+  <div class="toc-grid" id="toc"></div>
+</div>
+
+<!-- CHARACTER SECTIONS (generated by JS) -->
+<div id="characters"></div>
+
+<!-- SUMMARY / EXPORT -->
+<div class="summary-section">
+  <h2>Selection Summary</h2>
+  <table class="summary-table" id="summary-table">
+    <thead><tr><th>Character</th><th>Front-Facing Pick</th><th>Top-Down Pick</th><th>Notes</th></tr></thead>
+    <tbody id="summary-body"></tbody>
+  </table>
+  <button class="export-btn" onclick="exportSelections()">Export Selections to Clipboard</button>
+</div>
+
+<script>
+const GENERATIONS = [
+  // FRONT-FACING
+  {c:"Uncle Bob",v:"front-facing",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/85ccd0b7-6bbc-478d-9ad5-44bdef705352/segments/1:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/85ccd0b7-6bbc-478d-9ad5-44bdef705352/segments/2:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/85ccd0b7-6bbc-478d-9ad5-44bdef705352/segments/3:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/85ccd0b7-6bbc-478d-9ad5-44bdef705352/segments/4:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_3.jpg"]},
+  {c:"Frank Fischbach",v:"front-facing",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/4b793422-4fe9-4537-ad6a-6e15c8de3c64/segments/1:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/4b793422-4fe9-4537-ad6a-6e15c8de3c64/segments/2:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/4b793422-4fe9-4537-ad6a-6e15c8de3c64/segments/3:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/4b793422-4fe9-4537-ad6a-6e15c8de3c64/segments/4:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_3.jpg"]},
+  {c:"Dr. Ellen Harwick",v:"front-facing",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/4afcc9fb-ef56-4641-9635-46a9bdef89c2/segments/1:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/4afcc9fb-ef56-4641-9635-46a9bdef89c2/segments/2:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/4afcc9fb-ef56-4641-9635-46a9bdef89c2/segments/3:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/4afcc9fb-ef56-4641-9635-46a9bdef89c2/segments/4:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_3.jpg"]},
+  {c:"Darlene Kowalski",v:"front-facing",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1a4ac5d9-560a-44e8-be7b-5f77a2f1a285/segments/1:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1a4ac5d9-560a-44e8-be7b-5f77a2f1a285/segments/2:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1a4ac5d9-560a-44e8-be7b-5f77a2f1a285/segments/3:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1a4ac5d9-560a-44e8-be7b-5f77a2f1a285/segments/4:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_3.jpg"]},
+  {c:"Walt Harmon",v:"front-facing",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/337f3510-c8e8-4a9d-9bfa-ddddd50ee4e7/segments/1:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/337f3510-c8e8-4a9d-9bfa-ddddd50ee4e7/segments/2:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/337f3510-c8e8-4a9d-9bfa-ddddd50ee4e7/segments/3:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/337f3510-c8e8-4a9d-9bfa-ddddd50ee4e7/segments/4:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_3.jpg"]},
+  {c:"Kacey Harmon",v:"front-facing",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/131baa9a-ba09-4538-b979-a68eec41fc85/segments/1:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/131baa9a-ba09-4538-b979-a68eec41fc85/segments/2:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/131baa9a-ba09-4538-b979-a68eec41fc85/segments/3:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/131baa9a-ba09-4538-b979-a68eec41fc85/segments/4:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_3.jpg"]},
+  {c:"Silas Crenshaw",v:"front-facing",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/09cc5e7d-9015-4be4-9dbf-0ccd2e31460c/segments/1:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/09cc5e7d-9015-4be4-9dbf-0ccd2e31460c/segments/2:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/09cc5e7d-9015-4be4-9dbf-0ccd2e31460c/segments/3:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/09cc5e7d-9015-4be4-9dbf-0ccd2e31460c/segments/4:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_3.jpg"]},
+  {c:"Carl Tanner",v:"front-facing",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/15254e12-bef4-4a4c-8ff5-8cbe15856cc2/segments/1:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/15254e12-bef4-4a4c-8ff5-8cbe15856cc2/segments/2:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/15254e12-bef4-4a4c-8ff5-8cbe15856cc2/segments/3:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/15254e12-bef4-4a4c-8ff5-8cbe15856cc2/segments/4:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_3.jpg"]},
+  {c:"June (Postmaster)",v:"front-facing",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1cf76b8e-e3e9-42e0-9176-bc7c75230dc2/segments/1:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1cf76b8e-e3e9-42e0-9176-bc7c75230dc2/segments/2:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1cf76b8e-e3e9-42e0-9176-bc7c75230dc2/segments/3:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1cf76b8e-e3e9-42e0-9176-bc7c75230dc2/segments/4:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_3.jpg"]},
+  {c:"Rose (Waitress)",v:"front-facing",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/6dafbd28-7872-45e4-9e5b-f0c9caaa1d68/segments/1:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/6dafbd28-7872-45e4-9e5b-f0c9caaa1d68/segments/2:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/6dafbd28-7872-45e4-9e5b-f0c9caaa1d68/segments/3:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/6dafbd28-7872-45e4-9e5b-f0c9caaa1d68/segments/4:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_3.jpg"]},
+  {c:"Lloyd Petersen",v:"front-facing",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/a50f58d0-890d-4f45-972a-751b6c99dd31/segments/1:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/a50f58d0-890d-4f45-972a-751b6c99dd31/segments/2:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/a50f58d0-890d-4f45-972a-751b6c99dd31/segments/3:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/a50f58d0-890d-4f45-972a-751b6c99dd31/segments/4:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_3.jpg"]},
+  {c:"Terri Vogel",v:"front-facing",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/6b2a3f5e-90eb-4dc8-9790-9bdef717d319/segments/1:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/6b2a3f5e-90eb-4dc8-9790-9bdef717d319/segments/2:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/6b2a3f5e-90eb-4dc8-9790-9bdef717d319/segments/3:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/6b2a3f5e-90eb-4dc8-9790-9bdef717d319/segments/4:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_3.jpg"]},
+  {c:"Pedestrian A",v:"front-facing",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/afba7f30-02a2-472a-af51-cbb17de4ba89/segments/1:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/afba7f30-02a2-472a-af51-cbb17de4ba89/segments/2:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/afba7f30-02a2-472a-af51-cbb17de4ba89/segments/3:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/afba7f30-02a2-472a-af51-cbb17de4ba89/segments/4:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_3.jpg"]},
+  {c:"Pedestrian B",v:"front-facing",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/cb7e725d-8576-47be-943f-2f6f53417ac1/segments/1:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/cb7e725d-8576-47be-943f-2f6f53417ac1/segments/2:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/cb7e725d-8576-47be-943f-2f6f53417ac1/segments/3:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/cb7e725d-8576-47be-943f-2f6f53417ac1/segments/4:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_3.jpg"]},
+  {c:"Pedestrian C",v:"front-facing",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1e6d31c2-ab85-4039-9d70-f924787e73e6/segments/1:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1e6d31c2-ab85-4039-9d70-f924787e73e6/segments/2:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1e6d31c2-ab85-4039-9d70-f924787e73e6/segments/3:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1e6d31c2-ab85-4039-9d70-f924787e73e6/segments/4:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_3.jpg"]},
+  {c:"Pedestrian E",v:"front-facing",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/cef43d91-9990-4be4-933e-c877fd9e67e9/segments/1:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/cef43d91-9990-4be4-933e-c877fd9e67e9/segments/2:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/cef43d91-9990-4be4-933e-c877fd9e67e9/segments/3:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/cef43d91-9990-4be4-933e-c877fd9e67e9/segments/4:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_3.jpg"]},
+  {c:"Pedestrian F",v:"front-facing",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/2c29ba23-be03-434b-8cf9-6fe2948cda4f/segments/1:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/2c29ba23-be03-434b-8cf9-6fe2948cda4f/segments/2:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/2c29ba23-be03-434b-8cf9-6fe2948cda4f/segments/3:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/2c29ba23-be03-434b-8cf9-6fe2948cda4f/segments/4:4:1/Lucid_Origin_pixel_art_RPG_character_sprite_32x32_tile_grid_fr_3.jpg"]},
+  // TOP-DOWN
+  {c:"Uncle Bob",v:"top-down",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/3d03a145-4218-416f-bb8b-4b8b1d2e0285/segments/1:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/3d03a145-4218-416f-bb8b-4b8b1d2e0285/segments/2:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/3d03a145-4218-416f-bb8b-4b8b1d2e0285/segments/3:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/3d03a145-4218-416f-bb8b-4b8b1d2e0285/segments/4:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_3.jpg"]},
+  {c:"Frank Fischbach",v:"top-down",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/341a98f7-9ba8-4fb9-ae76-e4be2604d838/segments/1:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/341a98f7-9ba8-4fb9-ae76-e4be2604d838/segments/2:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/341a98f7-9ba8-4fb9-ae76-e4be2604d838/segments/3:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/341a98f7-9ba8-4fb9-ae76-e4be2604d838/segments/4:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_3.jpg"]},
+  {c:"Dr. Ellen Harwick",v:"top-down",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/ec854ad3-918a-46ba-b12b-da34472e72ea/segments/1:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/ec854ad3-918a-46ba-b12b-da34472e72ea/segments/2:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/ec854ad3-918a-46ba-b12b-da34472e72ea/segments/3:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/ec854ad3-918a-46ba-b12b-da34472e72ea/segments/4:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_3.jpg"]},
+  {c:"Darlene Kowalski",v:"top-down",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/e3da2025-3413-4c31-837d-2a73ea1e04e2/segments/1:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/e3da2025-3413-4c31-837d-2a73ea1e04e2/segments/2:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/e3da2025-3413-4c31-837d-2a73ea1e04e2/segments/3:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/e3da2025-3413-4c31-837d-2a73ea1e04e2/segments/4:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_3.jpg"]},
+  {c:"Walt Harmon",v:"top-down",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/47bea818-d612-49f5-8f25-5c52125e3faa/segments/1:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/47bea818-d612-49f5-8f25-5c52125e3faa/segments/2:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/47bea818-d612-49f5-8f25-5c52125e3faa/segments/3:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/47bea818-d612-49f5-8f25-5c52125e3faa/segments/4:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_3.jpg"]},
+  {c:"Kacey Harmon",v:"top-down",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/f1594490-341d-463d-a73e-c749b7e9a6ac/segments/1:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/f1594490-341d-463d-a73e-c749b7e9a6ac/segments/2:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/f1594490-341d-463d-a73e-c749b7e9a6ac/segments/3:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/f1594490-341d-463d-a73e-c749b7e9a6ac/segments/4:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_3.jpg"]},
+  {c:"Silas Crenshaw",v:"top-down",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/6102c3b6-95e7-420e-87d8-042823268f19/segments/1:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/6102c3b6-95e7-420e-87d8-042823268f19/segments/2:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/6102c3b6-95e7-420e-87d8-042823268f19/segments/3:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/6102c3b6-95e7-420e-87d8-042823268f19/segments/4:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_3.jpg"]},
+  {c:"Carl Tanner",v:"top-down",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/5d04bfed-3a76-4ee6-8533-8b981cc387de/segments/1:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/5d04bfed-3a76-4ee6-8533-8b981cc387de/segments/2:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/5d04bfed-3a76-4ee6-8533-8b981cc387de/segments/3:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/5d04bfed-3a76-4ee6-8533-8b981cc387de/segments/4:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_3.jpg"]},
+  {c:"June (Postmaster)",v:"top-down",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/35322bc2-007f-40e8-89ed-08c72c61894a/segments/1:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/35322bc2-007f-40e8-89ed-08c72c61894a/segments/2:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/35322bc2-007f-40e8-89ed-08c72c61894a/segments/3:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/35322bc2-007f-40e8-89ed-08c72c61894a/segments/4:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_3.jpg"]},
+  {c:"Rose (Waitress)",v:"top-down",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/07cbab0b-ae40-49d3-b7f3-8ef95722f909/segments/1:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/07cbab0b-ae40-49d3-b7f3-8ef95722f909/segments/2:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/07cbab0b-ae40-49d3-b7f3-8ef95722f909/segments/3:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/07cbab0b-ae40-49d3-b7f3-8ef95722f909/segments/4:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_3.jpg"]},
+  {c:"Lloyd Petersen",v:"top-down",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/15811060-ce05-4191-a3da-8b8f0a13004f/segments/1:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/15811060-ce05-4191-a3da-8b8f0a13004f/segments/2:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/15811060-ce05-4191-a3da-8b8f0a13004f/segments/3:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/15811060-ce05-4191-a3da-8b8f0a13004f/segments/4:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_3.jpg"]},
+  {c:"Terri Vogel",v:"top-down",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/150a4954-7e32-49ce-ba2c-e574c22732fe/segments/1:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/150a4954-7e32-49ce-ba2c-e574c22732fe/segments/2:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/150a4954-7e32-49ce-ba2c-e574c22732fe/segments/3:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/150a4954-7e32-49ce-ba2c-e574c22732fe/segments/4:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_3.jpg"]},
+  {c:"Pedestrian A",v:"top-down",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/f1c72bba-5e55-46c6-9be9-0de7d22f2218/segments/1:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/f1c72bba-5e55-46c6-9be9-0de7d22f2218/segments/2:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/f1c72bba-5e55-46c6-9be9-0de7d22f2218/segments/3:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/f1c72bba-5e55-46c6-9be9-0de7d22f2218/segments/4:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_3.jpg"]},
+  {c:"Pedestrian B",v:"top-down",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/dc896485-12f9-47e8-b389-9abcbc754d9e/segments/1:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/dc896485-12f9-47e8-b389-9abcbc754d9e/segments/2:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/dc896485-12f9-47e8-b389-9abcbc754d9e/segments/3:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/dc896485-12f9-47e8-b389-9abcbc754d9e/segments/4:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_3.jpg"]},
+  {c:"Pedestrian C",v:"top-down",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/9ec191cd-6bc8-4036-9958-fbf3f9af984e/segments/1:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/9ec191cd-6bc8-4036-9958-fbf3f9af984e/segments/2:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/9ec191cd-6bc8-4036-9958-fbf3f9af984e/segments/3:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/9ec191cd-6bc8-4036-9958-fbf3f9af984e/segments/4:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_3.jpg"]},
+  {c:"Pedestrian D",v:"top-down",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/4a350c0a-ef07-432e-a868-3c9a3a410754/segments/1:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/4a350c0a-ef07-432e-a868-3c9a3a410754/segments/2:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/4a350c0a-ef07-432e-a868-3c9a3a410754/segments/3:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/4a350c0a-ef07-432e-a868-3c9a3a410754/segments/4:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_3.jpg"]},
+  {c:"Pedestrian E",v:"top-down",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/c5fb5b5c-d7c1-4f94-8d39-6ef1a7363e9e/segments/1:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/c5fb5b5c-d7c1-4f94-8d39-6ef1a7363e9e/segments/2:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/c5fb5b5c-d7c1-4f94-8d39-6ef1a7363e9e/segments/3:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/c5fb5b5c-d7c1-4f94-8d39-6ef1a7363e9e/segments/4:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_3.jpg"]},
+  {c:"Pedestrian F",v:"top-down",u:["https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/5602bb0a-b4f9-41f7-941c-7a0900c8fa30/segments/1:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_0.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/5602bb0a-b4f9-41f7-941c-7a0900c8fa30/segments/2:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_1.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/5602bb0a-b4f9-41f7-941c-7a0900c8fa30/segments/3:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_2.jpg","https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/5602bb0a-b4f9-41f7-941c-7a0900c8fa30/segments/4:4:1/Lucid_Origin_topdown_RPG_pixel_art_character_32x32_tile_grid_s_3.jpg"]}
+];
+
+const DESCRIPTIONS = {
+  "Uncle Bob": "Late 50s farmer, balding gray hair, denim overalls, plaid flannel shirt",
+  "Frank Fischbach": "Middle-aged general store keeper, green apron, button-up shirt",
+  "Dr. Ellen Harwick": "Professional woman 40s, khaki field vest, collared shirt, extension agent",
+  "Darlene Kowalski": "Elderly woman late 60s, silver hair bun, gardening apron, master beekeeper",
+  "Walt Harmon": "Heavyset farmer late 50s, green cap, denim jacket, corn farmer",
+  "Kacey Harmon": "Young woman late 20s, cargo pants, work jacket, ponytail, agronomist",
+  "Silas Crenshaw": "Lean elderly man early 70s, leather work apron, chambray shirt, carpenter",
+  "Carl Tanner": "Man in his 40s, canvas apron, denim shirt, feed store worker",
+  "June (Postmaster)": "Middle-aged woman, blue blouse, reading glasses, neat appearance",
+  "Rose (Waitress)": "Young woman early 30s, diner waitress apron, cream blouse",
+  "Lloyd Petersen": "Man in his 50s, glasses, cardigan, retired engineer, consultant",
+  "Terri Vogel": "Woman in her 50s, purple cardigan, necklace, hospice volunteer/nurse",
+  "Pedestrian A": "Young man, t-shirt, cap, casual stance, looking down",
+  "Pedestrian B": "Woman in business casual, cross-body purse, brisk walking pose",
+  "Pedestrian C": "Middle-aged man, polo shirt, slacks, shopping bags",
+  "Pedestrian D": "Young woman, flannel shirt, jeans, ponytail, rural look",
+  "Pedestrian E": "Elderly man, cap, vest, slight stoop, slow walking pose",
+  "Pedestrian F": "Elderly woman, floral blouse, wide sun hat, handbag"
+};
+
+const LABELS = ['A','B','C','D'];
+
+// Selections state
+const selections = {};
+
+// Group generations by character
+const charMap = {};
+GENERATIONS.forEach(g => {
+  if (!charMap[g.c]) charMap[g.c] = {};
+  charMap[g.c][g.v] = g.u;
+});
+
+const NAMED = ["Uncle Bob","Frank Fischbach","Dr. Ellen Harwick","Darlene Kowalski","Walt Harmon","Kacey Harmon","Silas Crenshaw","Carl Tanner","June (Postmaster)","Rose (Waitress)","Lloyd Petersen","Terri Vogel"];
+const PEDESTRIANS = ["Pedestrian A","Pedestrian B","Pedestrian C","Pedestrian D","Pedestrian E","Pedestrian F"];
+
+function slugify(s) { return s.replace(/[^a-zA-Z0-9]/g, '_'); }
+
+function buildTOC() {
+  const toc = document.getElementById('toc');
+  let html = '';
+  NAMED.forEach(n => {
+    html += `<a href="#char_${slugify(n)}"><strong>${n}</strong><span class="type-tag">Named NPC</span></a>`;
+  });
+  PEDESTRIANS.forEach(n => {
+    html += `<a href="#char_${slugify(n)}"><strong>${n}</strong><span class="type-tag">Pedestrian</span></a>`;
+  });
+  toc.innerHTML = html;
+}
+
+function selectCard(charName, view, idx) {
+  const key = `${charName}|${view}`;
+  selections[key] = LABELS[idx];
+
+  // Update card visuals
+  const cards = document.querySelectorAll(`.sprite-card[data-key="${CSS.escape(key)}"]`);
+  cards.forEach((card, i) => {
+    card.classList.toggle('selected', i === idx);
+  });
+
+  // Update input
+  const input = document.getElementById(`input_${slugify(key)}`);
+  if (input && !input.value) input.value = `Option ${LABELS[idx]}`;
+
+  updateSummary();
+}
+
+function buildCharSection(name) {
+  const data = charMap[name];
+  if (!data) return '';
+  const id = slugify(name);
+  const desc = DESCRIPTIONS[name] || '';
+
+  let html = `<div class="character-section" id="char_${id}">`;
+  html += `<div class="char-header"><h3>${name}</h3><span class="desc">${desc}</span></div>`;
+
+  ['front-facing','top-down'].forEach(view => {
+    const urls = data[view];
+    if (!urls) return;
+    const key = `${name}|${view}`;
+    const viewLabel = view === 'front-facing' ? 'Front-Facing (Dialogue/Shop)' : 'Top-Down (Overworld)';
+
+    html += `<div class="view-label">${viewLabel}</div>`;
+    html += `<div class="sprite-grid">`;
+    urls.forEach((url, i) => {
+      html += `<div class="sprite-card" data-key="${key}" onclick="selectCard('${name.replace(/'/g,"\'")}','${view}',${i})">`;
+      html += `<img src="${url}" alt="${name} ${view} Option ${LABELS[i]}" loading="lazy">`;
+      html += `<div class="option-label">Option ${LABELS[i]}</div>`;
+      html += `</div>`;
+    });
+    html += `</div>`;
+    html += `<div class="selection-row">`;
+    html += `<label>Pick:</label>`;
+    html += `<input type="text" id="input_${slugify(key)}" placeholder="Click a sprite above or type your choice/notes...">`;
+    html += `</div>`;
+  });
+
+  html += `</div><hr class="char-divider">`;
+  return html;
+}
+
+function buildAll() {
+  buildTOC();
+  const container = document.getElementById('characters');
+  let html = '';
+
+  html += `<div class="section-divider"><h2>Named NPCs</h2></div>`;
+  NAMED.forEach(n => { html += buildCharSection(n); });
+
+  html += `<div class="section-divider"><h2>Pedestrians</h2></div>`;
+  PEDESTRIANS.forEach(n => { html += buildCharSection(n); });
+
+  container.innerHTML = html;
+  updateSummary();
+}
+
+function updateSummary() {
+  const tbody = document.getElementById('summary-body');
+  const allChars = [...NAMED, ...PEDESTRIANS];
+  let html = '';
+  allChars.forEach(name => {
+    const fKey = `${name}|front-facing`;
+    const tKey = `${name}|top-down`;
+    const fInput = document.getElementById(`input_${slugify(fKey)}`);
+    const tInput = document.getElementById(`input_${slugify(tKey)}`);
+    const fVal = selections[fKey] || (fInput ? fInput.value : '') || '-';
+    const tVal = selections[tKey] || (tInput ? tInput.value : '') || '-';
+    html += `<tr><td><strong>${name}</strong></td><td>${fVal}</td><td>${tVal}</td><td></td></tr>`;
+  });
+  tbody.innerHTML = html;
+}
+
+function exportSelections() {
+  const allChars = [...NAMED, ...PEDESTRIANS];
+  let text = "SMOKE & HONEY - NPC SPRITE SELECTIONS\n";
+  text += "=" .repeat(50) + "\n\n";
+
+  allChars.forEach(name => {
+    const fKey = `${name}|front-facing`;
+    const tKey = `${name}|top-down`;
+    const fInput = document.getElementById(`input_${slugify(fKey)}`);
+    const tInput = document.getElementById(`input_${slugify(tKey)}`);
+    const fVal = selections[fKey] || (fInput ? fInput.value : '') || '(no selection)';
+    const tVal = selections[tKey] || (tInput ? tInput.value : '') || '(no selection)';
+    text += `${name}:\n  Front-facing: ${fVal}\n  Top-down: ${tVal}\n\n`;
+  });
+
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Selections copied to clipboard!');
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('Selections copied to clipboard!');
+  });
+}
+
+// Build the page
+buildAll();
+</script>
+</body>
+</html>

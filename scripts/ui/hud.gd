@@ -29,6 +29,27 @@ var _slots: Array = []
 var _menu_open: bool = false
 var _summary_overlay: ColorRect = null
 
+# -- Tab-toggle info panel --
+var _info_panel: ColorRect = null
+var _info_visible: bool = false
+var _info_month_lbl: Label = null
+var _info_day_lbl: Label = null
+var _info_time_lbl: Label = null
+var _info_weather_lbl: Label = null
+var _info_money_lbl: Label = null
+var _info_honey_lbl: Label = null
+var _info_level_lbl: Label = null
+var _info_xp_fill: TextureRect = null
+var _info_xp_lbl: Label = null
+var _info_season_icon: TextureRect = null
+var _info_energy_lbl: Label = null
+
+# -- Honey energy bar (always visible, upper-left) --
+var _honey_energy_bar: Control = null
+var _honey_energy_fill: ColorRect = null
+var _honey_energy_drip: ColorRect = null
+var _honey_energy_pct_lbl: Label = null
+
 # -- Hotbar --
 var _hotbar_bar: ColorRect = null
 var _hotbar_slots: Array = []
@@ -36,13 +57,25 @@ var _active_slot_idx: int = 0
 var _active_item_lbl: Label = null
 var _slot_icons: Array = []
 var _item_textures: Dictionary = {}
+var _weather_lbl: Label = null
 var _last_time_text: String = ""
 var _last_season: String = ""
+var _last_weather: String = ""
 var _season_textures: Dictionary = {}
+
+# Dev-mode weather labels
+var _dev_weather_lbl: Label = null
+var _dev_weather_prob_lbl: Label = null
 
 # Dev-mode widget refs
 var _dev_panel: ColorRect = null
-var _dev_adv_panel: Control = null
+var _dev_day_btn: Button = null
+var _dev_adv_panel: Node = null  # bare Node container (no layout)
+var _dev_month_advancing: bool = false
+var _dev_month_days_left: int = 0
+var _dev_month_start_day: int = 0
+var _dev_month_start_month: String = ""
+var _dev_month_btn: Button = null
 var _dev_level_lbl: Label = null
 var _dev_day_lbl: Label = null
 var _dev_season_lbl: Label = null
@@ -85,7 +118,11 @@ func _ready() -> void:
 	_load_season_textures()
 	_load_item_textures()
 	_build_top_bar()
-	# Bottom bar removed -- only hotbar remains at screen bottom
+	# Hide top bar by default -- Tab key toggles the info panel instead
+	if _top_bar:
+		_top_bar.visible = false
+	_build_honey_energy_bar()
+	_build_info_panel()
 	_build_dev_level_widget()
 
 	TimeManager.day_advanced.connect(_on_day_advanced)
@@ -97,6 +134,8 @@ func _ready() -> void:
 	GameData.xp_gained.connect(_on_xp_changed)
 	GameData.level_up.connect(_on_level_up)
 	GameData.dev_labels_toggled.connect(_on_dev_toggled)
+	if WeatherManager:
+		WeatherManager.weather_changed.connect(_on_weather_changed)
 
 	if next_day_button:
 		next_day_button.pressed.connect(_on_next_day_button_pressed)
@@ -143,10 +182,273 @@ func _build_top_bar() -> void:
 
 	_top_bar.add_child(_make_lbl(".", 6, Vector2(107, 4), Vector2(6, 8), C_MUTED))
 
-	_time_lbl2 = _make_lbl("6:00 AM", 6, Vector2(114, 4), Vector2(80, 8), C_MUTED)
+	_time_lbl2 = _make_lbl("6:00 AM", 6, Vector2(114, 4), Vector2(50, 8), C_MUTED)
 	_top_bar.add_child(_time_lbl2)
 
+	# Weather indicator (short text, between time and map hint)
+	var weather_text: String = "Sunny"
+	if WeatherManager:
+		weather_text = WeatherManager.get_weather_icon_text()
+	_weather_lbl = _make_lbl(weather_text, 5, Vector2(168, 5), Vector2(60, 7), _weather_color())
+	_top_bar.add_child(_weather_lbl)
+
 	_top_bar.add_child(_make_lbl("[M] Map", 5, Vector2(VP_W - 34, 5), Vector2(32, 7), C_MUTED))
+
+
+# =============================================================================
+# Honey-Themed Energy Bar (always visible, upper-left)
+# =============================================================================
+
+func _build_honey_energy_bar() -> void:
+	# Container for the entire energy bar widget
+	_honey_energy_bar = Control.new()
+	_honey_energy_bar.name = "HoneyEnergyBar"
+	_honey_energy_bar.position = Vector2(3, 3)
+	_honey_energy_bar.size = Vector2(52, 10)
+	_honey_energy_bar.z_index = 5
+	_honey_energy_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_honey_energy_bar)
+
+	# Outer border -- dark honey comb edge
+	var border = ColorRect.new()
+	border.size = Vector2(52, 10)
+	border.position = Vector2.ZERO
+	border.color = Color(0.40, 0.25, 0.05, 0.95)
+	border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_honey_energy_bar.add_child(border)
+
+	# Inner background -- dark honeycomb cell
+	var bg = ColorRect.new()
+	bg.size = Vector2(50, 8)
+	bg.position = Vector2(1, 1)
+	bg.color = Color(0.12, 0.08, 0.02, 0.95)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	border.add_child(bg)
+
+	# Honey fill -- golden amber gradient feel
+	_honey_energy_fill = ColorRect.new()
+	_honey_energy_fill.size = Vector2(50, 8)
+	_honey_energy_fill.position = Vector2(1, 1)
+	_honey_energy_fill.color = Color(0.92, 0.65, 0.08, 1.0)
+	_honey_energy_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	border.add_child(_honey_energy_fill)
+
+	# Honey highlight stripe (top reflection)
+	var highlight = ColorRect.new()
+	highlight.size = Vector2(48, 2)
+	highlight.position = Vector2(2, 2)
+	highlight.color = Color(1.0, 0.88, 0.35, 0.30)
+	highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_honey_energy_fill.add_child(highlight)
+
+	# Honey drip at right edge of fill -- tiny 2x3 drip
+	_honey_energy_drip = ColorRect.new()
+	_honey_energy_drip.size = Vector2(2, 3)
+	_honey_energy_drip.position = Vector2(49, 8)
+	_honey_energy_drip.color = Color(0.85, 0.55, 0.05, 0.85)
+	_honey_energy_drip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	border.add_child(_honey_energy_drip)
+
+	# Decorative hex caps on left/right ends (1px wide accents)
+	var cap_l = ColorRect.new()
+	cap_l.size = Vector2(1, 6)
+	cap_l.position = Vector2(1, 2)
+	cap_l.color = Color(0.70, 0.45, 0.08, 0.50)
+	cap_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	border.add_child(cap_l)
+
+	var cap_r = ColorRect.new()
+	cap_r.size = Vector2(1, 6)
+	cap_r.position = Vector2(50, 2)
+	cap_r.color = Color(0.70, 0.45, 0.08, 0.50)
+	cap_r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	border.add_child(cap_r)
+
+	# "[Tab]" hint label below the bar
+	var tab_hint = _make_lbl("[Tab]", 4, Vector2(0, 11), Vector2(52, 6), Color(0.55, 0.45, 0.25, 0.60))
+	tab_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_honey_energy_bar.add_child(tab_hint)
+
+	_refresh_honey_energy()
+
+
+func _refresh_honey_energy() -> void:
+	if not _honey_energy_fill:
+		return
+	var pct = clampf(GameData.energy / GameData.max_energy, 0.0, 1.0)
+	var max_w: float = 50.0
+	_honey_energy_fill.size.x = pct * max_w
+
+	# Color shifts: full=golden, mid=amber, low=dark reddish honey
+	if pct < 0.20:
+		_honey_energy_fill.color = Color(0.65, 0.25, 0.05, 1.0)  # dark burnt honey
+	elif pct < 0.45:
+		_honey_energy_fill.color = Color(0.80, 0.45, 0.06, 1.0)  # deep amber
+	else:
+		_honey_energy_fill.color = Color(0.92, 0.65, 0.08, 1.0)  # bright golden honey
+
+	# Position drip at right edge of fill
+	if _honey_energy_drip:
+		_honey_energy_drip.position.x = 1.0 + pct * max_w - 1.0
+		_honey_energy_drip.visible = pct > 0.05 and pct < 0.95
+
+
+# =============================================================================
+# Tab-Toggle Info Panel (time, date, money, etc.)
+# =============================================================================
+
+func _build_info_panel() -> void:
+	_info_panel = ColorRect.new()
+	_info_panel.name = "InfoPanel"
+	_info_panel.size = Vector2(140, 62)
+	_info_panel.position = Vector2(3, 18)
+	_info_panel.color = Color(0.08, 0.06, 0.03, 0.92)
+	_info_panel.z_index = 4
+	_info_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_info_panel.visible = false
+	add_child(_info_panel)
+
+	# Gold border
+	var brd_style = StyleBoxFlat.new()
+	brd_style.bg_color = Color(0, 0, 0, 0)
+	brd_style.draw_center = false
+	brd_style.border_color = Color(0.75, 0.50, 0.10, 0.70)
+	brd_style.set_border_width_all(1)
+	var brd = Panel.new()
+	brd.set_anchors_preset(Control.PRESET_FULL_RECT)
+	brd.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	brd.add_theme_stylebox_override("panel", brd_style)
+	_info_panel.add_child(brd)
+
+	# Row 1: Season icon + Month + Day
+	_info_season_icon = TextureRect.new()
+	_info_season_icon.size = Vector2(10, 10)
+	_info_season_icon.position = Vector2(4, 4)
+	_info_season_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_info_season_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_info_panel.add_child(_info_season_icon)
+
+	_info_month_lbl = _make_lbl("Quickening", 6, Vector2(16, 4), Vector2(60, 8), C_TEXT)
+	_info_panel.add_child(_info_month_lbl)
+
+	_info_day_lbl = _make_lbl("Day 1", 6, Vector2(78, 4), Vector2(30, 8), C_MUTED)
+	_info_panel.add_child(_info_day_lbl)
+
+	# Row 2: Time + Weather
+	_info_time_lbl = _make_lbl("6:00 AM", 6, Vector2(4, 15), Vector2(55, 8), C_MUTED)
+	_info_panel.add_child(_info_time_lbl)
+
+	var w_text: String = "Sunny"
+	if WeatherManager:
+		w_text = WeatherManager.get_weather_icon_text()
+	_info_weather_lbl = _make_lbl(w_text, 5, Vector2(62, 16), Vector2(74, 7), _weather_color())
+	_info_panel.add_child(_info_weather_lbl)
+
+	# Divider
+	var div = ColorRect.new()
+	div.color = Color(0.75, 0.50, 0.10, 0.35)
+	div.size = Vector2(132, 1)
+	div.position = Vector2(4, 26)
+	div.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_info_panel.add_child(div)
+
+	# Row 3: Money + Honey
+	_info_money_lbl = _make_lbl("$0", 6, Vector2(4, 30), Vector2(40, 8), C_TEXT)
+	_info_panel.add_child(_info_money_lbl)
+
+	_info_honey_lbl = _make_lbl("0 lbs honey", 6, Vector2(48, 30), Vector2(60, 8), C_HONEY)
+	_info_panel.add_child(_info_honey_lbl)
+
+	# Row 4: Energy text + Level + XP
+	_info_energy_lbl = _make_lbl("Energy: 100%", 5, Vector2(4, 41), Vector2(60, 7), C_ACCENT)
+	_info_panel.add_child(_info_energy_lbl)
+
+	_info_level_lbl = _make_lbl("Lvl 1", 5, Vector2(68, 41), Vector2(30, 7), C_ACCENT)
+	_info_panel.add_child(_info_level_lbl)
+
+	# XP bar in info panel
+	var xbg = ColorRect.new()
+	xbg.size = Vector2(36, 3)
+	xbg.position = Vector2(100, 43)
+	xbg.color = Color(0.20, 0.14, 0.05, 0.9)
+	xbg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_info_panel.add_child(xbg)
+
+	_info_xp_fill = TextureRect.new()
+	_info_xp_fill.size = Vector2(0, 3)
+	_info_xp_fill.position = Vector2(100, 43)
+	_info_xp_fill.stretch_mode = TextureRect.STRETCH_SCALE
+	_info_xp_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var xfill_path = "res://assets/sprites/ui/xp_bar_fill.png"
+	if ResourceLoader.exists(xfill_path):
+		_info_xp_fill.texture = load(xfill_path)
+	_info_panel.add_child(_info_xp_fill)
+
+	_info_xp_lbl = _make_lbl("", 4, Vector2(100, 47), Vector2(36, 6), C_MUTED)
+	_info_panel.add_child(_info_xp_lbl)
+
+	# Hint at bottom
+	var hint = _make_lbl("[Tab] to close  |  [M] Map  |  [Z] Sleep", 4, Vector2(4, 54), Vector2(132, 6), Color(0.50, 0.45, 0.35, 0.60))
+	_info_panel.add_child(hint)
+
+
+func _toggle_info_panel() -> void:
+	_info_visible = not _info_visible
+	if _info_panel:
+		_info_panel.visible = _info_visible
+	if _info_visible:
+		_refresh_info_panel()
+
+
+func _refresh_info_panel() -> void:
+	if not _info_panel or not _info_panel.visible:
+		return
+	if _info_month_lbl:
+		_info_month_lbl.text = TimeManager.current_month_name()
+	if _info_day_lbl:
+		_info_day_lbl.text = "Day %d" % TimeManager.current_day_of_month()
+	if _info_time_lbl:
+		_info_time_lbl.text = "%s  %s" % [TimeManager.format_time(), TimeManager.time_of_day_name()]
+	if _info_weather_lbl and WeatherManager:
+		_info_weather_lbl.text = WeatherManager.get_weather_description()
+		_info_weather_lbl.add_theme_color_override("font_color", _weather_color())
+	if _info_money_lbl:
+		var m = GameData.money
+		if m < 1000.0:
+			_info_money_lbl.text = "$%.0f" % m
+		else:
+			_info_money_lbl.text = "$%.1fk" % (m / 1000.0)
+	if _info_honey_lbl:
+		var player = get_tree().get_first_node_in_group("player") if get_tree() else null
+		var cnt = 0
+		if player and player.has_method("get_item_count"):
+			cnt += player.get_item_count(GameData.ITEM_RAW_HONEY)
+			cnt += player.get_item_count(GameData.ITEM_HONEY_JAR)
+		_info_honey_lbl.text = "%d lbs honey" % cnt
+	if _info_energy_lbl:
+		var pct_val = int(clampf(GameData.energy / GameData.max_energy, 0.0, 1.0) * 100.0)
+		_info_energy_lbl.text = "Energy: %d%%" % pct_val
+	if _info_level_lbl:
+		_info_level_lbl.text = "Lvl %d %s" % [GameData.player_level, GameData.get_level_title()]
+	if _info_xp_fill:
+		var threshold = 0
+		if GameData.player_level <= GameData.XP_THRESHOLDS.size():
+			threshold = GameData.XP_THRESHOLDS[GameData.player_level - 1]
+		var pct = clampf(float(GameData.xp) / float(maxi(threshold, 1)), 0.0, 1.0)
+		_info_xp_fill.size.x = pct * 36.0
+	if _info_xp_lbl:
+		var threshold = 0
+		if GameData.player_level <= GameData.XP_THRESHOLDS.size():
+			threshold = GameData.XP_THRESHOLDS[GameData.player_level - 1]
+		if threshold > 0:
+			_info_xp_lbl.text = "%d/%d XP" % [GameData.xp, threshold]
+		else:
+			_info_xp_lbl.text = "MAX"
+	# Season icon
+	if _info_season_icon:
+		var s = TimeManager.current_season_name().to_lower()
+		if _season_textures.has(s):
+			_info_season_icon.texture = _season_textures[s]
 
 
 func _build_bottom_bar() -> void:
@@ -248,55 +550,73 @@ func _build_bottom_bar() -> void:
 # Dev-Mode Level Widget
 # =============================================================================
 
-func _build_dev_level_widget() -> void:
-	# LEFT PANEL: +Day button
-	var adv_w = 36
-	var adv_h = 18
+## Create a small fixed-size Button that won't auto-expand inside CanvasLayer.
+## We force size by overriding ALL stylebox states with zero-margin StyleBoxFlats.
+func _create_dev_button(label: String, pos: Vector2, sz: Vector2,
+		border_col: Color, bg_col: Color) -> Button:
+	var btn := Button.new()
+	btn.text = label
+	btn.clip_text = true
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.add_theme_font_size_override("font_size", 5)
+	btn.add_theme_color_override("font_color", Color(0.95, 0.90, 0.75))
+	btn.add_theme_color_override("font_hover_color", border_col)
+	btn.add_theme_color_override("font_pressed_color", Color(1.0, 1.0, 1.0))
+	# Override every stylebox state so the default theme can't inflate size
+	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = bg_col if state != "hover" else bg_col.lightened(0.15)
+		if state == "pressed":
+			sb.bg_color = bg_col.lightened(0.3)
+		if state == "focus":
+			sb.bg_color = Color(0, 0, 0, 0)
+		sb.border_color = border_col
+		sb.set_border_width_all(1)
+		sb.set_content_margin_all(0)
+		btn.add_theme_stylebox_override(state, sb)
+	btn.z_index = 20
+	# Pin the button to an absolute rect via offsets (no anchor stretching)
+	btn.anchor_left = 0
+	btn.anchor_top = 0
+	btn.anchor_right = 0
+	btn.anchor_bottom = 0
+	btn.offset_left = pos.x
+	btn.offset_top = pos.y
+	btn.offset_right = pos.x + sz.x
+	btn.offset_bottom = pos.y + sz.y
+	return btn
 
-	_dev_adv_panel = Control.new()
-	_dev_adv_panel.position = Vector2(2, TOP_H + 2)
-	_dev_adv_panel.size = Vector2(adv_w, adv_h)
-	_dev_adv_panel.z_index = 20
-	_dev_adv_panel.visible = GameData.dev_labels_visible
+func _build_dev_level_widget() -> void:
+	# LEFT PANEL: +Day (top) and +Month (below) buttons
+	# Use a bare Node container so CanvasLayer layout does not auto-expand it.
+	var btn_w: int = 52
+	var btn_h: int = 14
+	var gap: int = 3
+	var base_y: int = 20  # just below energy bar
+
+	_dev_adv_panel = Node.new()
+	_dev_adv_panel.name = "DevAdvPanel"
 	add_child(_dev_adv_panel)
 
-	var btn_adv = Button.new()
-	btn_adv.text = "+ Day"
-	btn_adv.position = Vector2.ZERO
-	btn_adv.size = Vector2(adv_w, adv_h)
-	btn_adv.add_theme_font_size_override("font_size", 5)
-	btn_adv.add_theme_color_override("font_color", C_TEXT)
-	btn_adv.add_theme_color_override("font_hover_color", C_ACCENT)
-	btn_adv.add_theme_color_override("font_pressed_color", Color(1.0, 1.0, 1.0))
+	# Helper: create a fixed-size dev button as a ColorRect + Label combo
+	# (avoids Button auto-sizing issues inside CanvasLayer)
+	_dev_day_btn = _create_dev_button("+ Day", Vector2(2, base_y),
+		Vector2(btn_w, btn_h), C_ACCENT, Color(0.15, 0.10, 0.05, 0.95))
+	_dev_day_btn.pressed.connect(_on_dev_advance_day)
+	_dev_adv_panel.add_child(_dev_day_btn)
 
-	var sb_normal = StyleBoxFlat.new()
-	sb_normal.bg_color = Color(0.15, 0.10, 0.05, 0.95)
-	sb_normal.border_color = C_ACCENT
-	sb_normal.set_border_width_all(1)
-	sb_normal.set_content_margin_all(0)
-	btn_adv.add_theme_stylebox_override("normal", sb_normal)
+	_dev_month_btn = _create_dev_button("+ Month", Vector2(2, base_y + btn_h + gap),
+		Vector2(btn_w, btn_h), Color(0.95, 0.65, 0.20), Color(0.18, 0.10, 0.02, 0.95))
+	_dev_month_btn.pressed.connect(_on_dev_advance_month)
+	_dev_adv_panel.add_child(_dev_month_btn)
 
-	var sb_hover = StyleBoxFlat.new()
-	sb_hover.bg_color = Color(0.22, 0.16, 0.08, 0.95)
-	sb_hover.border_color = C_ACCENT
-	sb_hover.set_border_width_all(1)
-	sb_hover.set_content_margin_all(0)
-	btn_adv.add_theme_stylebox_override("hover", sb_hover)
+	# Sync visibility
+	_dev_day_btn.visible = GameData.dev_labels_visible
+	_dev_month_btn.visible = GameData.dev_labels_visible
 
-	var sb_pressed = StyleBoxFlat.new()
-	sb_pressed.bg_color = Color(0.30, 0.22, 0.10, 0.95)
-	sb_pressed.border_color = C_ACCENT
-	sb_pressed.set_border_width_all(1)
-	sb_pressed.set_content_margin_all(0)
-	btn_adv.add_theme_stylebox_override("pressed", sb_pressed)
-
-	btn_adv.focus_mode = Control.FOCUS_NONE
-	btn_adv.pressed.connect(_on_dev_advance_day)
-	_dev_adv_panel.add_child(btn_adv)
-
-	# RIGHT PANEL: stat box
+	# RIGHT PANEL: stat box (expanded for weather info)
 	var panel_w = 78
-	var panel_h = 92
+	var panel_h = 116
 	_dev_panel = ColorRect.new()
 	_dev_panel.color = Color(0.15, 0.10, 0.05, 0.92)
 	_dev_panel.size = Vector2(panel_w, panel_h)
@@ -404,6 +724,28 @@ func _build_dev_level_widget() -> void:
 	_dev_roll_lbl.name = "DevRollLbl"
 	inner.add_child(_dev_roll_lbl)
 
+	# Divider 3 (weather section)
+	var div3 = ColorRect.new()
+	div3.color = C_ACCENT
+	div3.size = Vector2(panel_w - 6, 1)
+	div3.position = Vector2(2, 87)
+	div3.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	inner.add_child(div3)
+
+	# Weather state + tomorrow's probabilities
+	var w_text: String = "W: Sunny"
+	if WeatherManager:
+		w_text = "W: %s" % WeatherManager.current_weather
+	_dev_weather_lbl = _make_lbl(w_text, 4, Vector2(3, 89), Vector2(panel_w - 6, 8), Color(0.50, 0.65, 0.85))
+	_dev_weather_lbl.name = "DevWeatherLbl"
+	inner.add_child(_dev_weather_lbl)
+
+	var prob_text: String = _get_weather_probability_text()
+	_dev_weather_prob_lbl = _make_lbl(prob_text, 3, Vector2(3, 99), Vector2(panel_w - 6, 14), C_MUTED)
+	_dev_weather_prob_lbl.name = "DevWeatherProbLbl"
+	_dev_weather_prob_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+	inner.add_child(_dev_weather_prob_lbl)
+
 
 func _on_dev_level_down() -> void:
 	var new_lvl = maxi(GameData.player_level - 1, 1)
@@ -422,6 +764,39 @@ func _on_dev_level_up() -> void:
 
 
 func _on_dev_advance_day() -> void:
+	# NOTE: Intentionally does NOT save.  Dev mode day-advance is for rapid
+	# testing only -- saving here would overwrite the player's real save state.
+	_dev_sim_one_day()
+	_refresh_all()
+	_refresh_dev_widget()
+
+
+func _on_dev_advance_month() -> void:
+	# Advance 28 days (one full in-game month) with full simulation each day.
+	# Uses a Timer node to spread days across real frames so all signal handlers
+	# (weather, flowers, hive ticks, notifications) can process cleanly.
+	# Does NOT save -- dev testing only.
+	if _dev_month_advancing:
+		return  # already in progress
+	_dev_month_advancing = true
+	_dev_month_days_left = 28
+	_dev_month_start_day = TimeManager.current_day
+	_dev_month_start_month = TimeManager.current_month_name()
+	if _dev_month_btn:
+		_dev_month_btn.text = "28..."
+		_dev_month_btn.disabled = true
+	# Create a one-shot Timer that fires every 0.05s (total ~1.4s for 28 days)
+	var timer = Timer.new()
+	timer.name = "DevMonthTimer"
+	timer.wait_time = 0.05
+	timer.one_shot = false
+	timer.timeout.connect(_dev_month_tick.bind(timer))
+	add_child(timer)
+	timer.start()
+
+
+func _dev_sim_one_day() -> void:
+	# Run one full day of simulation -- shared by +Day and +Month buttons.
 	for h in get_tree().get_nodes_in_group("hive"):
 		if h.has_method("advance_day"):
 			h.advance_day()
@@ -433,17 +808,53 @@ func _on_dev_advance_day() -> void:
 		_summary_overlay = null
 	TimeManager.start_new_day()
 	GameData.full_restore_energy()
+
+
+func _dev_month_tick(timer: Timer) -> void:
+	# Process one day per timer tick. Gives the engine a real frame between days.
+	if _dev_month_days_left <= 0:
+		timer.stop()
+		timer.queue_free()
+		_dev_month_finish()
+		return
+	_dev_sim_one_day()
+	_dev_month_days_left -= 1
+	if _dev_month_btn:
+		_dev_month_btn.text = "%d..." % _dev_month_days_left
+	_refresh_dev_widget()
+	if _dev_month_days_left <= 0:
+		timer.stop()
+		timer.queue_free()
+		_dev_month_finish()
+
+
+func _dev_month_finish() -> void:
+	_dev_month_advancing = false
+	if _dev_month_btn:
+		_dev_month_btn.text = "+ Month"
+		_dev_month_btn.disabled = false
 	_refresh_all()
 	_refresh_dev_widget()
+	var end_month: String = TimeManager.current_month_name()
+	var end_day: int = TimeManager.current_day
+	print("[DEV] Advanced 28 days: Day %d (%s) -> Day %d (%s)" % [
+		_dev_month_start_day, _dev_month_start_month, end_day, end_month])
+	if NotificationManager:
+		NotificationManager.notify(
+			"Dev: +28 days -> Day %d (%s)" % [end_day, end_month])
 
 
 func _on_dev_toggled(is_visible: bool) -> void:
 	if _dev_panel:
 		_dev_panel.visible = is_visible
-	if _dev_adv_panel:
-		_dev_adv_panel.visible = is_visible
+	if _dev_day_btn:
+		_dev_day_btn.visible = is_visible
+	if _dev_month_btn:
+		_dev_month_btn.visible = is_visible
+	# NOTE: next_day_button (scene "NextDayButton") is a legacy test button.
+	# Keep it hidden -- the programmatic +Day / +Month buttons replace it.
 	if next_day_button:
-		next_day_button.visible = is_visible
+		next_day_button.visible = false
 	_refresh_dev_widget()
 
 
@@ -475,6 +886,10 @@ func _refresh_dev_widget() -> void:
 		var roll_grade: String = _get_season_roll()
 		_dev_roll_lbl.text = "Season: %s" % roll_grade
 		_dev_roll_lbl.add_theme_color_override("font_color", _grade_color(roll_grade))
+	if _dev_weather_lbl and WeatherManager:
+		_dev_weather_lbl.text = "W: %s %.0fF" % [WeatherManager.current_weather, WeatherManager.current_temp_f]
+	if _dev_weather_prob_lbl:
+		_dev_weather_prob_lbl.text = _get_weather_probability_text()
 
 # =============================================================================
 # Helpers
@@ -516,6 +931,32 @@ func _grade_color(grade: String) -> Color:
 		"D": return Color(0.85, 0.40, 0.25, 1.0)   # Red-orange
 		"F": return Color(0.75, 0.25, 0.20, 1.0)   # Red
 	return C_MUTED
+
+
+func _get_weather_probability_text() -> String:
+	if not WeatherManager:
+		return "No weather data"
+	var mi: int = TimeManager.current_month_index()
+	if mi < 0 or mi >= WeatherManager.WEATHER_WEIGHTS.size():
+		return "?"
+	var weights: Array = WeatherManager.WEATHER_WEIGHTS[mi]
+	# Collect top 3 most likely weather states
+	var pairs: Array = []
+	for i in range(mini(weights.size(), WeatherManager.WEATHER_NAMES.size())):
+		if float(weights[i]) > 0.01:
+			pairs.append([WeatherManager.WEATHER_NAMES[i], float(weights[i]) * 100.0])
+	# Sort descending by percentage (index 1)
+	pairs.sort_custom(_sort_weather_pairs)
+	var result: String = ""
+	for j in range(mini(3, pairs.size())):
+		if result.length() > 0:
+			result += " "
+		result += "%s:%d%%" % [str(pairs[j][0]).left(3), int(pairs[j][1])]
+	return result
+
+
+func _sort_weather_pairs(a: Array, b: Array) -> bool:
+	return a[1] > b[1]
 
 
 func _get_zone_nectar_units() -> int:
@@ -617,9 +1058,11 @@ func _hide_legacy_nodes() -> void:
 
 func _on_hour_changed(_h: float) -> void:
 	_refresh_time()
+	_refresh_info_panel()
 
 func _on_day_advanced(_d: int) -> void:
 	_refresh_date()
+	_refresh_info_panel()
 
 func _on_midnight_reached() -> void:
 	if GameData.dev_labels_visible:
@@ -632,6 +1075,7 @@ func _on_season_changed(_s: String) -> void:
 
 func _on_money_changed(_a: float) -> void:
 	_refresh_money()
+	_refresh_info_panel()
 
 func _on_energy_changed(_a: float) -> void:
 	_refresh_energy()
@@ -642,6 +1086,10 @@ func _on_xp_changed(_a: int, _t: int) -> void:
 func _on_level_up(l: int) -> void:
 	_refresh_level(l)
 
+func _on_weather_changed(_w: String) -> void:
+	_refresh_weather()
+	_refresh_info_panel()
+
 # =============================================================================
 # Refresh
 # =============================================================================
@@ -650,6 +1098,7 @@ func _refresh_all() -> void:
 	_refresh_date()
 	_refresh_time()
 	_refresh_season_icon()
+	_refresh_weather()
 	var player = get_tree().get_first_node_in_group("player") if get_tree() else null
 	if player and player.has_method("update_hud_inventory"):
 		player.update_hud_inventory()
@@ -684,6 +1133,33 @@ func _refresh_season_icon() -> void:
 		_season_icon.texture = _season_textures[s]
 
 
+func _refresh_weather() -> void:
+	if not WeatherManager:
+		return
+	var w: String = WeatherManager.current_weather
+	if w == _last_weather:
+		return
+	_last_weather = w
+	if _weather_lbl:
+		_weather_lbl.text = WeatherManager.get_weather_description()
+		_weather_lbl.add_theme_color_override("font_color", _weather_color())
+
+
+func _weather_color() -> Color:
+	if not WeatherManager:
+		return C_MUTED
+	match WeatherManager.current_weather:
+		"Sunny":    return Color(0.95, 0.85, 0.40, 1.0)  # warm gold
+		"Overcast": return Color(0.70, 0.72, 0.75, 1.0)  # gray
+		"Rainy":    return Color(0.50, 0.60, 0.78, 1.0)  # blue-gray
+		"Windy":    return Color(0.65, 0.80, 0.65, 1.0)  # green-gray
+		"Cold":     return Color(0.60, 0.75, 0.90, 1.0)  # icy blue
+		"HeatWave": return Color(0.95, 0.60, 0.30, 1.0)  # orange
+		"Drought":  return Color(0.85, 0.70, 0.35, 1.0)  # dusty gold
+		"Foggy":    return Color(0.75, 0.75, 0.78, 1.0)  # pale gray
+	return C_MUTED
+
+
 func _refresh_honey() -> void:
 	var player = get_tree().get_first_node_in_group("player") if get_tree() else null
 	var cnt = 0
@@ -715,6 +1191,8 @@ func _refresh_energy() -> void:
 			_energy_fill.modulate = Color(0.85, 0.45, 0.10, 1.0)
 		else:
 			_energy_fill.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	_refresh_honey_energy()
+	_refresh_info_panel()
 
 
 func _refresh_xp() -> void:
@@ -748,6 +1226,8 @@ func _input(event: InputEvent) -> void:
 			_toggle_pause()
 		KEY_Z:
 			_on_next_day_button_pressed()
+		KEY_TAB:
+			_toggle_info_panel()
 
 
 func _on_next_day_button_pressed() -> void:
@@ -866,6 +1346,14 @@ func _show_daily_summary() -> void:
 
 
 func _on_summary_accepted(overlay: ColorRect) -> void:
+	# Save the game BEFORE advancing -- captures end-of-day state.
+	# Dev mode advance_day (G-key / HUD button) intentionally skips saving.
+	var ok := SaveManager.save_game()
+	if ok:
+		print("[HUD] Game saved (bed sleep) -- Day %d" % TimeManager.current_day)
+	else:
+		push_warning("[HUD] Save failed before day advance!")
+
 	for h in get_tree().get_nodes_in_group("hive"):
 		if h.has_method("advance_day"):
 			h.advance_day()

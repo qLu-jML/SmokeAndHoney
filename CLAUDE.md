@@ -58,6 +58,17 @@ All non-game files belong in `research/`:
 
 When creating temporary files, research outputs, design documents, or any non-game files, always place them in the appropriate `research/` subdirectory.
 
+### Art Asset Creation -- Leonardo AI Only
+All art assets for Smoke & Honey MUST be created using Leonardo AI, consistent with the project's established perspective and art style. Requirements:
+- Reference the "Smoke and Honey" collection in Leonardo to maintain visual cohesiveness across all generated assets
+- Use the GDD style guide (section 10.1) for palette and art direction, and the GDD Master Prompt Block as the base template
+- Use the correct perspective: front-facing view with camera directly in front, facade faces viewer straight on, NO side walls visible, NOT isometric, roof extends away from viewer toward top of image showing shingle texture from above, front wall is a flat strip at bottom of sprite
+- All assets use the 32x32 tile grid
+- Every generated asset must be shown to Nathan for approval before being added to the project or collection
+- Credits are limited -- get perspective and style right on the first attempt
+
+Do NOT create placeholder art, programmer art, or assets using any other tool. If art is needed and Leonardo is not available, flag it as a pending art task rather than substituting.
+
 ### Git Version Control
 This project uses git (GitHub remote: SmokeAndHoney). Commit when:
 - A meaningful feature or fix is complete

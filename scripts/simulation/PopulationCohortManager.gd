@@ -33,11 +33,13 @@ class_name PopulationCohortManager
 
 # Summer baseline mortality rates (fraction of cohort that dies per day).
 # These apply at season_factor = 1.0 (peak summer).
-const NURSE_MORTALITY_SUMMER   := 0.005   # ~200-day lifespan within cohort; most
-                                           # nurses graduate rather than die
-const HOUSE_MORTALITY_SUMMER   := 0.008
-const FORAGER_MORTALITY_SUMMER := 0.055   # foragers die fastest (predation,
-                                           # exhaustion); ~18-day forager phase ?
+# Validated by Karpathy research Phase 2: S-tier 5-year population dynamics.
+# S-tier targets: 55-70k summer peak, 20-30k winter minimum.
+const NURSE_MORTALITY_SUMMER   := 0.0023  # ~43-day avg lifespan; most nurses
+                                           # graduate rather than die
+const HOUSE_MORTALITY_SUMMER   := 0.0038
+const FORAGER_MORTALITY_SUMMER := 0.037   # ~27-day avg forager lifespan
+                                           # (predation + exhaustion)
 const DRONE_MORTALITY_SUMMER   := 0.012   # summer drones; expelled aggressively
                                            # as season_factor drops (see below)
 
@@ -45,10 +47,11 @@ const DRONE_MORTALITY_SUMMER   := 0.012   # summer drones; expelled aggressively
 # Science: Amdam & Omholt (2002) -- winter bees downregulate foraging-related genes
 # and upregulate vitellogenin; cluster mortality is driven by starvation/cold, not
 # normal senescence.  Effective lifespan 90-180 days vs. 25-45 days in summer.
-const NURSE_MORTALITY_WINTER   := 0.003
-const HOUSE_MORTALITY_WINTER   := 0.003
-const FORAGER_MORTALITY_WINTER := 0.004   # bees in cluster do not forage; very
-                                           # low attrition when food is adequate
+# Validated by Karpathy Phase 2: winter cluster maintains 20-30k for S-tier.
+const NURSE_MORTALITY_WINTER   := 0.018   # ~56-day lifespan in winter cluster
+const HOUSE_MORTALITY_WINTER   := 0.018
+const FORAGER_MORTALITY_WINTER := 0.030   # higher than indoor bees even in
+                                           # winter; occasional cleansing flights
 
 # Days a bee spends in each cohort before graduating.
 const NURSE_DAYS   := 12   # Days 1-12 post-emergence: nurse/hive phase

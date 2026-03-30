@@ -1,0 +1,1889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smoke and Honey: A Real Beekeeper's Hive Simulator — Kickstarter</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --amber: #C8860A;
+    --amber-light: #E8A820;
+    --amber-pale: #FDF3DC;
+    --amber-mid: #F5DFA0;
+    --honey: #D4960F;
+    --dark-wood: #3A2B1A;
+    --mid-wood: #6B4E2A;
+    --warm-brown: #8B6340;
+    --olive: #5A6B3A;
+    --cream: #FAF5EA;
+    --warm-white: #FFFEF8;
+    --text-dark: #2A1F0E;
+    --text-mid: #4A3825;
+    --text-light: #7A6450;
+    --ks-green: #05CE78;
+    --ks-dark: #1A1A2E;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #F5F0E8;
+    color: var(--text-dark);
+    line-height: 1.65;
+  }
+
+  /* ============ KS CHROME ============ */
+  .ks-nav {
+    background: var(--ks-dark);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .ks-logo {
+    color: var(--ks-green);
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.5px;
+  }
+  .ks-nav-links {
+    display: flex;
+    gap: 16px;
+    margin-left: auto;
+    font-size: 13px;
+    color: #aaa;
+  }
+
+  /* ============ HERO ============ */
+  .hero {
+    background: linear-gradient(165deg, #1A1208 0%, #3A2B1A 40%, #5A3D1A 70%, #8B6020 100%);
+    min-height: 520px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 24px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 70%, rgba(200, 134, 10, 0.18) 0%, transparent 70%);
+  }
+
+  .hero-bee-left, .hero-bee-right {
+    position: absolute;
+    font-size: 28px;
+    opacity: 0.25;
+  }
+  .hero-bee-left { top: 80px; left: 8%; animation: float 6s ease-in-out infinite; }
+  .hero-bee-right { top: 120px; right: 12%; animation: float 6s ease-in-out infinite 2s; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(-5deg); }
+    50% { transform: translateY(-12px) rotate(5deg); }
+  }
+
+  .hero-studio {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--amber-light);
+    margin-bottom: 16px;
+    font-weight: 500;
+    position: relative;
+  }
+
+  .hero-title {
+    font-family: 'Lora', serif;
+    font-size: clamp(32px, 5vw, 58px);
+    font-weight: 700;
+    color: #FFF8E8;
+    line-height: 1.15;
+    max-width: 700px;
+    margin-bottom: 16px;
+    position: relative;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+  }
+
+  .hero-title span {
+    color: var(--amber-light);
+  }
+
+  .hero-tagline {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: clamp(15px, 2vw, 19px);
+    color: rgba(255,248,220,0.75);
+    max-width: 520px;
+    margin-bottom: 36px;
+    position: relative;
+  }
+
+  /* Fake video player */
+  .video-placeholder {
+    width: 100%;
+    max-width: 660px;
+    background: #0A0806;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 2px solid rgba(200,134,10,0.3);
+    position: relative;
+    cursor: pointer;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+  }
+
+  .video-inner {
+    aspect-ratio: 16/9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, #1A0E04 0%, #2D1A08 60%, #1A0E04 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .video-inner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 32px,
+      rgba(200,134,10,0.03) 32px,
+      rgba(200,134,10,0.03) 33px
+    );
+  }
+
+  .video-play-btn {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: rgba(200,134,10,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    color: white;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 0 30px rgba(200,134,10,0.5);
+    transition: transform 0.2s;
+  }
+  .video-placeholder:hover .video-play-btn { transform: scale(1.08); }
+
+  .video-caption {
+    font-size: 12px;
+    color: rgba(255,248,220,0.4);
+    margin-top: 10px;
+    font-style: italic;
+  }
+
+  .video-label {
+    position: absolute;
+    bottom: 12px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255,248,220,0.45);
+    z-index: 2;
+    font-style: italic;
+  }
+
+  /* ============ KS PROJECT META BAR ============ */
+  .meta-bar {
+    background: white;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .meta-inner {
+    display: flex;
+    gap: 40px;
+    max-width: 900px;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .meta-item { flex: 1; min-width: 120px; }
+
+  .meta-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #888;
+    font-weight: 500;
+  }
+
+  .meta-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-top: 2px;
+  }
+
+  .meta-value.green { color: var(--ks-green); }
+
+  .meta-sub {
+    font-size: 12px;
+    color: #888;
+    margin-top: 2px;
+  }
+
+  .progress-bar-wrap {
+    background: #e8e8e8;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--ks-green);
+    border-radius: 4px;
+    width: 72%;
+  }
+
+  /* ============ MAIN LAYOUT ============ */
+  .main-wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 32px;
+    padding-top: 36px;
+    padding-bottom: 60px;
+  }
+
+  @media (max-width: 720px) {
+    .main-wrap { grid-template-columns: 1fr; }
+    .sidebar { order: -1; }
+  }
+
+  /* ============ CONTENT COLUMN ============ */
+  .content h2 {
+    font-family: 'Lora', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--dark-wood);
+    margin: 44px 0 14px;
+    padding-top: 12px;
+    border-top: 1px solid #E0D4B8;
+  }
+  .content h2:first-child { margin-top: 0; border-top: none; padding-top: 0; }
+
+  .content h3 {
+    font-family: 'Lora', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--mid-wood);
+    margin: 28px 0 10px;
+  }
+
+  .content p {
+    color: var(--text-mid);
+    margin-bottom: 14px;
+    font-size: 15.5px;
+  }
+
+  .content p strong {
+    color: var(--text-dark);
+    font-weight: 600;
+  }
+
+  .content ul {
+    margin: 10px 0 16px 20px;
+    color: var(--text-mid);
+    font-size: 15px;
+  }
+
+  .content ul li { margin-bottom: 6px; }
+
+  /* Letter section */
+  .letter-box {
+    background: var(--cream);
+    border-left: 4px solid var(--amber);
+    border-radius: 0 8px 8px 0;
+    padding: 28px 32px;
+    margin-bottom: 32px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  }
+
+  .letter-box p {
+    font-family: 'Lora', serif;
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--text-mid);
+    margin-bottom: 16px;
+  }
+
+  .letter-box p strong {
+    color: var(--dark-wood);
+  }
+
+  .letter-box .letter-sig {
+    margin-top: 20px;
+    font-style: italic;
+    color: var(--warm-brown);
+    font-size: 15px;
+  }
+
+  /* Differentiator cards */
+  .diff-card {
+    background: white;
+    border: 1px solid #E8DCC8;
+    border-radius: 10px;
+    padding: 22px 24px;
+    margin-bottom: 16px;
+    transition: box-shadow 0.2s;
+  }
+  .diff-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+
+  .diff-card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--dark-wood);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .diff-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--amber-pale);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  .diff-card p {
+    font-size: 14px;
+    color: var(--text-light);
+    margin: 0;
+  }
+
+  /* Art promise banner */
+  .art-banner {
+    background: linear-gradient(135deg, #1A1208 0%, #3A2410 100%);
+    border-radius: 12px;
+    padding: 32px;
+    margin: 32px 0;
+    text-align: center;
+    border: 1px solid rgba(200,134,10,0.3);
+  }
+
+  .art-banner h3 {
+    font-family: 'Lora', serif;
+    color: var(--amber-light);
+    font-size: 20px;
+    margin-bottom: 12px;
+    border: none;
+    margin-top: 0;
+  }
+
+  .art-banner p {
+    color: rgba(255,248,220,0.75);
+    font-size: 15px;
+    max-width: 460px;
+    margin: 0 auto 8px;
+  }
+
+  .art-placeholder-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 20px;
+  }
+
+  .art-placeholder-box {
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .art-pixel-mock {
+    aspect-ratio: 4/3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .art-pixel-mock.current {
+    background: repeating-linear-gradient(
+      45deg,
+      #1A1208,
+      #1A1208 4px,
+      #2A1E10 4px,
+      #2A1E10 8px
+    );
+    color: rgba(200,134,10,0.5);
+  }
+
+  .art-pixel-mock.final {
+    background: linear-gradient(160deg, #2D4A1A 0%, #4A6B2A 50%, #C8860A 100%);
+    color: rgba(255,255,255,0.6);
+  }
+
+  .art-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.6);
+    color: rgba(255,255,255,0.7);
+    text-align: center;
+    font-size: 11px;
+    padding: 5px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* Season table */
+  .season-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 14px;
+  }
+
+  .season-table th {
+    background: var(--dark-wood);
+    color: var(--amber-light);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .season-table tr:nth-child(even) td { background: var(--amber-pale); }
+  .season-table tr:nth-child(odd) td { background: white; }
+
+  .season-table td {
+    padding: 10px 14px;
+    color: var(--text-mid);
+    border-bottom: 1px solid #EDE0C4;
+  }
+
+  .season-table td:first-child { font-weight: 600; color: var(--dark-wood); }
+  .season-table td:nth-child(2) { color: var(--warm-brown); font-style: italic; }
+
+  /* Compare table */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 13.5px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .compare-table th {
+    background: var(--dark-wood);
+    color: var(--amber-light);
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .compare-table th:first-child { text-align: left; }
+
+  .compare-table tr:nth-child(even) td { background: #FAF6EE; }
+  .compare-table tr:nth-child(odd) td { background: white; }
+
+  .compare-table td {
+    padding: 10px 12px;
+    text-align: center;
+    border-bottom: 1px solid #EDE0C4;
+    color: var(--text-mid);
+  }
+
+  .compare-table td:first-child { text-align: left; font-weight: 500; color: var(--text-dark); }
+  .compare-table .yes { color: #2DAB60; font-weight: 700; }
+  .compare-table .no { color: #C0392B; }
+  .compare-table .ours { background: rgba(200,134,10,0.08) !important; }
+
+  /* Budget table */
+  .budget-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 14px;
+  }
+
+  .budget-table th {
+    background: var(--dark-wood);
+    color: var(--amber-light);
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .budget-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #EDE0C4;
+    color: var(--text-mid);
+  }
+
+  .budget-table tr:nth-child(odd) td { background: white; }
+  .budget-table tr:nth-child(even) td { background: var(--amber-pale); }
+
+  .budget-table .highlight-row td {
+    background: rgba(200,134,10,0.12) !important;
+    font-weight: 700;
+    color: var(--dark-wood);
+    font-size: 15px;
+  }
+
+  .budget-table .total-row td {
+    background: var(--dark-wood) !important;
+    color: var(--amber-light);
+    font-weight: 700;
+    font-size: 15px;
+    border-bottom: none;
+  }
+
+  .pct-bar {
+    height: 6px;
+    background: #e8e8e8;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .pct-fill { height: 100%; background: var(--amber); border-radius: 3px; }
+
+  /* FAQ */
+  .faq-item {
+    border: 1px solid #E0D4B8;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .faq-q {
+    padding: 16px 20px;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--dark-wood);
+    background: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .faq-q::after { content: '↓'; color: var(--amber); font-size: 14px; }
+
+  .faq-a {
+    padding: 14px 20px 16px;
+    background: var(--amber-pale);
+    font-size: 14.5px;
+    color: var(--text-mid);
+    border-top: 1px solid #E0D4B8;
+    line-height: 1.65;
+  }
+
+  /* ============ SIDEBAR ============ */
+  .sidebar { position: relative; }
+
+  .sidebar-sticky {
+    position: sticky;
+    top: 70px;
+  }
+
+  /* Pledge box */
+  .pledge-box {
+    background: white;
+    border: 1px solid #E0D4B8;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  }
+
+  .pledge-header {
+    background: var(--dark-wood);
+    padding: 16px 20px;
+  }
+
+  .pledge-amount {
+    font-size: 28px;
+    font-weight: 700;
+    color: white;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .pledge-amount span {
+    font-size: 14px;
+    color: rgba(255,248,220,0.6);
+    font-weight: 400;
+  }
+
+  .pledge-name {
+    font-size: 13px;
+    color: var(--amber-light);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+
+  .pledge-body { padding: 16px 20px; }
+
+  .pledge-desc {
+    font-size: 14px;
+    color: var(--text-mid);
+    margin-bottom: 12px;
+    line-height: 1.55;
+  }
+
+  .pledge-includes {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--warm-brown);
+    margin-bottom: 8px;
+  }
+
+  .pledge-item {
+    font-size: 13.5px;
+    color: var(--text-mid);
+    padding: 5px 0;
+    border-bottom: 1px solid #F0E8D4;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .pledge-item::before {
+    content: '🍯';
+    font-size: 11px;
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+
+  .pledge-btn {
+    display: block;
+    width: 100%;
+    background: var(--amber);
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 16px;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.3px;
+  }
+
+  .pledge-btn:hover { background: var(--honey); transform: translateY(-1px); }
+
+  .pledge-limit {
+    text-align: center;
+    font-size: 12px;
+    color: var(--warm-brown);
+    margin-top: 8px;
+  }
+
+  .pledge-limit.urgent { color: #C0392B; font-weight: 600; }
+
+  /* Tier selector */
+  .tier-nav {
+    background: white;
+    border: 1px solid #E0D4B8;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  }
+
+  .tier-nav-header {
+    background: var(--amber-pale);
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--warm-brown);
+    border-bottom: 1px solid #E0D4B8;
+  }
+
+  .tier-nav-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #F0E8D4;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-size: 14px;
+  }
+
+  .tier-nav-item:last-child { border-bottom: none; }
+  .tier-nav-item:hover { background: var(--amber-pale); }
+  .tier-nav-item.active { background: rgba(200,134,10,0.1); }
+
+  .tier-nav-name { font-weight: 600; color: var(--text-dark); }
+  .tier-nav-price { color: var(--amber); font-weight: 700; }
+
+  .tier-nav-item .early-bird-badge {
+    background: #C0392B;
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 700;
+    margin-left: 6px;
+  }
+
+  /* ============ REWARD TIERS (full section) ============ */
+  .tier-card {
+    background: white;
+    border: 1px solid #E0D4B8;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    transition: box-shadow 0.2s;
+  }
+
+  .tier-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+
+  .tier-card.featured {
+    border-color: var(--amber);
+    box-shadow: 0 0 0 2px rgba(200,134,10,0.2);
+  }
+
+  .tier-card-header {
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid #E0D4B8;
+  }
+
+  .tier-card-header.dark-bg { background: var(--dark-wood); }
+  .tier-card-header.amber-bg { background: linear-gradient(135deg, var(--amber) 0%, var(--honey) 100%); }
+  .tier-card-header.cream-bg { background: var(--amber-pale); }
+  .tier-card-header.olive-bg { background: linear-gradient(135deg, #3A4A2A 0%, #5A6B3A 100%); }
+
+  .tier-card-header.dark-bg .tier-price,
+  .tier-card-header.dark-bg .tier-name,
+  .tier-card-header.amber-bg .tier-price,
+  .tier-card-header.amber-bg .tier-name,
+  .tier-card-header.olive-bg .tier-price,
+  .tier-card-header.olive-bg .tier-name { color: white; }
+
+  .tier-card-header.dark-bg .tier-subtitle,
+  .tier-card-header.amber-bg .tier-subtitle,
+  .tier-card-header.olive-bg .tier-subtitle { color: rgba(255,255,255,0.65); }
+
+  .tier-price {
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--dark-wood);
+    line-height: 1;
+  }
+
+  .tier-name {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+    color: var(--mid-wood);
+  }
+
+  .tier-subtitle {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 3px;
+    font-style: italic;
+  }
+
+  .tier-badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .tier-badge.early-bird { background: #C0392B; color: white; }
+  .tier-badge.popular { background: var(--amber); color: white; }
+  .tier-badge.limited { background: var(--olive); color: white; }
+
+  .tier-card-body { padding: 20px 24px; }
+
+  .tier-desc {
+    font-size: 14.5px;
+    color: var(--text-mid);
+    margin-bottom: 16px;
+    font-style: italic;
+    line-height: 1.6;
+  }
+
+  .tier-includes-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--warm-brown);
+    margin-bottom: 10px;
+  }
+
+  .tier-item {
+    display: flex;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid #F5EDD8;
+    font-size: 14px;
+    color: var(--text-mid);
+    align-items: flex-start;
+  }
+
+  .tier-item:last-child { border-bottom: none; }
+
+  .tier-check {
+    color: var(--amber);
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .tier-btn {
+    display: block;
+    width: 100%;
+    border: 2px solid var(--amber);
+    background: transparent;
+    color: var(--amber);
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 18px;
+    transition: all 0.2s;
+  }
+
+  .tier-btn:hover { background: var(--amber); color: white; }
+  .tier-btn.filled { background: var(--amber); color: white; border-color: var(--amber); }
+  .tier-btn.filled:hover { background: var(--honey); }
+
+  /* ============ STRETCH GOALS ============ */
+  .stretch-goal {
+    display: flex;
+    gap: 16px;
+    background: white;
+    border: 1px solid #E0D4B8;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    align-items: flex-start;
+    transition: box-shadow 0.2s;
+  }
+
+  .stretch-goal:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
+
+  .stretch-goal.unlocked { border-color: var(--ks-green); }
+  .stretch-goal.unlocked .stretch-icon { background: rgba(5,206,120,0.12); }
+
+  .stretch-icon {
+    width: 46px;
+    height: 46px;
+    background: var(--amber-pale);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .stretch-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--amber);
+    margin-bottom: 3px;
+  }
+
+  .stretch-label.unlocked-label { color: var(--ks-green); }
+
+  .stretch-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--dark-wood);
+    margin-bottom: 5px;
+  }
+
+  .stretch-desc {
+    font-size: 14px;
+    color: var(--text-light);
+    line-height: 1.55;
+  }
+
+  .stretch-bar-wrap {
+    height: 4px;
+    background: #e8e8e8;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+
+  .stretch-bar-fill { height: 100%; border-radius: 2px; background: var(--amber); }
+
+  /* ============ ABOUT STUDIO ============ */
+  .studio-card {
+    background: white;
+    border: 1px solid #E0D4B8;
+    border-radius: 12px;
+    padding: 24px;
+    margin: 0;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+
+  .studio-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--dark-wood), var(--amber));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+    border: 3px solid var(--amber-pale);
+  }
+
+  .studio-name { font-size: 16px; font-weight: 700; color: var(--dark-wood); }
+  .studio-role { font-size: 12px; color: var(--warm-brown); margin-bottom: 8px; }
+  .studio-bio { font-size: 14px; color: var(--text-mid); line-height: 1.6; }
+
+  /* ============ DIVIDERS & UTILITIES ============ */
+  .section-divider {
+    border: none;
+    border-top: 2px solid #E0D4B8;
+    margin: 40px 0;
+  }
+
+  .bee-divider {
+    text-align: center;
+    color: var(--amber-light);
+    font-size: 18px;
+    margin: 32px 0;
+    opacity: 0.6;
+  }
+
+  .callout-box {
+    background: var(--amber-pale);
+    border: 1px solid var(--amber-mid);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 24px 0;
+  }
+
+  .callout-box p { margin-bottom: 0; font-family: 'Lora', serif; font-style: italic; font-size: 16px; line-height: 1.7; color: var(--mid-wood); }
+
+  .uncle-bob-quote {
+    background: var(--dark-wood);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 20px 0;
+  }
+
+  .uncle-bob-quote p {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: rgba(255,248,220,0.85);
+    margin-bottom: 8px;
+    line-height: 1.65;
+  }
+
+  .uncle-bob-quote .attribution {
+    font-size: 12px;
+    color: var(--amber-light);
+    font-style: normal;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .checklist-item {
+    background: white;
+    border: 1px solid #E0D4B8;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .checklist-num {
+    width: 30px;
+    height: 30px;
+    background: var(--amber);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .checklist-title { font-weight: 700; font-size: 15px; color: var(--dark-wood); margin-bottom: 4px; }
+  .checklist-desc { font-size: 13.5px; color: var(--text-light); line-height: 1.55; }
+
+  /* ============ FOOTER ============ */
+  .ks-footer {
+    background: var(--dark-wood);
+    color: rgba(255,248,220,0.5);
+    text-align: center;
+    padding: 28px 20px;
+    font-size: 13px;
+    margin-top: 40px;
+  }
+
+  .ks-footer strong { color: var(--amber-light); }
+
+  /* ============ TABS (KS-style) ============ */
+  .ks-tabs {
+    display: flex;
+    border-bottom: 2px solid #E0D4B8;
+    margin-bottom: 32px;
+    gap: 0;
+  }
+
+  .ks-tab {
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-light);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+  }
+
+  .ks-tab.active {
+    color: var(--dark-wood);
+    border-bottom-color: var(--amber);
+  }
+
+  /* Smooth scroll behavior */
+  html { scroll-behavior: smooth; }
+</style>
+</head>
+<body>
+
+<!-- KS Nav Chrome -->
+<nav class="ks-nav">
+  <div class="ks-logo">kickstarter</div>
+  <div class="ks-nav-links">
+    <span>Discover</span>
+    <span>Start a project</span>
+    <span>Log in</span>
+    <span>Sign up</span>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-bee-left">🐝</div>
+  <div class="hero-bee-right">🐝</div>
+  <div class="hero-studio">Five Cats Studios LLC</div>
+  <h1 class="hero-title"><span>Smoke and Honey</span><br>A Real Beekeeper's Hive Simulator</h1>
+  <p class="hero-tagline">"One hive survived the winter. Help us give it the hand-crafted world it deserves."</p>
+
+  <div class="video-placeholder">
+    <div class="video-inner">
+      <div class="video-play-btn">▶</div>
+      <div class="video-label">Campaign Video — 2:30 — Click to Play</div>
+    </div>
+    <div class="video-caption">Visual: Apiary at golden hour. Eleven empty hive stands. One still humming.</div>
+  </div>
+</section>
+
+<!-- Meta Bar -->
+<div class="meta-bar">
+  <div class="meta-inner">
+    <div class="meta-item">
+      <div class="meta-label">Pledged</div>
+      <div class="meta-value green">$27,412</div>
+      <div class="meta-sub">of $38,000 goal</div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill"></div></div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Backers</div>
+      <div class="meta-value">714</div>
+      <div class="meta-sub">and counting</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Days to go</div>
+      <div class="meta-value">21</div>
+      <div class="meta-sub">Campaign ends April 20</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Category</div>
+      <div class="meta-value" style="font-size:14px; margin-top:6px;">Video Games</div>
+      <div class="meta-sub">Simulation / Cozy</div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Content Grid -->
+<div class="main-wrap">
+
+  <!-- LEFT: Content -->
+  <main class="content">
+
+    <!-- Tabs -->
+    <div class="ks-tabs">
+      <div class="ks-tab active">Campaign</div>
+      <div class="ks-tab">Updates <span style="background:#C0392B;color:white;padding:1px 6px;border-radius:10px;font-size:11px;margin-left:4px;">3</span></div>
+      <div class="ks-tab">Comments (89)</div>
+      <div class="ks-tab">FAQ</div>
+      <div class="ks-tab">Risks</div>
+    </div>
+
+    <!-- Letter -->
+    <h2>🐝 A Letter From the Beekeeper</h2>
+
+    <div class="letter-box">
+      <p>I'll start with the truth.</p>
+
+      <p>I was a real beekeeper for years. I kept Langstroth hives. I learned to read brood patterns, time my inspections, manage varroa, and harvest honey before the goldenrod flow faded. I made mistakes that cost me hives. I made good decisions that rewarded me with jars of something golden and alive.</p>
+
+      <p>Then I received a terminal diagnosis — a strict time limit on my life.</p>
+
+      <p>I could have slowed down. Instead, I made a decision: I would build the game I had always wanted to play. A beekeeping simulator so authentic that a real beekeeper would recognize everything in it. One that teaches real science, real seasonal rhythms, real consequences — and wraps all of it in a story about what it means to tend something fragile in an uncertain world.</p>
+
+      <p><strong>Smoke and Honey is my legacy project.</strong> It is not just a game. It is my way of sharing a lifetime of beekeeping knowledge and passion before time runs out.</p>
+
+      <p>I am building it with everything I have, every day I have it. I am asking you to be part of it.</p>
+
+      <div class="letter-sig">— Nathan Barkley, Five Cats Studios LLC &nbsp;·&nbsp; Iowa</div>
+    </div>
+
+    <!-- What Is It -->
+    <h2>What Is Smoke and Honey?</h2>
+
+    <p><strong>Smoke and Honey</strong> is a deep, authentic beekeeping hive simulator — a cozy management game rooted in real bee biology, real seasonal rhythms, and a genuine story about a kid finding his footing in a world that feels unmanageable.</p>
+
+    <p>You play as <strong>Eli</strong>, twelve years old, arriving at his Uncle Bob's apiary in rural Millhaven County, Iowa after Bob suffered a heart attack that winter. Eleven of his twelve hives died in the cold. One survived.</p>
+
+    <div class="callout-box">
+      <p>Eleven dead hives, one alive, and a summer to figure out what to do next. That's where the game begins — and that's the whole story in miniature.</p>
+    </div>
+
+    <p>Over five in-game years — spanning eight custom seasons, four distinct apiaries, and a cast of real, memorable NPCs — you will rebuild. You will learn to read frames, manage pests, plant forage, harvest honey, and understand that one surviving colony is enough to start again.</p>
+
+    <div class="uncle-bob-quote">
+      <p>"Eleven hives died. One made it. We start from the one."</p>
+      <p>"Winter kills hives. That's not failure. That's winter."</p>
+      <p>"You can't rush an inspection. The bees know if you're anxious."</p>
+      <div class="attribution">— Uncle Bob, Cedar Bend, Iowa</div>
+    </div>
+
+    <!-- Differentiators -->
+    <h2>🌿 What Nobody Else Is Building</h2>
+
+    <p>The beekeeping simulation genre has games. APICO is delightful. Beekeeper Simulator exists. None of them are doing what Smoke and Honey does.</p>
+
+    <div class="diff-card">
+      <div class="diff-card-title"><div class="diff-icon">👁️</div> Observation Over Statistics</div>
+      <p>You earn the right to see information by developing your skill. Level 1 hobbyists see raw comb. Level 5 master beekeepers read dynamic percentages updating in real-time. No dashboards — you learn to <em>see</em>. This mirrors how real beekeeping actually works.</p>
+    </div>
+
+    <div class="diff-card">
+      <div class="diff-card-title"><div class="diff-icon">🐛</div> Real Bee Biology — All the Way Down</div>
+      <p>Every bee lives a real biological life. Eggs hatch after three days. Winter bees are biologically different from summer bees. Queen laying rate responds to forage availability and colony health. A player who masters this game has learned real beekeeping science.</p>
+    </div>
+
+    <div class="diff-card">
+      <div class="diff-card-title"><div class="diff-icon">🌱</div> The Forage Pool — Nobody Else Is Doing This</div>
+      <p>In every other bee game, forage is a number. Here, it's an ecosystem. Trees you plant in Year 1 bloom in Year 4. Wildflower gardens you plant this spring contribute to next year's flow. Two overlapping apiaries compete for the same flowers. Long-term environmental investment shapes gameplay across multiple seasons.</p>
+    </div>
+
+    <div class="diff-card">
+      <div class="diff-card-title"><div class="diff-icon">👑</div> The Queen-Find Minigame</div>
+      <p>Forget stat rolls. Finding your queen is a real visual search — animated bees walking on a frame, and somewhere among them, one queen with a longer abdomen, shorter wings, attendant bees leaning toward her. Your knowledge of queen morphology becomes a real gameplay advantage.</p>
+    </div>
+
+    <div class="diff-card">
+      <div class="diff-card-title"><div class="diff-icon">📅</div> Seasonal Consequences That Span Years</div>
+      <p>Decisions in Year 1 spring affect Year 4 summer. Fall preparation determines winter survival. Overwintering mortality is real. Lost hives are permanent setbacks. But nothing is game-over — the equipment stays. You rebuild from what survived.</p>
+    </div>
+
+    <!-- Seasons Table -->
+    <h3>Eight Named Seasons — Each With Its Own Emotional Register</h3>
+
+    <table class="season-table">
+      <thead><tr><th>Season</th><th>Feeling</th><th>What's at Stake</th></tr></thead>
+      <tbody>
+        <tr><td>Quickening</td><td>Anxious. Did they make it?</td><td>Colony winter survival confirmed</td></tr>
+        <tr><td>Greening</td><td>Fragile beauty. Dandelions roll.</td><td>Spring flow quality set for year</td></tr>
+        <tr><td>Wide-Clover</td><td>Demanding abundance.</td><td>Peak honey production window</td></tr>
+        <tr><td>High-Sun</td><td>Mid-summer dearth. Watch the gap.</td><td>Harvest timing, swarm management</td></tr>
+        <tr><td>Full-Earth</td><td>Fulfillment. Hives are heavy.</td><td>Main harvest — goldenrod flow</td></tr>
+        <tr><td>Reaping</td><td>Honest reckoning.</td><td>Did you prepare enough for winter?</td></tr>
+        <tr><td>Deepcold</td><td>Quiet. Crafting. Waiting.</td><td>Wax rendering, mead brewing, planning</td></tr>
+        <tr><td>Kindlemonth</td><td>Light returning. Kindling.</td><td>Order bees. Plan the year. Hold on.</td></tr>
+      </tbody>
+    </table>
+
+    <!-- Art Promise -->
+    <div class="art-banner">
+      <h3>Our Promise on Art</h3>
+      <p>Every visual you see in this campaign is <strong>AI-generated placeholder art</strong> built to develop and test the game systems. The final game will feature hand-crafted pixel art by a human artist hired with this Kickstarter's funding.</p>
+      <p style="margin-top: 8px; color: rgba(255,248,220,0.9); font-weight: 600;">We refuse to ship AI-generated art in the final game.</p>
+      <div class="art-placeholder-row">
+        <div class="art-placeholder-box">
+          <div class="art-pixel-mock current">Current Placeholder</div>
+          <div class="art-label">⚠ AI-Generated Temp Art</div>
+        </div>
+        <div class="art-placeholder-box">
+          <div class="art-pixel-mock final">Your Support → This</div>
+          <div class="art-label">✦ Human Pixel Artist Vision</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Compare Table -->
+    <h2>How It Compares</h2>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Smoke & Honey</th>
+          <th>APICO</th>
+          <th>Beekeeper Sim</th>
+          <th>Bee Simulator</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Real bee biology</td>
+          <td class="ours yes">✅ Full</td>
+          <td class="no">❌ Stylized</td>
+          <td>Partial</td>
+          <td class="no">❌ Arcade</td>
+        </tr>
+        <tr>
+          <td>Observation-based info</td>
+          <td class="ours yes">✅ Skill-gated</td>
+          <td class="no">❌ Dashboards</td>
+          <td class="no">❌ Dashboards</td>
+          <td class="no">❌ Minimal</td>
+        </tr>
+        <tr>
+          <td>Dynamic forage ecosystem</td>
+          <td class="ours yes">✅ Full model</td>
+          <td class="no">❌ Static</td>
+          <td class="no">❌ Static</td>
+          <td class="no">❌ None</td>
+        </tr>
+        <tr>
+          <td>Multi-year narrative</td>
+          <td class="ours yes">✅ 5-year arc</td>
+          <td class="no">❌ Minimal</td>
+          <td class="no">❌ None</td>
+          <td class="no">❌ None</td>
+        </tr>
+        <tr>
+          <td>No extractive design</td>
+          <td class="ours yes">✅</td>
+          <td class="yes">✅</td>
+          <td class="yes">✅</td>
+          <td class="yes">✅</td>
+        </tr>
+        <tr>
+          <td>Human pixel artist (final)</td>
+          <td class="ours yes">✅ Funded by you</td>
+          <td class="yes">✅</td>
+          <td class="yes">✅</td>
+          <td class="yes">✅</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="bee-divider">🐝 · 🍯 · 🐝</div>
+
+    <!-- Reward Tiers Full Section -->
+    <h2>🎁 Reward Tiers</h2>
+
+    <!-- $1 -->
+    <div class="tier-card">
+      <div class="tier-card-header cream-bg">
+        <div>
+          <div class="tier-price" style="color:var(--dark-wood);">$1</div>
+          <div class="tier-name" style="color:var(--mid-wood);">🐝 Bee Supporter</div>
+          <div class="tier-subtitle" style="color:var(--text-light);">For anyone who wants to be part of this</div>
+        </div>
+      </div>
+      <div class="tier-card-body">
+        <p class="tier-desc">Your name in the credits. Every update in your inbox. A $1 pledge matters more than you think — backer count signals momentum to everyone watching.</p>
+        <div class="tier-includes-label">Includes</div>
+        <div class="tier-item"><span class="tier-check">✦</span> Name in Supporters section of in-game credits</div>
+        <div class="tier-item"><span class="tier-check">✦</span> All backer updates throughout development</div>
+        <div class="tier-item"><span class="tier-check">✦</span> Our genuine gratitude</div>
+        <button class="tier-btn">Back this tier</button>
+      </div>
+    </div>
+
+    <!-- $12 Early Bird -->
+    <div class="tier-card">
+      <div class="tier-card-header dark-bg" style="justify-content:space-between; align-items:flex-start;">
+        <div>
+          <div class="tier-price">$12</div>
+          <div class="tier-name">Early Hive</div>
+          <div class="tier-subtitle">Lowest price this game will ever be</div>
+        </div>
+        <div class="tier-badge early-bird">⏰ EARLY BIRD</div>
+      </div>
+      <div class="tier-card-body">
+        <p class="tier-desc">Once 200 are claimed, this price is gone. First supporters get the game at the lowest it will ever be sold.</p>
+        <div class="tier-includes-label">Includes</div>
+        <div class="tier-item"><span class="tier-check">✦</span> Digital copy of Smoke and Honey at launch (Steam key)</div>
+        <div class="tier-item"><span class="tier-check">✦</span> All backer updates</div>
+        <div class="tier-item"><span class="tier-check">✦</span> Your name in the credits</div>
+        <button class="tier-btn filled">Back this tier — 143/200 claimed</button>
+        <div class="pledge-limit urgent">⚠ Only 57 remaining</div>
+      </div>
+    </div>
+
+    <!-- $15 -->
+    <div class="tier-card">
+      <div class="tier-card-header cream-bg">
+        <div>
+          <div class="tier-price" style="color:var(--dark-wood);">$15</div>
+          <div class="tier-name" style="color:var(--mid-wood);">Beekeeper's Copy</div>
+          <div class="tier-subtitle" style="color:var(--text-light);">The standard digital pledge</div>
+        </div>
+      </div>
+      <div class="tier-card-body">
+        <div class="tier-includes-label">Includes</div>
+        <div class="tier-item"><span class="tier-check">✦</span> Digital copy of Smoke and Honey at launch (Steam key)</div>
+        <div class="tier-item"><span class="tier-check">✦</span> All backer updates</div>
+        <div class="tier-item"><span class="tier-check">✦</span> Your name in the credits</div>
+        <button class="tier-btn">Back this tier</button>
+      </div>
+    </div>
+
+    <!-- $25 Most Popular -->
+    <div class="tier-card featured">
+      <div class="tier-card-header amber-bg" style="justify-content:space-between; align-items:flex-start;">
+        <div>
+          <div class="tier-price">$25</div>
+          <div class="tier-name">🌿 The Hive Kit</div>
+          <div class="tier-subtitle">Everything a new beekeeper needs</div>
+        </div>
+        <div class="tier-badge popular">⭐ MOST POPULAR</div>
+      </div>
+      <div class="tier-card-body">
+        <p class="tier-desc">The sweet spot. A complete digital backer package — game, artbook, soundtrack, and your name inscribed as a real NPC customer at the Saturday Market.</p>
+        <div class="tier-includes-label">Includes</div>
+        <div class="tier-item"><span class="tier-check">✦</span> Digital copy of Smoke and Honey (Steam key)</div>
+        <div class="tier-item"><span class="tier-check">✦</span> <strong>Digital Artbook PDF</strong> — behind-the-scenes process art, world-building notes, human artist work-in-progress</div>
+        <div class="tier-item"><span class="tier-check">✦</span> <strong>Digital Soundtrack</strong> — full ambient score and seasonal tracks</div>
+        <div class="tier-item"><span class="tier-check">✦</span> <strong>Named Beekeeper NPC</strong> — your name inscribed in the in-game Saturday Market register</div>
+        <div class="tier-item"><span class="tier-check">✦</span> Your name in the credits</div>
+        <button class="tier-btn filled">Back this tier</button>
+      </div>
+    </div>
+
+    <!-- $50 -->
+    <div class="tier-card">
+      <div class="tier-card-header olive-bg">
+        <div>
+          <div class="tier-price">$50</div>
+          <div class="tier-name">🌻 The Honey House</div>
+          <div class="tier-subtitle">For the deeply invested backer</div>
+        </div>
+      </div>
+      <div class="tier-card-body">
+        <p class="tier-desc">Everything in The Hive Kit plus beta access, physical stickers (mailed after the human artist designs them), and a wallpaper pack for all seasons.</p>
+        <div class="tier-includes-label">Everything in The Hive Kit, plus</div>
+        <div class="tier-item"><span class="tier-check">✦</span> <strong>Beta Access</strong> — play during development, submit feedback, see the game evolve</div>
+        <div class="tier-item"><span class="tier-check">✦</span> <strong>Physical Sticker Sheet</strong> — bee and hive stickers, hand-designed by the human pixel artist</div>
+        <div class="tier-item"><span class="tier-check">✦</span> <strong>Digital Wallpaper Pack</strong> — seasonal art cards, framed for desktop and mobile</div>
+        <div class="tier-item"><span class="tier-check">✦</span> Prominent credits listing</div>
+        <button class="tier-btn">Back this tier</button>
+      </div>
+    </div>
+
+    <!-- $100 -->
+    <div class="tier-card">
+      <div class="tier-card-header dark-bg">
+        <div>
+          <div class="tier-price">$100</div>
+          <div class="tier-name">🍂 The Apiarist</div>
+          <div class="tier-subtitle">Leave a real mark on the game</div>
+        </div>
+      </div>
+      <div class="tier-card-body">
+        <p class="tier-desc">Name a hive in Uncle Bob's apiary. Receive a handwritten postcard from Iowa and a limited-edition 8×10 print crafted by the human pixel artist.</p>
+        <div class="tier-includes-label">Everything in The Honey House, plus</div>
+        <div class="tier-item"><span class="tier-check">✦</span> <strong>Name a Hive</strong> — one in-game hive in the apiary bears a name of your choosing</div>
+        <div class="tier-item"><span class="tier-check">✦</span> <strong>Signed Developer Postcard</strong> — handwritten thank-you, mailed from Iowa</div>
+        <div class="tier-item"><span class="tier-check">✦</span> <strong>Limited Edition 8×10 Art Print</strong> — seasonal apiary scene by the human pixel artist</div>
+        <div class="tier-item"><span class="tier-check">✦</span> Founding Backers credits section</div>
+        <button class="tier-btn">Back this tier</button>
+      </div>
+    </div>
+
+    <!-- $250 Hive Founder -->
+    <div class="tier-card" style="border-color: var(--dark-wood);">
+      <div class="tier-card-header dark-bg" style="justify-content:space-between; align-items:flex-start;">
+        <div>
+          <div class="tier-price">$250</div>
+          <div class="tier-name">🏡 Hive Founder</div>
+          <div class="tier-subtitle">The inner circle. The people who made this possible.</div>
+        </div>
+        <div class="tier-badge limited">LIMITED: 25</div>
+      </div>
+      <div class="tier-card-body">
+        <p class="tier-desc">Your name engraved permanently in the game world. A personal thank-you video. Direct line to development. This is for the people who believe most deeply.</p>
+        <div class="tier-includes-label">Everything in The Apiarist, plus</div>
+        <div class="tier-item"><span class="tier-check">✦</span> <strong>Your name on a fence sign in Millhaven County</strong> — permanent, in-game, visible to every player</div>
+        <div class="tier-item"><span class="tier-check">✦</span> <strong>Personal Thank-You Video</strong> — recorded for you specifically by the developer</div>
+        <div class="tier-item"><span class="tier-check">✦</span> <strong>Founding Five Cats Discord role</strong> — direct access channel with the developer</div>
+        <div class="tier-item"><span class="tier-check">✦</span> <strong>Exclusive Development Log</strong> — monthly private written update, never published publicly</div>
+        <div class="tier-item"><span class="tier-check">✦</span> Listed first in all credits under "Made Possible By"</div>
+        <button class="tier-btn filled">Back this tier — 8 of 25 remaining</button>
+        <div class="pledge-limit urgent">⚠ Only 8 left — once they're gone, they're gone</div>
+      </div>
+    </div>
+
+    <div class="bee-divider">🐝 · 🍯 · 🐝</div>
+
+    <!-- Stretch Goals -->
+    <h2>🌱 Stretch Goals</h2>
+
+    <p>The base goal covers the full game as designed. Every dollar beyond that unlocks more:</p>
+
+    <div class="stretch-goal">
+      <div class="stretch-icon">🏞️</div>
+      <div>
+        <div class="stretch-label">$45,000</div>
+        <div class="stretch-title">The Living Apiary</div>
+        <div class="stretch-desc">Two additional apiary locations: the River Bottom (wildflower mix extending into October) and the Urban Garden (community-supported, small-space challenges). Each with unique forage character and management constraints.</div>
+        <div class="stretch-bar-wrap"><div class="stretch-bar-fill" style="width: 61%"></div></div>
+      </div>
+    </div>
+
+    <div class="stretch-goal">
+      <div class="stretch-icon">🎵</div>
+      <div>
+        <div class="stretch-label">$52,000</div>
+        <div class="stretch-title">Full Adaptive Soundtrack</div>
+        <div class="stretch-desc">The ambient score adapts dynamically to season, time of day, weather, and colony health. A quiet thriving hive sounds different from a stressed one. Field sounds change with the month.</div>
+        <div class="stretch-bar-wrap"><div class="stretch-bar-fill" style="width: 53%"></div></div>
+      </div>
+    </div>
+
+    <div class="stretch-goal">
+      <div class="stretch-icon">📱</div>
+      <div>
+        <div class="stretch-label">$60,000</div>
+        <div class="stretch-title">Mobile Port (iOS + Android)</div>
+        <div class="stretch-desc">Smoke and Honey is designed for both deep 60-minute PC sessions and 10-minute mobile check-ins. This funds the full mobile port — same game, same depth, same story — optimized for touch.</div>
+        <div class="stretch-bar-wrap"><div class="stretch-bar-fill" style="width: 46%"></div></div>
+      </div>
+    </div>
+
+    <div class="stretch-goal">
+      <div class="stretch-icon">🌺</div>
+      <div>
+        <div class="stretch-label">$70,000</div>
+        <div class="stretch-title">The Pollinator Conservation Expansion</div>
+        <div class="stretch-desc">Partnership with a real pollinator conservation organization. A portion of post-launch sales goes to native plant conservation. In-game: a new Wildflower Restoration system with native plant encyclopedia and seed exchange NPC.</div>
+        <div class="stretch-bar-wrap"><div class="stretch-bar-fill" style="width: 39%"></div></div>
+      </div>
+    </div>
+
+    <div class="stretch-goal">
+      <div class="stretch-icon">📘</div>
+      <div>
+        <div class="stretch-label">$80,000</div>
+        <div class="stretch-title">The Field Guide</div>
+        <div class="stretch-desc">A physical companion book — The Millhaven County Beekeeper's Field Guide — featuring the game's complete bee biology documentation, seasonal forage calendar, and original art from the human pixel artist. Shipped to all $50+ backers.</div>
+        <div class="stretch-bar-wrap"><div class="stretch-bar-fill" style="width: 34%"></div></div>
+      </div>
+    </div>
+
+    <div class="stretch-goal">
+      <div class="stretch-icon">🏆</div>
+      <div>
+        <div class="stretch-label">$95,000</div>
+        <div class="stretch-title">Endgame: The Master Beekeeper Certification</div>
+        <div class="stretch-desc">A full Year 6+ endgame system: queen breeding program, honey competition circuit, mentorship of new beekeepers, and the Iowa Master Beekeeper certification quest chain. Eli's story continues beyond where the base game ends.</div>
+        <div class="stretch-bar-wrap"><div class="stretch-bar-fill" style="width: 29%"></div></div>
+      </div>
+    </div>
+
+    <div class="bee-divider">🐝 · 🍯 · 🐝</div>
+
+    <!-- Budget -->
+    <h2>💰 Budget Breakdown</h2>
+
+    <p>Here is exactly how every dollar will be used. We believe in transparency — you should know what you're funding.</p>
+
+    <table class="budget-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Amount</th>
+          <th>% of Budget</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="highlight-row">
+          <td>🎨 Human Pixel Artist (12 months)</td>
+          <td>$18,000</td>
+          <td>
+            47%
+            <div class="pct-bar"><div class="pct-fill" style="width:47%"></div></div>
+          </td>
+          <td>Largest single item. This IS the campaign.</td>
+        </tr>
+        <tr>
+          <td>🎵 Sound Design & Ambient Score</td>
+          <td>$5,000</td>
+          <td>
+            13%
+            <div class="pct-bar"><div class="pct-fill" style="width:13%"></div></div>
+          </td>
+          <td>Hive sounds, field audio, seasonal score</td>
+        </tr>
+        <tr>
+          <td>💻 Programming & Polish</td>
+          <td>$4,000</td>
+          <td>
+            11%
+            <div class="pct-bar"><div class="pct-fill" style="width:11%"></div></div>
+          </td>
+          <td>Remaining systems, mobile prep, accessibility</td>
+        </tr>
+        <tr>
+          <td>✍️ Dialogue & Writing</td>
+          <td>$2,500</td>
+          <td>
+            7%
+            <div class="pct-bar"><div class="pct-fill" style="width:7%"></div></div>
+          </td>
+          <td>Full NPC quest chains, seasonal text</td>
+        </tr>
+        <tr>
+          <td>📢 Marketing & Launch</td>
+          <td>$2,000</td>
+          <td>
+            5%
+            <div class="pct-bar"><div class="pct-fill" style="width:5%"></div></div>
+          </td>
+          <td>Press kits, trailer polish, influencer keys</td>
+        </tr>
+        <tr>
+          <td>📦 Physical Reward Fulfillment</td>
+          <td>$2,500</td>
+          <td>
+            7%
+            <div class="pct-bar"><div class="pct-fill" style="width:7%"></div></div>
+          </td>
+          <td>Stickers, prints, posters (backer tiers)</td>
+        </tr>
+        <tr>
+          <td>💳 Kickstarter Fees & Processing</td>
+          <td>$2,000</td>
+          <td>
+            5%
+            <div class="pct-bar"><div class="pct-fill" style="width:5%"></div></div>
+          </td>
+          <td>~10% platform + payment fees</td>
+        </tr>
+        <tr>
+          <td>🛡️ Contingency Reserve</td>
+          <td>$2,000</td>
+          <td>
+            5%
+            <div class="pct-bar"><div class="pct-fill" style="width:5%"></div></div>
+          </td>
+          <td>Buffer for overruns</td>
+        </tr>
+        <tr class="total-row">
+          <td>TOTAL</td>
+          <td>$38,000</td>
+          <td>100%</td>
+          <td>$18K goes directly to the human artist.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="bee-divider">🐝 · 🍯 · 🐝</div>
+
+    <!-- Risks -->
+    <h2>⚠️ Risks &amp; Challenges</h2>
+
+    <p><strong>Solo development:</strong> Built by one person. If I get sick, development slows. I manage this risk by keeping scope tight, documenting everything thoroughly, and building time buffers into every milestone.</p>
+
+    <p><strong>Placeholder art:</strong> Everything visual you see is temporary. Hiring a pixel artist is the central purpose of this campaign — which means the final product will look substantially different from current screenshots. We consider this a feature: you are funding the art, not just the systems.</p>
+
+    <p><strong>Health realities:</strong> I have been honest about my situation. The game's design is fully documented. The codebase is clean, commented, and transferable. In the unlikely event I am unable to complete the project, I have arrangements in place to ensure backers are either refunded or the project is completed by trusted collaborators with my full documentation.</p>
+
+    <p><strong>Scope management:</strong> The base game — Year 1 through Year 5, four apiaries, full NPC quest chains, complete seasonal simulation — is the only thing this Kickstarter funds. Stretch goals are extras. If we only hit the base goal, you get the full game as designed.</p>
+
+    <div class="bee-divider">🐝 · 🍯 · 🐝</div>
+
+    <!-- FAQ -->
+    <h2>❓ FAQ</h2>
+
+    <div class="faq-item">
+      <div class="faq-q">Is all the art in the screenshots placeholder?</div>
+      <div class="faq-a">Yes. Every visual in current screenshots and the campaign video is AI-generated placeholder art. The final game will feature hand-crafted pixel art by a human artist hired with this Kickstarter's funding. This is completely intentional — you are funding the art's creation.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">Why not just use AI art for the final game?</div>
+      <div class="faq-a">Because it's not good enough for the game we're building, and because we believe human craft matters. Smoke and Honey is a game about observation, attention, and the value of patient work. Shipping AI-generated art would be a contradiction of everything it stands for.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">When will the game be ready?</div>
+      <div class="faq-a">We are targeting Q4 2027 for full release. Beta access begins for $50+ backers once the pixel artist is onboarded and core art passes quality review — estimated 12–18 months into the campaign.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">Is this a cozy game or a hard sim?</div>
+      <div class="faq-a">Both. It is warm, beautiful, and emotionally meaningful — but it has real depth. You will lose hives. You will make mistakes that cost you a season. Think Stardew Valley's heart with real systemic depth. It respects your intelligence and rewards your attention.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">Can I play without knowing anything about bees?</div>
+      <div class="faq-a">Absolutely. The game teaches everything through play. Uncle Bob hands you a hive tool and lets you learn by doing. A player with zero beekeeping knowledge will finish the game with a genuine understanding of real bee biology. That is by design.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">Will this be on DRM-free platforms?</div>
+      <div class="faq-a">Yes. itch.io will have a DRM-free version simultaneously with Steam at launch.</div>
+    </div>
+
+    <div class="bee-divider">🐝 · 🍯 · 🐝</div>
+
+    <!-- Studio -->
+    <h2>About Five Cats Studios</h2>
+
+    <div class="studio-card">
+      <div class="studio-avatar">🐝</div>
+      <div>
+        <div class="studio-name">Nathan Barkley</div>
+        <div class="studio-role">Sole Developer · Five Cats Studios LLC · Iowa</div>
+        <div class="studio-bio">Five Cats Studios is named for five very opinionated cats — Bones, Tesla, Oi, Baron, and Odin — who attend every development session and provide notes ranging from "walk across the keyboard" to "sit directly on the art reference monitor." Smoke and Honey is the studio's first commercial title. It is being built with urgency and intention, by a real beekeeper who has something important to say.</div>
+      </div>
+    </div>
+
+    <div class="bee-divider">🐝 · 🍯 · 🐝</div>
+
+    <!-- Launch Checklist -->
+    <h2>📋 Launch Checklist: First-Week Momentum</h2>
+
+    <p style="margin-bottom: 20px; color: var(--text-light); font-style: italic;">For Nathan's reference — pre-launch and first-week strategy guide.</p>
+
+    <div class="checklist-item">
+      <div class="checklist-num">1</div>
+      <div>
+        <div class="checklist-title">Pre-Launch Page Live 4–6 Weeks Early</div>
+        <div class="checklist-desc">Set to "Coming Soon" mode. Drive all traffic there to build notification list. Aim for 500+ pre-launch notifications. Every person who clicks "Notify me" is a warm lead on launch day.</div>
+      </div>
+    </div>
+
+    <div class="checklist-item">
+      <div class="checklist-num">2</div>
+      <div>
+        <div class="checklist-title">Build the Email List Before Launch</div>
+        <div class="checklist-desc">Email converts 5–10× better than social for Kickstarter pledges. Collect via: pre-launch page, Substack/Beehiiv devlog, Steam wishlist, and beekeeping communities. Target: 1,000 emails before launch day.</div>
+      </div>
+    </div>
+
+    <div class="checklist-item">
+      <div class="checklist-num">3</div>
+      <div>
+        <div class="checklist-title">Beekeeping Community First — It's Your Secret Weapon</div>
+        <div class="checklist-desc">Post in r/beekeeping, r/cosygaming, r/indiegaming. Contact ABF communications. Reach out to top beekeeping YouTube channels with a free backer key. These audiences have never been marketed a Kickstarter game — you will be completely novel to them.</div>
+      </div>
+    </div>
+
+    <div class="checklist-item">
+      <div class="checklist-num">4</div>
+      <div>
+        <div class="checklist-title">Publicize the Early Bird Sell-Down</div>
+        <div class="checklist-desc">Announce at 50%, 75%, and sell-out. Each announcement drives a surge. After it sells out, remaining tiers feel more urgent. Scarcity is real here — use it.</div>
+      </div>
+    </div>
+
+    <div class="checklist-item">
+      <div class="checklist-num">5</div>
+      <div>
+        <div class="checklist-title">First 48 Hours Determines Algorithm Placement</div>
+        <div class="checklist-desc">Hit 30–40% of goal in 48 hours to get Kickstarter featured placement. Execute: launch day email blast, simultaneous social posts, 10–15 friends pledge in the first hour, 2–3 content creators post on launch day.</div>
+      </div>
+    </div>
+
+    <div class="checklist-item">
+      <div class="checklist-num">6</div>
+      <div>
+        <div class="checklist-title">Mid-Campaign Refresh (Days 8–20)</div>
+        <div class="checklist-desc">Fight the U-curve middle by releasing new content every 3–4 days: a gameplay GIF, a story reveal, a systems explainer, or a stretch goal unlock. Each update triggers another email blast backers share forward.</div>
+      </div>
+    </div>
+
+    <div class="checklist-item">
+      <div class="checklist-num">7</div>
+      <div>
+        <div class="checklist-title">Beekeeping Press Before Games Press</div>
+        <div class="checklist-desc">Pitch Modern Farmer, Hobby Farms, Bee Culture, NPR Culture, local Iowa news, and beekeeping podcasts. A single NPR feature reaches people who've never heard of Kickstarter games. Your personal story (terminal diagnosis + legacy project) is genuinely newsworthy.</div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- RIGHT: Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-sticky">
+
+      <!-- Featured Pledge -->
+      <div class="pledge-box">
+        <div class="pledge-header">
+          <div class="pledge-amount">$25 <span>pledge</span></div>
+          <div class="pledge-name">🌿 The Hive Kit</div>
+        </div>
+        <div class="pledge-body">
+          <p class="pledge-desc">The most popular tier — game, artbook, soundtrack, and your name as an NPC at the Saturday Market.</p>
+          <div class="pledge-includes">Includes</div>
+          <div class="pledge-item">Digital copy of Smoke and Honey (Steam key)</div>
+          <div class="pledge-item">Digital Artbook PDF</div>
+          <div class="pledge-item">Digital Soundtrack</div>
+          <div class="pledge-item">Named Beekeeper NPC at Saturday Market</div>
+          <div class="pledge-item">Your name in the credits</div>
+          <button class="pledge-btn">Back this tier →</button>
+        </div>
+      </div>
+
+      <!-- Tier Navigator -->
+      <div class="tier-nav">
+        <div class="tier-nav-header">All Reward Tiers</div>
+        <div class="tier-nav-item">
+          <span class="tier-nav-name">🐝 Bee Supporter</span>
+          <span class="tier-nav-price">$1</span>
+        </div>
+        <div class="tier-nav-item">
+          <span class="tier-nav-name">Early Hive<span class="early-bird-badge">EARLY BIRD</span></span>
+          <span class="tier-nav-price">$12</span>
+        </div>
+        <div class="tier-nav-item">
+          <span class="tier-nav-name">Beekeeper's Copy</span>
+          <span class="tier-nav-price">$15</span>
+        </div>
+        <div class="tier-nav-item active">
+          <span class="tier-nav-name">🌿 The Hive Kit ⭐</span>
+          <span class="tier-nav-price">$25</span>
+        </div>
+        <div class="tier-nav-item">
+          <span class="tier-nav-name">🌻 The Honey House</span>
+          <span class="tier-nav-price">$50</span>
+        </div>
+        <div class="tier-nav-item">
+          <span class="tier-nav-name">🍂 The Apiarist</span>
+          <span class="tier-nav-price">$100</span>
+        </div>
+        <div class="tier-nav-item">
+          <span class="tier-nav-name">🏡 Hive Founder (8 left)</span>
+          <span class="tier-nav-price" style="color:#C0392B;">$250</span>
+        </div>
+      </div>
+
+      <!-- Project Stats -->
+      <div style="background: white; border: 1px solid #E0D4B8; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--warm-brown);margin-bottom:14px;">Campaign Stats</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F0E8D4;">
+          <span style="font-size:13px;color:var(--text-light);">Funding Progress</span>
+          <span style="font-size:13px;font-weight:700;color:var(--ks-green);">72%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F0E8D4;">
+          <span style="font-size:13px;color:var(--text-light);">Early Bird Claimed</span>
+          <span style="font-size:13px;font-weight:700;color:#C0392B;">143/200</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F0E8D4;">
+          <span style="font-size:13px;color:var(--text-light);">Hive Founders Left</span>
+          <span style="font-size:13px;font-weight:700;color:#C0392B;">8/25</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;">
+          <span style="font-size:13px;color:var(--text-light);">Days Remaining</span>
+          <span style="font-size:13px;font-weight:700;color:var(--amber);">21</span>
+        </div>
+      </div>
+
+      <!-- Share Box -->
+      <div style="background: var(--amber-pale); border: 1px solid var(--amber-mid); border-radius: 12px; padding: 16px 20px; text-align:center;">
+        <div style="font-size:13px;font-weight:700;color:var(--dark-wood);margin-bottom:8px;">Help us reach the goal 🐝</div>
+        <div style="font-size:12px;color:var(--text-light);margin-bottom:12px;">Sharing takes 30 seconds and means everything to a solo dev.</div>
+        <div style="display:flex;gap:8px;justify-content:center;">
+          <button style="flex:1;padding:8px;border-radius:6px;border:none;background:#1877F2;color:white;font-size:12px;font-weight:600;cursor:pointer;">Facebook</button>
+          <button style="flex:1;padding:8px;border-radius:6px;border:none;background:#1DA1F2;color:white;font-size:12px;font-weight:600;cursor:pointer;">Twitter</button>
+          <button style="flex:1;padding:8px;border-radius:6px;border:none;background:var(--dark-wood);color:white;font-size:12px;font-weight:600;cursor:pointer;">Copy Link</button>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+</div>
+
+<!-- Footer -->
+<footer class="ks-footer">
+  <strong>Smoke and Honey</strong> · Five Cats Studios LLC · Iowa · Built in Godot 4<br>
+  <span style="margin-top:6px;display:block;">All current art is placeholder. The soul is real. 🐝</span>
+</footer>
+
+</body>
+</html>

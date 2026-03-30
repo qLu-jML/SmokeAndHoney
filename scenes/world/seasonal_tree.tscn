@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://c5seasonal_tree"]
+
+[ext_resource type="Script" path="res://scripts/world/seasonal_tree.gd" id="1"]
+
+[node name="SeasonalTree" type="Node2D"]
+y_sort_enabled = false
+script = ExtResource("1")
+tree_type = "willow"
+flip = false
+bloom_start = 0
+bloom_end = 0
+trunk_collision_width = 16.0
+trunk_collision_height = 12.0

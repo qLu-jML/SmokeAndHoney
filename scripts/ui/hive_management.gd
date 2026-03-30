@@ -240,8 +240,18 @@ func _on_add_super() -> void:
 	if not player.consume_item(GameData.ITEM_SUPER_BOX, 1):
 		_show_status("No Super Box in inventory!")
 		return
+	var added: bool = false
 	if hive_ref.has_method("try_add_super"):
-		hive_ref.try_add_super()
+		added = hive_ref.try_add_super()
+	if not added:
+		# Super failed to add -- refund the consumed item
+		if player.has_method("add_item"):
+			player.add_item(GameData.ITEM_SUPER_BOX, 1)
+		_show_status("Cannot add super (max reached or hive not ready)")
+		if player.has_method("update_hud_inventory"):
+			player.update_hud_inventory()
+		_refresh()
+		return
 	if player.has_method("update_hud_inventory"):
 		player.update_hud_inventory()
 	_show_status("Honey super added!")

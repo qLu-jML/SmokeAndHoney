@@ -39,14 +39,28 @@ var _focus: Focus = Focus.CHEST
 var _cursor_x: int = 0
 var _cursor_y: int = 0
 
+# -- Drag-and-drop state -----------------------------------------------------
+var _drag_active: bool = false
+var _drag_item: String = ""             # Item ID being dragged
+var _drag_count: int = 0                # Stack count being dragged
+var _drag_source_focus: Focus = Focus.CHEST  # Where the item came from
+var _drag_source_slot: int = 0          # Slot index in source
+var _drag_icon: TextureRect = null      # Floating icon following mouse
+var _drag_count_lbl: Label = null       # Count label on floating icon
+
 # -- UI refs ------------------------------------------------------------------
 var _chest_slot_rects: Array = []
+var _chest_slot_icons: Array = []
 var _chest_count_lbls: Array = []
 var _inv_slot_rects:   Array = []
+var _inv_slot_icons:   Array = []
 var _inv_count_lbls:   Array = []
 var _cursor_panel:     Panel = null
 var _info_lbl:         Label = null
 var _hint_lbl:         Label = null
+
+# Loaded item textures (item_id -> Texture2D)
+var _item_textures: Dictionary = {}
 
 # -- Colours ------------------------------------------------------------------
 const C_BORDER     := Color(0.75, 0.60, 0.20, 1.0)
@@ -123,15 +137,77 @@ func _ready() -> void:
 	get_tree().paused = true
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_init_color_maps()
+	_load_item_textures()
 	_build_ui()
 	_refresh()
+
+func _load_item_textures() -> void:
+	var ITEM_SPRITE_MAP: Dictionary = {
+		GameData.ITEM_RAW_HONEY: "raw_honey.png",
+		GameData.ITEM_HONEY_JAR: "honey_jar_standard.png",
+		GameData.ITEM_BEESWAX: "beeswax.png",
+		GameData.ITEM_POLLEN: "pollen.png",
+		GameData.ITEM_SEEDS: "seeds.png",
+		GameData.ITEM_FRAMES: "frames.png",
+		GameData.ITEM_SUPER_BOX: "super_box.png",
+		GameData.ITEM_BEEHIVE: "beehive.png",
+		GameData.ITEM_HIVE_STAND: "hive_stand.png",
+		GameData.ITEM_DEEP_BODY: "deep_body.png",
+		GameData.ITEM_LID: "hive_lid.png",
+		GameData.ITEM_TREATMENT_OXALIC: "treatment_oxalic.png",
+		GameData.ITEM_TREATMENT_FORMIC: "treatment_formic.png",
+		GameData.ITEM_SYRUP_FEEDER: "syrup_feeder.png",
+		GameData.ITEM_QUEEN_CAGE: "queen_cage.png",
+		GameData.ITEM_HIVE_TOOL: "hive_tool.png",
+		GameData.ITEM_PACKAGE_BEES: "package_bees.png",
+		GameData.ITEM_DEEP_BOX: "deep_box.png",
+		GameData.ITEM_QUEEN_EXCLUDER: "queen_excluder.png",
+		GameData.ITEM_FULL_SUPER: "full_super.png",
+		GameData.ITEM_JAR: "jar.png",
+		GameData.ITEM_HONEY_BULK: "honey_bulk.png",
+		GameData.ITEM_FERMENTED_HONEY: "fermented_honey.png",
+		GameData.ITEM_CHEST: "chest.png",
+		GameData.ITEM_SUGAR_SYRUP: "sugar_syrup.png",
+		GameData.ITEM_GLOVES: "gloves.png",
+		GameData.ITEM_COMB_SCRAPER: "uncapping_knife.png",
+	}
+	for item_id in ITEM_SPRITE_MAP:
+		var p: String = "res://assets/sprites/items/%s" % ITEM_SPRITE_MAP[item_id]
+		if ResourceLoader.exists(p):
+			_item_textures[item_id] = load(p)
 
 # -- Input --------------------------------------------------------------------
 
 func _input(event: InputEvent) -> void:
+	# ---- Mouse input (drag-and-drop) ----------------------------------------
+	if event is InputEventMouseButton:
+		get_viewport().set_input_as_handled()
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			_on_mouse_click(event.position, false)
+		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+			_on_mouse_click(event.position, true)
+		_refresh()
+		return
+
+	if event is InputEventMouseMotion:
+		_on_mouse_move(event.position)
+		# Update cursor position to match hovered slot
+		_update_cursor_from_mouse(event.position)
+		return
+
+	# ---- Keyboard input (original controls) ---------------------------------
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
 	get_viewport().set_input_as_handled()
+
+	# Cancel drag on ESC
+	if event.keycode == KEY_ESCAPE:
+		if _drag_active:
+			_cancel_drag()
+		else:
+			_close()
+		_refresh()
+		return
 
 	match event.keycode:
 		KEY_W:
@@ -162,8 +238,6 @@ func _input(event: InputEvent) -> void:
 		KEY_E:
 			var is_shift: bool = event.shift_pressed
 			_transfer(is_shift)
-		KEY_ESCAPE:
-			_close()
 
 	_refresh()
 
@@ -202,9 +276,304 @@ func _transfer(single: bool) -> void:
 			player.consume_item(item_name, taken)
 		player.update_hud_inventory()
 
+# -- Mouse drag-and-drop ------------------------------------------------------
+
+## Handle a mouse click at the given screen position.
+## single_item: true = right-click (pick up / drop 1 item), false = left-click (full stack)
+func _on_mouse_click(pos: Vector2, single_item: bool) -> void:
+	var hit: Dictionary = _slot_at_position(pos)
+	if hit.is_empty():
+		# Clicked outside any slot -- cancel drag if active
+		if _drag_active:
+			_cancel_drag()
+		return
+
+	var hit_focus: Focus = hit["focus"] as Focus
+	var hit_slot: int = hit["slot"]
+
+	if not _drag_active:
+		# -- PICK UP from slot --
+		_pickup_from_slot(hit_focus, hit_slot, single_item)
+	else:
+		# -- DROP onto slot --
+		_drop_onto_slot(hit_focus, hit_slot, single_item)
+
+## Pick up an item stack (or single) from a slot to start dragging
+func _pickup_from_slot(source_focus: Focus, slot_idx: int, single: bool) -> void:
+	var slot_data = _read_slot(source_focus, slot_idx)
+	if slot_data == null:
+		return
+
+	var amount: int = 1 if single else int(slot_data["count"])
+	_drag_active = true
+	_drag_item = slot_data["item"]
+	_drag_count = amount
+	_drag_source_focus = source_focus
+	_drag_source_slot = slot_idx
+
+	# Remove from source
+	_remove_from_slot(source_focus, slot_idx, amount)
+
+	# Show floating drag icon
+	_show_drag_icon()
+	_refresh()
+
+## Drop the dragged item onto a target slot
+func _drop_onto_slot(target_focus: Focus, target_slot: int, single: bool) -> void:
+	var drop_count: int = 1 if single else _drag_count
+	drop_count = mini(drop_count, _drag_count)
+
+	var target_data = _read_slot(target_focus, target_slot)
+	var actually_placed: int = 0
+
+	if target_data == null:
+		# Empty slot -- place items directly
+		actually_placed = _place_into_slot(target_focus, target_slot, _drag_item, drop_count)
+	elif target_data["item"] == _drag_item:
+		# Same item -- try to merge stacks
+		actually_placed = _merge_into_slot(target_focus, target_slot, _drag_item, drop_count)
+	else:
+		# Different item -- swap if dropping full stack
+		if not single and drop_count == _drag_count:
+			_swap_with_slot(target_focus, target_slot)
+			return
+		else:
+			# Cannot merge different items with partial drop -- do nothing
+			return
+
+	_drag_count -= actually_placed
+	if _drag_count <= 0:
+		_end_drag()
+	else:
+		_update_drag_label()
+
+	_refresh()
+	# Sync player HUD
+	var player := _get_player()
+	if player and player.has_method("update_hud_inventory"):
+		player.update_hud_inventory()
+
+## Swap dragged item with a different item in the target slot
+func _swap_with_slot(target_focus: Focus, target_slot: int) -> void:
+	var target_data = _read_slot(target_focus, target_slot)
+	if target_data == null:
+		return
+
+	# Pick up the target slot contents
+	var swap_item: String = target_data["item"]
+	var swap_count: int = target_data["count"]
+
+	# Place the dragged item into the target slot
+	_clear_slot(target_focus, target_slot)
+	_place_into_slot(target_focus, target_slot, _drag_item, _drag_count)
+
+	# The swapped item becomes the new drag
+	_drag_item = swap_item
+	_drag_count = swap_count
+	_update_drag_icon()
+	_refresh()
+	var player := _get_player()
+	if player and player.has_method("update_hud_inventory"):
+		player.update_hud_inventory()
+
+## Move the floating drag icon with the mouse
+func _on_mouse_move(pos: Vector2) -> void:
+	if _drag_active and _drag_icon:
+		_drag_icon.position = pos - Vector2(7, 7)
+
+## Update keyboard cursor position to match which slot the mouse is hovering
+func _update_cursor_from_mouse(pos: Vector2) -> void:
+	var hit: Dictionary = _slot_at_position(pos)
+	if hit.is_empty():
+		return
+	_focus = hit["focus"] as Focus
+	if _focus == Focus.CHEST:
+		_cursor_x = hit["slot"] % GRID_COLS
+		_cursor_y = hit["slot"] / GRID_COLS
+	else:
+		_cursor_x = hit["slot"]
+		_cursor_y = 0
+	_refresh()
+
+## Cancel the current drag -- return items to source
+func _cancel_drag() -> void:
+	if not _drag_active:
+		return
+	# Return items to source slot
+	_place_into_slot(_drag_source_focus, _drag_source_slot, _drag_item, _drag_count)
+	_end_drag()
+	_refresh()
+	var player := _get_player()
+	if player and player.has_method("update_hud_inventory"):
+		player.update_hud_inventory()
+
+func _end_drag() -> void:
+	_drag_active = false
+	_drag_item = ""
+	_drag_count = 0
+	if _drag_icon:
+		_drag_icon.queue_free()
+		_drag_icon = null
+		_drag_count_lbl = null
+
+func _show_drag_icon() -> void:
+	if _drag_icon:
+		_drag_icon.queue_free()
+
+	_drag_icon = TextureRect.new()
+	_drag_icon.size = Vector2(SLOT_SIZE, SLOT_SIZE)
+	_drag_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_drag_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_drag_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_drag_icon.z_index = 50
+	_drag_icon.modulate = Color(1, 1, 1, 0.85)
+
+	var tex = _item_textures.get(_drag_item, null)
+	if tex:
+		_drag_icon.texture = tex
+	else:
+		# Fallback: tinted rect
+		var fallback := ColorRect.new()
+		fallback.size = Vector2(SLOT_SIZE, SLOT_SIZE)
+		fallback.color = SLOT_COLORS.get(_drag_item, Color(0.5, 0.4, 0.2))
+		fallback.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_drag_icon.add_child(fallback)
+
+	# Count label on the drag icon
+	_drag_count_lbl = _make_label("x%d" % _drag_count, 4, C_TEXT)
+	_drag_count_lbl.position = Vector2(1, 7)
+	_drag_count_lbl.custom_minimum_size = Vector2(SLOT_SIZE - 2, 6)
+	_drag_count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_drag_icon.add_child(_drag_count_lbl)
+
+	add_child(_drag_icon)
+
+func _update_drag_icon() -> void:
+	if not _drag_icon:
+		_show_drag_icon()
+		return
+	var tex = _item_textures.get(_drag_item, null)
+	if tex:
+		_drag_icon.texture = tex
+		# Remove any fallback children
+		for c in _drag_icon.get_children():
+			if c is ColorRect:
+				c.queue_free()
+	_update_drag_label()
+
+func _update_drag_label() -> void:
+	if _drag_count_lbl:
+		_drag_count_lbl.text = "x%d" % _drag_count
+
+# -- Slot read/write helpers (abstract over chest vs player inventory) --------
+
+## Returns the slot data dict at a given focus+index, or null
+func _read_slot(focus: Focus, slot_idx: int):
+	if focus == Focus.CHEST:
+		if chest_ref and slot_idx >= 0 and slot_idx < chest_ref.storage.size():
+			return chest_ref.storage[slot_idx]
+	else:
+		var player := _get_player()
+		if player and slot_idx >= 0 and slot_idx < player.inventory.size():
+			return player.inventory[slot_idx]
+	return null
+
+## Remove a number of items from a specific slot
+func _remove_from_slot(focus: Focus, slot_idx: int, amount: int) -> void:
+	if focus == Focus.CHEST:
+		if chest_ref:
+			chest_ref.remove_slot(slot_idx, amount)
+	else:
+		var player := _get_player()
+		if player and slot_idx >= 0 and slot_idx < player.inventory.size():
+			var slot = player.inventory[slot_idx]
+			if slot != null:
+				slot["count"] -= amount
+				if slot["count"] <= 0:
+					player.inventory[slot_idx] = null
+
+## Place items directly into a specific empty slot. Returns how many were placed.
+func _place_into_slot(focus: Focus, slot_idx: int, item_name: String, amount: int) -> int:
+	var player := _get_player()
+	var max_stack: int = 20
+	if player and player.has_method("get_max_stack"):
+		max_stack = player.get_max_stack(item_name)
+
+	var to_place: int = mini(amount, max_stack)
+
+	if focus == Focus.CHEST:
+		if chest_ref and slot_idx >= 0 and slot_idx < chest_ref.storage.size():
+			if chest_ref.storage[slot_idx] == null:
+				chest_ref.storage[slot_idx] = {"item": item_name, "count": to_place}
+				return to_place
+			elif chest_ref.storage[slot_idx]["item"] == item_name:
+				var space: int = max_stack - chest_ref.storage[slot_idx]["count"]
+				var add: int = mini(to_place, space)
+				chest_ref.storage[slot_idx]["count"] += add
+				return add
+	else:
+		if player and slot_idx >= 0 and slot_idx < player.inventory.size():
+			if player.inventory[slot_idx] == null:
+				player.inventory[slot_idx] = {"item": item_name, "count": to_place}
+				return to_place
+			elif player.inventory[slot_idx]["item"] == item_name:
+				var space: int = max_stack - player.inventory[slot_idx]["count"]
+				var add: int = mini(to_place, space)
+				player.inventory[slot_idx]["count"] += add
+				return add
+	return 0
+
+## Merge items into a slot that already has the same item. Returns how many merged.
+func _merge_into_slot(focus: Focus, slot_idx: int, item_name: String, amount: int) -> int:
+	return _place_into_slot(focus, slot_idx, item_name, amount)
+
+## Clear a slot completely
+func _clear_slot(focus: Focus, slot_idx: int) -> void:
+	if focus == Focus.CHEST:
+		if chest_ref and slot_idx >= 0 and slot_idx < chest_ref.storage.size():
+			chest_ref.storage[slot_idx] = null
+	else:
+		var player := _get_player()
+		if player and slot_idx >= 0 and slot_idx < player.inventory.size():
+			player.inventory[slot_idx] = null
+
+## Determine which slot (if any) the given screen position is over.
+## Returns {"focus": Focus, "slot": int} or {} if not over any slot.
+func _slot_at_position(pos: Vector2) -> Dictionary:
+	# Check chest grid slots
+	var chest_origin_x: float = float(PANEL_X + GRID_X)
+	var chest_origin_y: float = float(PANEL_Y + GRID_Y)
+	var grid_w: float = float(GRID_COLS * SLOT_STEP)
+	var grid_h: float = float(GRID_ROWS * SLOT_STEP)
+
+	if pos.x >= chest_origin_x and pos.x < chest_origin_x + grid_w:
+		if pos.y >= chest_origin_y and pos.y < chest_origin_y + grid_h:
+			var col: int = int((pos.x - chest_origin_x) / float(SLOT_STEP))
+			var row: int = int((pos.y - chest_origin_y) / float(SLOT_STEP))
+			col = clampi(col, 0, GRID_COLS - 1)
+			row = clampi(row, 0, GRID_ROWS - 1)
+			return {"focus": Focus.CHEST, "slot": row * GRID_COLS + col}
+
+	# Check player inventory row
+	var inv_origin_x: float = float(PANEL_X + GRID_X)
+	var inv_origin_y: float = float(PANEL_Y + INV_Y)
+	var inv_w: float = float(INV_COLS * SLOT_STEP)
+	var inv_h: float = float(SLOT_STEP)
+
+	if pos.x >= inv_origin_x and pos.x < inv_origin_x + inv_w:
+		if pos.y >= inv_origin_y and pos.y < inv_origin_y + inv_h:
+			var col: int = int((pos.x - inv_origin_x) / float(SLOT_STEP))
+			col = clampi(col, 0, INV_COLS - 1)
+			return {"focus": Focus.PLAYER, "slot": col}
+
+	return {}
+
 # -- Close --------------------------------------------------------------------
 
 func _close() -> void:
+	# Return any dragged items before closing
+	if _drag_active:
+		_cancel_drag()
 	get_tree().paused = false
 	queue_free()
 
@@ -220,9 +589,17 @@ func _refresh() -> void:
 		for i in CHEST_SLOTS:
 			var slot = chest_ref.storage[i] if i < chest_ref.storage.size() else null
 			if slot != null:
-				_chest_slot_rects[i].color = SLOT_COLORS.get(slot["item"], Color(0.35, 0.28, 0.12))
+				var tex = _item_textures.get(slot["item"], null)
+				if tex != null:
+					_chest_slot_icons[i].texture = tex
+					_chest_slot_icons[i].visible = true
+					_chest_slot_rects[i].color = C_SLOT_EMPTY
+				else:
+					_chest_slot_icons[i].visible = false
+					_chest_slot_rects[i].color = SLOT_COLORS.get(slot["item"], Color(0.35, 0.28, 0.12))
 				_chest_count_lbls[i].text = "x%d" % slot["count"]
 			else:
+				_chest_slot_icons[i].visible = false
 				_chest_slot_rects[i].color = C_SLOT_EMPTY
 				_chest_count_lbls[i].text = ""
 
@@ -232,9 +609,17 @@ func _refresh() -> void:
 		for i in INV_COLS:
 			var slot = player.inventory[i] if i < player.inventory.size() else null
 			if slot != null:
-				_inv_slot_rects[i].color = SLOT_COLORS.get(slot["item"], Color(0.35, 0.28, 0.12))
+				var tex = _item_textures.get(slot["item"], null)
+				if tex != null:
+					_inv_slot_icons[i].texture = tex
+					_inv_slot_icons[i].visible = true
+					_inv_slot_rects[i].color = C_SLOT_EMPTY
+				else:
+					_inv_slot_icons[i].visible = false
+					_inv_slot_rects[i].color = SLOT_COLORS.get(slot["item"], Color(0.35, 0.28, 0.12))
 				_inv_count_lbls[i].text = "x%d" % slot["count"]
 			else:
+				_inv_slot_icons[i].visible = false
 				_inv_slot_rects[i].color = C_SLOT_EMPTY
 				_inv_count_lbls[i].text = ""
 
@@ -250,14 +635,18 @@ func _refresh() -> void:
 			cy = PANEL_Y + INV_Y + _cursor_y * SLOT_STEP - 1
 		_cursor_panel.position = Vector2(cx, cy)
 
-	# Info label: show item name under cursor
+	# Info label: show item name under cursor (or drag info)
 	if _info_lbl:
-		var slot_data = _get_cursor_slot()
-		if slot_data != null:
-			var name_str: String = LONG_NAME.get(slot_data["item"], slot_data["item"].capitalize())
-			_info_lbl.text = "%s (x%d)" % [name_str, slot_data["count"]]
+		if _drag_active:
+			var name_str: String = LONG_NAME.get(_drag_item, _drag_item.capitalize())
+			_info_lbl.text = "Holding: %s (x%d)" % [name_str, _drag_count]
 		else:
-			_info_lbl.text = ""
+			var slot_data = _get_cursor_slot()
+			if slot_data != null:
+				var name_str: String = LONG_NAME.get(slot_data["item"], slot_data["item"].capitalize())
+				_info_lbl.text = "%s (x%d)" % [name_str, slot_data["count"]]
+			else:
+				_info_lbl.text = ""
 
 func _get_cursor_slot():
 	if _focus == Focus.CHEST and chest_ref:
@@ -327,6 +716,15 @@ func _build_ui() -> void:
 			slot_rect.color    = C_SLOT_EMPTY
 			add_child(slot_rect)
 
+			var icon := TextureRect.new()
+			icon.position = Vector2.ZERO
+			icon.size = Vector2(SLOT_SIZE, SLOT_SIZE)
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			icon.visible = false
+			slot_rect.add_child(icon)
+
 			var count_lbl := _make_label("", 4, C_TEXT)
 			count_lbl.position = Vector2(1, 7)
 			count_lbl.custom_minimum_size = Vector2(SLOT_SIZE - 2, 6)
@@ -334,6 +732,7 @@ func _build_ui() -> void:
 			slot_rect.add_child(count_lbl)
 
 			_chest_slot_rects.append(slot_rect)
+			_chest_slot_icons.append(icon)
 			_chest_count_lbls.append(count_lbl)
 
 	# Divider
@@ -359,6 +758,15 @@ func _build_ui() -> void:
 		slot_rect.color    = C_SLOT_EMPTY
 		add_child(slot_rect)
 
+		var icon := TextureRect.new()
+		icon.position = Vector2.ZERO
+		icon.size = Vector2(SLOT_SIZE, SLOT_SIZE)
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.visible = false
+		slot_rect.add_child(icon)
+
 		var count_lbl := _make_label("", 4, C_TEXT)
 		count_lbl.position = Vector2(1, 7)
 		count_lbl.custom_minimum_size = Vector2(SLOT_SIZE - 2, 6)
@@ -366,6 +774,7 @@ func _build_ui() -> void:
 		slot_rect.add_child(count_lbl)
 
 		_inv_slot_rects.append(slot_rect)
+		_inv_slot_icons.append(icon)
 		_inv_count_lbls.append(count_lbl)
 
 	# Cursor highlight
@@ -391,7 +800,7 @@ func _build_ui() -> void:
 	add_child(_info_lbl)
 
 	# Hint bar
-	_hint_lbl = _make_label("WASD Move  E Transfer  Shift+E x1  Q Switch  Esc Close",
+	_hint_lbl = _make_label("Click Drag | Right-Click x1 | WASD+E | Esc Close",
 							FONT_SM, C_DIM)
 	_hint_lbl.position             = Vector2(PANEL_X + 4, PANEL_Y + PANEL_H - 14)
 	_hint_lbl.custom_minimum_size  = Vector2(PANEL_W - 8, 10)
