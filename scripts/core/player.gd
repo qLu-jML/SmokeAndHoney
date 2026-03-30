@@ -7,6 +7,9 @@ var mode_label: Label = null
 var facing_direction: Vector2 = Vector2.DOWN
 var facing_dir_8: Vector2i = Vector2i(0, 1)  # full 8-way, used for tile targeting
 
+# -- Carried item display ------------------------------------------------------
+var _carried_super_sprite: Sprite2D = null   # floating super visual when carrying
+
 # -- Inventory -----------------------------------------------------------------
 const INVENTORY_SIZE = 10
 var inventory: Array = []
@@ -26,7 +29,7 @@ func get_max_stack(item_name: String) -> int:
 		GameData.ITEM_HIVE_TOOL:  return 1
 		GameData.ITEM_PACKAGE_BEES: return 5
 		GameData.ITEM_QUEEN_EXCLUDER: return 5
-		GameData.ITEM_FULL_SUPER: return 2      # heavy! max 2 at once
+		GameData.ITEM_FULL_SUPER: return 1      # heavy! carry limit: 1 super at a time
 		GameData.ITEM_DEEP_BOX:   return 5
 		GameData.ITEM_JAR:        return 99
 		GameData.ITEM_HONEY_BULK: return 20
@@ -58,6 +61,8 @@ func _ready():
 	call_deferred("_grab_window_focus")
 	# Push starting inventory to HUD after all _ready() calls complete
 	call_deferred("update_hud_inventory")
+	# Carried item display sprite (setup deferred so node tree is ready)
+	call_deferred("_setup_carry_sprite")
 
 func _load_spritesheet() -> void:
 	var path := "res://assets/sprites/npc/The_Beekeeper/beekeeper_spritesheet.png"
@@ -153,6 +158,33 @@ func update_hud_inventory() -> void:
 	var hud = get_node_or_null("../../UI")
 	if hud and hud.has_method("update_player_inventory"):
 		hud.update_player_inventory(inventory)
+	_update_carry_visual()
+
+# -- Carried item visual -------------------------------------------------------
+
+func _setup_carry_sprite() -> void:
+	_carried_super_sprite = Sprite2D.new()
+	_carried_super_sprite.name = "CarriedSuperSprite"
+	# Load the super box sprite from the hive assets
+	var path: String = "res://assets/sprites/hive/hive_super.png"
+	var abs_path: String = ProjectSettings.globalize_path(path)
+	var img: Image = Image.load_from_file(abs_path)
+	if img != null:
+		_carried_super_sprite.texture = ImageTexture.create_from_image(img)
+	# Draw above player and ground tiles
+	_carried_super_sprite.z_index = 3
+	_carried_super_sprite.visible = false
+	add_child(_carried_super_sprite)
+
+func _update_carry_visual() -> void:
+	if not is_instance_valid(_carried_super_sprite):
+		return
+	var carrying: bool = count_item(GameData.ITEM_FULL_SUPER) > 0
+	_carried_super_sprite.visible = carrying
+	if carrying:
+		# Float the super 10px in the direction the player is facing
+		var offset: Vector2 = facing_direction * 10.0
+		_carried_super_sprite.position = offset
 
 # -- Inventory -----------------------------------------------------------------
 
@@ -737,6 +769,8 @@ func _physics_process(delta):
 
 	_advance_anim_timer(delta)
 	move_and_slide()
+	# Keep carried item floating in front as player moves/turns
+	_update_carry_visual()
 
 func play_animation(direction: Vector2, running: bool = false) -> void:
 	var sx: int = int(sign(direction.x))
