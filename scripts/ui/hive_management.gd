@@ -262,13 +262,17 @@ func _refresh() -> void:
 	else:
 		_set_btn(_btn_add_super, "Add Honey Super  (%d/10)" % supers, false)
 
-	# Remove Super
+	# Remove Super -- smart: checks honey content to show correct action
 	if already_carrying:
 		_set_btn(_btn_remove_super, "Remove Super  [hands full!]", true)
 	elif supers <= 0:
 		_set_btn(_btn_remove_super, "Remove Super  [none on hive]", true)
 	else:
-		_set_btn(_btn_remove_super, "Remove Super for Harvest", false)
+		var has_honey: bool = hive_ref.has_method("top_super_has_honey") and hive_ref.top_super_has_honey()
+		if has_honey:
+			_set_btn(_btn_remove_super, "Remove Super for Harvest", false)
+		else:
+			_set_btn(_btn_remove_super, "Return Empty Super to Inventory", false)
 
 	# Add Excluder
 	if has_excl:
@@ -334,7 +338,9 @@ func _on_remove_super() -> void:
 	var player: Node = _get_player()
 	if not player:
 		return
-	if player.has_method("count_item"):
+	# Carry limit: only one full super at a time (empty supers always OK)
+	var has_honey: bool = hive_ref.has_method("top_super_has_honey") and hive_ref.top_super_has_honey()
+	if has_honey and player.has_method("count_item"):
 		if player.count_item(GameData.ITEM_FULL_SUPER) > 0:
 			_show_status("Hands full! Take super to Honey House first.")
 			_refresh()
@@ -346,11 +352,16 @@ func _on_remove_super() -> void:
 	if removed == null:
 		_show_status("No supers to remove!")
 		return
+	# Give back the correct item based on honey content
 	if player.has_method("add_item"):
-		player.add_item(GameData.ITEM_FULL_SUPER, 1)
+		if has_honey:
+			player.add_item(GameData.ITEM_FULL_SUPER, 1)
+			_show_status("Super removed -- take it to the Honey House!")
+		else:
+			player.add_item(GameData.ITEM_SUPER_BOX, 1)
+			_show_status("Empty super returned to inventory.")
 	if player.has_method("update_hud_inventory"):
 		player.update_hud_inventory()
-	_show_status("Super removed -- take it to the Honey House!")
 	_refresh()
 
 func _on_add_excluder() -> void:

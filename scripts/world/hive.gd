@@ -401,6 +401,35 @@ func try_remove_top_super() -> Object:
 		_update_prompt_text()
 	return removed
 
+## Return true if the topmost super has any honey/nectar/curing cells.
+## Returns false if there is no top super or it is completely empty.
+func top_super_has_honey() -> bool:
+	if not simulation:
+		return false
+	# Find the topmost super index
+	var top_idx: int = -1
+	for b_idx in simulation.boxes.size():
+		if simulation.boxes[b_idx].is_super:
+			top_idx = b_idx
+	if top_idx < 0:
+		return false
+	var box = simulation.boxes[top_idx]
+	# Honey states: S_NECTAR, S_CURING_HONEY, S_CAPPED_HONEY, S_PREMIUM_HONEY
+	var honey_states: Array = [
+		simulation.S_NECTAR,
+		simulation.S_CURING_HONEY,
+		simulation.S_CAPPED_HONEY,
+		simulation.S_PREMIUM_HONEY,
+	]
+	for frame in box.frames:
+		for cell in frame.cells:
+			if cell in honey_states:
+				return true
+		for cell in frame.cells_b:
+			if cell in honey_states:
+				return true
+	return false
+
 ## Remove a fully-marked super for harvest transport. Returns the HiveBox or null.
 func remove_marked_super() -> Object:
 	if not simulation:
