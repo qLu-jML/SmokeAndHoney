@@ -382,6 +382,25 @@ func try_add_super() -> bool:
 	_update_prompt_text()
 	return true
 
+## Remove the topmost honey super (for manual harvest transport via gloves UI).
+## Removes regardless of mark state -- player takes it to the Honey House.
+## Returns the removed HiveBox or null if no supers are present.
+func try_remove_top_super() -> Object:
+	if not simulation:
+		return null
+	# Find the topmost super (last super in the boxes array)
+	var top_idx: int = -1
+	for b_idx in simulation.boxes.size():
+		if simulation.boxes[b_idx].is_super:
+			top_idx = b_idx
+	if top_idx < 0:
+		return null
+	var removed: Object = simulation.remove_super(top_idx)
+	if removed != null:
+		_rebuild_sprite_stack()
+		_update_prompt_text()
+	return removed
+
 ## Remove a fully-marked super for harvest transport. Returns the HiveBox or null.
 func remove_marked_super() -> Object:
 	if not simulation:
