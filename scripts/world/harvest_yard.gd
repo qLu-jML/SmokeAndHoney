@@ -256,35 +256,40 @@ func _update_super_visuals() -> void:
 	if _pallet_super_sprites.size() < 4 or _scraped_box_sprite == null:
 		return
 
-	# -- Super pallet: show one sprite per queued super, top super dims --
+	# -- Super pallet: show one sprite per queued super --
 	for i in range(4):
 		var sp: Sprite2D = _pallet_super_sprites[i]
 		if i < _supers_on_pallet:
 			sp.visible = true
-			# The topmost queued super (highest index) is the one being scraped.
-			# Dim it based on remaining frames; others stay fully golden.
-			if i == _supers_on_pallet - 1:
-				var fill: float = clampf(float(_frames_on_pallet.size()) / 10.0, 0.0, 1.0)
-				sp.modulate = Color(
-					lerpf(0.65, 1.0, fill),
-					lerpf(0.50, 0.85, fill),
-					lerpf(0.30, 0.45, fill),
-					1.0)
+			if GameData.dev_labels_visible:
+				# Dev mode: top super dims as frames are scraped; others honey-orange.
+				if i == _supers_on_pallet - 1:
+					var fill: float = clampf(float(_frames_on_pallet.size()) / 10.0, 0.0, 1.0)
+					sp.modulate = Color(
+						lerpf(0.65, 1.0, fill),
+						lerpf(0.50, 0.85, fill),
+						lerpf(0.30, 0.45, fill),
+						1.0)
+				else:
+					sp.modulate = Color(1.0, 0.85, 0.42, 1.0)
 			else:
-				sp.modulate = Color(1.0, 0.85, 0.42, 1.0)  # fully golden
+				sp.modulate = Color(1.0, 1.0, 1.0, 1.0)  # always white for player
 		else:
 			sp.visible = false
 
 	# -- Scraped pallet: show when empty super box is placed --
 	_scraped_box_sprite.visible = _super_box_on_scraped
 	if _super_box_on_scraped:
-		# Pale/empty when no frames, warms to golden as it fills
-		var fill: float = clampf(float(_frames_scraped) / 10.0, 0.0, 1.0)
-		_scraped_box_sprite.modulate = Color(
-			lerpf(0.65, 1.0, fill),
-			lerpf(0.50, 0.85, fill),
-			lerpf(0.30, 0.45, fill),
-			1.0)
+		if GameData.dev_labels_visible:
+			# Dev mode: warms to honey-orange as frames fill in
+			var fill: float = clampf(float(_frames_scraped) / 10.0, 0.0, 1.0)
+			_scraped_box_sprite.modulate = Color(
+				lerpf(0.65, 1.0, fill),
+				lerpf(0.50, 0.85, fill),
+				lerpf(0.30, 0.45, fill),
+				1.0)
+		else:
+			_scraped_box_sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)  # always white
 
 # =========================================================================
 # EXTRACTOR SPRITE -- Leonardo art replaces the placeholder circle
