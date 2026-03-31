@@ -69,14 +69,23 @@ var _minigame_active: bool = false
 const INTERACT_DIST := 52.0
 
 # -- Station visual nodes -------------------------------------------------
-var _station_sprites: Dictionary = {}       # Station -> ColorRect placeholder
 var _station_labels: Dictionary = {}        # Station -> Label
-var _bucket_node: Node2D = null
 
 # -- Pallet sprite nodes --------------------------------------------------
 var _super_pallet_sprite: Sprite2D = null
 var _scraped_pallet_sprite: Sprite2D = null
 const PALLET_TEXTURE_PATH := "res://assets/sprites/objects/pallet_super.png"
+
+# -- Extractor sprite node ------------------------------------------------
+var _extractor_sprite: Sprite2D = null
+const EXTRACTOR_TEXTURE_PATH := "res://assets/sprites/objects/honey_spinner.png"
+
+# -- Bucket sprite node (switches between full and empty texture) ---------
+var _bucket_sprite: Sprite2D = null
+var _bucket_tex_full: Texture2D = null
+var _bucket_tex_empty: Texture2D = null
+const BUCKET_FULL_PATH  := "res://assets/sprites/objects/honey_bucket.png"
+const BUCKET_EMPTY_PATH := "res://assets/sprites/objects/honey_bucket_empty.png"
 
 # =========================================================================
 # LIFECYCLE
@@ -86,40 +95,18 @@ func _ready() -> void:
 	_create_station_visuals()
 	_create_bucket_visual()
 	_create_pallet_sprites()
+	_create_extractor_sprite()
+	_create_bucket_sprite()
 	print("[HarvestYard] Outdoor harvest yard ready.")
 
 # =========================================================================
 # DRAWING -- Placeholder colored rectangles for each station
 # =========================================================================
 func _draw() -> void:
-	# Super Pallet and Scraped Pallet use Sprite2D nodes -- no ColorRect draw needed.
-	# Extractor, bottling table, and bucket are still drawn here.
-	# Honey Extractor - metal grey circle
-	var ext_pos: Vector2 = STATION_POS[Station.EXTRACTOR]
-	var ext_size: Vector2 = STATION_SIZE[Station.EXTRACTOR]
-	var ext_center: Vector2 = ext_pos + ext_size * 0.5
-	draw_circle(ext_center, ext_size.x * 0.5, Color(0.55, 0.57, 0.58, 1.0))
-	draw_arc(ext_center, ext_size.x * 0.5, 0, TAU, 32, Color(0.3, 0.3, 0.3), 1.5)
-	# Bottling Table - warm wood
+	# Extractor and bucket are Sprite2D nodes -- update their state here.
+	_update_bucket_visual()
+	# Bottling Table - warm wood placeholder (Leonardo asset pending)
 	_draw_station_box(Station.BOTTLING, Color(0.60, 0.42, 0.25, 1.0))
-	# Honey Bucket - white circle
-	draw_circle(BUCKET_OFFSET, BUCKET_RADIUS, Color(0.92, 0.92, 0.92, 1.0))
-	draw_arc(BUCKET_OFFSET, BUCKET_RADIUS, 0, TAU, 16, Color(0.5, 0.5, 0.5), 1.0)
-	# Honey fill level in bucket
-	if _bucket_honey_lbs > 0.0:
-		var fill_pct: float = clampf(_bucket_honey_lbs / 40.0, 0.0, 1.0)
-		var fill_radius: float = BUCKET_RADIUS * 0.8 * fill_pct
-		draw_circle(BUCKET_OFFSET, fill_radius, Color(0.90, 0.72, 0.20, 0.8))
-	# Bucket placed on bottling table
-	if _bucket_on_bottling_table and _bucket_honey_lbs > 0.0:
-		var btp: Vector2 = STATION_POS[Station.BOTTLING]
-		var bts: Vector2 = STATION_SIZE[Station.BOTTLING]
-		var bkt_cx: float = btp.x + bts.x - 20.0
-		var bkt_cy: float = btp.y + bts.y * 0.5
-		draw_circle(Vector2(bkt_cx, bkt_cy), BUCKET_RADIUS * 0.9, Color(0.92, 0.92, 0.92, 1.0))
-		draw_arc(Vector2(bkt_cx, bkt_cy), BUCKET_RADIUS * 0.9, 0, TAU, 16, Color(0.5, 0.5, 0.5), 1.0)
-		var fill_r: float = BUCKET_RADIUS * 0.7 * clampf(_bucket_honey_lbs / 40.0, 0.0, 1.0)
-		draw_circle(Vector2(bkt_cx, bkt_cy), fill_r, Color(0.90, 0.72, 0.20, 0.8))
 	# Jars on bottling table
 	if _jars_on_table > 0:
 		_draw_jar_stacks()
@@ -210,6 +197,74 @@ func _create_pallet_sprites() -> void:
 	_scraped_pallet_sprite.position = STATION_POS[Station.SCRAPED_PALLET] + sc_size * 0.5
 	_scraped_pallet_sprite.z_index = 3
 	add_child(_scraped_pallet_sprite)
+
+# =========================================================================
+# EXTRACTOR SPRITE -- Leonardo art replaces the placeholder circle
+# =========================================================================
+func _create_extractor_sprite() -> void:
+	var abs_path: String = ProjectSettings.globalize_path(EXTRACTOR_TEXTURE_PATH)
+	var img: Image = Image.load_from_file(abs_path)
+	_extractor_sprite = Sprite2D.new()
+	_extractor_sprite.name = "ExtractorSprite"
+	if img != null:
+		_extractor_sprite.texture = ImageTexture.create_from_image(img)
+	else:
+		push_warning("[HarvestYard] Extractor texture not found: " + EXTRACTOR_TEXTURE_PATH)
+	# Center sprite at the extractor station center
+	var ext_pos: Vector2 = STATION_POS[Station.EXTRACTOR]
+	var ext_size: Vector2 = STATION_SIZE[Station.EXTRACTOR]
+	_extractor_sprite.position = ext_pos + ext_size * 0.5
+	_extractor_sprite.z_index = 3
+	add_child(_extractor_sprite)
+
+# =========================================================================
+# BUCKET SPRITE -- Preload full + empty textures, switch on state change
+# =========================================================================
+func _create_bucket_sprite() -> void:
+	# Preload both textures so we never reload from disk on state change
+	var full_abs: String = ProjectSettings.globalize_path(BUCKET_FULL_PATH)
+	var empty_abs: String = ProjectSettings.globalize_path(BUCKET_EMPTY_PATH)
+	var img_full: Image = Image.load_from_file(full_abs)
+	var img_empty: Image = Image.load_from_file(empty_abs)
+	if img_full != null:
+		_bucket_tex_full = ImageTexture.create_from_image(img_full)
+	else:
+		push_warning("[HarvestYard] Bucket full texture not found: " + BUCKET_FULL_PATH)
+	if img_empty != null:
+		_bucket_tex_empty = ImageTexture.create_from_image(img_empty)
+	else:
+		push_warning("[HarvestYard] Bucket empty texture not found: " + BUCKET_EMPTY_PATH)
+	_bucket_sprite = Sprite2D.new()
+	_bucket_sprite.name = "BucketSprite"
+	_bucket_sprite.texture = _bucket_tex_empty
+	_bucket_sprite.position = BUCKET_OFFSET
+	_bucket_sprite.z_index = 4
+	_bucket_sprite.visible = false
+	add_child(_bucket_sprite)
+
+## Update bucket sprite visibility, position, and texture to match pipeline state.
+## Called from _draw() so it fires on every queue_redraw().
+func _update_bucket_visual() -> void:
+	if _bucket_sprite == null:
+		return
+	var show: bool = _bucket_at_yard or _bucket_on_bottling_table
+	_bucket_sprite.visible = show
+	if not show:
+		return
+	# Move to bottling table when placed there, otherwise stay at yard spot
+	if _bucket_on_bottling_table:
+		var btp: Vector2 = STATION_POS[Station.BOTTLING]
+		var bts: Vector2 = STATION_SIZE[Station.BOTTLING]
+		_bucket_sprite.position = Vector2(btp.x + bts.x - 24.0, btp.y + bts.y * 0.5)
+	else:
+		_bucket_sprite.position = BUCKET_OFFSET
+	# Full vs empty texture
+	if _bucket_honey_lbs >= 1.0:
+		if _bucket_tex_full != null:
+			_bucket_sprite.texture = _bucket_tex_full
+	else:
+		if _bucket_tex_empty != null:
+			_bucket_sprite.texture = _bucket_tex_empty
 
 # =========================================================================
 # STATION VISUALS -- Create labels and collision areas
