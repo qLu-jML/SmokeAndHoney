@@ -331,3 +331,7 @@
     - Spans full frame height (representing uncapping knife coverage)
     - Left/right edge lines suggest the blade edge
     - Visible on hover, updates live, hides on done/flip/ESC
+
+2026-03-30 - Add comb scraper + bucket grip to starting player inventory
+  ITEM_COMB_SCRAPER and ITEM_BUCKET_GRIP added to player._ready() starting slots.
+  Removed duplicate copies from _stock_starting_chest().
