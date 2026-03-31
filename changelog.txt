@@ -626,3 +626,28 @@
          serve different visual purposes: banner = prominent center, toast = log).
   DevPlan updated: tasks 2.5-2.10 marked DONE.
   Protected files verified: GDD 603,634 bytes, DevPlan 139,015 bytes.
+
+[2026-03-31 CDT] FEATURE: Startup screen -- logo, main theme, Spring/Fall start modes
+  MainMenu.gd rewritten as a full startup screen:
+    - Game logo (assets/ui/logo/game_logo.png) displayed centered in upper half
+      of viewport above the button panel.
+    - Main theme music (assets/audio/main_theme/mainTheme.mp3) plays on entry
+      via new MusicManager.play_title_theme() and MusicManager.resume_seasonal_music().
+    - "New Game" replaced with two distinct start buttons:
+        [Start in Spring]              -- day 1 (Quickening), overwintered S-grade
+                                          Carniolan colony, standard new game.
+        [Start in Fall | 2 Full Supers] -- day 113 (Full-Earth), A-grade Carniolan
+                                          colony at peak population with 2 honey supers
+                                          filled and capped, ready for fall harvest.
+    - Continue and Quit remain; Settings stub removed.
+  New files / functions:
+    - GameData.new_game_mode (int): 0 = spring, 1 = fall. Reset to 0 after hive spawns.
+    - MusicManager.play_title_theme(): plays mainTheme.mp3, resets seasonal index.
+    - MusicManager.resume_seasonal_music(): hands music back to seasonal system.
+    - HiveSimulation.init_as_fall_harvest(): strong fall colony, 2 filled supers,
+      honey_stores=24 lbs, population ~32k bees, manageable mite load (45).
+    - hive.gd place_as_fall_harvest(): wraps init_as_fall_harvest(), bypasses lockout.
+    - home_property._spawn_starter_hive(): branches on GameData.new_game_mode:
+        mode 0 -> place_as_overwintered("Carniolan","S")
+        mode 1 -> place_as_fall_harvest("Carniolan","A") + GameData.new_game_mode = 0
+  Protected files verified: GDD 603,634 bytes, DevPlan 139,437 bytes.

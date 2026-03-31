@@ -608,6 +608,100 @@ func init_as_package(p_species: String = "Carniolan") -> void:
 	# Write initial snapshot
 	last_snapshot = SnapshotWriter.write(self, _calculate_health_score())
 
+# -- Fall-Harvest Initialization -----------------------------------------------
+# Called when the player chooses "Start in Fall with 2 Full Supers".
+# Represents a strong midsummer colony that has filled two honey supers and
+# is ready for fall harvest on day 113 (Full-Earth, Fall M1).
+#
+# Setup goals:
+#   - Peak-summer population (few drones remain in early fall)
+#   - Full 10-frame brood box with drawn comb and active brood nest
+#   - 2 honey supers attached, both filled with capped honey
+#   - honey_stores ~24 lbs  (2 full supers ~8 lbs + brood-box winter stores ~16 lbs)
+#   - Manageable mite load (colony was treated in midsummer)
+# ------------------------------------------------------------------------------
+func init_as_fall_harvest(p_species: String = "Carniolan",
+		p_grade: String = "A") -> void:
+
+	# -- Brood box (drawn comb, mixed brood nest + honey arc) ------------------
+	boxes = []
+	var bb: HiveBox = HiveBox.new(false)
+	for f_idx in bb.frames.size():
+		var frm: HiveFrame = bb.frames[f_idx]
+		var is_center: bool = (f_idx >= 2 and f_idx <= 7)
+		for side in [frm.cells, frm.cells_b]:
+			for i in frm.grid_size:
+				var x: int = i % frm.grid_cols
+				var y: int = i / frm.grid_cols
+				var cx: float = abs(float(x) - float(frm.grid_cols) / 2.0) / (float(frm.grid_cols) / 2.0)
+				var cy: float = abs(float(y) - float(frm.grid_rows) / 2.0) / (float(frm.grid_rows) / 2.0)
+				var dist: float = cx * cx + cy * cy
+				if is_center:
+					if dist < 0.25:
+						side[i] = S_CAPPED_BROOD
+					elif dist < 0.50:
+						side[i] = S_DRAWN_EMPTY
+					elif dist < 0.80:
+						side[i] = S_CAPPED_HONEY
+					else:
+						side[i] = S_DRAWN_EMPTY
+				else:
+					# Outer frames: mostly winter honey and bee bread
+					if randf() < 0.68:
+						side[i] = S_CAPPED_HONEY
+					elif randf() < 0.50:
+						side[i] = S_BEE_BREAD
+					else:
+						side[i] = S_DRAWN_EMPTY
+	boxes.append(bb)
+
+	# -- Two honey supers (both filled with capped honey) ----------------------
+	for _s in range(2):
+		var sup: HiveBox = HiveBox.new(true)
+		for frm in sup.frames:
+			for side in [frm.cells, frm.cells_b]:
+				for i in frm.grid_size:
+					side[i] = S_CAPPED_HONEY
+		boxes.append(sup)
+
+	# -- Population (strong early-fall colony) ---------------------------------
+	nurse_count   = 10000
+	house_count   = 14000
+	forager_count = 8000
+	drone_count   = 200   # few drones remain in early fall
+
+	# -- Stores ----------------------------------------------------------------
+	# 2 full supers (~8 lbs) + winter stores building in brood box (~16 lbs)
+	honey_stores  = 24.0
+	pollen_stores = 180.0
+
+	# -- Mite load (post midsummer treatment, manageable) ----------------------
+	mite_count = 45.0
+
+	# -- State -----------------------------------------------------------------
+	days_elapsed           = 112
+	congestion_state       = CongestionState.NORMAL
+	consecutive_congestion = 0
+	disease_flags          = []
+
+	# -- Queen -----------------------------------------------------------------
+	queen = {
+		"present":          true,
+		"species":          p_species,
+		"grade":            p_grade,
+		"age_days":         224,
+		"temperament":      randf_range(0.85, 1.0),
+		"laying_rate":      1800,
+		"skip_probability": 0.10,
+		"laying_delay":     0,
+	}
+
+	# Reconcile honey_stores float with seeded comb cells
+	_sync_honey_to_frames()
+
+	HiveManager.register(self)
+	last_snapshot = SnapshotWriter.write(self, _calculate_health_score())
+
 # -- Daily Tick (called by HiveManager) ----------------------------------------
 
 func tick() -> void:

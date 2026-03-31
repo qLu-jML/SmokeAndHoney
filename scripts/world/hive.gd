@@ -210,6 +210,22 @@ func place_as_overwintered(p_species: String = "Carniolan", p_grade: String = "S
 		simulation.init_as_overwintered(p_species, p_grade)
 	activate_simulation()
 
+## Place a hive with a strong fall colony that has just filled two honey supers.
+## Used by the "Start in Fall | 2 Full Supers" new-game mode (day 113).
+## The visual sprite stack is rebuilt to show two super boxes on top of the
+## brood body so the player can see the full hive immediately.
+func place_as_fall_harvest(p_species: String = "Carniolan",
+		p_grade: String = "A") -> void:
+	build_state = BuildState.COMPLETE
+	frame_count = 10
+	has_lid = true
+	colony_installed = true
+	_is_nuc_hive = true       # bypass lockout -- established colony
+	colony_install_day = 0
+	if simulation:
+		simulation.init_as_fall_harvest(p_species, p_grade)
+	activate_simulation()
+
 func activate_simulation() -> void:
 	if build_state == BuildState.COMPLETE and colony_installed:
 		if not HiveManager.all_hives_ticked.is_connected(_on_ticked):

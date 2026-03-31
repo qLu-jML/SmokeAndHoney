@@ -31,6 +31,12 @@ func toggle_dev_labels() -> void:
 		if node is CanvasItem:
 			(node as CanvasItem).visible = dev_labels_visible
 
+# -- New-Game Mode -------------------------------------------------------------
+# Set by MainMenu before transitioning to home_property.
+# 0 = Start in Spring (day 1, standard new game)
+# 1 = Start in Fall   (day 113, 2 full honey supers on hive)
+var new_game_mode: int = 0
+
 # -- Economy -------------------------------------------------------------------
 var money: float = 500.0          # Real dollars -- replaces honey-as-currency
 

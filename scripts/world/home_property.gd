@@ -146,9 +146,18 @@ func _spawn_starter_hive() -> void:
 	# Position the hive to the right and slightly below the player start (73,141).
 	# Far enough away to feel intentional, close enough to find immediately.
 	hive_node.global_position = Vector2(300, 350)
-	# Overwintered Carniolan S -- the benchmark test colony for spring Day 1.
-	if hive_node.has_method("place_as_overwintered"):
-		hive_node.place_as_overwintered("Carniolan", "S")
+
+	if GameData.new_game_mode == 1:
+		# Fall start: strong colony with 2 filled honey supers, day 113.
+		# The player jumps straight into the fall harvest workflow.
+		if hive_node.has_method("place_as_fall_harvest"):
+			hive_node.place_as_fall_harvest("Carniolan", "A")
+		# Reset mode so Continue saves don't re-trigger fall setup
+		GameData.new_game_mode = 0
+	else:
+		# Default spring start: overwintered Carniolan S, day 1.
+		if hive_node.has_method("place_as_overwintered"):
+			hive_node.place_as_overwintered("Carniolan", "S")
 
 func _has_scene_exit(exit_name: String) -> bool:
 	var world: Node = get_node_or_null("World")

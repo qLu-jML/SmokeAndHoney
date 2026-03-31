@@ -18,8 +18,10 @@ var _fade_to: AudioStreamPlayer
 # -- Volume (linear) ----------------------------------------------------------
 const DEFAULT_VOLUME_DB: float = -6.0
 
+# -- Title theme path ---------------------------------------------------------
+const TITLE_THEME_PATH: String = "res://assets/audio/main_theme/mainTheme.mp3"
+
 # -- Track mapping (month index 0-7 -> resource path) -------------------------
-# Main theme: res://assets/audio/main_theme/mainTheme.mp3 (reserved for future use)
 const MONTH_TRACKS: Array = [
 	"res://assets/audio/seasonalMusic/1_Quickening.mp3",
 	"res://assets/audio/seasonalMusic/2_Greening.mp3",
@@ -120,3 +122,29 @@ func _on_track_finished(player: AudioStreamPlayer) -> void:
 	# Loop: restart from the beginning
 	if player == _active_player and player.stream != null:
 		player.play()
+
+# -- Public API ----------------------------------------------------------------
+
+## Play the main title theme (used by the startup/main menu screen).
+## Resets the month index so the next call to _play_month_track() will
+## actually load and start a seasonal track even if the index hasn't changed.
+func play_title_theme() -> void:
+	var stream: AudioStream = load(TITLE_THEME_PATH)
+	if stream == null:
+		push_warning("MusicManager: Could not load title theme: " + TITLE_THEME_PATH)
+		return
+	_current_month_index = -1   # force seasonal track to reload when game starts
+	_player_a.stream = stream
+	_player_a.volume_db = DEFAULT_VOLUME_DB
+	_player_a.play()
+	_player_b.stop()
+	_player_b.volume_db = -80.0
+	_active_player = _player_a
+	_fading = false
+
+## Resume the correct seasonal track for the current TimeManager month.
+## Called when leaving the title screen so in-game music takes over.
+func resume_seasonal_music() -> void:
+	_current_month_index = -1   # force reload
+	if TimeManager:
+		_play_month_track(TimeManager.current_month_index())
