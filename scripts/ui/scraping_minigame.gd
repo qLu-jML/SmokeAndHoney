@@ -92,8 +92,11 @@ var _done: bool = false
 var _total_cappable: int = 1   # init to 1 to avoid div/0
 var _scraped_this_side: int = 0
 
-# -- Brush width (columns left/right of hit column) --------------------------
-const BRUSH_HALF := 3
+# -- Brush size (rectangular scraper blade) -----------------------------------
+# Width (columns left/right of cursor) and height (rows above/below cursor).
+# This creates a knife-shaped rectangle the player paints across the frame.
+const BRUSH_HALF_X := 5   # 11 columns wide  (~43 px)
+const BRUSH_HALF_Y := 3   # 7 rows tall       (~19 px)
 
 # -- UI nodes -----------------------------------------------------------------
 var _bg:           Control  = null   # root control parent (matches InspectionOverlay bg)
@@ -259,24 +262,26 @@ func _build_ui() -> void:
 	_cell_rect.mouse_filter   = Control.MOUSE_FILTER_PASS
 	_bg.add_child(_cell_rect)
 
-	# -- Scraper knife brush overlay --
-	# Width = (BRUSH_HALF*2+1) columns scaled to display pixels.
-	# Height = full frame height. Shown while mouse is over the cell area.
+	# -- Scraper knife brush overlay (rectangular, follows cursor) --
+	# Width = (BRUSH_HALF_X*2+1) columns, Height = (BRUSH_HALF_Y*2+1) rows
+	# Both scaled to display pixels. Positioned at cursor during drag/hover.
 	var brush_col_w: float = float(CELL_AREA_W) / float(F_COLS)
-	var brush_px_w: float  = float(BRUSH_HALF * 2 + 1) * brush_col_w
+	var brush_row_h: float = float(EFF_CELL_H) / float(F_ROWS)
+	var brush_px_w: float  = float(BRUSH_HALF_X * 2 + 1) * brush_col_w
+	var brush_px_h: float  = float(BRUSH_HALF_Y * 2 + 1) * brush_row_h
 
 	_brush_rect = ColorRect.new()
 	_brush_rect.color    = C_BRUSH
-	_brush_rect.size     = Vector2(brush_px_w, EFF_CELL_H)
+	_brush_rect.size     = Vector2(brush_px_w, brush_px_h)
 	_brush_rect.position = Vector2(cell_x, cell_y)
 	_brush_rect.visible  = false
 	_brush_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_bg.add_child(_brush_rect)
 
-	# Narrow left/right edge lines to suggest the knife blade edge
+	# Narrow edge lines around the rectangular blade
 	_brush_edge_l = ColorRect.new()
 	_brush_edge_l.color    = C_BRUSH_EDGE
-	_brush_edge_l.size     = Vector2(1, EFF_CELL_H)
+	_brush_edge_l.size     = Vector2(1, brush_px_h)
 	_brush_edge_l.position = Vector2(cell_x, cell_y)
 	_brush_edge_l.visible  = false
 	_brush_edge_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -284,21 +289,17 @@ func _build_ui() -> void:
 
 	_brush_edge_r = ColorRect.new()
 	_brush_edge_r.color    = C_BRUSH_EDGE
-	_brush_edge_r.size     = Vector2(1, EFF_CELL_H)
+	_brush_edge_r.size     = Vector2(1, brush_px_h)
 	_brush_edge_r.position = Vector2(cell_x + brush_px_w - 1, cell_y)
 	_brush_edge_r.visible  = false
 	_brush_edge_r.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_bg.add_child(_brush_edge_r)
 
-	# -- Scraper handle (below the frame bottom bar, centered on blade) --
-	# Appears below the cell area to suggest a physical uncapping knife held
-	# from below. Width = HANDLE_W, height = HANDLE_H, dark wood colour.
-	var hand_y: float = float(cell_y + EFF_CELL_H)
-	var hand_x: float = float(cell_x) + float(CELL_AREA_W) / 2.0 - float(HANDLE_W) / 2.0
+	# -- Scraper handle (below the blade rectangle, centered on it) --
 	_brush_handle = ColorRect.new()
 	_brush_handle.color    = C_HANDLE
 	_brush_handle.size     = Vector2(HANDLE_W, HANDLE_H)
-	_brush_handle.position = Vector2(hand_x, hand_y)
+	_brush_handle.position = Vector2(cell_x, cell_y)
 	_brush_handle.visible  = false
 	_brush_handle.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_bg.add_child(_brush_handle)
@@ -307,7 +308,7 @@ func _build_ui() -> void:
 	_brush_hnd_hi = ColorRect.new()
 	_brush_hnd_hi.color    = C_HANDLE_HI
 	_brush_hnd_hi.size     = Vector2(1, HANDLE_H)
-	_brush_hnd_hi.position = Vector2(hand_x, hand_y)
+	_brush_hnd_hi.position = Vector2(cell_x, cell_y)
 	_brush_hnd_hi.visible  = false
 	_brush_hnd_hi.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_bg.add_child(_brush_hnd_hi)
@@ -353,18 +354,16 @@ func _header_text() -> String:
 # =========================================================================
 # BRUSH VISUAL -- update position/visibility based on mouse position
 # =========================================================================
-func _update_brush(screen_pos: Vector2, col: int) -> void:
+func _update_brush(screen_pos: Vector2, col: int, row: int) -> void:
 	if _done or _brush_rect == null:
 		return
 	var cell_x: float   = float(FRAME_BAR_L)
 	var cell_y: float   = float(HEADER_H + FRAME_BAR_T)
-	var tr_x: float     = cell_x
-	var tr_y: float     = cell_y
 	var tr_w: float     = float(CELL_AREA_W)
 	var tr_h: float     = float(EFF_CELL_H)
 
-	var lx: float = screen_pos.x - tr_x
-	var ly: float = screen_pos.y - tr_y
+	var lx: float = screen_pos.x - cell_x
+	var ly: float = screen_pos.y - cell_y
 	var inside: bool = lx >= 0.0 and lx < tr_w and ly >= 0.0 and ly < tr_h
 
 	_brush_rect.visible   = inside
@@ -375,22 +374,29 @@ func _update_brush(screen_pos: Vector2, col: int) -> void:
 		return
 
 	var brush_col_w: float = tr_w / float(F_COLS)
-	var brush_px_w: float  = float(BRUSH_HALF * 2 + 1) * brush_col_w
+	var brush_row_h: float = tr_h / float(F_ROWS)
 
-	# Clamp so brush never extends past the frame edges
-	var left_col: int   = maxi(0, col - BRUSH_HALF)
-	var right_col: int  = mini(F_COLS - 1, col + BRUSH_HALF)
-	var bx: float       = cell_x + float(left_col) * brush_col_w
-	var bw: float       = float(right_col - left_col + 1) * brush_col_w
+	# Clamp brush rectangle to frame edges
+	var left_col: int   = maxi(0, col - BRUSH_HALF_X)
+	var right_col: int  = mini(F_COLS - 1, col + BRUSH_HALF_X)
+	var top_row: int    = maxi(0, row - BRUSH_HALF_Y)
+	var bot_row: int    = mini(F_ROWS - 1, row + BRUSH_HALF_Y)
 
-	_brush_rect.position   = Vector2(bx, cell_y)
-	_brush_rect.size       = Vector2(bw, float(EFF_CELL_H))
-	_brush_edge_l.position = Vector2(bx, cell_y)
-	_brush_edge_r.position = Vector2(bx + bw - 1.0, cell_y)
+	var bx: float = cell_x + float(left_col) * brush_col_w
+	var bw: float = float(right_col - left_col + 1) * brush_col_w
+	var by: float = cell_y + float(top_row) * brush_row_h
+	var bh: float = float(bot_row - top_row + 1) * brush_row_h
 
-	# Handle: centered below blade
+	_brush_rect.position = Vector2(bx, by)
+	_brush_rect.size     = Vector2(bw, bh)
+	_brush_edge_l.position = Vector2(bx, by)
+	_brush_edge_l.size     = Vector2(1, bh)
+	_brush_edge_r.position = Vector2(bx + bw - 1.0, by)
+	_brush_edge_r.size     = Vector2(1, bh)
+
+	# Handle: centered below the blade rectangle
 	var blade_cx: float = bx + bw / 2.0
-	var hand_y: float   = cell_y + float(EFF_CELL_H)
+	var hand_y: float   = by + bh
 	var hand_x: float   = blade_cx - float(HANDLE_W) / 2.0
 	if _brush_handle:
 		_brush_handle.position = Vector2(hand_x, hand_y)
@@ -494,7 +500,7 @@ func _update_brush_from_pos(screen_pos: Vector2) -> void:
 	var row: int  = clampi(int(hy / float(HEX_ROW_STEP)), 0, F_ROWS - 1)
 	var x_off: float = float(HEX_ODD_SHIFT) if (row % 2 == 1) else 0.0
 	var col: int  = clampi(int((hx - x_off) / float(HEX_COL_STEP)), 0, F_COLS - 1)
-	_update_brush(screen_pos, col)
+	_update_brush(screen_pos, col, row)
 
 func _try_scrape(screen_pos: Vector2) -> void:
 	if frame == null:
@@ -526,18 +532,18 @@ func _try_scrape(screen_pos: Vector2) -> void:
 	var col: int = clampi(int((hx - x_off) / float(HEX_COL_STEP)), 0, F_COLS - 1)
 
 	# Update brush visual
-	_update_brush(screen_pos, col)
+	_update_brush(screen_pos, col, row)
 
-	# Apply brush: BRUSH_HALF columns either side of cursor, ALL rows.
-	# The blade spans the full frame height so one horizontal drag clears
-	# the entire column range -- fast and matching the visual.
+	# Apply rectangular brush: BRUSH_HALF_X columns and BRUSH_HALF_Y rows
+	# around the cursor. Player must paint across the entire frame.
 	if _scraping:
 		var any_changed: bool = false
-		for dc in range(-BRUSH_HALF, BRUSH_HALF + 1):
-			var c: int = col + dc
-			if c < 0 or c >= F_COLS:
-				continue
-			for r in F_ROWS:
+		var left_col: int  = maxi(0, col - BRUSH_HALF_X)
+		var right_col: int = mini(F_COLS - 1, col + BRUSH_HALF_X)
+		var top_row: int   = maxi(0, row - BRUSH_HALF_Y)
+		var bot_row: int   = mini(F_ROWS - 1, row + BRUSH_HALF_Y)
+		for r in range(top_row, bot_row + 1):
+			for c in range(left_col, right_col + 1):
 				if _uncap_cell_silent(r, c):
 					any_changed = true
 		# One batched render + progress update per motion event

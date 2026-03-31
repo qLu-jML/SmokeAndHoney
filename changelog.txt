@@ -1,3 +1,15 @@
+[2026-03-30 CDT] REDESIGN: Scraping minigame -- rectangular brush replaces full-height column strip
+  Based on reference video, the de-capping brush is now a rectangular scraper
+  (11 columns x 7 rows) that follows the cursor, instead of a full-height
+  vertical strip that cleared entire columns in one pass. Player must now
+  paint across the whole frame with multiple passes, like a real uncapping knife.
+  Changes in scraping_minigame.gd:
+  - BRUSH_HALF replaced by BRUSH_HALF_X=5 and BRUSH_HALF_Y=3
+  - _try_scrape() iterates only cells within the rectangle, not all rows
+  - _update_brush() positions rectangle at cursor (col,row) not just col
+  - Brush visual (blade + edges + handle) tracks both X and Y position
+  Protected files verified: GDD 603,634 bytes, DevPlan 139,437 bytes.
+
 [2026-03-30 CDT] FIX: Frame data discrepancy + honey jar pickup
   1. FRAME DATA DISCREPANCY: De-capping minigame now uses actual hive cell data
      instead of a hardcoded 85% capping distribution. When a super is removed from
