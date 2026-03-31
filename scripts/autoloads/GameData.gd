@@ -175,6 +175,7 @@ const ITEM_PACKAGE_BEES      := "package_bees"
 const ITEM_DEEP_BOX          := "deep_box"       # Complete deep body with 10 frames for brood expansion
 const ITEM_QUEEN_EXCLUDER    := "queen_excluder"
 const ITEM_FULL_SUPER        := "full_super"
+const ITEM_SCRAPED_SUPER     := "scraped_super"  # Uncapped super (frames scraped, ready for extractor)
 const ITEM_HONEY_BULK        := "honey_bulk"
 const ITEM_FERMENTED_HONEY   := "fermented_honey"
 const ITEM_SUGAR_SYRUP       := "sugar_syrup"

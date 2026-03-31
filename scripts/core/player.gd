@@ -34,7 +34,8 @@ func get_max_stack(item_name: String) -> int:
 		GameData.ITEM_HIVE_TOOL:  return 1
 		GameData.ITEM_PACKAGE_BEES: return 5
 		GameData.ITEM_QUEEN_EXCLUDER: return 5
-		GameData.ITEM_FULL_SUPER: return 1      # heavy! carry limit: 1 super at a time
+		GameData.ITEM_FULL_SUPER:     return 1  # heavy! carry limit: 1 super at a time
+		GameData.ITEM_SCRAPED_SUPER:  return 1  # uncapped super ready for extractor
 		GameData.ITEM_DEEP_BOX:   return 5
 		GameData.ITEM_JAR:        return 20
 		GameData.ITEM_HONEY_BULK: return 20
@@ -203,7 +204,8 @@ func _setup_carry_sprite() -> void:
 func _update_carry_visual() -> void:
 	# -- Super box --
 	if is_instance_valid(_carried_super_sprite):
-		var carrying_super: bool = count_item(GameData.ITEM_FULL_SUPER) > 0
+		var carrying_super: bool = (count_item(GameData.ITEM_FULL_SUPER) > 0
+			or count_item(GameData.ITEM_SCRAPED_SUPER) > 0)
 		_carried_super_sprite.visible = carrying_super
 		if carrying_super:
 			_carried_super_sprite.position = facing_direction * 10.0

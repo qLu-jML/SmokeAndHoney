@@ -83,7 +83,7 @@ var _pallet_super_sprites: Array = []           # Array of 4 Sprite2D for super 
 var _scraped_box_sprite: Sprite2D = null        # On scraped pallet (fills as scraped)
 const SUPER_BOX_TEXTURE_PATH := "res://assets/sprites/hive/hive_super.png"
 const SUPER_BOX_SCALE_PALLET := 2.0            # 24x14 -> 48x28 (4 fit in 2x2 grid on 96x64)
-const SUPER_BOX_SCALE_SCRAPED := 4.0           # 24x14 -> 96x56 (one super fills scraped pallet)
+const SUPER_BOX_SCALE_SCRAPED := 2.0           # 24x14 -> 48x28 (same size as pallet supers)
 # 2x2 slot offsets relative to pallet top-left corner (pixel coords).
 # Sprite2D is centered, so each offset is the top-left of the slot.
 const SUPER_SLOT_OFFSETS: Array = [
@@ -243,7 +243,7 @@ func _create_super_box_sprites() -> void:
 	if tex != null:
 		_scraped_box_sprite.texture = tex
 	_scraped_box_sprite.scale = Vector2(SUPER_BOX_SCALE_SCRAPED, SUPER_BOX_SCALE_SCRAPED)
-	_scraped_box_sprite.position = STATION_POS[Station.SCRAPED_PALLET] + sc_size * 0.5 + Vector2(0, -4)
+	_scraped_box_sprite.position = STATION_POS[Station.SCRAPED_PALLET] + sc_size * 0.5
 	_scraped_box_sprite.z_index = 4
 	_scraped_box_sprite.visible = false
 	add_child(_scraped_box_sprite)
@@ -517,10 +517,12 @@ func _get_prompt_text(station: Station, player: Node2D) -> String:
 			return "Need Super Box to receive frames"
 		Station.EXTRACTOR:
 			if _frames_in_extractor > 0:
-				return "[E] Start Extraction (%d frames)" % _frames_in_extractor
+				return "[E] Load Super + Start Extraction (%d frames)" % _frames_in_extractor
+			if player.has_method("count_item") and player.call("count_item", GameData.ITEM_SCRAPED_SUPER) > 0:
+				return "[E] Load Scraped Super into Extractor"
 			if _scraped_super_ready:
-				return "Take super from scraped pallet first"
-			return "Load scraped super first"
+				return "Pick up scraped super from pallet first"
+			return "Scrape a super first"
 		Station.BOTTLING:
 			# Collect finished jars (bucket empty or gone)
 			if _jars_on_table > 0 and not _bucket_on_bottling_table:
@@ -711,13 +713,20 @@ func _on_scraping_cancelled() -> void:
 
 # -- Scraped Frame Pallet: place super box or pick up completed super -----
 func _action_scraped_pallet(player: Node2D) -> void:
-	# Pick up completed scraped super -> load into extractor
+	# Pick up completed scraped super -> give to player as ITEM_SCRAPED_SUPER
 	if _scraped_super_ready:
+		if player.has_method("add_item"):
+			var overflow: int = player.add_item(GameData.ITEM_SCRAPED_SUPER, 1)
+			if overflow > 0:
+				_notify("Inventory full! Can't pick up scraped super.")
+				return
 		_frames_in_extractor = _frames_scraped
 		_frames_scraped = 0
 		_scraped_super_ready = false
 		_super_box_on_scraped = false
-		_notify("Scraped super loaded! Head to the extractor.")
+		if player.has_method("update_hud_inventory"):
+			player.update_hud_inventory()
+		_notify("Scraped super in hand! Take it to the extractor.")
 		queue_redraw()
 		return
 
@@ -744,20 +753,35 @@ func _action_scraped_pallet(player: Node2D) -> void:
 	else:
 		_notify("Super box is ready. Scrape frames at the other pallet.")
 
-# -- Extractor: load super and run extraction minigame --------------------
-@warning_ignore("unused_parameter")
+# -- Extractor: player must carry ITEM_SCRAPED_SUPER and drop it in -------
 func _action_extractor(player: Node2D) -> void:
-	if _frames_in_extractor == 0:
-		# Check if player just picked up scraped super
+	# If frames already loaded (from this carry action), run the minigame
+	if _frames_in_extractor > 0:
+		_start_extractor_minigame(player)
+		return
+
+	# Player must be holding a scraped super to load the extractor
+	if not player.has_method("consume_item"):
+		return
+	if not player.consume_item(GameData.ITEM_SCRAPED_SUPER, 1):
 		if _scraped_super_ready:
 			_notify("Pick up the scraped super from the pallet first!")
 		else:
-			_notify("No frames to extract! Scrape a super first.")
+			_notify("No scraped super in hand! Scrape frames first.")
 		return
 
-	_start_extractor_minigame()
+	# Consume scraped super and immediately return the empty box
+	if player.has_method("add_item"):
+		player.add_item(GameData.ITEM_SUPER_BOX, 1)
+	if player.has_method("update_hud_inventory"):
+		player.update_hud_inventory()
 
-func _start_extractor_minigame() -> void:
+	# _frames_in_extractor was already set when the player picked up from pallet
+	_notify("Scraped super loaded! Empty box returned to inventory.")
+	_start_extractor_minigame(player)
+
+@warning_ignore("unused_parameter")
+func _start_extractor_minigame(player: Node2D) -> void:
 	_minigame_active = true
 
 	# Deduct energy
@@ -789,11 +813,21 @@ func _on_extraction_complete() -> void:
 	# Calculate honey yield (4 lbs per frame)
 	var total_honey: float = float(_frames_in_extractor) * 4.0
 	_bucket_honey_lbs += total_honey
+
+	# Return empty frames to player (they were inside the scraped super)
+	var frames_back: int = _frames_in_extractor
 	_frames_in_extractor = 0
+
 	# Bucket is now full -- player must pick it up with the bucket grip
 	_bucket_at_yard = true
 
-	_notify("Honey extracted! %.1f lbs in bucket. Use Bucket Grip to carry it to bottling table!" % _bucket_honey_lbs)
+	var player: Node2D = _find_player()
+	if player and player.has_method("add_item"):
+		player.add_item(GameData.ITEM_FRAMES, frames_back)
+		if player.has_method("update_hud_inventory"):
+			player.update_hud_inventory()
+
+	_notify("Extracted! %.1f lbs in bucket. Got %d frames back. Use Bucket Grip!" % [_bucket_honey_lbs, frames_back])
 	GameData.add_xp(GameData.XP_HARVEST)
 	queue_redraw()
 

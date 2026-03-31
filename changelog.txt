@@ -1,3 +1,15 @@
+[2026-03-31 CDT] FIX + FEAT: Dev buttons, super carry mechanic, frame return, pallet sprite
+  1. INSPECTION OVERLAY DEV BUTTONS: +Day / +Month buttons invisible against dark footer bg.
+     Normal bg raised Color(0.28,0.20,0.06) -> Color(0.50,0.34,0.09), bright amber. Text -> white.
+  2. ITEM_SCRAPED_SUPER added to GameData. Stack max=1. Carry visual: player.gd shows carried super
+     sprite for both ITEM_FULL_SUPER and ITEM_SCRAPED_SUPER (same hive_super.png).
+  3. SCRAPED PALLET PICKUP: now gives player ITEM_SCRAPED_SUPER and shows carry visual. Player must
+     physically walk the scraped super to the extractor (not auto-loaded).
+  4. EXTRACTOR REQUIRES ITEM_SCRAPED_SUPER IN HAND: consumes it on interaction, immediately returns
+     ITEM_SUPER_BOX to inventory, then launches extraction minigame.
+  5. FRAME RETURN: _on_extraction_complete() gives player ITEM_FRAMES equal to frames extracted.
+  6. SCRAPED PALLET SPRITE: SUPER_BOX_SCALE_SCRAPED 4.0 -> 2.0 (matches hive/pallet super size).
+
 [2026-03-31 CDT] FEAT: NPC menu redesign -- sell_screen and shop_screen clickable buttons
   1. SELL SCREEN (sell_screen.gd) -- full UI overhaul:
      - Replaced old keyboard-only interface with proper clickable [-] [SELL] [CANCEL] [+] buttons.
@@ -859,3 +871,4 @@
     - hud.gd: "Standing: [tier]" label in bottom bar (amber, polls each frame)
     - hud.gd: "SMOKED" indicator (orange) visible when player._smoker_active=true
   Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
+2026-03-31 - Updated Smoke_and_Honey_Master_Art_Sheet.xlsx: Comprehensive master pixel artist commission sheet. 291 total assets across 4 phases (P1: 81 core loop + location layouts, P2: 61 NPCs/buildings/interiors, P3: 78 environment/props/trees, P4: 71 polish/minigames/wildlife). Includes all 10 location maps (Home, Back Field, County Road, Cedar Bend, Timber, Harmon Farm, Orchard, River Bottom, Fairgrounds, County Map). Added missing NPCs (Lloyd Petersen, Terri Vogel), truck, fairgrounds, ambient wildlife, lighting overlays, and all GDD Section 13 location-specific assets. Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.

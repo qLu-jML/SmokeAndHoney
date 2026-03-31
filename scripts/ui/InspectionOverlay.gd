@@ -469,23 +469,24 @@ func _make_dev_btn(label: String, x: int, y: int, w: int, h: int, col: Color) ->
 	btn.clip_text = true
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.add_theme_font_size_override("font_size", 5)
-	btn.add_theme_color_override("font_color", Color(1.0, 0.96, 0.60, 1.0))
-	btn.add_theme_color_override("font_hover_color", col)
-	btn.add_theme_color_override("font_pressed_color", Color(1.0, 1.0, 1.0))
+	btn.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
+	btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0, 1.0))
+	btn.add_theme_color_override("font_pressed_color", Color(1.0, 1.0, 1.0, 1.0))
 	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
 		var sb := StyleBoxFlat.new()
 		if state == "hover":
-			sb.bg_color = Color(0.30, 0.22, 0.06, 0.98)
+			sb.bg_color = Color(0.62, 0.44, 0.12, 0.98)
 		elif state == "pressed":
-			sb.bg_color = Color(0.42, 0.30, 0.08, 0.98)
+			sb.bg_color = Color(0.75, 0.55, 0.15, 0.98)
 		elif state == "focus":
 			sb.bg_color = Color(0, 0, 0, 0)
+		elif state == "disabled":
+			sb.bg_color = Color(0.30, 0.22, 0.08, 0.80)
 		else:
-			# Noticeably lighter amber than the footer background so the
-			# button is easy to spot even at the game's small pixel scale.
-			sb.bg_color = Color(0.28, 0.20, 0.06, 0.98)
+			# Bright amber -- high contrast against footer bg Color(0.12,0.10,0.07)
+			sb.bg_color = Color(0.50, 0.34, 0.09, 0.98)
 		sb.border_color = col
-		sb.set_border_width_all(2)
+		sb.set_border_width_all(1)
 		sb.set_content_margin_all(0)
 		btn.add_theme_stylebox_override(state, sb)
 	btn.position = Vector2(x, y)
