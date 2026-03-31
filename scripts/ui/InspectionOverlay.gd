@@ -417,6 +417,11 @@ func _ready() -> void:
 	# -- Dev mode advance buttons (top-right of stats panel) -------------------
 	_build_dev_advance_buttons(bg)
 
+	# Sync all visibility (tier, tooltip, dev buttons) now that UI is fully built.
+	# open() is called before add_child() so _apply_tier_visibility() was a no-op
+	# there. This call guarantees the correct initial state.
+	_apply_tier_visibility()
+
 func _build_dev_advance_buttons(bg: Control) -> void:
 	var btn_w: int = 36
 	var btn_h: int = 10
@@ -613,6 +618,13 @@ func _apply_tier_visibility() -> void:
 	if _tooltip_panel:
 		_tooltip_panel.visible = _tier >= 2
 
+	# Dev advance buttons: visible only in dev mode
+	var show_dev: bool = GameData.dev_labels_visible
+	if _dev_day_btn:
+		_dev_day_btn.visible = show_dev
+	if _dev_month_btn:
+		_dev_month_btn.visible = show_dev
+
 ## React to dev mode being toggled while the inspection overlay is open.
 func _on_dev_toggled(_visible: bool) -> void:
 	if GameData.dev_labels_visible:
@@ -620,12 +632,6 @@ func _on_dev_toggled(_visible: bool) -> void:
 	else:
 		_tier = clampi(GameData.player_level, 1, 5)
 	_apply_tier_visibility()
-	# Show/hide dev advance buttons
-	var show_dev: bool = GameData.dev_labels_visible
-	if _dev_day_btn:
-		_dev_day_btn.visible = show_dev
-	if _dev_month_btn:
-		_dev_month_btn.visible = show_dev
 	_refresh_frame()
 	_refresh_stats()
 
