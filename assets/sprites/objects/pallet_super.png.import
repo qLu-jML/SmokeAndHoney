@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bq7k3mxp9svnr"
-path="res://.godot/imported/pallet_super.png-b8fc2c6374aee2cb6d5fe1f58ba0ac8c.ctex"
+uid="uid://bq7k3mxqasvnr"
+path="res://.godot/imported/pallet_super.png-d82ecc42eee52a328eaa047780e92d8a.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/objects/pallet_super.png"
-dest_files=["res://.godot/imported/pallet_super.png-b8fc2c6374aee2cb6d5fe1f58ba0ac8c.ctex"]
+dest_files=["res://.godot/imported/pallet_super.png-d82ecc42eee52a328eaa047780e92d8a.ctex"]
 
 [params]
 

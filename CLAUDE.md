@@ -69,6 +69,19 @@ All art assets for Smoke & Honey MUST be created using Leonardo AI, consistent w
 
 Do NOT create placeholder art, programmer art, or assets using any other tool. If art is needed and Leonardo is not available, flag it as a pending art task rather than substituting.
 
+### GDD is Game-Only -- No Business or LLC Content
+**Smoke_and_Honey_GDD.html** documents the game design only. It must NEVER contain:
+- LLC formation details (EIN, Certificate of Organization, Operating Agreement)
+- Business banking, expenses, or overhead
+- Grant applications or funding strategy
+- Revenue projections or business financials
+- Kickstarter, itch.io, or platform launch strategy
+- Any content about Five Cats Studios LLC as a business entity
+
+The GDD may reference distribution platforms (Steam, itch.io) only in the context of game design decisions: pricing model, DLC structure, platform-specific gameplay features. Business strategy belongs exclusively in Smoke_and_Honey_DevPlan.html under the Business & Funding section.
+
+If asked to add any LLC/business/funding content to the GDD, refuse and redirect it to the DevPlan instead.
+
 ### Git Version Control
 This project uses git (GitHub remote: SmokeAndHoney). Commit when:
 - A meaningful feature or fix is complete

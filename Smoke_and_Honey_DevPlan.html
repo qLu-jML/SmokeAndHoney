@@ -175,6 +175,7 @@
     <li class="h2"><a href="#p2-economy"><span class="status-todo">[ ]</span> Economy &amp; Market</a></li>
     <li class="h2"><a href="#p2-smoke"><span class="status-todo">[ ]</span> Smoke &amp; Stings</a></li>
     <li class="h1"><a href="#phase3"><span class="status-todo">[ ]</span> Phase 3 -- Living World</a></li>
+    <li class="h2"><a href="#p3-charcreate"><span class="status-todo">[ ]</span> Character Creator</a></li>
     <li class="h2"><a href="#p3-quests"><span class="status-todo">[ ]</span> Quests &amp; Events</a></li>
     <li class="h2"><a href="#p3-npc"><span class="status-todo">[ ]</span> NPC Relationships</a></li>
     <li class="h2"><a href="#p3-knowledge"><span class="status-todo">[ ]</span> Knowledge Log</a></li>
@@ -187,6 +188,13 @@
     <li class="h2"><a href="#p4-craft"><span class="status-todo">[ ]</span> Crafting &amp; Structures</a></li>
     <li class="h1"><a href="#phase5"><span class="status-todo">[ ]</span> Phase 5 -- Polish &amp; Ship</a></li>
     <li class="h1"><a href="#business"><span class="status-ref">$</span> Business &amp; Funding</a></li>
+    <li class="h2"><a href="#b-priority"><span class="status-ref">!</span> Master Priority List</a></li>
+    <li class="h2"><a href="#b-llc"><span class="status-partial">~</span> LLC Formation</a></li>
+    <li class="h2"><a href="#b-capture"><span class="status-todo">[ ]</span> Art &amp; Video Capture</a></li>
+    <li class="h2"><a href="#b-platforms"><span class="status-todo">[ ]</span> Platforms &amp; Launch</a></li>
+    <li class="h2"><a href="#b-kickstarter"><span class="status-todo">[ ]</span> Kickstarter</a></li>
+    <li class="h2"><a href="#b-grants"><span class="status-todo">[ ]</span> Grants &amp; Funding</a></li>
+    <li class="h2"><a href="#b-overhead"><span class="status-ref">*</span> Overhead &amp; Revenue</a></li>
     <li class="h1"><a href="#mvp-checklist"><span class="status-ref">*</span> MVP Checklist</a></li>
   </ul>
 </nav>
@@ -197,7 +205,7 @@
 <div class="doc-header">
   <h1>Smoke &amp; Honey -- Development Plan</h1>
   <p>Phased roadmap from current project state to shippable vertical slice and beyond.</p>
-  <p style="margin-top:4px;color:var(--muted);font-size:12px;">Last updated: March 30, 2026 -- Business &amp; Funding section added; simulation fixes logged; MusicManager complete</p>
+  <p style="margin-top:4px;color:var(--muted);font-size:12px;">Last updated: March 30, 2026 -- Character Creator system added to Phase 3 (tasks 3.0-3.0e): PlayerData, creator scene, layered portrait system, name injection, pronoun token pass. Business &amp; Funding restructured with Master Priority List.</p>
   <p style="margin-top:8px">
     <span class="badge badge-godot">Godot 4.6</span>
     <span class="badge badge-gdscript">GDScript</span>
@@ -247,7 +255,7 @@
   Hive Tool, Gloves, HiveManagementUI (add deep/super/excluder, rotate deeps, R key). Storage Chest (50-slot).
   Modular hive sprites (7 components, build-phase visuals). 25 item sprites in 10-slot hotbar. Context-sensitive prompts.
   FlowerLifecycleManager: 7 types, 42 sprites, seasonal quality S-F, bloom windows, spread mechanics, no-spawn mask, grid-cell distribution.
-  Player: 8-way walk/run, 4 modes (NORMAL/TILL/PLANT/HIVE). Uncle Bob placed with 6 dialogue sets. Ellen + Frank scripts/sprites ready.
+  Player: 8-way walk/run, 4 modes (NORMAL/TILL/PLANT/HIVE). Current sprite is fixed beekeeper-gear character (correct for gameplay -- all customization hidden under gear). Character creator system (name, appearance, pronouns, backstory) is Phase 3 TODO -- no PlayerData fields, no creator scene, no pronoun tokens in dialogue yet. Uncle Bob placed with 6 dialogue sets (need pronoun token retrofit in Phase 3). Ellen + Frank scripts/sprites ready.
   Interiors: Diner (5 meals, energy restore), Feed &amp; Supply (11 items, seasonal stock), Post Office (LIVE BEES delivery).
   Infrastructure: SaveManager (JSON + base64), TimeManager (224-day calendar, 8 months, 4 seasons), GameData ($500 start, energy, XP, levels), HiveManager, ForageManager, QuestManager (skeleton), NotificationManager (toasts), DialogueUI (bubbles + portrait box), HUD (signal-driven), MainMenu + PauseMenu.
   MusicManager autoload (March 28): 8 seasonal tracks (1 per month), crossfade over 2s on month change, loops, -6dB default.
@@ -716,6 +724,9 @@
     <div class="milestone">
       <h4>Exit Criteria</h4>
       <ul>
+        <li>[ ] Character creator runs at new game start (name, appearance, pronouns, backstory)</li>
+        <li>[ ] Player name appears in Knowledge Log header, market nameplate, Bob dialogue</li>
+        <li>[ ] All NPC dialogue uses pronoun tokens -- no hardcoded he/she/him/her</li>
         <li>[ ] Daily tasks and seasonal goals generate play variety</li>
         <li>[ ] Uncle Bob tutorial quest chain playable start to finish</li>
         <li>[ ] Knowledge Log fills as player discovers phenomena</li>
@@ -727,15 +738,64 @@
     <div class="milestone">
       <h4>Build Order</h4>
       <ul>
-        <li>1. Quest system engine (definitions, tracking, rewards)</li>
-        <li>2. Uncle Bob tutorial quest chain (5-8 quests)</li>
-        <li>3. Daily tasks + seasonal goals</li>
-        <li>4. NPC friendship system + remaining NPC quest chains</li>
-        <li>5. Knowledge Log UI panel + entry triggers</li>
-        <li>6. Bee acquisition ordering flow (Post Office)</li>
-        <li>7. Seasonal events + challenge events</li>
+        <li>1. Character creator scene + PlayerData persistence</li>
+        <li>2. Pronoun token pass on all existing NPC dialogue</li>
+        <li>3. Quest system engine (definitions, tracking, rewards)</li>
+        <li>4. Uncle Bob tutorial quest chain (5-8 quests)</li>
+        <li>5. Daily tasks + seasonal goals</li>
+        <li>6. NPC friendship system + remaining NPC quest chains</li>
+        <li>7. Knowledge Log UI panel + entry triggers</li>
+        <li>8. Bee acquisition ordering flow (Post Office)</li>
+        <li>9. Seasonal events + challenge events</li>
       </ul>
     </div>
+  </div>
+
+  <!-- CHARACTER CREATOR -->
+  <div class="task-section" id="p3-charcreate">
+    <h3>Character Creator (GDD S21 -- Player Character &amp; Character Creation)</h3>
+    <div class="callout callout-amber" style="margin-bottom:12px;">
+      <strong>Design context:</strong> "Eli" is the default character name and narrative shorthand used throughout the GDD -- but the player creates their own character before the game begins. This is a personal expression tool, not an RPG stat system. The beekeeper gear worn during gameplay is the same for all characters; customization is visible in the title card, journal header, and cutscene frames. All GDD references to "Eli" apply equally to any player character.
+    </div>
+    <table>
+      <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th></tr>
+      <tr>
+        <td>3.0</td>
+        <td>PlayerData singleton -- character fields</td>
+        <td><span class="tag tag-todo">TODO</span></td>
+        <td>Add to GameData autoload (or new PlayerData.gd autoload): player_name (String, default "Eli"), pronouns (enum: HE_HIM / SHE_HER / THEY_THEM), backstory_tag (enum + freetext), appearance (skin_tone int 0-5, hair_style int 0-7, hair_color int 0-9, build int 0-2). Persist in SaveManager JSON. Must be initialized before any scene loads NPC dialogue.</td>
+      </tr>
+      <tr>
+        <td>3.0a</td>
+        <td>Character creator scene</td>
+        <td><span class="tag tag-todo">TODO</span></td>
+        <td>New scene: character_creator.tscn. Runs on New Game before the opening cutscene. Sections: (1) Name entry -- free text field, max 24 chars, default "Eli". (2) Pronouns -- 3 buttons: He/Him, She/Her, They/Them. (3) Backstory tag -- 3 preset cards + "Write Your Own" (120 char free text, journal-only). (4) Appearance -- skin tone row (6 swatches), hair style grid (8 options), hair color row (10 swatches), build toggle (3 options). Live preview of player portrait updates in real time as selections change. Confirm button writes to PlayerData and advances to opening cutscene.</td>
+      </tr>
+      <tr>
+        <td>3.0b</td>
+        <td>Layered portrait sprite system</td>
+        <td><span class="tag tag-todo">TODO</span></td>
+        <td>Player appearance is visible in: title card, Knowledge Log journal header, cutscene frames. NOT visible during normal gameplay (always in beekeeper gear). Build a layered portrait renderer: base body layer (3 builds) + skin tone shader or atlas + hair style layer (8 styles) + hair color tint. All portrait art at 32x32 grid resolution. Art is a prerequisite -- flag as ART NEEDED. Do not implement until portrait sprite sheets are approved via Leonardo AI workflow.</td>
+      </tr>
+      <tr>
+        <td>3.0c</td>
+        <td>Name injection -- UI and dialogue</td>
+        <td><span class="tag tag-todo">TODO</span></td>
+        <td>Player name must appear in: (1) Saturday Market nameplate (Phase 2 -- wire during 2.25 market build), (2) Knowledge Log journal header ("[Name]'s Field Notes"), (3) Uncle Bob dialogue and NPC quest dialogue where the GDD uses "Eli". Implement as a global token replacement: all dialogue strings use {player_name} token. DialogueUI.gd resolves token before display.</td>
+      </tr>
+      <tr>
+        <td>3.0d</td>
+        <td>Pronoun token pass -- all NPC dialogue</td>
+        <td><span class="tag tag-todo">TODO</span></td>
+        <td>Every NPC dialogue string that refers to the player must use tokens, not hardcoded pronouns. Token set: {they}, {them}, {their}, {theirs}, {themself}. DialogueUI.gd resolves tokens at display time based on PlayerData.pronouns. He/Him: he/him/his/his/himself. She/Her: she/her/her/hers/herself. They/Them: they/them/their/theirs/themself. Write all NEW dialogue with tokens from the start. Audit existing Bob dialogue (6 sets from Phase 1) and retrofit. Do not write "he said" or "she noticed" anywhere in hardcoded strings.</td>
+      </tr>
+      <tr>
+        <td>3.0e</td>
+        <td>Backstory tag -- journal intro + Bob dialogue</td>
+        <td><span class="tag tag-todo">TODO</span></td>
+        <td>Backstory tag affects: (1) Opening journal entry (first page of Knowledge Log -- 2-3 sentences, flavor only). (2) 1-2 early Bob dialogue lines in Year 1 (different observation about "the kid"). Presets: "Screen-Numbed Kid" (default Eli narrative), "Anxious Achiever" (different flavor), "Quiet Loner" (different flavor). "Write Your Own" shows in journal only, no dialogue change. All four paths lead to the same mechanical game.</td>
+      </tr>
+    </table>
   </div>
 
   <div class="task-section" id="p3-quests">
@@ -868,8 +928,11 @@
 
   <div class="callout callout-blue">
     <strong>Art needed for Phase 3</strong>
-    Darlene character sprite (120x120 8-way) + portrait. Walt &amp; Kacey full animated sets (120x120).
-    Knowledge Log page background. Swarm trap sprite. Quest notification icons. NPC relationship meter UI element.
+    <strong>Character Creator (HIGH PRIORITY -- blocks 3.0b):</strong> Player portrait layered sheets -- base body (3 builds x front-facing, 32x32 grid), skin tone overlays or atlas (6 tones), hair style sheets (8 styles x front-facing), hair color tint swatches (10 colors). Character is always in beekeeper gear during gameplay -- portrait art only needed for title card / journal / cutscene. Generate via Leonardo AI. Approve before implementing 3.0b.
+    <br><br>
+    <strong>NPCs:</strong> Darlene character sprite (120x120 8-way) + portrait. Walt &amp; Kacey full animated sets (120x120).
+    <br><br>
+    <strong>UI:</strong> Knowledge Log page background texture. Swarm trap sprite. Quest notification icons. NPC relationship meter UI element. Character creator screen background / frame art.
   </div>
 </div>
 
@@ -1115,103 +1178,354 @@
 <h2 class="section" id="business">Business &amp; Funding</h2>
 
 <!-- ================================================================= -->
-<!--  BUSINESS & FUNDING                                                 -->
+<!--  MASTER PRIORITY LIST                                               -->
 <!-- ================================================================= -->
-<div style="margin-bottom:40px;">
+<h3 class="section" id="b-priority" style="font-size:16px;color:var(--amber-lt);border-bottom:1px solid var(--border);padding-bottom:8px;margin:0 0 20px;">Master Priority List -- Game + Business</h3>
 
-  <div class="callout callout-green" style="margin-bottom:20px;">
-    <strong>Formation Status -- March 30, 2026</strong>
-    Five Cats Studios LLC (Iowa single-member). EIN confirmed today: <strong>41-5191825</strong> (IRS Notice CP575G, March 30, 2026).
-    Certificate of Organization prepared (LLC/documents/). Signature and date lines are blank -- not yet filed with Iowa SOS.
-    Filing is the immediate next action ($50, sos.iowa.gov or mail). Bank account can open once filing is confirmed.
-    Operating Agreement drafted.
-  </div>
+<div class="callout callout-red" style="margin-bottom:24px;">
+  <strong>How to use this list:</strong> Work top to bottom. Do not start a lower-priority item until the one above it is complete or explicitly unblocked. Game development and business formation are interleaved because they depend on each other -- a filed LLC enables banking, banking enables business expenses, a playable vertical slice enables Kickstarter and itch.io.
+</div>
 
-  <div class="callout callout-amber" style="margin-bottom:20px;">
-    <strong>Immediate Formation Checklist</strong>
-    <ul style="margin:8px 0 0 16px;line-height:2">
-      <li>[x] EIN obtained -- 41-5191825</li>
-      <li>[x] Operating Agreement drafted</li>
-      <li>[x] Certificate of Organization prepared</li>
-      <li>[ ] File Certificate of Organization with Iowa SOS ($50) -- NEXT ACTION</li>
-      <li>[ ] Open business bank account (requires filed LLC + EIN)</li>
-      <li>[ ] Separate business expenses from personal from filing date forward</li>
-    </ul>
-  </div>
+<table>
+  <tr><th>#</th><th>Task</th><th>Track</th><th>Status</th><th>Depends On</th><th>Notes</th></tr>
 
-  <h3 style="color:var(--amber);margin:28px 0 12px;">Revenue Projections (Year 1 Post-Launch)</h3>
-  <table>
-    <tr><th>Scenario</th><th>Projection</th><th>Assumptions</th></tr>
-    <tr><td>Conservative</td><td>~$8,000</td><td>500 units @ $15 avg. Small launch, limited visibility.</td></tr>
-    <tr><td>Moderate</td><td>~$35,000</td><td>2,300 units @ $15. Positive reviews, some press coverage.</td></tr>
-    <tr><td>Optimistic</td><td>~$125,000</td><td>8,300 units @ $15. Strong word-of-mouth, wishlists convert.</td></tr>
-  </table>
+  <tr style="background:#1a2a1a">
+    <td><strong>1</strong></td>
+    <td><strong>File Certificate of Organization with Iowa SOS</strong></td>
+    <td><span class="tag" style="background:#2a1a0a;color:var(--amber-lt)">LLC</span></td>
+    <td><span class="tag tag-wip">IN PROGRESS</span></td>
+    <td>--</td>
+    <td>$50 at sos.iowa.gov or by mail. EIN already obtained (41-5191825). Certificate of Organization prepared -- just needs signature, date, and filing. This is the single most important next action.</td>
+  </tr>
 
-  <h3 style="color:var(--amber);margin:28px 0 12px;">Monthly Overhead (~$45/mo)</h3>
-  <table>
-    <tr><th>Expense</th><th>Cost</th><th>Notes</th></tr>
-    <tr><td>Claude Pro</td><td>~$20/mo</td><td>AI development assistant</td></tr>
-    <tr><td>Leonardo AI</td><td>~$12/mo</td><td>Art generation (Lucid Origin model)</td></tr>
-    <tr><td>Godot Engine</td><td>$0</td><td>Free, open source</td></tr>
-    <tr><td>Iowa LLC annual fee</td><td>~$50/yr (~$4/mo)</td><td>Biennial report due in odd years</td></tr>
-    <tr><td>Domain</td><td>~$12/yr (~$1/mo)</td><td>5catsgamestudios.com</td></tr>
-    <tr><td>Steam Dev fee</td><td>$100 one-time</td><td>Already budgeted</td></tr>
-  </table>
+  <tr style="background:#1a2a1a">
+    <td><strong>2</strong></td>
+    <td><strong>Open business bank account (Five Cats Studios LLC)</strong></td>
+    <td><span class="tag" style="background:#2a1a0a;color:var(--amber-lt)">LLC</span></td>
+    <td><span class="tag tag-todo">TODO</span></td>
+    <td>Item 1 (filed LLC)</td>
+    <td>Requires filed LLC + EIN. Separate all business expenses from personal from this date forward. Track Claude, Leonardo, domain, Steam as deductible business expenses. Any local bank or credit union works for a small LLC.</td>
+  </tr>
 
-  <h3 style="color:var(--amber);margin:28px 0 12px;">Grant &amp; Funding Targets</h3>
+  <tr style="background:#1a2a1a">
+    <td><strong>3</strong></td>
+    <td><strong>Separate and log business expenses from filing date forward</strong></td>
+    <td><span class="tag" style="background:#2a1a0a;color:var(--amber-lt)">LLC</span></td>
+    <td><span class="tag tag-todo">TODO</span></td>
+    <td>Item 2 (bank account)</td>
+    <td>Once the bank account is open, all business expenses (Claude, Leonardo, domain, Steam dev fee, hardware used for development) go on the business account. Keep receipts. This is a tax and LLC protection requirement, not optional.</td>
+  </tr>
 
-  <div class="callout" style="background:rgba(200,50,50,0.08);border-left:3px solid #c83232;border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:16px;">
-    <strong>Ineligible Grants -- Do Not Apply</strong><br>
-    <strong>Iowa Greenlight Grant (IEDA):</strong> Film and media productions only. Video games explicitly excluded. Not eligible.<br>
-    <strong>Epic MegaGrants:</strong> Requires Unreal Engine. Smoke &amp; Honey uses Godot 4. Not eligible.
-  </div>
+  <tr style="background:#1a1a2a">
+    <td><strong>4</strong></td>
+    <td><strong>Complete Phase 2 -- Harvest &amp; Economy Loop</strong></td>
+    <td><span class="tag" style="background:#1a1a2a;color:#5a9acc">GAME</span></td>
+    <td><span class="tag tag-todo">TODO</span></td>
+    <td>Phase 1 (done)</td>
+    <td>This is the critical path. Weather system (2.5), harvest pipeline (2.17), Saturday Market (2.25), equipment shop (2.11), smoke/stings (2.13). A full play loop is required before any external-facing work (Kickstarter, itch.io, Steam page) can be credible. Follow the phase 2 task numbers in order.</td>
+  </tr>
 
-  <table>
-    <tr><th>Grant</th><th>Amount</th><th>Window</th><th>Status</th><th>Notes</th></tr>
-    <tr>
-      <td><strong>Indie Fund</strong></td>
-      <td>Variable (recoupable investment)</td>
-      <td>Apply at Alpha -- Q4 2026</td>
-      <td><span class="tag tag-todo">PENDING ALPHA</span></td>
-      <td>Primary funding target. Apply when v0.1 Alpha is playable. Requires strong vertical slice and trailer. indiegamegirl.com/indie-fund.</td>
-    </tr>
-    <tr>
-      <td><strong>Iowa Arts Council -- Art Project Grant (Individuals)</strong></td>
-      <td>Up to $5,000</td>
-      <td>Next cycle ~Sept 2026</td>
-      <td><span class="tag tag-todo">PREPARE NOW</span></td>
-      <td>Strong fit: Iowa resident, solo creator, digital art form. Draft application narrative now. Requires work samples and artist statement.</td>
-    </tr>
-    <tr>
-      <td><strong>NEA Arts in Digital Media</strong></td>
-      <td>$10,000-$100,000</td>
-      <td>Annual (check grants.gov)</td>
-      <td><span class="tag tag-todo">MONITOR</span></td>
-      <td>Federal grant for digital media arts projects. More competitive but worth applying at Alpha stage. Requires organizational 501(c)(3) sponsor or LLC in good standing.</td>
-    </tr>
-  </table>
+  <tr style="background:#2a1a0a">
+    <td><strong>5</strong></td>
+    <td><strong>Capture gameplay screenshots for promotional use</strong></td>
+    <td><span class="tag" style="background:#2a1a0a;color:#cc9944">CAPTURE</span></td>
+    <td><span class="tag tag-todo">TODO</span></td>
+    <td>Item 4 (Phase 2 complete)</td>
+    <td>Once the harvest loop is playable, capture high-quality screenshots: inspection view with full honeycomb, harvest in progress, Cedar Bend exterior, Saturday Market, hive yard in summer. Use Godot's built-in screenshot (F12 or PrintScreen) or OBS. Target: 6-10 hero screenshots at 1920x1080 minimum. These are needed for itch.io, Kickstarter, and Steam page.</td>
+  </tr>
 
-  <h3 style="color:var(--amber);margin:28px 0 12px;">Release Timeline &amp; Milestones</h3>
-  <table>
-    <tr><th>Milestone</th><th>Target</th><th>Gate</th></tr>
-    <tr><td>Phase 2 Complete (Vertical Slice)</td><td>Q2-Q3 2026</td><td>Full harvest-sell loop playable. External playtesting begins.</td></tr>
-    <tr><td>Steam page live + wishlists open</td><td>Q3 2026</td><td>After vertical slice. Early community building.</td></tr>
-    <tr><td>v0.1 Alpha</td><td>Q4 2026</td><td>Phases 1-3 complete. Enough content for Indie Fund application.</td></tr>
-    <tr><td>Indie Fund application</td><td>Q4 2026</td><td>Requires playable Alpha + trailer + pitch materials.</td></tr>
-    <tr><td>Iowa Arts Council application</td><td>Sept 2026</td><td>Prepare now. Work samples from current build.</td></tr>
-    <tr><td>v0.5 Beta</td><td>Q2 2027</td><td>Phases 1-4 complete. All core systems. Limited beta access.</td></tr>
-    <tr><td>v1.0 Release</td><td>Q3-Q4 2027</td><td>All 5 phases complete. Steam launch. PC/Mac.</td></tr>
-    <tr><td>Mobile port (stretch)</td><td>Post-launch</td><td>iOS/Android. Pending sales performance.</td></tr>
-  </table>
+  <tr style="background:#2a1a0a">
+    <td><strong>6</strong></td>
+    <td><strong>Record a gameplay trailer / demo video</strong></td>
+    <td><span class="tag" style="background:#2a1a0a;color:#cc9944">CAPTURE</span></td>
+    <td><span class="tag tag-todo">TODO</span></td>
+    <td>Item 4 (Phase 2 complete)</td>
+    <td>60-90 second trailer showing the core loop: arrive at hive, open inspection (hex frame visual), harvest honey, sell at market. Capture with OBS Studio (free). Edit in DaVinci Resolve (free). No narration needed -- let the gameplay speak. This trailer is the single most important asset for Kickstarter success and itch.io visibility. Upload to YouTube unlisted first for review.</td>
+  </tr>
 
-  <h3 style="color:var(--amber);margin:28px 0 12px;">Steam Strategy</h3>
-  <p style="color:var(--muted);font-size:13px;line-height:1.7;">
-    Target: <strong>Steam (PC/Mac primary)</strong>. Steam Developer fee paid ($100 one-time).
-    Open Steam page at Alpha for wishlist building -- this is the single highest-ROI pre-launch action.
-    Wishlist conversions at launch typically run 10-30%; 5,000 wishlists before launch is a reasonable target for a cozy indie.
-    Genre tags: Farming Sim, Casual, Simulation, Nature, Relaxing. Comparable titles: Stardew Valley, Bee Simulator, Garden Story.
-    Pricing: $14.99 base price target. Launch discount 10-20%.
-  </p>
+  <tr style="background:#1a2a1a">
+    <td><strong>7</strong></td>
+    <td><strong>Launch on itch.io (free or pay-what-you-want demo)</strong></td>
+    <td><span class="tag" style="background:#1a2a1a;color:#5acc88">PLATFORM</span></td>
+    <td><span class="tag tag-todo">TODO</span></td>
+    <td>Items 5 &amp; 6 (screenshots + trailer)</td>
+    <td>itch.io is free to list and has zero upfront cost. Use it to release a playable demo or vertical slice build after Phase 2 is complete. Pay-what-you-want pricing lets early supporters pay voluntarily. itch.io revenue goes to the LLC bank account. This is the lowest-friction way to start building an audience and get real player feedback before Steam. Create account at itch.io under Five Cats Studios.</td>
+  </tr>
+
+  <tr style="background:#1a1a2a">
+    <td><strong>8</strong></td>
+    <td><strong>Complete Phase 3 -- Living World</strong></td>
+    <td><span class="tag" style="background:#1a1a2a;color:#5a9acc">GAME</span></td>
+    <td><span class="tag tag-todo">TODO</span></td>
+    <td>Item 4 (Phase 2 complete)</td>
+    <td>Quests &amp; Events, NPC Relationships, Knowledge Log, Bee Acquisition. Phases 1-3 complete = v0.1 Alpha target, which is the gate for the Indie Fund application and Iowa Arts Council grant.</td>
+  </tr>
+
+  <tr style="background:#2a1a2a">
+    <td><strong>9</strong></td>
+    <td><strong>Iowa Arts Council -- Art Project Grant application</strong></td>
+    <td><span class="tag" style="background:#2a1a2a;color:#cc88cc">GRANT</span></td>
+    <td><span class="tag tag-todo">PREPARE</span></td>
+    <td>LLC filed (Item 1), some work samples</td>
+    <td>Next cycle ~Sept 2026. Iowa resident, solo creator, digital art form -- strong fit. Draft artist statement now. Gather work samples (screenshots, GDD excerpts, design documents). Up to $5,000. Does not require a fully playable game -- current build may already qualify.</td>
+  </tr>
+
+  <tr style="background:#1a1a2a">
+    <td><strong>10</strong></td>
+    <td><strong>Open Steam page + wishlists</strong></td>
+    <td><span class="tag" style="background:#1a2a1a;color:#5acc88">PLATFORM</span></td>
+    <td><span class="tag tag-todo">TODO</span></td>
+    <td>Items 5 &amp; 6 (screenshots + trailer), Phase 2 complete</td>
+    <td>Steam Developer fee: $100 one-time (already budgeted). Open page at vertical slice / Alpha stage for wishlist building. Genre tags: Farming Sim, Casual, Simulation, Nature, Relaxing. Comparables: Stardew Valley, Garden Story. Target: 5,000 wishlists before launch. Every wishlist = a likely day-one buyer. This is the single highest-ROI pre-launch action after having a trailer.</td>
+  </tr>
+
+  <tr style="background:#2a1a0a">
+    <td><strong>11</strong></td>
+    <td><strong>Plan and launch Kickstarter campaign</strong></td>
+    <td><span class="tag" style="background:#2a1a0a;color:#cc9944">KICKSTARTER</span></td>
+    <td><span class="tag tag-todo">TODO</span></td>
+    <td>Items 5, 6, 7 (screenshots, trailer, itch.io demo), Phase 2+ complete</td>
+    <td>Do not launch Kickstarter without: a playable demo, a trailer, and existing community proof (itch.io downloads, wishlists). Target window: Q4 2026 alongside Indie Fund application. Goal: $10,000-$25,000. Rewards: digital copy, soundtrack, backer credits, exclusive backer bee skin. Kickstarter takes 5% + payment fees (~8-10% total). Funds go to LLC bank account. Use Kickstarter's built-in tools for campaign page. Start writing campaign copy 4-6 weeks before launch.</td>
+  </tr>
+
+  <tr style="background:#2a1a2a">
+    <td><strong>12</strong></td>
+    <td><strong>Indie Fund application</strong></td>
+    <td><span class="tag" style="background:#2a1a2a;color:#cc88cc">GRANT</span></td>
+    <td><span class="tag tag-todo">PENDING ALPHA</span></td>
+    <td>v0.1 Alpha (Phases 1-3), trailer, pitch materials</td>
+    <td>Variable recoupable investment (not a grant -- they invest and recoup from sales). Apply when v0.1 Alpha is playable. Requires strong vertical slice, a trailer, and a compelling pitch narrative. indiegamegirl.com/indie-fund. Primary external funding target.</td>
+  </tr>
+
+  <tr style="background:#1a1a2a">
+    <td><strong>13</strong></td>
+    <td><strong>Complete Phases 4 &amp; 5 -- Depth, Polish, Ship</strong></td>
+    <td><span class="tag" style="background:#1a1a2a;color:#5a9acc">GAME</span></td>
+    <td><span class="tag tag-todo">TODO</span></td>
+    <td>Phase 3 complete</td>
+    <td>Disease suite, queen rearing, swarm management, multi-apiary, crafting, full audio, accessibility, platform certification. Target: v1.0 Steam launch Q3-Q4 2027.</td>
+  </tr>
+
+  <tr style="background:#1a2a1a">
+    <td><strong>14</strong></td>
+    <td><strong>Steam launch + itch.io full release</strong></td>
+    <td><span class="tag" style="background:#1a2a1a;color:#5acc88">PLATFORM</span></td>
+    <td><span class="tag tag-todo">TODO</span></td>
+    <td>Item 13 (all phases complete)</td>
+    <td>Simultaneous Steam + itch.io launch. PC/Mac primary. Mobile port post-launch if sales support it. Pricing: $14.99 base, 10-20% launch discount. Press review copies via Keymailer or direct outreach 4 weeks before launch.</td>
+  </tr>
+
+</table>
+
+<!-- ================================================================= -->
+<!--  LLC FORMATION                                                      -->
+<!-- ================================================================= -->
+<h3 class="section" id="b-llc" style="font-size:16px;color:var(--amber-lt);border-bottom:1px solid var(--border);padding-bottom:8px;margin:36px 0 20px;">LLC Formation Status</h3>
+
+<div class="callout callout-green" style="margin-bottom:20px;">
+  <strong>Formation Status -- March 30, 2026</strong>
+  Five Cats Studios LLC (Iowa single-member). EIN confirmed: <strong>41-5191825</strong> (IRS Notice CP575G, March 30, 2026).
+  Certificate of Organization prepared (LLC/documents/). Signature and date lines are blank -- not yet filed with Iowa SOS.
+  Filing is the immediate next action ($50, sos.iowa.gov or mail). Bank account can open once filing is confirmed.
+  Operating Agreement drafted.
+</div>
+
+<div class="callout callout-amber" style="margin-bottom:20px;">
+  <strong>Formation Checklist</strong>
+  <ul style="margin:8px 0 0 16px;line-height:2">
+    <li>[x] EIN obtained -- 41-5191825</li>
+    <li>[x] Operating Agreement drafted</li>
+    <li>[x] Certificate of Organization prepared</li>
+    <li>[ ] File Certificate of Organization with Iowa SOS ($50) -- NEXT ACTION (Priority #1)</li>
+    <li>[ ] Open business bank account (requires filed LLC + EIN) -- Priority #2</li>
+    <li>[ ] Separate business expenses from personal from filing date forward -- Priority #3</li>
+  </ul>
+</div>
+
+<!-- ================================================================= -->
+<!--  ART & VIDEO CAPTURE                                                -->
+<!-- ================================================================= -->
+<h3 class="section" id="b-capture" style="font-size:16px;color:var(--amber-lt);border-bottom:1px solid var(--border);padding-bottom:8px;margin:36px 0 20px;">Art &amp; Video Capture Plan</h3>
+
+<p style="color:var(--muted);font-size:13px;line-height:1.7;margin-bottom:16px;">
+  All promotional materials -- itch.io page, Kickstarter campaign, Steam page, grant applications -- require high-quality screenshots and a gameplay trailer. Capture happens after Phase 2 is complete and the harvest loop is playable. Do not capture from the current build; the missing harvest loop makes it impossible to show the core game loop.
+</p>
+
+<div class="callout callout-amber">
+  <strong>Tools (all free)</strong><br>
+  Screenshots: Godot built-in (F12) or Windows Snipping Tool at 1920x1080 or higher.<br>
+  Screen recording: OBS Studio (obsproject.com) -- free, high quality, zero watermark.<br>
+  Video editing: DaVinci Resolve (free tier) -- professional quality, no watermark, exports to H.264/H.265.<br>
+  Audio: Use in-game MusicManager tracks as background. No external music licenses needed.
+</div>
+
+<table style="margin-top:16px;">
+  <tr><th>Asset</th><th>Specs</th><th>Used For</th><th>Priority Shots</th></tr>
+  <tr>
+    <td><strong>Hero screenshots</strong></td>
+    <td>1920x1080 minimum, PNG</td>
+    <td>itch.io, Kickstarter, Steam, grants</td>
+    <td>Honeycomb inspection (full hex frame in summer), harvest in progress (uncapping knife + extractor), Cedar Bend exterior (town square, summer), Saturday Market (player selling to Frank), hive yard (multiple hives, flowers blooming), home property (full season)</td>
+  </tr>
+  <tr>
+    <td><strong>Gameplay trailer</strong></td>
+    <td>60-90 sec, 1080p60, H.264</td>
+    <td>Kickstarter (required), itch.io, Steam, Indie Fund pitch</td>
+    <td>Open with hive yard wide shot. Cut to inspection (bees moving, brood nest visible). Show harvest pipeline (uncap, spin, bottle). Cut to market (coins exchanging). End on player in flower field, hive thriving. No narration -- music from MusicManager + ambient bee hum.</td>
+  </tr>
+  <tr>
+    <td><strong>GIF / short loops</strong></td>
+    <td>480x270 or 640x360, 10-15 sec</td>
+    <td>Social media, Reddit posts, itch.io widget</td>
+    <td>Honeycomb cell rendering (satisfying), bees filling honey cells, harvest spinner, flowers blooming in timelapse.</td>
+  </tr>
+  <tr>
+    <td><strong>Capsule / banner art</strong></td>
+    <td>Steam: 460x215, 231x87. itch.io: 315x250</td>
+    <td>Steam store capsule, itch.io thumbnail</td>
+    <td>Create in Leonardo AI using GDD Master Prompt Block. Show player character, hive, bees, golden honey. Must match established art style. Get Nathan approval before using.</td>
+  </tr>
+</table>
+
+<!-- ================================================================= -->
+<!--  PLATFORMS & LAUNCH                                                 -->
+<!-- ================================================================= -->
+<h3 class="section" id="b-platforms" style="font-size:16px;color:var(--amber-lt);border-bottom:1px solid var(--border);padding-bottom:8px;margin:36px 0 20px;">Platforms &amp; Launch Strategy</h3>
+
+<table>
+  <tr><th>Platform</th><th>Cost</th><th>Timeline</th><th>Notes</th></tr>
+  <tr>
+    <td><strong>itch.io</strong></td>
+    <td>Free (itch takes 0-10%, you choose)</td>
+    <td>After Phase 2 (demo/vertical slice)</td>
+    <td>First platform to launch. Zero upfront cost. Great for indie discovery. Use pay-what-you-want for demo. Set revenue split to minimum (0%) or small percentage. Primary early-access and feedback channel before Steam.</td>
+  </tr>
+  <tr>
+    <td><strong>Steam</strong></td>
+    <td>$100 one-time dev fee</td>
+    <td>Page open at Alpha (Q3 2026), full launch Q3-Q4 2027</td>
+    <td>Open page early for wishlist building -- wishlists are the most valuable pre-launch asset. Steam takes 30% (drops to 25% after $10k, 20% after $50k). Pricing: $14.99. Launch discount 10-20%. Genre tags: Farming Sim, Simulation, Casual, Nature, Relaxing.</td>
+  </tr>
+  <tr>
+    <td><strong>GOG / Epic (stretch)</strong></td>
+    <td>Application-based (GOG curated)</td>
+    <td>Post-launch if sales warrant</td>
+    <td>GOG is curated -- apply after positive Steam reception. Epic Games Store is by invitation for most titles. Not a priority for initial launch.</td>
+  </tr>
+  <tr>
+    <td><strong>Mobile iOS/Android (stretch)</strong></td>
+    <td>Apple Dev $99/yr, Google Play $25 one-time</td>
+    <td>Post-launch</td>
+    <td>Requires significant UI adaptation for touch. Free-to-play core with optional Season Pass. Only pursue if Steam launch is profitable enough to fund the port.</td>
+  </tr>
+</table>
+
+<!-- ================================================================= -->
+<!--  KICKSTARTER                                                        -->
+<!-- ================================================================= -->
+<h3 class="section" id="b-kickstarter" style="font-size:16px;color:var(--amber-lt);border-bottom:1px solid var(--border);padding-bottom:8px;margin:36px 0 20px;">Kickstarter Campaign Plan</h3>
+
+<div class="callout callout-amber" style="margin-bottom:16px;">
+  <strong>Gate Requirements -- Do not launch Kickstarter until ALL of these are met:</strong>
+  <ul style="margin:8px 0 0 16px;line-height:2">
+    <li>Phase 2 complete (playable harvest loop)</li>
+    <li>Gameplay trailer (60-90 sec, polished)</li>
+    <li>itch.io demo live with measurable downloads</li>
+    <li>Steam page open with at least 500 wishlists</li>
+    <li>LLC bank account open (required to receive funds)</li>
+    <li>Campaign copy drafted and reviewed</li>
+  </ul>
+</div>
+
+<table>
+  <tr><th>Element</th><th>Details</th></tr>
+  <tr><td><strong>Target goal</strong></td><td>$10,000 minimum / $25,000 stretch. Keep goal achievable -- failed Kickstarters damage credibility. A funded $10k campaign is better than a failed $50k campaign.</td></tr>
+  <tr><td><strong>Campaign length</strong></td><td>30 days. Momentum peaks in first 48 hours and last 48 hours. Announce to all channels simultaneously on launch day.</td></tr>
+  <tr><td><strong>Reward tiers</strong></td><td>$5 Thank You (name in credits), $15 Digital copy at launch, $30 Digital copy + OST download, $60 Backer Edition (exclusive in-game bee skin + early access), $150 Beekeeper Tier (all above + name an NPC), $500 Apiarist Tier (all above + dev call with Nathan). Keep tiers simple -- fewer is better.</td></tr>
+  <tr><td><strong>Fees</strong></td><td>Kickstarter takes 5%. Payment processing ~3-5%. Budget for ~10% total fees on funded amount. Factor into goal calculation.</td></tr>
+  <tr><td><strong>Timeline</strong></td><td>Target launch Q4 2026 (Oct-Nov), aligned with Indie Fund application window. Holiday wishlists and gift purchases help.</td></tr>
+  <tr><td><strong>Campaign page needs</strong></td><td>Trailer at top (required), hero image, 3-5 gameplay screenshots, "What is Smoke &amp; Honey?" paragraph, "Who is Nathan / Five Cats Studios?" section, risk and challenges (be honest), reward tier breakdown, stretch goals (if any), FAQ.</td></tr>
+  <tr><td><strong>Promotion</strong></td><td>Reddit: r/indiegaming, r/gamedev, r/farming, r/beekeeping. Twitter/X: #indiedev, #gamedev, #pixelart. Post itch.io link one week before Kickstarter to build credibility. Reach out to 5-10 small YouTube/Twitch channels that cover cozy/farming games.</td></tr>
+</table>
+
+<!-- ================================================================= -->
+<!--  GRANTS & FUNDING                                                   -->
+<!-- ================================================================= -->
+<h3 class="section" id="b-grants" style="font-size:16px;color:var(--amber-lt);border-bottom:1px solid var(--border);padding-bottom:8px;margin:36px 0 20px;">Grants &amp; External Funding</h3>
+
+<div class="callout" style="background:rgba(200,50,50,0.08);border-left:3px solid #c83232;border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:16px;">
+  <strong>Ineligible Grants -- Do Not Apply</strong><br>
+  <strong>Iowa Greenlight Grant (IEDA):</strong> Film and media productions only. Video games explicitly excluded. Not eligible.<br>
+  <strong>Epic MegaGrants:</strong> Requires Unreal Engine. Smoke &amp; Honey uses Godot 4. Not eligible.
+</div>
+
+<table>
+  <tr><th>Grant</th><th>Amount</th><th>Window</th><th>Status</th><th>Notes</th></tr>
+  <tr>
+    <td><strong>Iowa Arts Council -- Art Project Grant (Individuals)</strong></td>
+    <td>Up to $5,000</td>
+    <td>~Sept 2026</td>
+    <td><span class="tag tag-todo">PREPARE NOW</span></td>
+    <td>Strong fit: Iowa resident, solo creator, digital art form. Draft artist statement now. Gather work samples (screenshots, GDD excerpts). Does not require a fully shipped game. Apply with current build materials.</td>
+  </tr>
+  <tr>
+    <td><strong>Indie Fund</strong></td>
+    <td>Variable (recoupable investment)</td>
+    <td>Q4 2026</td>
+    <td><span class="tag tag-todo">PENDING ALPHA</span></td>
+    <td>Not a grant -- recoupable investment from sales. Apply at v0.1 Alpha. Requires strong vertical slice and trailer. indiegamegirl.com/indie-fund. Primary funding target.</td>
+  </tr>
+  <tr>
+    <td><strong>NEA Arts in Digital Media</strong></td>
+    <td>$10,000-$100,000</td>
+    <td>Annual</td>
+    <td><span class="tag tag-todo">MONITOR</span></td>
+    <td>Federal grant. More competitive but worth applying at Alpha. Requires LLC in good standing or 501(c)(3) sponsor. Check grants.gov annually.</td>
+  </tr>
+</table>
+
+<!-- ================================================================= -->
+<!--  OVERHEAD & REVENUE                                                 -->
+<!-- ================================================================= -->
+<h3 class="section" id="b-overhead" style="font-size:16px;color:var(--amber-lt);border-bottom:1px solid var(--border);padding-bottom:8px;margin:36px 0 20px;">Overhead &amp; Revenue Projections</h3>
+
+<h4 style="color:var(--amber);margin:16px 0 8px;font-size:13px;">Monthly Overhead (~$45/mo)</h4>
+<table>
+  <tr><th>Expense</th><th>Cost</th><th>Notes</th></tr>
+  <tr><td>Claude Pro</td><td>~$20/mo</td><td>AI development assistant</td></tr>
+  <tr><td>Leonardo AI</td><td>~$12/mo</td><td>Art generation (Lucid Origin model)</td></tr>
+  <tr><td>Godot Engine</td><td>$0</td><td>Free, open source</td></tr>
+  <tr><td>Iowa LLC annual fee</td><td>~$50/yr (~$4/mo)</td><td>Biennial report due in odd years</td></tr>
+  <tr><td>Domain</td><td>~$12/yr (~$1/mo)</td><td>5catsgamestudios.com</td></tr>
+  <tr><td>Steam Dev fee</td><td>$100 one-time</td><td>Already budgeted</td></tr>
+</table>
+
+<h4 style="color:var(--amber);margin:20px 0 8px;font-size:13px;">Revenue Projections (Year 1 Post-Launch)</h4>
+<table>
+  <tr><th>Scenario</th><th>Projection</th><th>Assumptions</th></tr>
+  <tr><td>Conservative</td><td>~$8,000</td><td>500 units @ $15 avg. Small launch, limited visibility.</td></tr>
+  <tr><td>Moderate</td><td>~$35,000</td><td>2,300 units @ $15. Positive reviews, some press coverage.</td></tr>
+  <tr><td>Optimistic</td><td>~$125,000</td><td>8,300 units @ $15. Strong word-of-mouth, wishlists convert.</td></tr>
+</table>
+
+<h4 style="color:var(--amber);margin:20px 0 8px;font-size:13px;">Release Timeline</h4>
+<table>
+  <tr><th>Milestone</th><th>Target</th><th>Gate</th></tr>
+  <tr><td>LLC filed</td><td>April 2026</td><td>Iowa SOS filing confirmed.</td></tr>
+  <tr><td>Business bank account open</td><td>April 2026</td><td>After LLC confirmed.</td></tr>
+  <tr><td>Phase 2 Complete (Vertical Slice)</td><td>Q2-Q3 2026</td><td>Full harvest-sell loop playable.</td></tr>
+  <tr><td>Screenshots &amp; trailer captured</td><td>Q2-Q3 2026</td><td>After Phase 2 complete.</td></tr>
+  <tr><td>itch.io demo live</td><td>Q3 2026</td><td>After trailer ready.</td></tr>
+  <tr><td>Steam page live + wishlists open</td><td>Q3 2026</td><td>After vertical slice + trailer.</td></tr>
+  <tr><td>Iowa Arts Council grant application</td><td>Sept 2026</td><td>Prepare now.</td></tr>
+  <tr><td>v0.1 Alpha (Phases 1-3)</td><td>Q4 2026</td><td>Enough content for Indie Fund application.</td></tr>
+  <tr><td>Kickstarter campaign</td><td>Q4 2026</td><td>After trailer, itch.io demo, Steam wishlists.</td></tr>
+  <tr><td>Indie Fund application</td><td>Q4 2026</td><td>Requires Alpha + trailer + pitch materials.</td></tr>
+  <tr><td>v0.5 Beta</td><td>Q2 2027</td><td>Phases 1-4 complete.</td></tr>
+  <tr><td>v1.0 Release</td><td>Q3-Q4 2027</td><td>All 5 phases complete. Steam launch. PC/Mac.</td></tr>
+  <tr><td>Mobile port (stretch)</td><td>Post-launch</td><td>iOS/Android. Pending sales performance.</td></tr>
+</table>
+
 </div>
 
 <h2 class="section" id="mvp-checklist">Vertical Slice Checklist</h2>
@@ -1242,9 +1556,14 @@
   <tr style="background:#1a1a2a"><td>2.11</td><td>Equipment shop wired (real purchases)</td><td>[ ]</td><td>2</td></tr>
   <tr style="background:#1a1a2a"><td>2.13</td><td>Smoke &amp; sting system</td><td>[ ]</td><td>2</td></tr>
   <tr style="background:#1a1a2a"><td>2.17</td><td>Harvest honey (uncap - extract - grade - bottle)</td><td>[ ]</td><td>2</td></tr>
-  <tr style="background:#1a1a2a"><td>2.25</td><td>Saturday Market -- sell to Frank</td><td>[ ]</td><td>2</td></tr>
+  <tr style="background:#1a1a2a"><td>2.25</td><td>Saturday Market -- sell to Frank (wire player_name to nameplate during build)</td><td>[ ]</td><td>2</td></tr>
   <tr style="background:#1a1a2a"><td>2.28</td><td>Community Standing (5 tiers, price multipliers)</td><td>[ ]</td><td>2</td></tr>
   <tr style="background:#1a1a2a"><td>--</td><td>One full season playable start to finish</td><td>[ ]</td><td>2</td></tr>
+  <tr style="background:#1a2015"><td>3.0</td><td>PlayerData singleton -- player_name, pronouns, backstory_tag, appearance fields</td><td>[ ]</td><td>3</td></tr>
+  <tr style="background:#1a2015"><td>3.0a</td><td>Character creator scene (name, pronouns, backstory, appearance -- runs before opening cutscene)</td><td>[ ]</td><td>3</td></tr>
+  <tr style="background:#1a2015"><td>3.0b</td><td>Layered portrait system (title card, journal header, cutscene frames)</td><td>[ ]</td><td>3</td></tr>
+  <tr style="background:#1a2015"><td>3.0c</td><td>Name injection -- Knowledge Log header, market nameplate, Bob dialogue</td><td>[ ]</td><td>3</td></tr>
+  <tr style="background:#1a2015"><td>3.0d</td><td>Pronoun token pass -- all NPC dialogue strings use {they}/{them}/{their} tokens</td><td>[ ]</td><td>3</td></tr>
 </table>
 
 <div class="callout callout-amber" style="margin-top:32px">

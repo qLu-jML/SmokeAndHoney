@@ -810,7 +810,7 @@
 <li class="sub"><a href="#h2_10_2_Sound_Design">10.2 Sound Design</a></li>
 <li class="section"><a href="#h1_11_Monetization_TBD_">11. Monetization (TBD)</a></li>
 <li class="section"><a href="#h1_12_Setting_World_Overview">12. Setting & World Overview</a></li>
-<li class="sub"><a href="#The_Player_Character_Backstory">The Player Character — Eli</a></li>
+<li class="sub"><a href="#The_Player_Character_Backstory">The Player Character &amp; Character Creation</a></li>
 <li class="sub"><a href="#Uncle_Bob_Character">Uncle Bob</a></li>
 <li class="sub"><a href="#The_Call">The Call</a></li>
 <li class="sub"><a href="#The_Surviving_Hive">The Surviving Hive</a></li>
@@ -3130,7 +3130,26 @@ transparent background where applicable, [YOUR UI ELEMENT HERE]</code></pre>
 <tr><td>Time of Day</td><td>Each scene reflects the current in-game time and season. Morning light in spring feels different from a gray fall afternoon.</td></tr>
 <tr><td>Scale</td><td>Locations are intimate — you see your hives, your yard, your road. Not satellite-view. Think over-the-shoulder farm sim scale.</td></tr>
 </tbody></table>
-<h3 id="The_Player_Character_Backstory">The Player Character — Eli</h3>
+<h3 id="The_Player_Character_Backstory">The Player Character &amp; Character Creation</h3>
+
+<h4>Character Creation System</h4>
+
+<p>Before the game begins, the player creates their character using Smoke &amp; Honey's character creator. This is not a deep RPG stat system — it is a <strong>personal expression tool</strong> designed to make the player feel like it is genuinely <em>their</em> story, not someone else's.</p>
+
+<table class="detail-table"><thead><tr><th>Customization Layer</th><th>Options</th><th>Design Notes</th></tr></thead><tbody>
+<tr><td><strong>Name</strong></td><td>Free text entry, default: "Eli"</td><td>Name appears in Bob's dialogue, the Knowledge Log, and the Saturday Market nameplate. Bob addresses the player by name throughout the game.</td></tr>
+<tr><td><strong>Appearance</strong></td><td>Skin tone (6 options), hair style (8 options), hair color (10 options), build (3 options). The player character is always a young person (early-to-mid teens); age/body is not customizable beyond build.</td><td>The pixel art sprite system uses layered tilesets for each customization dimension. All appearance options must be designed at 32x32 grid resolution by the human pixel artist. Character is always shown in beekeeper gear during gameplay; appearance is visible in the title card, journal header, and cutscene frames.</td></tr>
+<tr><td><strong>Backstory Tag</strong></td><td>Three background presets: "Screen-Numbed Kid" (default), "Anxious Achiever", "Quiet Loner". A fourth option: "Write Your Own" (free text, max 120 characters, shown in the journal intro page only).</td><td>The backstory tag is purely narrative flavor. It does not affect stats, starting items, or gameplay. It shapes the opening journal entry and one or two early dialogue lines from Bob. All backstory paths lead to the same mechanical game.</td></tr>
+<tr><td><strong>Pronouns</strong></td><td>He/him, She/her, They/them</td><td>Bob and all NPCs use the selected pronouns throughout all dialogue. Requires full pronoun-aware dialogue pass on all NPC lines. Design all dialogue strings with pronoun tokens (e.g., {they} {their} {them}) from the start to avoid retrofitting.</td></tr>
+</tbody></table>
+
+<div class="pitch-block">
+<p><strong>Design Principle:</strong> The character creator exists to lower the barrier to emotional investment, not to add mechanical complexity. Players who want to be "Eli, a twelve-year-old kid from the suburbs" can do that. Players who want to be someone who looks like them, goes by a different name, or has a slightly different inner life can do that too. The bees don't care. Uncle Bob doesn't care. The story works either way.</p>
+</div>
+
+<p><strong>Note on "Eli" throughout this document:</strong> For narrative shorthand, this GDD uses "Eli" to refer to the player character throughout quest descriptions, story sections, and design notes. "Eli" represents the default character name and default backstory. All references to Eli's actions, decisions, and dialogue apply equally to any player character regardless of name, appearance, or pronouns chosen at the start of the game.</p>
+
+<h4>Default Character Profile — "Eli"</h4>
 
 <p>Twelve years old. Eldest of three — a younger brother (8) and a younger sister (5). Good family. Mom's a dental hygienist, Dad drives for a regional freight company. Lower middle class, small suburban house, decent school. Nothing is broken. Nobody is cruel.</p>
 
@@ -3149,7 +3168,7 @@ transparent background where applicable, [YOUR UI ELEMENT HERE]</code></pre>
 
 <p>His parents notice. They're not sure what to do. He's not in trouble. His grades are fine. He's just... dimmer than he used to be. Quieter. Present in the room but absent from the conversation. They talk about it at night when the kids are asleep, and they don't have answers either.</p>
 
-<p>The player has no prescribed visual appearance beyond what the sprite suggests. He is defined entirely by his decisions in the world. The game never tells him what kind of beekeeper to be — only what the bees need.</p>
+<p>Beyond the character creator choices, the player character is defined entirely by their decisions in the world. The game never tells the player what kind of beekeeper to be — only what the bees need.</p>
 
 <h3 id="Uncle_Bob_Character">Uncle Bob — Robert "Bob" Whitfield</h3>
 

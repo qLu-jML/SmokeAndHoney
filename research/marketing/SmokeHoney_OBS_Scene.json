@@ -1,0 +1,227 @@
+{
+    "AuxAudioDevice1": {
+        "balance": 0.5,
+        "deinterlace_field_order": 0,
+        "deinterlace_mode": 0,
+        "enabled": true,
+        "flags": 0,
+        "hotkeys": {
+            "libobs/mute": [],
+            "libobs/push-to-mute": [],
+            "libobs/push-to-talk": [],
+            "libobs/unmute": []
+        },
+        "id": "wasapi_input_capture",
+        "mixers": 255,
+        "monitoring_type": 0,
+        "muted": false,
+        "name": "Mic/Aux",
+        "prev_ver": 0,
+        "private_settings": {},
+        "push-to-mute": false,
+        "push-to-mute-delay": 0,
+        "push-to-talk": false,
+        "push-to-talk-delay": 0,
+        "settings": {
+            "device_id": "default",
+            "use_device_timing": false
+        },
+        "sync": 0,
+        "versioned_id": "wasapi_input_capture",
+        "volume": 1.0,
+        "mixers": 255
+    },
+    "DesktopAudioDevice1": {
+        "balance": 0.5,
+        "deinterlace_field_order": 0,
+        "deinterlace_mode": 0,
+        "enabled": true,
+        "flags": 0,
+        "hotkeys": {
+            "libobs/mute": [],
+            "libobs/push-to-mute": [],
+            "libobs/push-to-talk": [],
+            "libobs/unmute": []
+        },
+        "id": "wasapi_output_capture",
+        "mixers": 255,
+        "monitoring_type": 0,
+        "muted": false,
+        "name": "Desktop Audio",
+        "prev_ver": 0,
+        "private_settings": {},
+        "push-to-mute": false,
+        "push-to-mute-delay": 0,
+        "push-to-talk": false,
+        "push-to-talk-delay": 0,
+        "settings": {
+            "device_id": "default"
+        },
+        "sync": 0,
+        "versioned_id": "wasapi_output_capture",
+        "volume": 0.35
+    },
+    "current_program_scene": "Smoke and Honey - Recording",
+    "current_scene": "Smoke and Honey - Recording",
+    "current_transition": "Fade",
+    "groups": [],
+    "modules": {
+        "auto-scene-switcher": {
+            "active": false,
+            "interval": 300,
+            "non_matching_scene": "",
+            "switch_if_not_matching": false,
+            "switches": [],
+            "window_title_should_match_when_foreground": true
+        },
+        "scripts-tool": []
+    },
+    "name": "Smoke and Honey KS Recording",
+    "preview_locked": false,
+    "quick_transitions": [
+        {
+            "duration": 300,
+            "hotkeys": [],
+            "id": 1,
+            "name": "Cut"
+        },
+        {
+            "duration": 300,
+            "hotkeys": [],
+            "id": 2,
+            "name": "Fade"
+        }
+    ],
+    "saved_projectors": [],
+    "scaling_enabled": false,
+    "scaling_level": 0,
+    "scaling_off_x": 0.0,
+    "scaling_off_y": 0.0,
+    "scene_order": [
+        {
+            "name": "Smoke and Honey - Recording"
+        },
+        {
+            "name": "Smoke and Honey - With Mic Indicator"
+        }
+    ],
+    "sources": [
+        {
+            "balance": 0.5,
+            "deinterlace_field_order": 0,
+            "deinterlace_mode": 0,
+            "enabled": true,
+            "flags": 0,
+            "hotkeys": {
+                "OBSBasic.SelectScene": [],
+                "libobs/mute": [],
+                "libobs/push-to-mute": [],
+                "libobs/push-to-talk": [],
+                "libobs/unmute": []
+            },
+            "id": "scene",
+            "mixers": 0,
+            "monitoring_type": 0,
+            "muted": false,
+            "name": "Smoke and Honey - Recording",
+            "prev_ver": 0,
+            "private_settings": {},
+            "push-to-mute": false,
+            "push-to-mute-delay": 0,
+            "push-to-talk": false,
+            "push-to-talk-delay": 0,
+            "settings": {
+                "custom_size": false,
+                "id_counter": 3,
+                "items": [
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "group_item_backup": false,
+                        "hide_when_not_playing": false,
+                        "id": 1,
+                        "locked": false,
+                        "name": "Godot Game Capture",
+                        "pos": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 1.0,
+                            "y": 1.0
+                        },
+                        "scale_filter": "disable",
+                        "show_in_multiview": true,
+                        "visible": true
+                    }
+                ]
+            },
+            "sync": 0,
+            "versioned_id": "scene",
+            "volume": 1.0
+        },
+        {
+            "balance": 0.5,
+            "deinterlace_field_order": 0,
+            "deinterlace_mode": 0,
+            "enabled": true,
+            "flags": 0,
+            "hotkeys": {},
+            "id": "game_capture",
+            "mixers": 1,
+            "monitoring_type": 0,
+            "muted": false,
+            "name": "Godot Game Capture",
+            "prev_ver": 0,
+            "private_settings": {},
+            "push-to-mute": false,
+            "push-to-mute-delay": 0,
+            "push-to-talk": false,
+            "push-to-talk-delay": 0,
+            "settings": {
+                "allow_transparency": false,
+                "anti_cheat_hook": false,
+                "capture_audio": true,
+                "capture_cursor": false,
+                "capture_mode": "window",
+                "force_scaling": false,
+                "hook_rate": 1,
+                "limit_framerate": false,
+                "priority": 1,
+                "rgb10a2_space": "srgb",
+                "scale_res": "0x0",
+                "sli_compatibility": false,
+                "window": "Smoke and Honey:Engine:godot.windows.editor.x86_64.exe"
+            },
+            "sync": 0,
+            "versioned_id": "game_capture",
+            "volume": 1.0
+        }
+    ],
+    "transition_duration": 300,
+    "transitions": [
+        {
+            "id": "cut_transition",
+            "name": "Cut",
+            "settings": {}
+        },
+        {
+            "id": "fade_transition",
+            "name": "Fade",
+            "settings": {
+                "color": 4278190080
+            }
+        }
+    ]
+}

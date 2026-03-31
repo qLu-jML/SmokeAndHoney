@@ -75,17 +75,17 @@
 
 ---
 
-**[1:20–1:45] — THE ART PROBLEM (AND THE PROMISE)**
-*Visual: Side-by-side. Left: current placeholder pixel art (honest, labeled "current placeholder"). Right: a gorgeous concept sketch / mood board of the final vision.*
+**[1:20–1:45] — THE ART PROBLEM (AND THE STATEMENT)**
+*Visual: Side-by-side. Left: current placeholder art labeled "AI-generated placeholder." Right: concept art showing the warm field-guide vision. Hold on the contrast.*
 
 *Narration:*
-> "Right now, Smoke and Honey uses placeholder art — AI-generated temporary assets to build the game's systems and prove the concept."
+> "You know what's happening in this industry. Studios are replacing their art teams with AI. Games are shipping with machine-generated visuals and calling it done."
 >
-> "We refuse to ship AI-generated art in the final game."
+> "Every piece of art in Smoke and Honey right now is AI-generated. I used it to build the systems fast, while I had the energy to build."
 >
-> "Your support funds a full-time human pixel artist — someone who will hand-craft every hive box, every bee, every golden frame with real skill and real soul."
+> "I am raising money to delete every pixel of it."
 >
-> "The art you see here is a promise of what's coming, not what we'll ship."
+> "Your pledge funds a full-time human pixel artist. Not because AI can't produce something passable. Because passable is not the point. Because this game is about the irreplaceable value of human skill — and it has to look like someone made it with their hands."
 
 ---
 
@@ -107,7 +107,7 @@
 *Narration:*
 > "One hive survived the winter. That's where this story starts."
 >
-> "Help us bring in the artist who will give that hive — and this world — the beauty it deserves."
+> "In an industry choosing the algorithm, we're choosing the artist. Help us make something that proves the difference."
 >
 > *[Kickstarter URL and call to action appear on screen]*
 >
@@ -125,6 +125,12 @@
 
 ## 🐝 A Letter From the Beekeeper
 
+You've seen the headlines. *Studio lays off art team, switches to AI.* You've seen the review bombs. You've seen artists posting their layoff notices next to AI-generated replacements of their own work. You know what's happening to human craft in this industry.
+
+This is not that kind of game. This is the opposite of that.
+
+---
+
 I'll start with the truth.
 
 I was a real beekeeper for years. I kept Langstroth hives. I learned to read brood patterns, time my inspections, manage varroa, and harvest honey before the goldenrod flow faded. I made mistakes that cost me hives. I made good decisions that rewarded me with jars of something golden and alive.
@@ -137,15 +143,21 @@ I could have slowed down. Instead, I made a decision: I would build the game I h
 
 I am building it with everything I have, every day I have it.
 
+Here's the part I need to be honest with you about: **I built this game's systems using AI-generated placeholder art.** Every sprite, every tile, every environment you see in current screenshots is machine-generated. I used it to move fast on the simulation and the story while I had the energy to build. I'm not hiding that. I'm telling you upfront, because what comes next is the whole point.
+
+**I am raising money to replace every single pixel of it with human-made art.**
+
+In an industry sprinting toward AI, this Kickstarter is a deliberate step in the other direction. Your pledge doesn't just fund a game. It funds a human artist's livelihood over an algorithm. It says that craft matters. That the person behind the work matters. That a game about the irreplaceable value of patient, skilled human observation should not — *cannot* — ship with art made by a machine.
+
 I am asking you to be part of it.
 
 ---
 
 ## What Is Smoke and Honey?
 
-**Smoke and Honey** is a deep, authentic beekeeping hive simulator — a cozy management game rooted in real bee biology, real seasonal rhythms, and a genuine story about a kid finding his footing in a world that feels unmanageable.
+**Smoke and Honey** is a deep, authentic beekeeping hive simulator — a cozy management game rooted in real bee biology, real seasonal rhythms, and a genuine story about finding your footing in a world that feels unmanageable.
 
-You play as **Eli**, twelve years old, arriving at his Uncle Bob's apiary in rural Millhaven County, Iowa after Bob suffered a heart attack that winter. Eleven of his twelve hives died in the cold. One survived.
+You play as **your own character** — created by you at the start of the game. Choose your name, appearance, and backstory in Smoke & Honey's character creator before you step onto Uncle Bob's apiary in rural Millhaven County, Iowa. Bob suffered a heart attack that winter. Eleven of his twelve hives died in the cold. One survived.
 
 That's where the game begins: **eleven dead hives, one alive, and a summer to figure out what to do next.**
 
@@ -209,13 +221,13 @@ The eleven empty Langstroth boxes at Uncle Bob's apiary never disappear. They we
 - Visible proof of what happened that winter
 - A quiet metaphor at the center of the whole game
 
-Eli doesn't mourn the eleven forever. He starts with the one. The game doesn't end when things go wrong — it changes.
+Your character doesn't mourn the eleven forever. You start with the one. The game doesn't end when things go wrong — it changes.
 
 ---
 
 ### A Story That Earns Its Emotion
 
-Uncle Bob doesn't lecture. He hands Eli a hive tool and says: *"Let's see what the girls are up to."*
+Uncle Bob doesn't lecture. He hands you a hive tool and says: *"Let's see what the girls are up to."*
 
 Everything Bob teaches about bees is quietly about living:
 
@@ -224,7 +236,7 @@ Everything Bob teaches about bees is quietly about living:
 - *"Winter kills hives. That's not failure. That's winter."* — Loss is part of the deal.
 - *"Eleven hives died. One made it. We start from the one."* — You don't need everything to be okay. You need one thing alive and worth tending.
 
-Bob's health is always quietly in the background — not a timer, not a tragedy machine, just a reminder that people you love are mortal and time with them is not guaranteed. Over five years, Eli changes: from a kid numbing himself with screens to a teenager who says, when asked if he's scared about the future: *"Yeah. But I've got work to do in the morning."*
+Bob's health is always quietly in the background — not a timer, not a tragedy machine, just a reminder that people you love are mortal and time with them is not guaranteed. Over five years, your character changes: from someone numbing themselves with screens to a beekeeper who says, when asked if they're scared about the future: *"Yeah. But I've got work to do in the morning."*
 
 ---
 
@@ -263,19 +275,27 @@ The economy is player-paced. You sell honey at the Saturday Market, build relati
 
 ---
 
-## 🎨 About the Art — and Our Promise to You
+## 🎨 On AI Art — and Why This Campaign Exists
 
-Every piece of art you currently see in Smoke and Honey is a placeholder.
+Let's talk about the thing everyone is arguing about.
 
-The system, the story, the mechanics, the biology — all real, all built, all functional. But the sprites, the environment tiles, the UI, the character art: **temporary AI-generated assets** that exist only to prove the concept while we build.
+AI art is taking work from human artists. That's not a prediction anymore — it's happening. Studios are cutting art departments and replacing them with generative tools. Games are shipping with AI-generated assets labeled as final art. The artists who built this industry are watching their careers get automated away in real time.
 
-**We refuse to ship AI-generated art in the final game.**
+I used AI-generated art to build Smoke and Honey's placeholder layer. I'm not going to pretend otherwise, and I'm not going to dress it up. I used it because I'm one person with a terminal diagnosis and a game to finish, and it let me prove out the simulation and story without waiting months for placeholder assets. It was a tool. A temporary one.
 
-Smoke and Honey deserves hand-crafted pixel art: warm, muted, illustrated like a field guide, lit like a soft Iowa afternoon. Every hive box weathered with real decision. Every bee a small character with individual presence. Every frame of comb a tiny, beautiful ecosystem.
+**Every piece of art you see in current screenshots will be deleted.**
 
-The largest single line item in this Kickstarter budget is **hiring a full-time human pixel artist.** That is not a footnote. That is the point.
+The sprites, the environment tiles, the UI, the character art — gone. Replaced by a human pixel artist working with intention, skill, and a sustained vision for what this world should look like. Warm, muted, illustrated like a field guide, lit like a soft Iowa afternoon. Every hive box weathered with real decision. Every bee a small character with presence. Every frame of comb a tiny, beautiful ecosystem.
 
-Your support is not buying a finished game. Your support is hiring the person who will give it soul.
+This game is about learning to see what's actually there — developing the skill and patience to read a hive frame the way an experienced beekeeper does. A game about that subject, shipped with AI-generated art, would be a contradiction so deep it would hollow out everything it's trying to say.
+
+**The largest single line item in this budget — 47% of every dollar you pledge — goes directly to hiring a human pixel artist.**
+
+Not a footnote. Not a stretch goal. The central purpose of this campaign.
+
+Your pledge is a vote: the artist over the algorithm. Craft over convenience. Human work over automation.
+
+In an industry going the other direction, that vote matters.
 
 ---
 
@@ -332,7 +352,7 @@ We believe in transparency. Here's what's real:
 
 **Solo development:** Smoke and Honey is built by one person. That means no team redundancy — if I get sick, development slows. I am managing this risk by keeping the scope tight, documenting everything thoroughly, and building in time buffers in every milestone.
 
-**Placeholder art:** Everything you see is temporary. Hiring a pixel artist is the central purpose of this campaign — which means the final visual product will look substantially different from current screenshots. We consider this a feature: you are funding the art, not just the systems.
+**AI placeholder art:** Every visual in current screenshots is AI-generated and temporary. The final game will look substantially different — that is the entire point of this campaign. You are not backing what you see. You are backing what a human artist will build. We want that to be fully clear before you pledge.
 
 **Health realities:** I have been honest with you about my situation. I am building Smoke and Honey with urgency and intention. The game's design is fully documented. The codebase is clean, commented, and transferable. In the unlikely event that I am unable to complete the project, I have arrangements in place to ensure backers are either refunded or the project is completed by trusted collaborators with my full documentation.
 
@@ -487,7 +507,7 @@ A physical companion book — *The Millhaven County Beekeeper's Field Guide* —
 ---
 
 ### 🏆 $95,000 — **Endgame: The Master Beekeeper Certification**
-A full Year 6+ endgame system: queen breeding program, honey competition circuit, mentorship of new beekeepers in Millhaven County, and the Iowa Master Beekeeper certification quest chain. Eli's story continues past where the base game ends.
+A full Year 6+ endgame system: queen breeding program, honey competition circuit, mentorship of new beekeepers in Millhaven County, and the Iowa Master Beekeeper certification quest chain. Your story continues past where the base game ends.
 
 ---
 
