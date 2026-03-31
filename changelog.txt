@@ -1,3 +1,14 @@
+[2026-03-30 CDT] ART: New honey bucket and extractor spinner sprites from Leonardo AI
+  Generated pixel art sprites via Leonardo AI (Lucid Origin, 1024x1024, Dynamic/Fast)
+  using Smoke and Honey collection for style consistency.
+  Nathan selected B1 (white plastic honey bucket) and S3 (copper/wood extractor drum).
+  Backgrounds removed via flood-fill algorithm, sprites resized to 32x32 grid.
+  Files replaced:
+  - assets/sprites/items/honey_bucket.png (32x32) -- new bucket with visible honey
+  - assets/sprites/interiors/extractor.png (32x32) -- new extractor drum icon
+  - assets/sprites/objects/honey_spinner.png (128x96) -- larger extractor for world view
+  Protected files verified: GDD 603,634 bytes, DevPlan 139,437 bytes.
+
 [2026-03-30 CDT] REDESIGN: Scraping minigame -- rectangular brush replaces full-height column strip
   Based on reference video, the de-capping brush is now a rectangular scraper
   (11 columns x 7 rows) that follows the cursor, instead of a full-height
