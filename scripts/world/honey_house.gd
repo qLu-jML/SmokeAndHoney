@@ -452,7 +452,7 @@ func _get_station_prompt(station: Station) -> String:
 					return "[E] Fill jar (%.1f lbs)" % _bucket_honey_lbs
 				return "Bucket empty"
 			elif _bucket_honey_lbs > 0.0:
-				return "Pick up bucket first"
+				return "[E] Pick up bucket (%.1f lbs)" % _bucket_honey_lbs
 			return "No honey in bucket"
 		Station.BUCKET:
 			if _bucket_honey_lbs > 0.0 and not _player_carrying_bucket:
@@ -701,10 +701,16 @@ func _action_pickup_bucket() -> void:
 	_show_status("Carrying honey bucket (%.1f lbs). Take it to the canning table!" % _bucket_honey_lbs)
 
 ## CANNING: Fill jars from the honey bucket (must be carrying it).
+## If the player has honey but isn't carrying the bucket yet, auto-pick it up
+## so they don't have to navigate back to the BUCKET tile separately.
 func _action_canning() -> void:
 	if not _player_carrying_bucket:
 		if _bucket_honey_lbs > 0.0:
-			_show_status("Pick up the honey bucket near the spinner first!")
+			# Auto-pickup: grab the bucket on first E press at canning table
+			_player_carrying_bucket = true
+			if _bucket_sprite:
+				_bucket_sprite.visible = false
+			_show_status("Picked up honey bucket (%.1f lbs). Press [E] to fill jars!" % _bucket_honey_lbs)
 		else:
 			_show_status("No honey in bucket! Extract honey first.")
 		return

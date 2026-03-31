@@ -292,6 +292,12 @@ func _build_no_spawn_mask() -> void:
 			for fx in range(maxi(x0, 0), mini(x1 + 1, _grid_cols)):
 				_no_spawn_tiles[Vector2i(fx, fy)] = true
 
+	# --- HarvestYard equipment footprint (node at ~480,350; stations span ~420x300) ---
+	_mark_world_rect_no_spawn(Rect2(420, 240, 460, 330))
+
+	# --- Hive area (small buffer around hive at ~300,350) ---
+	_mark_world_rect_no_spawn(Rect2(248, 298, 110, 110))
+
 	# Recount spawnable tiles
 	_total_tiles = (_grid_cols * _grid_rows) - _no_spawn_tiles.size()
 	print("[FlowerLifecycle] No-spawn mask: %d blocked tiles, %d spawnable" % [_no_spawn_tiles.size(), _total_tiles])
@@ -308,6 +314,18 @@ func _mark_tilemap_cell_no_spawn(tm_tile: Vector2i, tm_pos: Vector2, tm_tile_siz
 
 	for fy in range(maxi(fy0, 0), mini(fy1 + 1, _grid_rows)):
 		for fx in range(maxi(fx0, 0), mini(fx1 + 1, _grid_cols)):
+			_no_spawn_tiles[Vector2i(fx, fy)] = true
+
+## Mark all flower-grid cells overlapping a world-space Rect2 as no-spawn.
+## Used to block equipment zones (HarvestYard, hive stand, etc.) that are
+## spawned at runtime rather than placed as TileMap tiles.
+func _mark_world_rect_no_spawn(world_rect: Rect2) -> void:
+	var fx0: int = maxi(int((world_rect.position.x - GRASS_ORIGIN.x) / TILE_SIZE) - 1, 0)
+	var fy0: int = maxi(int((world_rect.position.y - GRASS_ORIGIN.y) / TILE_SIZE) - 1, 0)
+	var fx1: int = mini(int((world_rect.end.x   - GRASS_ORIGIN.x) / TILE_SIZE) + 1, _grid_cols - 1)
+	var fy1: int = mini(int((world_rect.end.y   - GRASS_ORIGIN.y) / TILE_SIZE) + 1, _grid_rows - 1)
+	for fy in range(fy0, fy1 + 1):
+		for fx in range(fx0, fx1 + 1):
 			_no_spawn_tiles[Vector2i(fx, fy)] = true
 
 func _can_spawn_at(tile: Vector2i) -> bool:
