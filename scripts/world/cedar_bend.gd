@@ -5,6 +5,7 @@
 extends Node2D
 
 # -- Scene State ----------------------------------------------------------------
+@warning_ignore("unused_private_class_variable")
 var _current_scene_path: String = ""
 
 # Building door triggers (populated in _ready from child nodes)

@@ -37,7 +37,8 @@ var _progress_label: Label = null
 var _instruction_label: Label = null
 var _status_label: Label = null
 
-# Extractor visual
+# Extractor visual (reserved for future custom display)
+@warning_ignore("unused_private_class_variable")
 var _extractor_circle: ColorRect = null
 
 # -- Layout (320x180 viewport) -------------------------------------------

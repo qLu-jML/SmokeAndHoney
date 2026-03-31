@@ -248,6 +248,7 @@ func _build_ui() -> void:
 
 	# Wire support guides (decorative horizontal lines, same as InspectionOverlay)
 	for wi in range(3):
+		@warning_ignore("integer_division")
 		var wy: int = cell_y + int((wi + 1) * EFF_CELL_H / 4)
 		_crect(C_WIRE, cell_x, wy, CELL_AREA_W, 1)
 

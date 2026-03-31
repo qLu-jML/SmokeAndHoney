@@ -19,6 +19,7 @@ var _jars_available: int = 0          # Empty jars from inventory
 var _jars_filled: int = 0             # Jars completed this session
 var _current_fill: float = 0.0        # Current jar fill level (0 to 1)
 var _gate_open: bool = false          # Is the honey gate open
+@warning_ignore("unused_private_class_variable")
 var _jar_complete: bool = false       # Current jar just finished
 var _session_done: bool = false       # All jars done or honey empty
 var _placing_jar: bool = false        # Brief pause while placing jar on table
@@ -217,13 +218,13 @@ func _place_jar() -> void:
 
 	# Check if we're done
 	if _jars_available <= 0 or _honey_available < 0.5 or _jars_filled >= MAX_JARS_PER_SESSION:
-		var timer: SceneTreeTimer = get_tree().create_timer(0.8)
-		timer.timeout.connect(func(): _finish_session(false))
+		var done_timer: SceneTreeTimer = get_tree().create_timer(0.8)
+		done_timer.timeout.connect(func(): _finish_session(false))
 		return
 
 	# Reset jar for next fill after brief pause
-	var timer: SceneTreeTimer = get_tree().create_timer(0.5)
-	timer.timeout.connect(_reset_jar)
+	var reset_timer: SceneTreeTimer = get_tree().create_timer(0.5)
+	reset_timer.timeout.connect(_reset_jar)
 
 func _reset_jar() -> void:
 	_placing_jar = false
@@ -236,13 +237,13 @@ func _finish_session(cancelled: bool) -> void:
 	_gate_open = false
 	if cancelled:
 		_status_label.text = "Bottling stopped. %d jars filled." % _jars_filled
-		var timer: SceneTreeTimer = get_tree().create_timer(0.8)
-		timer.timeout.connect(func(): bottling_cancelled.emit(_jars_filled, _jars_available))
+		var cancel_timer: SceneTreeTimer = get_tree().create_timer(0.8)
+		cancel_timer.timeout.connect(func(): bottling_cancelled.emit(_jars_filled, _jars_available))
 	else:
 		_status_label.text = "Bottling complete! %d jars filled." % _jars_filled
 		_instruction_label.text = ""
-		var timer: SceneTreeTimer = get_tree().create_timer(1.0)
-		timer.timeout.connect(func(): bottling_complete.emit(_jars_filled))
+		var finish_timer: SceneTreeTimer = get_tree().create_timer(1.0)
+		finish_timer.timeout.connect(func(): bottling_complete.emit(_jars_filled))
 
 # =========================================================================
 # VISUAL UPDATES
@@ -276,10 +277,12 @@ func _draw_filled_jar_on_table() -> void:
 	# Add a small jar icon on the table panel
 	var jar_w := 6
 	var jar_h := 10
-	var stack: int = (_jars_filled - 1) / 10
-	var in_stack: int = (_jars_filled - 1) % 10
+	var jar_gap := 2
+	@warning_ignore("integer_division")
+	var stack: int = (_jars_filled - 1) / 5
+	var in_stack: int = (_jars_filled - 1) % 5
 	var jx: float = float(TABLE_X + 6 + stack * (jar_w + 4))
-	var jy: float = float(TABLE_Y + TABLE_H - 14 - in_stack * 3)
+	var jy: float = float(TABLE_Y + TABLE_H - 14 - in_stack * (jar_h + jar_gap))
 
 	var jar_icon := ColorRect.new()
 	jar_icon.color = Color(0.92, 0.75, 0.20, 0.9)

@@ -1,3 +1,26 @@
+[2026-03-31 CDT] FIX: Jar overlap, flower z-order, sell crash, debugger warnings (round 2)
+  1. BOTTLING TABLE JARS: Fixed jar overlap in _draw_jar_stacks() -- jars were 8px tall with only
+     2px vertical spacing (6px overlap). Changed to full jar_h + 2px gap, 5 per stack instead of 10.
+     Same fix in bottling_minigame.gd _draw_filled_jar_on_table() -- 10px jars had 3px spacing.
+  2. FLOWER Z-ORDER: Set harvest yard z_index=2 in home_property.gd so bottling table (and other
+     stations) render above flower sprites (z_index=1 from dandelion_spawner).
+  3. SELL CRASH FIX: exit_helper.gd was calling change_scene_to_file() directly inside a
+     body_entered physics callback, causing "Removing CollisionObject during physics callback"
+     errors and crashes. Changed to call_deferred("change_scene_to_file", ...) to defer scene
+     transition to next frame.
+  4. DEBUGGER WARNINGS ROUND 2:
+     - extractor_minigame.gd: suppress _extractor_circle unused class var
+     - bottling_minigame.gd: suppress _jar_complete unused class var; rename duplicate 'timer'
+       variables to done_timer/reset_timer/cancel_timer/finish_timer
+     - county_road.gd: suppress sprite_key unused variable
+     - harvestable_tree.gd: suppress tree_interact unused signal
+     - cedar_bend.gd: suppress _current_scene_path unused class var
+     - ScrapeFrame.gd: suppress cells_b shadowed_variable in fill_from_hive_data()
+     - hive_management.gd: replaced set_anchors_preset(15) with Control.PRESET_FULL_RECT
+     - scraping_minigame.gd: suppress integer_division in wire guide calculation
+     - hud.gd: suppress integer_division in hotbar centering
+     - NotificationManager.gd: suppress unused 'slot' variable in _animate_in_then_out()
+
 [2026-03-31 CDT] FIX: Debugger warning cleanup (harvest_yard, hud, BeeOverlay, weather_particles)
   1. harvest_yard.gd -- _action_extractor: added @warning_ignore("unused_parameter") for 'player'
      param (player interaction not yet implemented in extractor minigame).

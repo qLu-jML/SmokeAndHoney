@@ -101,6 +101,7 @@ func _update_field_sprite(season: String) -> void:
 	var year := TimeManager.current_year()
 	# Simple crop rotation: odd years = corn, even = soy
 	var crop: String = "corn" if year % 2 == 1 else "soy"
+	@warning_ignore("unused_variable")
 	var sprite_key := "field_%s_%s" % [crop, season.to_lower()]
 	# Fallback: use modulate to suggest season change
 	match season:

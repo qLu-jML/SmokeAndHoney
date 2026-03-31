@@ -65,6 +65,7 @@ func _pick_state(cap_norm: float) -> int:
 
 # Fill from actual hive frame cell data (preserves exact inspection appearance).
 # cells_a / cells_b must be PackedByteArray of length >= SUPER_SIZE.
+@warning_ignore("shadowed_variable")
 func fill_from_hive_data(cells_a: PackedByteArray, cells_b: PackedByteArray) -> void:
 	var new_a: PackedByteArray = PackedByteArray()
 	var new_b: PackedByteArray = PackedByteArray()

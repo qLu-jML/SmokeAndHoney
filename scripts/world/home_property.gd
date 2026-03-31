@@ -255,6 +255,7 @@ func _spawn_harvest_yard() -> void:
 	# Farmhouse at (80,-80), HoneyHouse at (450,-40), Hive at (300,350)
 	# Place processing area right of hive, accessible from hive walk
 	yard.global_position = Vector2(480, 350)
+	yard.z_index = 2  # Above flowers (z=1) so bottling table is not hidden
 	print("[HomeProperty] Harvest yard spawned at %s" % str(yard.global_position))
 
 ## Spawn farmstead trees that provide early-spring forage before the dandelion bloom.

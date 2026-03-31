@@ -53,7 +53,7 @@ func _build_ui() -> void:
 	# Full-screen dark overlay
 	var overlay: ColorRect = ColorRect.new()
 	overlay.name = "Overlay"
-	overlay.set_anchors_preset(15)
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	overlay.color = Color(0.0, 0.0, 0.0, 0.50)
 	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(overlay)

@@ -1503,6 +1503,7 @@ func _build_hotbar() -> void:
 	_hotbar_bar.add_child(sep)
 
 	var total_w = 10 * SLOT_W + 9 * SLOT_GAP
+	@warning_ignore("integer_division")
 	var start_x = (VP_W - total_w) / 2
 	var slot_y = 2
 

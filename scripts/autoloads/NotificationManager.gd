@@ -181,6 +181,7 @@ func _build_panel(message: String, type: String, slot: int) -> Control:
 
 func _animate_in_then_out(entry: Dictionary, hold_time: float) -> void:
 	var panel: Control = entry["panel"]
+	@warning_ignore("unused_variable")
 	var slot: int      = entry["slot"]
 	var target_x       := float(NOTIF_X)
 

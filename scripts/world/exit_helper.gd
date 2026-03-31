@@ -77,7 +77,10 @@ static func create_exit(parent: Node, edge: String, target_scene: String,
 			if body.is_in_group("player"):
 				TimeManager.set_meta("spawn_side", spawn_side)
 				TimeManager.next_scene = target_scene
-				body.get_tree().change_scene_to_file("res://scenes/loading/loading_screen.tscn")
+				# Defer scene change to avoid removing nodes during physics callback
+				body.get_tree().call_deferred(
+					"change_scene_to_file",
+					"res://scenes/loading/loading_screen.tscn")
 	)
 
 	return exit

@@ -143,13 +143,15 @@ func _draw_jar_stacks() -> void:
 	var bs: Vector2 = STATION_SIZE[Station.BOTTLING]
 	var jar_w := 6
 	var jar_h := 8
+	var jar_gap := 2
 	var start_x: int = int(bp.x) + 4
-	var start_y: int = int(bp.y) + int(bs.y) - 12
+	var start_y: int = int(bp.y) + int(bs.y) - jar_h - 4
+	@warning_ignore("integer_division")
 	for i in range(_jars_on_table):
-		var stack: int = i / 10
-		var in_stack: int = i % 10
-		var jx: float = float(start_x + stack * (jar_w + 2))
-		var jy: float = float(start_y - in_stack * 2)
+		var stack: int = i / 5
+		var in_stack: int = i % 5
+		var jx: float = float(start_x + stack * (jar_w + 3))
+		var jy: float = float(start_y - in_stack * (jar_h + jar_gap))
 		draw_rect(Rect2(jx, jy, jar_w, jar_h), Color(0.95, 0.78, 0.25, 0.9), true)
 		draw_rect(Rect2(jx, jy, jar_w, jar_h), Color(0.6, 0.5, 0.2), false, 0.5)
 
