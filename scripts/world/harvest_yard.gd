@@ -68,6 +68,11 @@ var _station_sprites: Dictionary = {}       # Station -> ColorRect placeholder
 var _station_labels: Dictionary = {}        # Station -> Label
 var _bucket_node: Node2D = null
 
+# -- Pallet sprite nodes --------------------------------------------------
+var _super_pallet_sprite: Sprite2D = null
+var _scraped_pallet_sprite: Sprite2D = null
+const PALLET_TEXTURE_PATH := "res://assets/sprites/objects/pallet_super.png"
+
 # =========================================================================
 # LIFECYCLE
 # =========================================================================
@@ -75,16 +80,15 @@ func _ready() -> void:
 	add_to_group("harvest_yard")
 	_create_station_visuals()
 	_create_bucket_visual()
+	_create_pallet_sprites()
 	print("[HarvestYard] Outdoor harvest yard ready.")
 
 # =========================================================================
 # DRAWING -- Placeholder colored rectangles for each station
 # =========================================================================
 func _draw() -> void:
-	# Super Pallet - wooden brown
-	_draw_station_box(Station.SUPER_PALLET, Color(0.55, 0.40, 0.22, 1.0))
-	# Scraped Frame Pallet - darker wood
-	_draw_station_box(Station.SCRAPED_PALLET, Color(0.50, 0.36, 0.18, 1.0))
+	# Super Pallet and Scraped Pallet use Sprite2D nodes -- no ColorRect draw needed.
+	# Extractor, bottling table, and bucket are still drawn here.
 	# Honey Extractor - metal grey circle
 	var ext_pos: Vector2 = STATION_POS[Station.EXTRACTOR]
 	var ext_size: Vector2 = STATION_SIZE[Station.EXTRACTOR]
@@ -157,6 +161,40 @@ func _draw_text_at(pos: Vector2, text: String, color: Color) -> void:
 	var font: Font = ThemeDB.fallback_font
 	if font:
 		draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_CENTER, -1, 5, color)
+
+# =========================================================================
+# PALLET SPRITES -- Load the wooden pallet art for the two pallet stations
+# =========================================================================
+func _create_pallet_sprites() -> void:
+	var tex: Texture2D = null
+	var abs_path: String = ProjectSettings.globalize_path(PALLET_TEXTURE_PATH)
+	var img: Image = Image.load_from_file(abs_path)
+	if img != null:
+		tex = ImageTexture.create_from_image(img)
+	else:
+		print("[HarvestYard] WARNING: pallet texture not found at ", PALLET_TEXTURE_PATH)
+
+	var sp_size: Vector2 = STATION_SIZE[Station.SUPER_PALLET]   # 96x64
+	var sc_size: Vector2 = STATION_SIZE[Station.SCRAPED_PALLET] # 96x64
+
+	# Super Pallet sprite
+	_super_pallet_sprite = Sprite2D.new()
+	_super_pallet_sprite.name = "SuperPalletSprite"
+	if tex != null:
+		_super_pallet_sprite.texture = tex
+	# Sprite origin is center; offset to align top-left corner with station pos
+	_super_pallet_sprite.position = STATION_POS[Station.SUPER_PALLET] + sp_size * 0.5
+	_super_pallet_sprite.z_index = 1
+	add_child(_super_pallet_sprite)
+
+	# Scraped Frame Pallet sprite (reuses same texture)
+	_scraped_pallet_sprite = Sprite2D.new()
+	_scraped_pallet_sprite.name = "ScrapedPalletSprite"
+	if tex != null:
+		_scraped_pallet_sprite.texture = tex
+	_scraped_pallet_sprite.position = STATION_POS[Station.SCRAPED_PALLET] + sc_size * 0.5
+	_scraped_pallet_sprite.z_index = 1
+	add_child(_scraped_pallet_sprite)
 
 # =========================================================================
 # STATION VISUALS -- Create labels and collision areas
