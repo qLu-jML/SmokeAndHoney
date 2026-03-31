@@ -3,164 +3,149 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smoke &amp; Honey - Almost There (Logo V3)</title>
+<title>Smoke &amp; Honey Logo -- Almost There (Bellows Fix)</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
-    --bg:         #130e04;
-    --bg-card:    #1e1508;
-    --bg-card2:   #281c0a;
-    --border:     #4a2e0a;
-    --amber:      #C8820C;
-    --amber-lt:   #F0B840;
-    --honey:      #E6A220;
-    --cream:      #F2E4B2;
-    --dim:        #9a7840;
-    --faint:      #5a3e18;
+    --bg: #1a0d00;
+    --card-bg: #2a1500;
+    --border: #5a3010;
+    --accent: #d4820a;
+    --text: #f0c060;
+    --muted: #9a6020;
+    --tag-bg: #3a1e00;
   }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     background: var(--bg);
-    color: var(--cream);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    padding: 28px 20px;
-    max-width: 1200px;
-    margin: 0 auto;
+    color: var(--text);
+    font-family: 'Georgia', serif;
+    padding: 32px 24px;
+    min-height: 100vh;
   }
-  h1 {
+  header {
     text-align: center;
-    font-size: 2.4em;
-    color: var(--amber-lt);
-    margin-bottom: 4px;
-    text-shadow: 0 2px 12px rgba(200,130,12,0.5);
-    letter-spacing: 0.04em;
-  }
-  .subtitle {
-    text-align: center;
-    color: var(--dim);
-    font-size: 0.9em;
-    margin-bottom: 10px;
-  }
-  .fixes-bar {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin-bottom: 32px;
-  }
-  .fix-chip {
-    background: var(--bg-card2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 5px 14px;
-    font-size: 0.8em;
-    color: var(--amber-lt);
-  }
-
-  /* Variation sections */
-  .variation {
     margin-bottom: 48px;
-    background: var(--bg-card);
-    border: 2px solid var(--border);
-    border-radius: 14px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 24px;
+  }
+  header h1 {
+    font-size: 2.4rem;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    text-shadow: 0 2px 12px #d4820a44;
+  }
+  header p {
+    margin-top: 10px;
+    font-size: 0.95rem;
+    color: var(--muted);
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+  }
+  .meta-tags {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+  .meta-tags span {
+    background: var(--tag-bg);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+  }
+  .variation {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 40px;
     overflow: hidden;
   }
-  .variation:hover { border-color: var(--amber); }
-
   .var-header {
-    background: var(--bg-card2);
-    padding: 14px 20px;
+    padding: 18px 22px 14px;
     border-bottom: 1px solid var(--border);
     display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: 14px;
+    flex-wrap: wrap;
   }
   .var-num {
-    background: var(--amber);
-    color: #1a0a00;
-    font-weight: 900;
-    font-size: 1.2em;
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: var(--tag-bg);
+    border: 1px solid var(--border);
+    padding: 2px 10px;
+    border-radius: 4px;
     flex-shrink: 0;
   }
-  .var-title { font-size: 1.15em; font-weight: 700; color: var(--honey); }
-  .var-tagline { font-size: 0.8em; color: var(--dim); margin-top: 2px; }
-
-  /* Image grid: 4 images per row */
+  .var-title {
+    font-size: 1.25rem;
+    color: var(--accent);
+    flex: 1;
+  }
   .img-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 0;
   }
   .img-cell {
-    position: relative;
-    aspect-ratio: 1;
+    aspect-ratio: 1 / 1;
     overflow: hidden;
     cursor: pointer;
+    position: relative;
   }
   .img-cell img {
-    width: 100%; height: 100%;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform 0.2s;
+    transition: transform 0.25s ease;
   }
-  .img-cell:hover img { transform: scale(1.03); }
-  .img-label {
+  .img-cell:hover img { transform: scale(1.04); }
+  .img-cell::after {
+    content: '';
     position: absolute;
-    bottom: 0; left: 0; right: 0;
-    background: rgba(13,8,0,0.7);
-    color: var(--amber-lt);
-    font-size: 0.75em;
-    font-weight: 700;
-    padding: 4px 8px;
-    text-align: center;
-    letter-spacing: 0.06em;
-  }
-  .img-cell:hover .img-label { background: rgba(200,130,12,0.85); color: #1a0a00; }
-
-  /* Prompt collapsible */
-  .prompt-section {
-    border-top: 1px solid var(--border);
+    inset: 0;
+    border: 1px solid var(--border);
+    pointer-events: none;
   }
   .prompt-toggle {
     width: 100%;
     background: none;
     border: none;
-    color: var(--dim);
-    font-size: 0.78em;
-    padding: 9px 20px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.8rem;
+    padding: 10px 22px;
     text-align: left;
     cursor: pointer;
+    letter-spacing: 0.06em;
     display: flex;
     align-items: center;
     gap: 8px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
   }
-  .prompt-toggle:hover { color: var(--honey); }
+  .prompt-toggle:hover { color: var(--accent); background: #2e1800; }
   .prompt-toggle .arrow { transition: transform 0.2s; }
   .prompt-toggle.open .arrow { transform: rotate(90deg); }
   .prompt-body {
     display: none;
-    padding: 0 20px 14px;
+    padding: 14px 22px 16px;
+    font-size: 0.8rem;
+    color: #c09040;
+    line-height: 1.65;
+    border-top: 1px solid #3a1e00;
+    background: #1e0e00;
+    font-family: 'Courier New', monospace;
   }
   .prompt-body.open { display: block; }
-  .prompt-text {
-    font-family: 'Courier New', monospace;
-    font-size: 0.76em;
-    color: #c8a860;
-    background: #0a0700;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 12px;
-    line-height: 1.6;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-
-  /* Lightbox */
-  .lightbox {
+  #lightbox {
     display: none;
     position: fixed;
     inset: 0;
@@ -168,354 +153,189 @@
     z-index: 1000;
     align-items: center;
     justify-content: center;
-    flex-direction: column;
+    cursor: zoom-out;
   }
-  .lightbox.open { display: flex; }
-  .lightbox img {
+  #lightbox.open { display: flex; }
+  #lightbox img {
     max-width: 90vw;
-    max-height: 85vh;
+    max-height: 90vh;
     object-fit: contain;
-    border-radius: 8px;
-    border: 2px solid var(--amber);
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    box-shadow: 0 0 60px #d4820a33;
   }
-  .lb-caption {
-    color: var(--dim);
-    font-size: 0.82em;
-    margin-top: 12px;
-    text-align: center;
-  }
-  .lb-close {
+  #lightbox-close {
     position: absolute;
-    top: 20px; right: 24px;
-    color: var(--cream);
-    font-size: 2em;
+    top: 18px; right: 24px;
+    font-size: 2rem;
+    color: var(--muted);
     cursor: pointer;
-    background: none; border: none;
     line-height: 1;
   }
-  .lb-close:hover { color: var(--amber-lt); }
-
-  footer {
-    text-align: center;
-    margin-top: 36px;
-    color: var(--faint);
-    font-size: 0.76em;
-    border-top: 1px solid var(--border);
-    padding-top: 16px;
-  }
-
+  #lightbox-close:hover { color: var(--accent); }
   @media (max-width: 700px) {
     .img-grid { grid-template-columns: repeat(2, 1fr); }
+    header h1 { font-size: 1.6rem; }
   }
 </style>
 </head>
 <body>
 
-<h1>Almost There</h1>
-<p class="subtitle">Smoke &amp; Honey Logo V3 &mdash; 8 Variations &times; 4 Images &mdash; March 2026</p>
-<div class="fixes-bar">
-  <span class="fix-chip">&#x2460; Proper bellows smoker on all variants</span>
-  <span class="fix-chip">&#x2461; O in &ldquo;Honey&rdquo; = hex comb cell</span>
-  <span class="fix-chip">&#x2462; Zero honey drips</span>
-</div>
+<header>
+  <h1>Smoke &amp; Honey &mdash; Bellows Fix</h1>
+  <p>8 variations targeting: 2D composition (smoker left anchor, text right) + 2C silver cylinder + corrected small teardrop accordion bellows (no more giant brown brick block) + hex-O in Honey + no drips. Generated 2026-03-30.</p>
+  <div class="meta-tags">
+    <span>Lucid Origin</span>
+    <span>1200x1200</span>
+    <span>4 images each</span>
+    <span>32 total</span>
+    <span>Smoker LEFT anchor</span>
+    <span>Small bellows fix</span>
+  </div>
+</header>
 
-<!-- V1 -->
 <div class="variation">
   <div class="var-header">
-    <div class="var-num">1</div>
-    <div>
-      <div class="var-title">Faithful Fix</div>
-      <div class="var-tagline">Closest to Option D &mdash; three fixes only, nothing else changed</div>
-    </div>
+    <span class="var-num">VAR 01</span>
+    <span class="var-title">Classic Silver &mdash; Warm Amber Glow</span>
   </div>
   <div class="img-grid">
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/977f2292-29c9-408a-89e3-3576534f78bc/segments/4:4:1/Lucid_Origin_pixel_art_game_logo_ornate_decorative_amber_scrip_3.jpg?w=512" loading="lazy">
-      <div class="img-label">1A</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/977f2292-29c9-408a-89e3-3576534f78bc/segments/3:4:1/Lucid_Origin_pixel_art_game_logo_ornate_decorative_amber_scrip_2.jpg?w=512" loading="lazy">
-      <div class="img-label">1B</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/977f2292-29c9-408a-89e3-3576534f78bc/segments/2:4:1/Lucid_Origin_pixel_art_game_logo_ornate_decorative_amber_scrip_1.jpg?w=512" loading="lazy">
-      <div class="img-label">1C</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/977f2292-29c9-408a-89e3-3576534f78bc/segments/1:4:1/Lucid_Origin_pixel_art_game_logo_ornate_decorative_amber_scrip_0.jpg?w=512" loading="lazy">
-      <div class="img-label">1D</div>
-    </div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/f4bf9f08-cee6-4da6-a65d-1e55412c58c0/segments/4:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_anchored_on_the_LE_3.jpg" alt="V1-A" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/f4bf9f08-cee6-4da6-a65d-1e55412c58c0/segments/3:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_anchored_on_the_LE_2.jpg" alt="V1-B" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/f4bf9f08-cee6-4da6-a65d-1e55412c58c0/segments/2:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_anchored_on_the_LE_1.jpg" alt="V1-C" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/f4bf9f08-cee6-4da6-a65d-1e55412c58c0/segments/1:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_anchored_on_the_LE_0.jpg" alt="V1-D" loading="lazy"></div>
   </div>
-  <div class="prompt-section">
-    <button class="prompt-toggle" onclick="togglePrompt(this)"><span class="arrow">&#9654;</span> Show prompt</button>
-    <div class="prompt-body"><div class="prompt-text">pixel art game logo, ornate decorative amber script lettering, the text "Smoke" large on top in warm golden-amber pixel font with dark brown outlines and pixel highlight dots, small "&" ampersand below it, the text "Honey" below in matching ornate amber lettering with the letter O replaced by a flat-top hexagonal honeycomb cell shape in golden amber with darker wax-border edges, a proper bee smoker centered below the text, the bee smoker has a silver-gray tin cylinder body, brown leather accordion bellows pump attached to the left side, thin metal nozzle spout at the top angled forward emitting smoke wisps, a soft white-gray smoke wisp curling from the S in Smoke, dark warm mahogany brown background, no honey drips, no liquid drips on any letters, warm amber and honey gold color palette, cozy pixel art beekeeping game, Lucid Origin style</div></div>
-  </div>
+  <button class="prompt-toggle" onclick="togglePrompt(this)"><span class="arrow">&#9658;</span> VIEW PROMPT</button>
+  <div class="prompt-body">pixel art game logo, bee smoker anchored on the LEFT side of the image, ornate amber-orange script lettering stacked vertically on the RIGHT side reading "Smoke" on top then small "&" then "Honey" below, the O in Honey replaced with a hexagonal honeycomb cell shape in gold with darker wax edges, the bee smoker has a polished stainless steel silver tin cylinder fire chamber as the main body, a conical lid narrowing to a thin nozzle spout at the top angled slightly upward, a small teardrop-shaped leather accordion bellows attached at the lower side of the cylinder measuring roughly one-third the cylinder height with visible accordion fold creases and a small wooden handle grip at the bellows tip, smoke wisps curling up from the nozzle, warm amber golden hour glow radiating behind composition, deep honey-brown radial gradient background, overall palette warm amber golden orange and deep brown, no honey drips no liquid drips on any letters, cozy pastoral pixel art beekeeping logo, Lucid Origin style</div>
 </div>
 
-<!-- V2 -->
 <div class="variation">
   <div class="var-header">
-    <div class="var-num">2</div>
-    <div>
-      <div class="var-title">Smoker Left Anchor</div>
-      <div class="var-tagline">Smoker on the left, smoke drifts right into the word &ldquo;Smoke&rdquo;</div>
-    </div>
+    <span class="var-num">VAR 02</span>
+    <span class="var-title">Dramatic Backlit &mdash; Deep Vignette</span>
   </div>
   <div class="img-grid">
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/ddfc3ec7-5728-4490-938e-9f059970df4f/segments/4:4:1/Lucid_Origin_pixel_art_game_logo_a_detailed_bee_smoker_on_the__3.jpg?w=512" loading="lazy">
-      <div class="img-label">2A</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/ddfc3ec7-5728-4490-938e-9f059970df4f/segments/3:4:1/Lucid_Origin_pixel_art_game_logo_a_detailed_bee_smoker_on_the__2.jpg?w=512" loading="lazy">
-      <div class="img-label">2B</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/ddfc3ec7-5728-4490-938e-9f059970df4f/segments/2:4:1/Lucid_Origin_pixel_art_game_logo_a_detailed_bee_smoker_on_the__1.jpg?w=512" loading="lazy">
-      <div class="img-label">2C</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/ddfc3ec7-5728-4490-938e-9f059970df4f/segments/1:4:1/Lucid_Origin_pixel_art_game_logo_a_detailed_bee_smoker_on_the__0.jpg?w=512" loading="lazy">
-      <div class="img-label">2D</div>
-    </div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/2d05dc23-55ec-4947-aa15-0ca69b06204d/segments/4:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_on_the_LEFT_with_d_3.jpg" alt="V2-A" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/2d05dc23-55ec-4947-aa15-0ca69b06204d/segments/3:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_on_the_LEFT_with_d_2.jpg" alt="V2-B" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/2d05dc23-55ec-4947-aa15-0ca69b06204d/segments/2:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_on_the_LEFT_with_d_1.jpg" alt="V2-C" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/2d05dc23-55ec-4947-aa15-0ca69b06204d/segments/1:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_on_the_LEFT_with_d_0.jpg" alt="V2-D" loading="lazy"></div>
   </div>
-  <div class="prompt-section">
-    <button class="prompt-toggle" onclick="togglePrompt(this)"><span class="arrow">&#9654;</span> Show prompt</button>
-    <div class="prompt-body"><div class="prompt-text">pixel art game logo, a detailed bee smoker on the left side of the composition, the smoker has a silver-gray tin cylinder body with rivet details, brown leather accordion bellows on its left, thin metal nozzle spout at the top angled right, soft white-gray smoke drifting rightward from the nozzle and blending into the word "Smoke", stacked ornate amber pixel script text on the right: "Smoke" on top, small "&" in the middle, "Honey" below with the O as a flat-top hexagonal honeycomb cell in golden amber with darker hex border, no honey drips, dark warm mahogany background, warm amber and golden honey color palette, cozy pixel art beekeeping logo, Lucid Origin style</div></div>
-  </div>
+  <button class="prompt-toggle" onclick="togglePrompt(this)"><span class="arrow">&#9658;</span> VIEW PROMPT</button>
+  <div class="prompt-body">pixel art game logo, bee smoker on the LEFT with dramatic amber backlit glow, ornate script lettering stacked on the RIGHT "Smoke" above "&" above "Honey" in rich golden-orange, the O in Honey is a hexagonal honeycomb cell in deep amber gold, the smoker is a polished silver stainless steel cylinder with a narrow conical lid and thin nozzle spout, a small compact pear-shaped leather bellows is attached at the base of the cylinder on the right side with accordion fold wrinkles the bellows is no taller than a third of the cylinder and has a small knob handle, dramatic golden light emanating from the smoker nozzle illuminating the text, dark deep brown vignette background, wisps of smoke curling and weaving through the composition, warm amber and burnt orange palette, no honey drips no letter drips, pixel art beekeeping logo, Lucid Origin style</div>
 </div>
 
-<!-- V3 -->
 <div class="variation">
   <div class="var-header">
-    <div class="var-num">3</div>
-    <div>
-      <div class="var-title">Glowing Hex O</div>
-      <div class="var-tagline">The hex O in Honey is luminous amber &mdash; the visual centerpiece</div>
-    </div>
+    <span class="var-num">VAR 03</span>
+    <span class="var-title">Aged Patina &mdash; Wire Guard Cage</span>
   </div>
   <div class="img-grid">
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/f971e976-a9fd-461e-80b5-3e2d4c3eada4/segments/4:4:1/Lucid_Origin_pixel_art_game_logo_ornate_decorative_amber_scrip_3.jpg?w=512" loading="lazy">
-      <div class="img-label">3A</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/f971e976-a9fd-461e-80b5-3e2d4c3eada4/segments/3:4:1/Lucid_Origin_pixel_art_game_logo_ornate_decorative_amber_scrip_2.jpg?w=512" loading="lazy">
-      <div class="img-label">3B</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/f971e976-a9fd-461e-80b5-3e2d4c3eada4/segments/2:4:1/Lucid_Origin_pixel_art_game_logo_ornate_decorative_amber_scrip_1.jpg?w=512" loading="lazy">
-      <div class="img-label">3C</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/f971e976-a9fd-461e-80b5-3e2d4c3eada4/segments/1:4:1/Lucid_Origin_pixel_art_game_logo_ornate_decorative_amber_scrip_0.jpg?w=512" loading="lazy">
-      <div class="img-label">3D</div>
-    </div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/903cf9a7-f52f-4987-82bd-9e94925fe65d/segments/4:4:1/Lucid_Origin_pixel_art_game_logo_horizontal_composition_large__3.jpg" alt="V3-A" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/903cf9a7-f52f-4987-82bd-9e94925fe65d/segments/3:4:1/Lucid_Origin_pixel_art_game_logo_horizontal_composition_large__2.jpg" alt="V3-B" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/903cf9a7-f52f-4987-82bd-9e94925fe65d/segments/2:4:1/Lucid_Origin_pixel_art_game_logo_horizontal_composition_large__1.jpg" alt="V3-C" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/903cf9a7-f52f-4987-82bd-9e94925fe65d/segments/1:4:1/Lucid_Origin_pixel_art_game_logo_horizontal_composition_large__0.jpg" alt="V3-D" loading="lazy"></div>
   </div>
-  <div class="prompt-section">
-    <button class="prompt-toggle" onclick="togglePrompt(this)"><span class="arrow">&#9654;</span> Show prompt</button>
-    <div class="prompt-body"><div class="prompt-text">pixel art game logo, ornate decorative amber script, the text "Smoke" in large warm golden pixel font on top, small "&" below, the text "Honey" below with the O replaced by a luminous glowing hexagonal honeycomb cell, the hex cell glows with warm amber-honey inner light and darker wax-colored edges, the glow halos slightly behind the adjacent letters, bee smoker at the bottom, the smoker has a tin cylinder body, brown leather accordion bellows on the side, metal nozzle spout at top emitting a small smoke curl, dark warm brown-black background, no honey drips, no liquid on letters, amber and deep honey gold palette, cozy pixel art beekeeping game logo, Lucid Origin style</div></div>
-  </div>
+  <button class="prompt-toggle" onclick="togglePrompt(this)"><span class="arrow">&#9658;</span> VIEW PROMPT</button>
+  <div class="prompt-body">pixel art game logo horizontal composition, large bee smoker on LEFT side, text "Smoke" stacked above "&" above "Honey" on the RIGHT, the bee smoker body is a tarnished aged silver steel cylinder with warm patina highlights, a conical top lid narrowing to an upward-angled nozzle, small worn leather bellows attached at the lower cylinder side shaped like a rounded teardrop or pear with horizontal accordion creases approximately one-quarter the cylinder height, a protective wire cage guard around the fire chamber cylinder, thin wisps of smoke rising from the nozzle tip, the O in Honey is replaced with a single hexagonal wax cell in amber, rich warm amber background with soft vignette, deep honey brown and golden orange color palette, no drips on letters, cozy rustic pixel art beekeeping logo, Lucid Origin style</div>
 </div>
 
-<!-- V4 -->
 <div class="variation">
   <div class="var-header">
-    <div class="var-num">4</div>
-    <div>
-      <div class="var-title">Smoke Wraps the S</div>
-      <div class="var-tagline">Smoker smoke physically curls around the S letterform in &ldquo;Smoke&rdquo;</div>
-    </div>
+    <span class="var-num">VAR 04</span>
+    <span class="var-title">Polished Steel &mdash; Engraved Bands</span>
   </div>
   <div class="img-grid">
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/046cc4ac-f65c-4e9b-8fd1-7008e9e67074/segments/4:4:1/Lucid_Origin_pixel_art_game_logo_stacked_ornate_amber_script_S_3.jpg?w=512" loading="lazy">
-      <div class="img-label">4A</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/046cc4ac-f65c-4e9b-8fd1-7008e9e67074/segments/3:4:1/Lucid_Origin_pixel_art_game_logo_stacked_ornate_amber_script_S_2.jpg?w=512" loading="lazy">
-      <div class="img-label">4B</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/046cc4ac-f65c-4e9b-8fd1-7008e9e67074/segments/2:4:1/Lucid_Origin_pixel_art_game_logo_stacked_ornate_amber_script_S_1.jpg?w=512" loading="lazy">
-      <div class="img-label">4C</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/046cc4ac-f65c-4e9b-8fd1-7008e9e67074/segments/1:4:1/Lucid_Origin_pixel_art_game_logo_stacked_ornate_amber_script_S_0.jpg?w=512" loading="lazy">
-      <div class="img-label">4D</div>
-    </div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/87c6377f-8682-4dc7-a7ac-d06a7a673ffc/segments/4:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_anchored_on_the_LE_3.jpg" alt="V4-A" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/87c6377f-8682-4dc7-a7ac-d06a7a673ffc/segments/3:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_anchored_on_the_LE_2.jpg" alt="V4-B" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/87c6377f-8682-4dc7-a7ac-d06a7a673ffc/segments/2:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_anchored_on_the_LE_1.jpg" alt="V4-C" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/87c6377f-8682-4dc7-a7ac-d06a7a673ffc/segments/1:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_anchored_on_the_LE_0.jpg" alt="V4-D" loading="lazy"></div>
   </div>
-  <div class="prompt-section">
-    <button class="prompt-toggle" onclick="togglePrompt(this)"><span class="arrow">&#9654;</span> Show prompt</button>
-    <div class="prompt-body"><div class="prompt-text">pixel art game logo, stacked ornate amber script: "Smoke" on top with white-gray pixel smoke wisps curling around and through the S letterform as if being smoked, small "&" below, "Honey" below that with the O as a flat-top hexagonal comb cell in golden amber, a bee smoker at the bottom with tin cylinder body, brown leather accordion bellows, thin nozzle spout at top, the smoke from the nozzle visibly rises and integrates with the S in Smoke above, dark mahogany warm brown background, no honey drips, no liquid drops anywhere, amber honey gold and smoky gray palette, cozy beekeeping pixel logo, Lucid Origin style</div></div>
-  </div>
+  <button class="prompt-toggle" onclick="togglePrompt(this)"><span class="arrow">&#9658;</span> VIEW PROMPT</button>
+  <div class="prompt-body">pixel art game logo, bee smoker anchored on the LEFT taking up left third of image, ornate amber script lettering on the RIGHT stacked "Smoke" above small "&" above "Honey", the letter O in Honey is a hexagonal honeycomb cell shape in golden amber, smoker is a bright polished stainless steel cylinder with engraved band details on the body, a conical lid that tapers to a short nozzle spout, a small round leather bellows attached at the lower right side of the cylinder like a flattened pear shape with pinched accordion fold ridges running horizontally across it about one quarter the cylinder height, thin elegant smoke trails rising and curling from nozzle, sunset golden warm light from behind, deep amber brown background gradient, no honey drips on any letters, warm cozy pixel art beekeeping logo, Lucid Origin style</div>
 </div>
 
-<!-- V5 -->
 <div class="variation">
   <div class="var-header">
-    <div class="var-num">5</div>
-    <div>
-      <div class="var-title">Bee on the Ampersand</div>
-      <div class="var-tagline">Small pixel bee replaces the &amp; sign between Smoke and Honey</div>
-    </div>
+    <span class="var-num">VAR 05</span>
+    <span class="var-title">Smoke Framed &mdash; Teal-Gray Wisps</span>
   </div>
   <div class="img-grid">
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/fd52b4ca-c795-43e5-879d-af69516c959e/segments/4:4:1/Lucid_Origin_pixel_art_game_logo_ornate_amber_script_Smoke_lar_3.jpg?w=512" loading="lazy">
-      <div class="img-label">5A</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/fd52b4ca-c795-43e5-879d-af69516c959e/segments/3:4:1/Lucid_Origin_pixel_art_game_logo_ornate_amber_script_Smoke_lar_2.jpg?w=512" loading="lazy">
-      <div class="img-label">5B</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/fd52b4ca-c795-43e5-879d-af69516c959e/segments/2:4:1/Lucid_Origin_pixel_art_game_logo_ornate_amber_script_Smoke_lar_1.jpg?w=512" loading="lazy">
-      <div class="img-label">5C</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/fd52b4ca-c795-43e5-879d-af69516c959e/segments/1:4:1/Lucid_Origin_pixel_art_game_logo_ornate_amber_script_Smoke_lar_0.jpg?w=512" loading="lazy">
-      <div class="img-label">5D</div>
-    </div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/da24faf6-b46a-487d-a3f5-9733157e7077/segments/4:4:1/Lucid_Origin_pixel_art_game_logo_composition_split_LEFT_and_RI_3.jpg" alt="V5-A" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/da24faf6-b46a-487d-a3f5-9733157e7077/segments/3:4:1/Lucid_Origin_pixel_art_game_logo_composition_split_LEFT_and_RI_2.jpg" alt="V5-B" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/da24faf6-b46a-487d-a3f5-9733157e7077/segments/2:4:1/Lucid_Origin_pixel_art_game_logo_composition_split_LEFT_and_RI_1.jpg" alt="V5-C" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/da24faf6-b46a-487d-a3f5-9733157e7077/segments/1:4:1/Lucid_Origin_pixel_art_game_logo_composition_split_LEFT_and_RI_0.jpg" alt="V5-D" loading="lazy"></div>
   </div>
-  <div class="prompt-section">
-    <button class="prompt-toggle" onclick="togglePrompt(this)"><span class="arrow">&#9654;</span> Show prompt</button>
-    <div class="prompt-body"><div class="prompt-text">pixel art game logo, ornate amber script "Smoke" large on top, a small detailed pixel art honeybee serving as the "&" ampersand between the words, the bee has golden yellow and black stripe body with tiny transparent wings, the text "Honey" below in matching ornate amber lettering with the O replaced by a flat-top hexagonal honeycomb cell in warm amber gold, a bee smoker positioned at the bottom of the composition, the smoker has a tin cylinder body, brown leather accordion bellows pump attached on the side, thin metal nozzle at top with a smoke wisp rising, smoke wisp also rising gently above the S in Smoke, dark warm brown background, no honey drips, no liquid drips anywhere, warm amber and honey gold palette, pixel art beekeeping logo, Lucid Origin style</div></div>
-  </div>
+  <button class="prompt-toggle" onclick="togglePrompt(this)"><span class="arrow">&#9658;</span> VIEW PROMPT</button>
+  <div class="prompt-body">pixel art game logo, composition split LEFT and RIGHT, a bee smoker fills the LEFT half, ornate golden amber script text fills the RIGHT half stacked as "Smoke" then "&" then "Honey", O in Honey is a hexagonal wax cell in gold, the smoker cylinder is aged brushed silver steel with a warm amber sheen, conical top lid tapering to an upward-angled output nozzle, thick curling smoke wisps pour from the nozzle and drift across the top of the composition framing the text, small compact teardrop-shaped leather bellows attached at the side base of the cylinder with horizontal accordion creases and a small stub handle, the bellows is clearly smaller than the cylinder body, honey-golden warm light glowing from the smoke, muted teal-gray smoke tones contrasting with warm amber text, overall warm amber honey palette, no drips on letters or text, pixel art beekeeping game logo, Lucid Origin style</div>
 </div>
 
-<!-- V6 -->
 <div class="variation">
   <div class="var-header">
-    <div class="var-num">6</div>
-    <div>
-      <div class="var-title">Comb Border Frame</div>
-      <div class="var-tagline">Arc of honeycomb cells frames the top of the text cluster</div>
-    </div>
+    <span class="var-num">VAR 06</span>
+    <span class="var-title">Chrome Bright &mdash; Honeycomb Background</span>
   </div>
   <div class="img-grid">
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1300328e-26a9-4447-afa4-6f5f6be41cbf/segments/4:4:1/Lucid_Origin_pixel_art_game_logo_the_text_Smoke_and_Honey_in_s_3.jpg?w=512" loading="lazy">
-      <div class="img-label">6A</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1300328e-26a9-4447-afa4-6f5f6be41cbf/segments/3:4:1/Lucid_Origin_pixel_art_game_logo_the_text_Smoke_and_Honey_in_s_2.jpg?w=512" loading="lazy">
-      <div class="img-label">6B</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1300328e-26a9-4447-afa4-6f5f6be41cbf/segments/2:4:1/Lucid_Origin_pixel_art_game_logo_the_text_Smoke_and_Honey_in_s_1.jpg?w=512" loading="lazy">
-      <div class="img-label">6C</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/1300328e-26a9-4447-afa4-6f5f6be41cbf/segments/1:4:1/Lucid_Origin_pixel_art_game_logo_the_text_Smoke_and_Honey_in_s_0.jpg?w=512" loading="lazy">
-      <div class="img-label">6D</div>
-    </div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/282acb5c-6487-4058-92ff-f291638d5afd/segments/4:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_on_the_LEFT_side_d_3.jpg" alt="V6-A" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/282acb5c-6487-4058-92ff-f291638d5afd/segments/3:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_on_the_LEFT_side_d_2.jpg" alt="V6-B" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/282acb5c-6487-4058-92ff-f291638d5afd/segments/2:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_on_the_LEFT_side_d_1.jpg" alt="V6-C" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/282acb5c-6487-4058-92ff-f291638d5afd/segments/1:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_on_the_LEFT_side_d_0.jpg" alt="V6-D" loading="lazy"></div>
   </div>
-  <div class="prompt-section">
-    <button class="prompt-toggle" onclick="togglePrompt(this)"><span class="arrow">&#9654;</span> Show prompt</button>
-    <div class="prompt-body"><div class="prompt-text">pixel art game logo, the text "Smoke" and "Honey" in stacked ornate amber pixel script, a subtle arc of empty dark amber hexagonal honeycomb cells forming a partial border frame above the text, the letter O in Honey is itself a honeycomb hex cell in golden amber, small "&" between the words, a proper bee smoker at the bottom with tin cylinder body, brown leather accordion bellows on the side, nozzle at top emitting a soft smoke wisp that rises toward the S in Smoke, dark warm mahogany brown background, no honey drips, no liquid anywhere on letters, warm amber golden palette with dark wax brown accents, cozy pixel art beekeeping logo, Lucid Origin style</div></div>
-  </div>
+  <button class="prompt-toggle" onclick="togglePrompt(this)"><span class="arrow">&#9658;</span> VIEW PROMPT</button>
+  <div class="prompt-body">pixel art game logo, bee smoker on the LEFT side, decorative amber script text on the RIGHT reading "Smoke" over "&" over "Honey", O in Honey replaced with a single hexagon wax cell in warm gold, the smoker is a bright chrome silver cylinder with a slightly wider base, a conical lid narrowing to a bent elbow nozzle angled upward, a small compact pear-shaped bellows made of dark brown leather attached at the lower side of the cylinder with three visible accordion fold creases the bellows fits within the lower quarter height of the cylinder, thin elegant smoke trails rising and curling from nozzle, soft radial amber glow behind everything, honeycomb pattern subtle in background, deep amber to dark brown gradient background, no drips no honey dripping from letters, clean elegant pixel art beekeeping logo, Lucid Origin style</div>
 </div>
 
-<!-- V7 -->
 <div class="variation">
   <div class="var-header">
-    <div class="var-num">7</div>
-    <div>
-      <div class="var-title">Bold &amp; Dark</div>
-      <div class="var-tagline">Deeper shadows, higher contrast, chunkier letterforms</div>
-    </div>
+    <span class="var-num">VAR 07</span>
+    <span class="var-title">Ember Glow &mdash; Reddish Bellows</span>
   </div>
   <div class="img-grid">
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/ef9f8ebe-ad72-44b2-bfd7-ee74d08acf55/segments/4:4:1/Lucid_Origin_pixel_art_game_logo_bold_ornate_amber_script_lett_3.jpg?w=512" loading="lazy">
-      <div class="img-label">7A</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/ef9f8ebe-ad72-44b2-bfd7-ee74d08acf55/segments/3:4:1/Lucid_Origin_pixel_art_game_logo_bold_ornate_amber_script_lett_2.jpg?w=512" loading="lazy">
-      <div class="img-label">7B</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/ef9f8ebe-ad72-44b2-bfd7-ee74d08acf55/segments/2:4:1/Lucid_Origin_pixel_art_game_logo_bold_ornate_amber_script_lett_1.jpg?w=512" loading="lazy">
-      <div class="img-label">7C</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/ef9f8ebe-ad72-44b2-bfd7-ee74d08acf55/segments/1:4:1/Lucid_Origin_pixel_art_game_logo_bold_ornate_amber_script_lett_0.jpg?w=512" loading="lazy">
-      <div class="img-label">7D</div>
-    </div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/b8f22b36-6dcd-40cc-8bc2-70eadc554576/segments/4:4:1/Lucid_Origin_pixel_art_game_logo_LEFT_side_has_a_tall_bee_smok_3.jpg" alt="V7-A" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/b8f22b36-6dcd-40cc-8bc2-70eadc554576/segments/3:4:1/Lucid_Origin_pixel_art_game_logo_LEFT_side_has_a_tall_bee_smok_2.jpg" alt="V7-B" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/b8f22b36-6dcd-40cc-8bc2-70eadc554576/segments/2:4:1/Lucid_Origin_pixel_art_game_logo_LEFT_side_has_a_tall_bee_smok_1.jpg" alt="V7-C" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/b8f22b36-6dcd-40cc-8bc2-70eadc554576/segments/1:4:1/Lucid_Origin_pixel_art_game_logo_LEFT_side_has_a_tall_bee_smok_0.jpg" alt="V7-D" loading="lazy"></div>
   </div>
-  <div class="prompt-section">
-    <button class="prompt-toggle" onclick="togglePrompt(this)"><span class="arrow">&#9654;</span> Show prompt</button>
-    <div class="prompt-body"><div class="prompt-text">pixel art game logo, bold ornate amber script lettering, high contrast, "Smoke" large on top in bright warm gold with thick dark brown-black pixel outlines and strong 3-shade depth shading, small "&" in the middle, "Honey" below in matching bold script with the O replaced by a hex honeycomb cell in saturated amber gold with deep wax-brown border, a bee smoker at the bottom with tin cylinder body, prominent brown leather accordion bellows on the side, nozzle at top emitting thick smoke wisps curling upward, deep near-black warm background, no honey drips, no liquid drips, rich golden amber palette with deep mahogany shadows, dramatic yet cozy pixel art beekeeping game logo, Lucid Origin style</div></div>
-  </div>
+  <button class="prompt-toggle" onclick="togglePrompt(this)"><span class="arrow">&#9658;</span> VIEW PROMPT</button>
+  <div class="prompt-body">pixel art game logo, LEFT side has a tall bee smoker prop, RIGHT side has stacked ornate script lettering reading "Smoke" on top then "&" then "Honey", the O in Honey is a golden hexagonal honeycomb cell, the bee smoker has a matte brushed steel cylinder body with subtle horizontal ring etchings, conical dome lid with a long thin curved nozzle spout, a small teardrop-shaped hand bellows made of reddish brown leather attached at the lower-left of the cylinder with accordion fold pleats the bellows is compact and clearly subordinate in size to the cylinder, glowing embers visible at base of cylinder, bold orange and golden smoke drifting upward, warm golden amber light radiating outward from behind the smoker, rich honey-gold lettering with deep brown outline, warm amber background with dark vignette corners, no honey drips no letter drips, pixel art game logo Lucid Origin style</div>
 </div>
 
-<!-- V8 -->
 <div class="variation">
   <div class="var-header">
-    <div class="var-num">8</div>
-    <div>
-      <div class="var-title">Golden Hour Warmth</div>
-      <div class="var-tagline">Amber-orange palette, radial glow behind text &mdash; matches the KS hero image mood</div>
-    </div>
+    <span class="var-num">VAR 08</span>
+    <span class="var-title">Rolling Smoke &mdash; Bees at Base</span>
   </div>
   <div class="img-grid">
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/57c9e7cd-00dc-40fc-8f5f-e2a46c551017/segments/4:4:1/Lucid_Origin_pixel_art_game_logo_ornate_decorative_amberorange_3.jpg?w=512" loading="lazy">
-      <div class="img-label">8A</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/57c9e7cd-00dc-40fc-8f5f-e2a46c551017/segments/3:4:1/Lucid_Origin_pixel_art_game_logo_ornate_decorative_amberorange_2.jpg?w=512" loading="lazy">
-      <div class="img-label">8B</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/57c9e7cd-00dc-40fc-8f5f-e2a46c551017/segments/2:4:1/Lucid_Origin_pixel_art_game_logo_ornate_decorative_amberorange_1.jpg?w=512" loading="lazy">
-      <div class="img-label">8C</div>
-    </div>
-    <div class="img-cell" onclick="openLb(this)">
-      <img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/57c9e7cd-00dc-40fc-8f5f-e2a46c551017/segments/1:4:1/Lucid_Origin_pixel_art_game_logo_ornate_decorative_amberorange_0.jpg?w=512" loading="lazy">
-      <div class="img-label">8D</div>
-    </div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/d23eee1b-284c-4679-a135-1bd56fc8af45/segments/4:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_on_the_LEFT_half_o_3.jpg" alt="V8-A" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/d23eee1b-284c-4679-a135-1bd56fc8af45/segments/3:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_on_the_LEFT_half_o_2.jpg" alt="V8-B" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/d23eee1b-284c-4679-a135-1bd56fc8af45/segments/2:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_on_the_LEFT_half_o_1.jpg" alt="V8-C" loading="lazy"></div>
+    <div class="img-cell" onclick="openLightbox(this)"><img src="https://cdn.leonardo.ai/users/9aae9ca3-82da-4c39-ad9c-e1b0a1b5d9b7/generations/d23eee1b-284c-4679-a135-1bd56fc8af45/segments/1:4:1/Lucid_Origin_pixel_art_game_logo_bee_smoker_on_the_LEFT_half_o_0.jpg" alt="V8-D" loading="lazy"></div>
   </div>
-  <div class="prompt-section">
-    <button class="prompt-toggle" onclick="togglePrompt(this)"><span class="arrow">&#9654;</span> Show prompt</button>
-    <div class="prompt-body"><div class="prompt-text">pixel art game logo, ornate decorative amber-orange script lettering with warm golden hour glow radiating softly behind the text, "Smoke" large on top, small "&" in the middle, "Honey" below with the O replaced by a hexagonal honeycomb cell shape in rich amber-orange gold with darker wax edges, warm amber-to-deep-brown radial gradient background, a bee smoker at the bottom center, the smoker has a tin cylinder body, brown leather accordion bellows on the side, thin nozzle spout at the top angled upward with smoke wisp rising and catching the warm light, overall color palette warm amber, golden orange, and deep honey brown, no honey drips, no liquid drips on any letters, cozy pastoral pixel art beekeeping logo, Lucid Origin style</div></div>
-  </div>
+  <button class="prompt-toggle" onclick="togglePrompt(this)"><span class="arrow">&#9658;</span> VIEW PROMPT</button>
+  <div class="prompt-body">pixel art game logo, bee smoker on the LEFT half of composition, stacked ornate script "Smoke" then "&" then "Honey" on the RIGHT half, the O in Honey is a golden hexagonal cell shape, the smoker has a bright silver polished tin cylinder with warm golden reflections, conical lid with a short upturned nozzle spout at top, a very small compact leather bellows attached at the lower right of the cylinder with soft accordion fold wrinkles it is rounded like a fat teardrop and no more than one third the cylinder height, a small wooden knob on the end of the bellows, thick rolling smoke billowing from the nozzle with warm golden-orange lit edges catching the light, honeybees and honey drizzle near the base NOT on letters, the text has warm amber-gold color with dark honey-brown outline and subtle inner glow, background is deep ochre brown fading to near-black at corners, no liquid drips on any letters, pixel art beekeeping game logo, Lucid Origin style</div>
 </div>
 
-<!-- Lightbox -->
-<div class="lightbox" id="lb" onclick="closeLb(event)">
-  <button class="lb-close" onclick="closeLb()">&times;</button>
-  <img id="lb-img" src="">
-  <div class="lb-caption" id="lb-cap"></div>
+<div id="lightbox" onclick="closeLightbox()">
+  <span id="lightbox-close" onclick="closeLightbox()">&times;</span>
+  <img id="lightbox-img" src="" alt="">
 </div>
-
-<footer>
-  Smoke &amp; Honey Logo V3 &mdash; Almost There &mdash; 32 images across 8 variations &mdash; March 2026<br>
-  Generated with Leonardo AI, Lucid Origin model &mdash; Smoke and Honey collection
-</footer>
 
 <script>
+function openLightbox(cell) {
+  var src = cell.querySelector('img').src;
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lightbox-img').src = '';
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeLightbox();
+});
 function togglePrompt(btn) {
   btn.classList.toggle('open');
-  const body = btn.nextElementSibling;
-  body.classList.toggle('open');
-  btn.querySelector('.arrow').textContent = body.classList.contains('open') ? '\u25BC' : '\u25BA';
+  btn.nextElementSibling.classList.toggle('open');
 }
-function openLb(cell) {
-  const img = cell.querySelector('img');
-  const label = cell.querySelector('.img-label').textContent;
-  const fullUrl = img.src.replace('?w=512', '');
-  document.getElementById('lb-img').src = fullUrl;
-  document.getElementById('lb-cap').textContent = 'Option ' + label + ' \u2014 click outside to close';
-  document.getElementById('lb').classList.add('open');
-}
-function closeLb(e) {
-  if (!e || e.target === document.getElementById('lb') || e.target.classList.contains('lb-close')) {
-    document.getElementById('lb').classList.remove('open');
-  }
-}
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLb({target: document.getElementById('lb')}); });
 </script>
 </body>
 </html>

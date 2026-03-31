@@ -367,3 +367,12 @@
     (not per cell) so performance stays smooth even at 70x35 = 2450 cells.
   Refactored _uncap_cell -> _uncap_cell_silent (bool return, no render) with
     a legacy _uncap_cell wrapper for any single-cell callers.
+
+2026-03-30 - Logo art: Almost There bellows-fix report (8 new variations)
+  Replaced Almost_There.html entirely with 8 new Leonardo AI generations.
+  Target: 2D composition (smoker left anchor, text right) + silver cylinder
+  + correct small teardrop accordion bellows + hex-O + no drips.
+  All 8 batches of 4 images = 32 total. Gen IDs captured. Prompts embedded.
+  Variations: Classic Silver, Dramatic Backlit, Aged Patina/Wire Cage,
+  Polished Steel/Engraved, Smoke Framed/Teal Wisps, Chrome/Honeycomb Bg,
+  Ember Glow/Reddish Bellows, Rolling Smoke/Bees at Base.
