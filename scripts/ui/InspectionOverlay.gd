@@ -421,15 +421,17 @@ func _build_dev_advance_buttons(bg: Control) -> void:
 	var btn_w: int = 36
 	var btn_h: int = 10
 	var gap: int = 2
-	# Position in the stats sidebar area, just below the header
-	var bx: int = GRID_W + 2
-	var by: int = HEADER_H + GRID_H - btn_h * 2 - gap - 2  # bottom of stats area
+	# Place buttons side-by-side in the footer blank space (right of instructions,
+	# left of the stats column). Footer top = VP_H - FOOTER_H, centered vertically.
+	var by: int = VP_H - FOOTER_H + 1
+	var bx_month: int = GRID_W - btn_w - 2
+	var bx_day: int   = bx_month - btn_w - gap
 
-	_dev_day_btn = _make_dev_btn("+ Day", bx, by, btn_w, btn_h, C_ACCENT)
+	_dev_day_btn = _make_dev_btn("+ Day", bx_day, by, btn_w, btn_h, C_ACCENT)
 	_dev_day_btn.pressed.connect(_on_dev_advance_day_inspection)
 	bg.add_child(_dev_day_btn)
 
-	_dev_month_btn = _make_dev_btn("+ Month", bx, by + btn_h + gap, btn_w, btn_h,
+	_dev_month_btn = _make_dev_btn("+ Month", bx_month, by, btn_w, btn_h,
 		Color(0.95, 0.65, 0.20))
 	_dev_month_btn.pressed.connect(_on_dev_advance_month_inspection)
 	bg.add_child(_dev_month_btn)
