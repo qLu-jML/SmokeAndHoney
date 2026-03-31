@@ -441,7 +441,7 @@ func _update_progress() -> void:
 	var pct: int = mini(int(float(_scraped_this_side) / float(_total_cappable) * 100.0), 100)
 	if _progress_lbl:
 		_progress_lbl.text = "%d%%" % pct
-	if pct >= 95 and not _done:
+	if pct >= 100 and not _done:
 		_finish_side()
 
 # =========================================================================

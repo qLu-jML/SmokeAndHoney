@@ -1,3 +1,13 @@
+[2026-03-30 CDT] FIX: FrameRenderer 0-dimension guard + scraping 100% completion
+  1. FRAMERENDERER CRASH FIX: Added guards to render_lod(), render_honeycomb(),
+     and _ensure_canvas_for() to prevent Image.create() with 0-pixel dimensions.
+     If grid_cols or grid_rows is 0, returns a 1x1 fallback texture instead of
+     crashing with "The Image width specified (0 pixels) must be greater than 0".
+  2. SCRAPING COMPLETION: Changed uncapping threshold from 95% to 100% in
+     scraping_minigame.gd _update_progress(). Player must now uncap every single
+     capped cell before the frame side is marked done.
+  Protected files verified: GDD 603,634 bytes, DevPlan 139,437 bytes.
+
 [2026-03-30 CDT] ART: New honey bucket and extractor spinner sprites from Leonardo AI
   Generated pixel art sprites via Leonardo AI (Lucid Origin, 1024x1024, Dynamic/Fast)
   using Smoke and Honey collection for style consistency.

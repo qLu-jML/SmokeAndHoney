@@ -130,6 +130,13 @@ func render_lod(frame, side: int = 0) -> ImageTexture:
 	var f_rows: int = frame.grid_rows if frame.has_method("get_cell") else FRAME_ROWS
 	var f_size: int = frame.grid_size if frame.has_method("get_cell") else (f_cols * f_rows)
 
+	if f_cols <= 0 or f_rows <= 0:
+		push_warning("FrameRenderer.render_lod: invalid dimensions %d x %d" % [f_cols, f_rows])
+		if _lod_texture == null:
+			var fallback := Image.create(1, 1, false, Image.FORMAT_RGBA8)
+			_lod_texture = ImageTexture.create_from_image(fallback)
+		return _lod_texture
+
 	if _lod_image == null or _lod_image.get_width() != f_cols or _lod_image.get_height() != f_rows:
 		_lod_image   = Image.create(f_cols, f_rows, false, Image.FORMAT_RGBA8)
 		_lod_texture = ImageTexture.create_from_image(_lod_image)
@@ -169,6 +176,13 @@ func render_honeycomb(frame, side: int = 0) -> ImageTexture:
 	# Compute canvas size dynamically based on actual frame dimensions
 	var honey_w: int = f_cols * HEX_COL_STEP + HEX_ODD_SHIFT
 	var honey_h: int = f_rows * HEX_ROW_STEP + (CELL_H - HEX_ROW_STEP)
+
+	if honey_w <= 0 or honey_h <= 0 or f_cols <= 0 or f_rows <= 0:
+		push_warning("FrameRenderer.render_honeycomb: invalid dimensions cols=%d rows=%d" % [f_cols, f_rows])
+		if _honey_texture == null:
+			var fallback := Image.create(1, 1, false, Image.FORMAT_RGBA8)
+			_honey_texture = ImageTexture.create_from_image(fallback)
+		return _honey_texture
 
 	# Dirty check
 	var h: int = hash(side_cells)
@@ -250,6 +264,10 @@ func _ensure_canvas_for(cols: int, rows: int) -> void:
 	_cached_rows = rows
 	var pw := cols * CELL_W
 	var ph := rows * CELL_H
+	if pw <= 0 or ph <= 0:
+		push_warning("FrameRenderer._ensure_canvas_for: invalid size %d x %d" % [pw, ph])
+		pw = maxi(pw, 1)
+		ph = maxi(ph, 1)
 	_frame_image   = Image.create(pw, ph, false, Image.FORMAT_RGBA8)
 	_frame_texture = ImageTexture.create_from_image(_frame_image)
 	_last_hash = -1   # force re-render after resize
