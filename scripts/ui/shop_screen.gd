@@ -14,10 +14,12 @@ const CATALOGUE := [
 	{"id": "treatment_oxalic", "label": "Oxalic Acid",   "price":  12, "max_qty": 10},
 	{"id": "axe",              "label": "Axe",           "price":  15, "max_qty":  1},
 	{"id": "hammer",           "label": "Hammer",        "price":  10, "max_qty":  1},
+	{"id": "smoker",           "label": "Smoker",        "price":  25, "max_qty":  1},
+	{"id": "bee_suit",         "label": "Bee Suit",      "price":  45, "max_qty":  1},
 ]
 
 const PANEL_W   := 240
-const PANEL_H   := 140
+const PANEL_H   := 175
 const PANEL_X   := 40     # (320 - 240) / 2
 const PANEL_Y   := 31     # (180 - 118) / 2
 const ROW_H     := 20

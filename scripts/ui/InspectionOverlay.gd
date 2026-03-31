@@ -25,6 +25,9 @@
 extends CanvasLayer
 class_name InspectionOverlay
 
+# -- Signals -------------------------------------------------------------------
+signal closed
+
 # -- Layout constants -----------------------------------------------------------
 const VP_W        := 320
 const VP_H        := 180
@@ -191,6 +194,7 @@ func open(hive_node: Node) -> void:
 
 func _ready() -> void:
 	layer = 10
+	add_to_group("inspection_overlay")
 
 	# -- Root background --------------------------------------------------------
 	var bg := ColorRect.new()
@@ -566,6 +570,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	match event.keycode:
 		KEY_ESCAPE:
+			closed.emit()
 			queue_free()
 		KEY_A:
 			_navigate(-1)

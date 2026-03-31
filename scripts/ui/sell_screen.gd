@@ -101,8 +101,12 @@ func _try_sell() -> void:
 		sale_xp = 1
 	GameData.add_xp(sale_xp)
 
-	# Community standing: +1 per transaction (GDD S9)
-	GameData.reputation = minf(GameData.reputation + 1.0, 1000.0)
+	# Market participation XP: 15-25 points (GDD S7.1)
+	var market_xp: int = randi_range(GameData.XP_MARKET_PARTICIPATION_MIN, GameData.XP_MARKET_PARTICIPATION_MAX)
+	GameData.add_xp(market_xp)
+
+	# Community standing: +3 per market transaction (GDD S9)
+	GameData.reputation = minf(GameData.reputation + 3.0, 1000.0)
 
 	# Log the sale as income
 	GameData.expense_log.append({
@@ -199,9 +203,19 @@ func _build_ui() -> void:
 	title.horizontal_alignment  = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(title)
 
-	# -- Buyer name + price
+	# -- Buyer name + price (with player name injection if available)
 	var info_text: String = "%s buys at $%d / jar" % [buyer_name, price_per_jar]
-	var info := _make_label(info_text, FONT_SM, Color(0.80, 0.75, 0.55, 1.0))
+	var name_part: String = ""
+	if Engine.has_singleton("PlayerData") or get_tree().root.has_node("/root/PlayerData"):
+		var pd: Node = get_tree().root.get_node_or_null("/root/PlayerData")
+		if pd and "player_name" in pd:
+			name_part = pd.player_name
+	var greeting: String = ""
+	if name_part.length() > 0:
+		greeting = "\"%s, I'll pay $%d/jar!\"" % [name_part, price_per_jar]
+	else:
+		greeting = "%s buys at $%d / jar" % [buyer_name, price_per_jar]
+	var info := _make_label(greeting, FONT_SM, Color(0.80, 0.75, 0.55, 1.0))
 	info.position              = Vector2(PANEL_X, PANEL_Y + 19)
 	info.custom_minimum_size   = Vector2(PANEL_W, 10)
 	info.horizontal_alignment  = HORIZONTAL_ALIGNMENT_CENTER

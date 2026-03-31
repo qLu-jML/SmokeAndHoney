@@ -25,10 +25,14 @@ var _energy_fill: TextureRect = null
 var _level_lbl: Label = null
 var _xp_fill: TextureRect = null
 var _xp_lbl: Label = null
+var _standing_lbl: Label = null  # Community standing display
+var _smoker_lbl: Label = null    # Smoker status indicator
 var _slots: Array = []
 @warning_ignore("UNUSED_PRIVATE_CLASS_VARIABLE")
 var _menu_open: bool = false
 var _summary_overlay: ColorRect = null
+var _cached_standing: String = ""  # Cache for polling updates
+var _cached_smoker_active: bool = false  # Cache for polling updates
 
 # -- Tab-toggle info panel --
 var _info_panel: ColorRect = null
@@ -150,6 +154,11 @@ func _ready() -> void:
 	_refresh_all()
 	_hide_legacy_nodes()
 	print("HUD _ready() completed successfully")
+
+func _process(_delta: float) -> void:
+	# Poll for standing and smoker status updates (called every frame)
+	_update_standing()
+	_update_smoker_status()
 
 # =============================================================================
 # Build HUD bars
@@ -546,10 +555,17 @@ func _build_bottom_bar() -> void:
 	_xp_lbl = _make_lbl("", 5, Vector2(187, 10), Vector2(XBAR_W, 5), C_MUTED)
 	_bot_bar.add_child(_xp_lbl)
 
+	# Standing display
+	_standing_lbl = _make_lbl("Standing: Neighbor", 5, Vector2(228, 5), Vector2(50, 6), Color(1.0, 0.85, 0.30, 1.0))
+	_bot_bar.add_child(_standing_lbl)
+
+	# Smoker status indicator
+	_smoker_lbl = _make_lbl("", 5, Vector2(228, 10), Vector2(50, 6), Color(1.0, 0.65, 0.20, 1.0))
+	_smoker_lbl.visible = false
+	_bot_bar.add_child(_smoker_lbl)
+
 	# Right-side key hints
-	_bot_bar.add_child(_make_lbl("|", 6, Vector2(244, 3), Vector2(5, 10), C_MUTED))
-	_bot_bar.add_child(_make_lbl("Scroll=Item", 5, Vector2(250, 5), Vector2(44, 6), C_MUTED))
-	_bot_bar.add_child(_make_lbl("[Z] Sleep", 5, Vector2(296, 5), Vector2(32, 6), C_MUTED))
+	_bot_bar.add_child(_make_lbl("[Z] Sleep", 5, Vector2(283, 5), Vector2(35, 6), C_MUTED))
 
 # =============================================================================
 # Dev-Mode Level Widget
@@ -1291,6 +1307,23 @@ func _refresh_xp() -> void:
 func _refresh_level(level: int) -> void:
 	if _level_lbl:
 		_level_lbl.text = str(level)
+
+func _update_standing() -> void:
+	var standing_tier: String = GameData.get_community_standing_tier() if GameData and GameData.has_method("get_community_standing_tier") else "Neighbor"
+	if _standing_lbl and _cached_standing != standing_tier:
+		_standing_lbl.text = "Standing: %s" % standing_tier
+		_cached_standing = standing_tier
+
+func _update_smoker_status() -> void:
+	var player = get_tree().get_first_node_in_group("player") if get_tree() else null
+	var smoker_active: bool = false
+	if player and "_smoker_active" in player:
+		smoker_active = player._smoker_active
+	if _smoker_lbl and _cached_smoker_active != smoker_active:
+		_smoker_lbl.visible = smoker_active
+		if smoker_active:
+			_smoker_lbl.text = "SMOKED"
+		_cached_smoker_active = smoker_active
 
 # =============================================================================
 # Input

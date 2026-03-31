@@ -497,6 +497,13 @@ func can_rotate_deeps() -> bool:
 		return false
 	return simulation.deep_count() >= 2
 
+## Returns current colony honey stores in lbs from simulation snapshot.
+func get_honey_stores() -> float:
+	if not simulation or not simulation.has_method("last_snapshot"):
+		return 0.0
+	var snap: Dictionary = simulation.last_snapshot
+	return snap.get("honey_stores", 0.0)
+
 # -- Modular Sprite Stacking --------------------------------------------------
 
 ## Rebuilds the visual sprite stack from current hive configuration.

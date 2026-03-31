@@ -1,3 +1,30 @@
+[2026-03-31 CDT] FEATURE: Beeswax tracking, winter reserve warning, HUD standing/smoker display, quest system, name injection
+  1. BEESWAX TRACKING (task 2.22): Scraping minigame already collects beeswax at ~0.735 lbs per frame
+     and stores in _bucket_beeswax_lbs. _try_give_beeswax() converts fractional lbs to ITEM_BEESWAX
+     for inventory when >= 1 lb accumulated. Formula: 4900 cells * 0.00015 = 0.735 lbs per frame.
+  2. WINTER RESERVE WARNING (task 2.23): When player removes marked super in Fall, checks hive's
+     honey_stores via new get_honey_stores() method. If < 60 lbs, fires warning notification
+     "Warning: colony only has X lbs honey -- 60 lbs needed for winter!" Harvest still allowed.
+     Added hive.gd::get_honey_stores() -> float method to query simulation.last_snapshot.
+  3. HUD STANDING DISPLAY (task 3.0, partial): Added _standing_lbl to bottom bar (amber/gold color)
+     showing "Standing: [tier]". Polls GameData.get_community_standing_tier() every frame.
+     Also added _smoker_lbl showing "SMOKED" (orange) when player._smoker_active is true.
+     Added _update_standing() and _update_smoker_status() methods with caching.
+  4. QUEST MANAGER EXPANSION (task 4.1-4.3, partial):
+     - Added quest_data dict storing quest definitions with objectives, rewards
+     - Added complete_objective(quest_id, obj_key, amount) to track objective progress
+     - Added is_quest_active(id) and is_quest_complete(id) aliases
+     - Added _init_quest_definitions() with bob_intro (+25 XP) and 3 daily tasks:
+       * daily_inspection: Inspect 1 hive (+10 XP, +$5)
+       * daily_harvest: Remove 1 super (+15 XP, +$10)
+       * daily_market: Make 1 market sale (+20 XP)
+     - Daily quests auto-reset each day and auto-start on init/reset
+  5. SELL SCREEN NAME INJECTION (task 5.0): Sell screen greeting now uses player name from
+     PlayerData singleton: "Hey [name], I'll pay $X/jar!" if player name exists, else fallback.
+     Updated sell_screen.gd _build_ui() to check Engine.has_singleton("PlayerData") and inject
+     player_name into greeting message.
+  Protected files verified: GDD 603,634 bytes, DevPlan 139,437 bytes.
+
 [2026-03-30 CDT] FIX: FrameRenderer 0-dimension guard + scraping 100% completion
   1. FRAMERENDERER CRASH FIX: Added guards to render_lod(), render_honeycomb(),
      and _ensure_canvas_for() to prevent Image.create() with 0-pixel dimensions.
@@ -651,3 +678,60 @@
         mode 0 -> place_as_overwintered("Carniolan","S")
         mode 1 -> place_as_fall_harvest("Carniolan","A") + GameData.new_game_mode = 0
   Protected files verified: GDD 603,634 bytes, DevPlan 139,437 bytes.
+
+[2026-03-31 CDT] OVERNIGHT ITERATION: Phase 2 + Phase 3 foundations implemented
+  Tasks 2.11-2.16: Smoke & Sting System
+    - ITEM_SMOKER and ITEM_BEE_SUIT added to GameData constants
+    - ITEM_PROPOLIS added as collectible resource
+    - smoker + bee_suit added to Feed & Supply shop catalogue ($25 / $45)
+    - Smoker mechanic: hold smoker and press E near hive to puff it
+      _smoker_active=true, _smoker_puffs=3; resets after inspection closes
+    - Sting probability: 25% base chance per inspection
+      x weather mult (WeatherManager.get_sting_multiplier())
+      x 0.3 if bee suit worn
+      x 0.2 if smoked
+      Energy penalty: 5 (with suit) or 10 (no suit)
+    - InspectionOverlay.closed signal wired -> player._on_inspection_closed()
+    - Notification toasts: "Ouch! You got stung! (-X energy)" on sting
+  Tasks 2.22-2.23: Harvest completion
+    - 2.22 Beeswax tracking: confirmed already implemented in harvest_yard.gd
+      (~0.735 lbs per frame, accumulated in _bucket_beeswax_lbs, added to inv on collection)
+    - 2.23 Winter reserve warning: player.gd warns when removing super in Fall
+      with < 60 lbs honey stores ("colony only has X lbs honey -- 60 lbs needed for winter!")
+    - hive.gd: added get_honey_stores() -> float method
+  Tasks 2.25-2.30: Saturday Market + Community Standing
+    - 2.25-2.27: Confirmed cedar_bend.gd already wires Saturday Market + sell_screen
+      Sell screen shows "Hey [player_name], I'll pay $X/jar!" (name injection via PlayerData)
+    - 2.28: GameData 5-tier Community Standing system:
+        Stranger(0), Neighbor(100), Known(250), Trusted(500), Respected(750)
+        Price mults: 1.0x / 1.05x / 1.10x / 1.15x / 1.20x
+        get_standing_tier(), get_standing_name(), get_standing_price_mult()
+    - 2.29: Standing gains: +3 per Saturday Market sale, +1 per Feed & Supply sale
+    - 2.30: cedar_bend._open_market_sell() applies get_standing_price_mult() to base $10/jar
+  Tasks 3.0-3.0d: Character System
+    - PlayerData autoload created (scripts/autoloads/PlayerData.gd)
+      Fields: player_name, pronoun_they/them/their/theirs/themself, backstory_tag,
+              character_created flag
+      Methods: set_pronouns_they_them/she_her/he_him(), inject_tokens(text),
+               collect_save_data(), apply_save_data(data)
+    - CharacterCreator scene + script (scenes/ui/CharacterCreator.tscn +
+      scripts/ui/character_creator.gd):
+      Keyboard UI: name entry (type name), pronoun selection (A/D), backstory (A/D),
+      confirm [E]. Displays before home_property loads on New Game.
+    - MainMenu._show_character_creator(mode) wraps both start modes;
+      creator_finished signal -> _start_game() -> loading screen
+    - project.godot: PlayerData="*res://scripts/autoloads/PlayerData.gd" registered
+    - SaveManager: player_data collected and applied in save/load cycle
+  Tasks 3.1 + 3.3: QuestManager + Daily Tasks
+    - QuestManager expanded: INACTIVE/ACTIVE/COMPLETED/FAILED states,
+      objective tracking, rewards (xp, money), quest_completed signal
+    - 4 quests defined:
+        bob_intro: "Meet Uncle Bob" (+25 XP, Knowledge Log unlock)
+        daily_inspection: "Inspect Your Hives" (target 1 inspection, +10 XP, +$5)
+        daily_harvest: "Harvest a Full Super" (target 1 super, +15 XP, +$10)
+        daily_market: "Sell at Saturday Market" (target 1 sale, +20 XP)
+    - Daily quests auto-reset at day start via TimeManager.day_advanced
+  HUD Updates
+    - hud.gd: "Standing: [tier]" label in bottom bar (amber, polls each frame)
+    - hud.gd: "SMOKED" indicator (orange) visible when player._smoker_active=true
+  Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.

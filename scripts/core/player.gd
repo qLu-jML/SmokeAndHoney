@@ -16,6 +16,10 @@ const INVENTORY_SIZE = 10
 var inventory: Array = []
 var active_slot: int = 0
 
+# -- Smoker State (for bee calming during inspection) -------------------------
+var _smoker_active: bool = false      # True when hive has been smoked this inspection
+var _smoker_puffs: int = 0            # Remaining puffs (0-3, higher = more calmed)
+
 func get_max_stack(item_name: String) -> int:
 	match item_name:
 		GameData.ITEM_RAW_HONEY:  return 999
@@ -40,6 +44,9 @@ func get_max_stack(item_name: String) -> int:
 		GameData.ITEM_LUMBER:     return 20
 		GameData.ITEM_AXE:          return 1
 		GameData.ITEM_HAMMER:       return 1
+		GameData.ITEM_SMOKER:       return 1
+		GameData.ITEM_BEE_SUIT:     return 1
+		GameData.ITEM_PROPOLIS:     return 99
 		GameData.ITEM_BUCKET_GRIP:  return 1    # One grip tool per slot
 		GameData.ITEM_HONEY_BUCKET: return 1    # One full bucket -- it's heavy
 		_:                          return 20
@@ -495,6 +502,22 @@ func _perform_action() -> void:
 				return
 			# Remove a fully-marked super for harvest transport
 			if nearby_hive.has_method("has_marked_super") and nearby_hive.has_marked_super():
+				# Winter reserve check (GDD S5.3.3): warn if removing super in fall might leave
+				# colony short for winter. Minimum safe winter stores: ~60 lbs (or ~30 lbs as
+				# a lean-winter minimum).
+				var current_season: String = TimeManager.current_season_name()
+				if current_season == "Fall":
+					# Check colony honey_stores in the hive simulation
+					var colony_stores: float = 0.0
+					if nearby_hive.has_method("get_honey_stores"):
+						colony_stores = nearby_hive.get_honey_stores()
+					elif "honey_stores" in nearby_hive:
+						colony_stores = nearby_hive.honey_stores
+					var MIN_WINTER_STORES: float = 60.0
+					if colony_stores < MIN_WINTER_STORES:
+						var nm_warn = get_tree().root.get_node_or_null("NotificationManager")
+						if nm_warn and nm_warn.has_method("notify"):
+							nm_warn.notify("Warning: colony only has %.0f lbs honey -- 60 lbs needed for winter!" % colony_stores, "warn")
 				var removed = nearby_hive.remove_marked_super()
 				if removed != null:
 					# Store actual frame cell data for honey house / harvest yard
@@ -522,7 +545,20 @@ func _perform_action() -> void:
 					print("Select the Hive Tool in your toolbar to inspect!")
 				return
 			if GameData.energy >= 10.0:
+				# Handle smoker activation before inspection
+				if held == GameData.ITEM_SMOKER:
+					_smoker_active = true
+					_smoker_puffs = 3
+					var nm_s = get_tree().root.get_node_or_null("NotificationManager")
+					if nm_s and nm_s.has_method("notify"):
+						nm_s.notify("Hive smoked -- bees calmed for this inspection!")
+
 				nearby_hive.open_inspection()
+				# Connect inspection overlay's closed signal to handle sting mechanics
+				var overlay = get_tree().get_first_node_in_group("inspection_overlay")
+				if overlay and overlay.has_signal("closed"):
+					if not overlay.closed.is_connected(_on_inspection_closed):
+						overlay.closed.connect(_on_inspection_closed)
 			else:
 				var nm2 = get_tree().root.get_node_or_null("NotificationManager")
 				if nm2 and nm2.has_method("notify"):
@@ -888,3 +924,30 @@ func _update_sprite_frame() -> void:
 		row = 8 + dir_row
 		col = _anim_frame_index
 	player_sprite.frame = row * _SHEET_COLS + col
+
+# -- Sting Mechanics (GDD S6.5) ------------------------------------------------
+
+## Called when InspectionOverlay closes after an inspection session.
+## Computes sting probability and applies damage/notifications.
+func _on_inspection_closed() -> void:
+	# Compute sting probability per GDD S6.5
+	# Base: 25% chance of getting stung per inspection
+	var base_chance: float = 0.25
+	var weather_mult: float = 1.0
+	if WeatherManager:
+		weather_mult = WeatherManager.get_sting_multiplier()
+	var suit_mult: float = 0.3 if count_item(GameData.ITEM_BEE_SUIT) > 0 else 1.0
+	var smoke_mult: float = 0.2 if _smoker_active else 1.0
+	var final_chance: float = base_chance * weather_mult * suit_mult * smoke_mult
+
+	# Reset smoker state after inspection
+	_smoker_active = false
+	_smoker_puffs = 0
+
+	# Roll for sting
+	if randf() < final_chance:
+		var sting_dmg: float = 5.0 if count_item(GameData.ITEM_BEE_SUIT) > 0 else 10.0
+		GameData.deduct_energy(sting_dmg)
+		var nm = get_tree().root.get_node_or_null("NotificationManager")
+		if nm and nm.has_method("notify"):
+			nm.notify("Ouch! You got stung! (-%.0f energy)" % sting_dmg, "warn")

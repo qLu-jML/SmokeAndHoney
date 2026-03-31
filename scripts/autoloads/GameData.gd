@@ -43,7 +43,31 @@ var money: float = 500.0          # Real dollars -- replaces honey-as-currency
 # -- Player Progression --------------------------------------------------------
 var player_level: int = 1
 var xp: int = 0
-var reputation: float = 0.0       # 0-100, used for NPC relationship unlocks
+var reputation: float = 0.0       # 0-1000, used for community standing tier
+
+# -- Community Standing Tiers (GDD S9) -----------------------------------------
+# Standing is tracked via reputation (0-1000 range).
+# Tier boundaries and names per GDD:
+#   0-99   = Stranger     (price mult: 1.0x)
+#   100-249 = Neighbor    (price mult: 1.05x)
+#   250-499 = Known       (price mult: 1.10x)
+#   500-749 = Trusted     (price mult: 1.15x)
+#   750+    = Respected   (price mult: 1.20x)
+const STANDING_THRESHOLDS: Array = [0, 100, 250, 500, 750]
+const STANDING_NAMES: Array = ["Stranger", "Neighbor", "Known", "Trusted", "Respected"]
+const STANDING_PRICE_MULTS: Array = [1.0, 1.05, 1.10, 1.15, 1.20]
+
+func get_standing_tier() -> int:
+	for i in range(STANDING_THRESHOLDS.size() - 1, -1, -1):
+		if reputation >= STANDING_THRESHOLDS[i]:
+			return i
+	return 0
+
+func get_standing_name() -> String:
+	return STANDING_NAMES[get_standing_tier()]
+
+func get_standing_price_mult() -> float:
+	return STANDING_PRICE_MULTS[get_standing_tier()]
 
 # XP thresholds per level (cumulative total XP required to reach each level).
 # Index 0 = L1->L2, 1 = L2->L3, 2 = L3->L4, 3 = L4->L5.
@@ -164,6 +188,9 @@ const ITEM_LOGS              := "logs"             # Raw logs from chopping tree
 const ITEM_LUMBER            := "lumber"           # Processed lumber for crafting
 const ITEM_AXE               := "axe"              # Tool: required for tree chopping
 const ITEM_HAMMER            := "hammer"           # Tool: required for workbench crafting
+const ITEM_SMOKER            := "smoker"           # Tool: reduces bee defensiveness during inspection
+const ITEM_BEE_SUIT          := "bee_suit"         # Protective gear: reduces sting energy damage
+const ITEM_PROPOLIS          := "propolis"         # Collected during inspection, used in crafting
 
 # -- Crafting Recipes (lumber costs) -----------------------------------------
 # Each recipe: {"result": item_id, "result_count": N, "lumber_cost": N, "label": "..."}

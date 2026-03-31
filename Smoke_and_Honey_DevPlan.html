@@ -170,14 +170,14 @@
     <li class="h2"><a href="#p1-inspect"><span class="status-done">+</span> Inspection &amp; Rendering</a></li>
     <li class="h2"><a href="#p1-world"><span class="status-done">+</span> World &amp; Characters</a></li>
     <li class="h2"><a href="#p1-infra"><span class="status-done">+</span> Infrastructure</a></li>
-    <li class="h1"><a href="#phase2"><span class="status-wip">~</span> Phase 2 -- Harvest Loop</a></li>
+    <li class="h1"><a href="#phase2"><span class="status-wip">~</span> Phase 2 -- Harvest Loop (50% complete)</a></li>
     <li class="h2"><a href="#p2-day"><span class="status-done">+</span> Day Cycle &amp; Weather</a></li>
     <li class="h2"><a href="#p2-harvest"><span class="status-todo">[ ]</span> Harvest System</a></li>
-    <li class="h2"><a href="#p2-economy"><span class="status-todo">[ ]</span> Economy &amp; Market</a></li>
-    <li class="h2"><a href="#p2-smoke"><span class="status-todo">[ ]</span> Smoke &amp; Stings</a></li>
-    <li class="h1"><a href="#phase3"><span class="status-todo">[ ]</span> Phase 3 -- Living World</a></li>
-    <li class="h2"><a href="#p3-charcreate"><span class="status-todo">[ ]</span> Character Creator</a></li>
-    <li class="h2"><a href="#p3-quests"><span class="status-todo">[ ]</span> Quests &amp; Events</a></li>
+    <li class="h2"><a href="#p2-economy"><span class="status-done">+</span> Economy &amp; Market</a></li>
+    <li class="h2"><a href="#p2-smoke"><span class="status-done">+</span> Smoke &amp; Stings</a></li>
+    <li class="h1"><a href="#phase3"><span class="status-wip">~</span> Phase 3 -- Living World (15% complete)</a></li>
+    <li class="h2"><a href="#p3-charcreate"><span class="status-wip">~</span> Character Creator</a></li>
+    <li class="h2"><a href="#p3-quests"><span class="status-wip">~</span> Quests &amp; Events</a></li>
     <li class="h2"><a href="#p3-npc"><span class="status-todo">[ ]</span> NPC Relationships</a></li>
     <li class="h2"><a href="#p3-knowledge"><span class="status-todo">[ ]</span> Knowledge Log</a></li>
     <li class="h2"><a href="#p3-acquire"><span class="status-todo">[ ]</span> Bee Acquisition</a></li>
@@ -286,14 +286,10 @@
   The simulation runs, inspection works, flowers grow, bees do their thing. What is missing is the player's reason to care:
   harvest the honey, grade it, sell it at market, buy supplies, and repeat. This is the farm-sim loop that turns observation into gameplay.
   <br><br>
-  <strong>Phase 2 progress: Steps 1-2 complete (~25% of Phase 2 tasks done).</strong>
-  Sleep/nap/auto-save fully wired (2.1-2.4). Weather system complete end-to-end: WeatherManager
-  (8 states, Iowa-calibrated season probabilities), ForagerSystem weather gate (2.6), HUD weather
-  display (2.7), inspection weather block with per-condition toasts (2.8), season transition banner
-  (2.9), and full save/load serialization (2.10).<br><br>
-  <strong>Remaining for Phase 2:</strong> Equipment shop wiring (Step 3), smoker/sting system (Step 4),
-  harvest pipeline (Step 5), Saturday Market (Step 6), Community Standing (Step 7).
-  No harvest, no market, no smoke/stings yet.
+  <strong>Phase 2 progress: Steps 1-4, 6-7 complete (50% of Phase 2 tasks done).</strong>
+  Sleep/nap/auto-save fully wired (2.1-2.4). Weather system complete end-to-end (2.5-2.10). Equipment shop wired (2.11-2.12) with smoker and bee suit. Smoker &amp; sting system (2.13-2.16): 25% base sting chance, weather/suit/smoke modifiers, notification feedback. Saturday Market (2.25-2.27) wired with transaction UI. Community Standing tier system (2.28-2.30): 5 tiers (Stranger-Respected) with price multipliers. PlayerData singleton created with character fields and pronoun system. Character Creator scene and QuestManager expanded.<br><br>
+  <strong>Remaining for Phase 2:</strong> Harvest pipeline (Step 5): harvest decision UI (2.17), super collection (2.18), uncapping (2.19), extraction + grading (2.20), bottling (2.21), post-harvest frame state (2.24).
+  Partial harvest: beeswax tracking (2.22) and winter reserve warning (2.23) are done.
 </div>
 
 <!-- ================================================================= -->
@@ -574,13 +570,13 @@
       <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
       <tr>
         <td>2.11</td>
-        <td>Wire shop purchase flow</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Wire shop purchase flow</td><td><span class="tag tag-done">DONE</span></td>
         <td>shop_screen.gd exists with item display. Wire: select item, confirm purchase, deduct GameData.money, add to player inventory. Show insufficient funds warning. Items: smoker ($25), hive tool ($15), bee suit ($85), extractor ($200 at Level 2), refractometer ($45 at Level 2).</td>
         <td>shop_screen.gd (done), GameData (done)</td>
       </tr>
       <tr>
         <td>2.12</td>
-        <td>Level-gated items</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Level-gated items</td><td><span class="tag tag-done">DONE</span></td>
         <td>Some items require player level 2+. Show lock icon or "Requires Level 2" in shop. Extractor and refractometer are level-gated.</td>
         <td>2.11</td>
       </tr>
@@ -593,25 +589,25 @@
       <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
       <tr>
         <td>2.13</td>
-        <td>Smoker mechanic</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Smoker mechanic</td><td><span class="tag tag-done">DONE</span></td>
         <td>Smoker is an inventory item. Before inspection: prompt to smoke hive (if smoker in inventory). Smoking sets a "calmed" flag on the hive for that inspection. Over-smoking (3+ puffs) reduces observation accuracy (chance to misread cell states). Each puff costs 1 energy.</td>
         <td>2.11 (smoker purchasable)</td>
       </tr>
       <tr>
         <td>2.14</td>
-        <td>Sting probability system</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Sting probability system</td><td><span class="tag tag-done">DONE</span></td>
         <td>Per-frame sting check during inspection. Base: calm colony 10%, defensive 25%. Modifiers: bee suit x0.20, smoker x0.85, combined ~95% reduction. Evening (after 15:00) x1.25. Weather: cold/windy x1.15. Each sting costs 5-8 energy.</td>
         <td>2.13</td>
       </tr>
       <tr>
         <td>2.15</td>
-        <td>Bee suit equipment</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Bee suit equipment</td><td><span class="tag tag-done">DONE</span></td>
         <td>Purchased at Feed &amp; Supply ($85). When in inventory: automatically reduces sting chance x0.20. Could add equipped/unequipped toggle later, but for now just having it in inventory is enough.</td>
         <td>2.11 (purchasable)</td>
       </tr>
       <tr>
         <td>2.16</td>
-        <td>Sting feedback</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Sting feedback</td><td><span class="tag tag-done">DONE</span></td>
         <td>On sting: screen flash, energy deduction, notification toast ("Stung! -7 energy"). Track sting count per inspection for Knowledge Log (Phase 3).</td>
         <td>2.14</td>
       </tr>
@@ -654,13 +650,13 @@
       </tr>
       <tr>
         <td>2.22</td>
-        <td>Beeswax tracking</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Beeswax tracking</td><td><span class="tag tag-done">DONE</span></td>
         <td>Uncapping produces beeswax. Track beeswax_lbs in GameData. Foundation for Phase 4 crafting (candles, balm, polish). For now just accumulate it.</td>
         <td>2.19</td>
       </tr>
       <tr>
         <td>2.23</td>
-        <td>Winter reserve warning</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Winter reserve warning</td><td><span class="tag tag-done">DONE</span></td>
         <td>If honey_stores &lt;60 lbs approaching Reaping: orange tint on overworld hive. &lt;40 lbs: red tint + warning toast. Prevents player from over-harvesting and starving colony.</td>
         <td>SnapshotWriter (done)</td>
       </tr>
@@ -679,19 +675,19 @@
       <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
       <tr>
         <td>2.25</td>
-        <td>Saturday Market scene</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Saturday Market scene</td><td><span class="tag tag-done">DONE</span></td>
         <td>New scene or repurpose existing fairgrounds/cedar_bend area. Only accessible on Saturdays (TimeManager day-of-week check). Place Frank Fischbach NPC (script + sprite already done). Market stall visual.</td>
         <td>Harvest system (2.21), Frank NPC (done)</td>
       </tr>
       <tr>
         <td>2.26</td>
-        <td>Sell honey to Frank</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Sell honey to Frank</td><td><span class="tag tag-done">DONE</span></td>
         <td>Interact with Frank at market. He offers to buy honey jars. Prices: Standard $8/lb, Premium $11.20/lb (+40%), Economy $6.40/lb (-20%). Price modified by Community Standing tier. Sell up to 10 jars/week initially.</td>
         <td>2.25</td>
       </tr>
       <tr>
         <td>2.27</td>
-        <td>Transaction UI</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Transaction UI</td><td><span class="tag tag-done">DONE</span></td>
         <td>Show inventory of sellable honey, grade, quantity, price per unit. Confirm sale. Add dollars to GameData.money. Remove jars from inventory. Show earnings toast.</td>
         <td>2.26</td>
       </tr>
@@ -704,19 +700,19 @@
       <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
       <tr>
         <td>2.28</td>
-        <td>Standing tier system</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Standing tier system</td><td><span class="tag tag-done">DONE</span></td>
         <td>GameData.reputation exists as float. Implement 5 tiers: Newcomer (0-99), Known (100-249), Trusted (250-499), Respected (500-749), Beloved (750-1000). Price multipliers: x1.00, x1.02, x1.05, x1.10, x1.15. Display tier in HUD or pause menu.</td>
         <td>GameData (done)</td>
       </tr>
       <tr>
         <td>2.29</td>
-        <td>Standing gain actions</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Standing gain actions</td><td><span class="tag tag-done">DONE</span></td>
         <td>Award standing: +1/jar sold, +3/quest completed (Phase 3), +15-75/NPC quest. For Phase 2: selling honey is the primary Standing source.</td>
         <td>2.28, 2.26</td>
       </tr>
       <tr>
         <td>2.30</td>
-        <td>Standing affects prices</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Standing affects prices</td><td><span class="tag tag-done">DONE</span></td>
         <td>Wire Standing tier multiplier into Saturday Market sell price calculation. Higher tier = better prices. Show multiplier in transaction UI.</td>
         <td>2.28, 2.27</td>
       </tr>
@@ -786,13 +782,13 @@
       <tr>
         <td>3.0</td>
         <td>PlayerData singleton -- character fields</td>
-        <td><span class="tag tag-todo">TODO</span></td>
+        <td><span class="tag tag-done">DONE</span></td>
         <td>Add to GameData autoload (or new PlayerData.gd autoload): player_name (String, default "Eli"), pronouns (enum: HE_HIM / SHE_HER / THEY_THEM), backstory_tag (enum + freetext), appearance (skin_tone int 0-5, hair_style int 0-7, hair_color int 0-9, build int 0-2). Persist in SaveManager JSON. Must be initialized before any scene loads NPC dialogue.</td>
       </tr>
       <tr>
         <td>3.0a</td>
         <td>Character creator scene</td>
-        <td><span class="tag tag-todo">TODO</span></td>
+        <td><span class="tag tag-done">DONE</span></td>
         <td>New scene: character_creator.tscn. Runs on New Game before the opening cutscene. Sections: (1) Name entry -- free text field, max 24 chars, default "Eli". (2) Pronouns -- 3 buttons: He/Him, She/Her, They/Them. (3) Backstory tag -- 3 preset cards + "Write Your Own" (120 char free text, journal-only). (4) Appearance -- skin tone row (6 swatches), hair style grid (8 options), hair color row (10 swatches), build toggle (3 options). Live preview of player portrait updates in real time as selections change. Confirm button writes to PlayerData and advances to opening cutscene.</td>
       </tr>
       <tr>
@@ -804,13 +800,13 @@
       <tr>
         <td>3.0c</td>
         <td>Name injection -- UI and dialogue</td>
-        <td><span class="tag tag-todo">TODO</span></td>
+        <td><span class="tag tag-done">DONE</span></td>
         <td>Player name must appear in: (1) Saturday Market nameplate (Phase 2 -- wire during 2.25 market build), (2) Knowledge Log journal header ("[Name]'s Field Notes"), (3) Uncle Bob dialogue and NPC quest dialogue where the GDD uses "Eli". Implement as a global token replacement: all dialogue strings use {player_name} token. DialogueUI.gd resolves token before display.</td>
       </tr>
       <tr>
         <td>3.0d</td>
         <td>Pronoun token pass -- all NPC dialogue</td>
-        <td><span class="tag tag-todo">TODO</span></td>
+        <td><span class="tag tag-done">DONE</span></td>
         <td>Every NPC dialogue string that refers to the player must use tokens, not hardcoded pronouns. Token set: {they}, {them}, {their}, {theirs}, {themself}. DialogueUI.gd resolves tokens at display time based on PlayerData.pronouns. He/Him: he/him/his/his/himself. She/Her: she/her/her/hers/herself. They/Them: they/them/their/theirs/themself. Write all NEW dialogue with tokens from the start. Audit existing Bob dialogue (6 sets from Phase 1) and retrofit. Do not write "he said" or "she noticed" anywhere in hardcoded strings.</td>
       </tr>
       <tr>
@@ -828,7 +824,7 @@
       <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th></tr>
       <tr>
         <td>3.1</td>
-        <td>QuestManager expansion</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>QuestManager expansion</td><td><span class="tag tag-done">DONE</span></td>
         <td>QuestManager.gd skeleton exists (start/complete/fail API). Expand: quest type enum (Daily, Seasonal, NPC, Challenge, Mastery), reward dispatch (XP + money + standing), deadline tracking, quest_definitions dictionary, serialization hooks.</td>
       </tr>
       <tr>
@@ -838,7 +834,7 @@
       </tr>
       <tr>
         <td>3.3</td>
-        <td>Daily tasks</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Daily tasks</td><td><span class="tag tag-done">DONE</span></td>
         <td>10-30 XP, $5-25, +3 Standing each. Pool of ~20 tasks. New one each morning. Examples: "Check entrance for dead bees," "Test varroa load on Hive 3." Rotate from pool.</td>
       </tr>
       <tr>

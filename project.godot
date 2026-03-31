@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 TimeManager="*res://scripts/autoloads/TimeManager.gd"
 GameData="*res://scripts/autoloads/GameData.gd"
+PlayerData="*res://scripts/autoloads/PlayerData.gd"
 HiveManager="*res://scripts/autoloads/HiveManager.gd"
 ForageManager="*res://scripts/autoloads/ForageManager.gd"
 QuestManager="*res://scripts/autoloads/QuestManager.gd"

@@ -30,7 +30,10 @@
 #   "dandelion_spawner": { current_year, current_outcome, current_density,
 #                          bloom_day, bloomed, prior_goldenrod_good },
 #   "quest_manager"    : { active_quests{}, completed_quests[], quest_notes{} },
-#   "npc_flags"        : { uncle_bob_hint_index }
+#   "npc_flags"        : { uncle_bob_hint_index },
+#   "player_data"      : { player_name, pronoun_they, pronoun_them,
+#                          pronoun_their, pronoun_theirs, pronoun_themself,
+#                          backstory_tag, character_created }
 # }
 # ------------------------------------------------------------------------------
 extends Node
@@ -159,6 +162,10 @@ func save() -> bool:
 	# -- Weather state ---------------------------------------------------------
 	if WeatherManager and WeatherManager.has_method("collect_save_data"):
 		data["weather"] = WeatherManager.collect_save_data()
+
+	# -- Player identity (name, pronouns, backstory) --------------------------
+	if PlayerData and PlayerData.has_method("collect_save_data"):
+		data["player_data"] = PlayerData.collect_save_data()
 
 	# -- Write to disk ---------------------------------------------------------
 	var json_text: String = JSON.stringify(data, "\t")
@@ -305,6 +312,10 @@ func apply_to_scene(scene_root: Node) -> void:
 	elif WeatherManager and WeatherManager.has_method("roll_daily_weather"):
 		# No saved weather -- roll fresh for this day
 		WeatherManager.roll_daily_weather()
+
+	# -- Player identity (name, pronouns, backstory) --------------------------
+	if d.has("player_data") and PlayerData and PlayerData.has_method("apply_save_data"):
+		PlayerData.apply_save_data(d["player_data"])
 
 	# Clear pending state so a second call is a no-op.
 	has_pending_load = false

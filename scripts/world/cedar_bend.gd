@@ -229,7 +229,11 @@ func _open_market_sell() -> void:
 		push_error("[Cedar Bend] Failed to load sell_screen.tscn")
 		return
 	var sell_ui: Node = scene.instantiate()
-	sell_ui.price_per_jar = 10
+	# Apply standing price multiplier (GDD S9)
+	var base_price: int = 10
+	var mult: float = GameData.get_standing_price_mult()
+	var adjusted_price: int = int(float(base_price) * mult)
+	sell_ui.price_per_jar = adjusted_price
 	sell_ui.buyer_name = "Frank"
 	get_tree().root.add_child(sell_ui)
 

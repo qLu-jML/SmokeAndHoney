@@ -245,16 +245,11 @@ func _reset_common_state() -> void:
 
 func _on_start_spring() -> void:
 	_reset_common_state()
-	GameData.new_game_mode       = 0
-	TimeManager.current_day      = 1
-	_transition_to_game()
+	_show_character_creator(0)
 
 func _on_start_fall() -> void:
 	_reset_common_state()
-	GameData.new_game_mode       = 1
-	# Day 113 = first day of Full-Earth (Fall M1) in the 8-month calendar
-	TimeManager.current_day      = 113
-	_transition_to_game()
+	_show_character_creator(1)
 
 func _on_continue() -> void:
 	var sm := get_tree().root.get_node_or_null("SaveManager")
@@ -267,6 +262,29 @@ func _on_quit() -> void:
 
 func _quit() -> void:
 	get_tree().quit()
+
+func _show_character_creator(game_mode: int) -> void:
+	GameData.new_game_mode = game_mode
+	if game_mode == 0:
+		TimeManager.current_day = 1
+	else:
+		# Day 113 = first day of Full-Earth (Fall M1) in the 8-month calendar
+		TimeManager.current_day = 113
+	if PlayerData.character_created:
+		# Skip creator for returning players (shouldn't happen in new game, but safe)
+		_start_game()
+		return
+	var creator_scene: PackedScene = load("res://scenes/ui/CharacterCreator.tscn") as PackedScene
+	if creator_scene == null:
+		push_error("[MainMenu] CharacterCreator.tscn not found -- starting without it.")
+		_start_game()
+		return
+	var creator: Node = creator_scene.instantiate()
+	creator.creator_finished.connect(_start_game)
+	get_tree().root.add_child(creator)
+
+func _start_game() -> void:
+	_transition_to_game()
 
 func _transition_to_game() -> void:
 	# Hand music back to seasonal system
