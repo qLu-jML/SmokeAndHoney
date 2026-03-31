@@ -25,6 +25,7 @@ enum Station {
 	UNCAPPING,
 	SPINNER,
 	CANNING,
+	BUCKET,        # Honey bucket on the floor near the spinner
 }
 
 # Current harvest pipeline data
@@ -36,6 +37,7 @@ var _bucket_beeswax_lbs: float = 0.0   # Beeswax collected during uncapping
 var _spinner_spinning: bool = false     # Is spinner currently active?
 var _spinner_progress: float = 0.0     # 0.0 to 1.0 spin progress
 var _active_station: Station = Station.NONE
+var _player_carrying_bucket: bool = false  # True when player has picked up honey bucket
 
 # -- Station interaction zones ------------------------------------------------
 var _station_areas: Dictionary = {}    # Station -> Rect2 (world coords)
@@ -59,10 +61,15 @@ var _uncapping_overlay: Node = null
 # -- Canning state -----------------------------------------------------------
 var _canning_active: bool = false
 
+# -- Sprites -----------------------------------------------------------------
+var _spinner_sprite: Sprite2D = null   # Honey spinner graphic
+var _bucket_sprite: Sprite2D = null    # Honey bucket graphic
+
 # -- UI Elements -------------------------------------------------------------
 var _status_label: Label = null        # Shows current pipeline status
 var _progress_bar: ColorRect = null    # Spinner progress bar
 var _progress_fill: ColorRect = null
+var _carry_label: Label = null         # Shows "Carrying bucket" when player holds it
 
 # -- Station Rects (tile coordinates) ----------------------------------------
 # Layout (12x10 room):
@@ -81,6 +88,8 @@ const UNCAP_RECT    := Rect2(1, 4, 3, 2)
 const SPINNER_RECT  := Rect2(5, 4, 4, 3)
 const CANNING_RECT  := Rect2(1, 7, 4, 1)
 const SHELF_RECT    := Rect2(6, 7, 5, 1)
+# Tile where the honey bucket rests on the floor (bottom-right of spinner, in aisle)
+const BUCKET_TILE   := Vector2(5, 7)
 
 # -- Lifecycle ----------------------------------------------------------------
 func _ready() -> void:
@@ -124,11 +133,11 @@ func _draw() -> void:
 			draw_rect(r, fill, true)
 			draw_rect(r, edge_color, false, 0.5)
 
-	# Draw station areas with distinct colors
+	# Draw station areas -- spinner uses real sprite, others use colored rect
 	_draw_station_rect(PREP_RECT, Color(0.52, 0.42, 0.26, 1.0))     # wood brown
 	_draw_station_rect(HOLDER_RECT, Color(0.48, 0.38, 0.22, 1.0))   # darker wood
 	_draw_station_rect(UNCAP_RECT, Color(0.50, 0.40, 0.24, 1.0))    # medium wood
-	_draw_station_rect(SPINNER_RECT, Color(0.55, 0.57, 0.58, 1.0))  # metal grey
+	# SPINNER_RECT: drawn by _spinner_sprite Sprite2D node (no ColorRect fill)
 	_draw_station_rect(CANNING_RECT, Color(0.58, 0.48, 0.30, 1.0))  # warm wood
 	_draw_station_rect(SHELF_RECT, Color(0.62, 0.48, 0.30, 1.0))    # shelf brown
 
@@ -150,6 +159,7 @@ func _create_stations() -> void:
 	_station_areas[Station.UNCAPPING]    = Rect2(UNCAP_RECT.position * TILE, UNCAP_RECT.size * TILE)
 	_station_areas[Station.SPINNER]      = Rect2(SPINNER_RECT.position * TILE, SPINNER_RECT.size * TILE)
 	_station_areas[Station.CANNING]      = Rect2(CANNING_RECT.position * TILE, CANNING_RECT.size * TILE)
+	_station_areas[Station.BUCKET]       = Rect2(BUCKET_TILE * TILE, Vector2(TILE, TILE))
 
 	# Create labels for each station
 	_add_station_label(Station.SUPER_PREP, "Super Prep", PREP_RECT)
@@ -164,6 +174,44 @@ func _create_stations() -> void:
 	shelf_lbl.add_theme_color_override("font_color", Color(0.55, 0.45, 0.30, 1.0))
 	shelf_lbl.position = Vector2(SHELF_RECT.position.x * TILE + 8, SHELF_RECT.position.y * TILE - 12)
 	add_child(shelf_lbl)
+
+	# -- Spinner Sprite2D -------------------------------------------------------
+	var spinner_tex: Texture2D = load("res://assets/sprites/objects/honey_spinner.png") as Texture2D
+	if spinner_tex:
+		_spinner_sprite = Sprite2D.new()
+		_spinner_sprite.texture = spinner_tex
+		# Sprite2D is centered by default; offset to align top-left with SPINNER_RECT
+		_spinner_sprite.position = Vector2(
+			SPINNER_RECT.position.x * TILE + (SPINNER_RECT.size.x * TILE) * 0.5,
+			SPINNER_RECT.position.y * TILE + (SPINNER_RECT.size.y * TILE) * 0.5)
+		_spinner_sprite.z_index = 2
+		add_child(_spinner_sprite)
+
+	# -- Bucket Sprite2D (floor near spinner output) ----------------------------
+	var bucket_tex: Texture2D = load("res://assets/sprites/objects/honey_bucket.png") as Texture2D
+	if bucket_tex:
+		_bucket_sprite = Sprite2D.new()
+		_bucket_sprite.texture = bucket_tex
+		_bucket_sprite.position = Vector2(
+			BUCKET_TILE.x * TILE + TILE * 0.5,
+			BUCKET_TILE.y * TILE + TILE * 0.5)
+		_bucket_sprite.z_index = 3
+		_bucket_sprite.visible = false  # Hidden until honey is extracted
+		add_child(_bucket_sprite)
+
+	# Prompt label for the bucket station (no header label, just the E prompt)
+	var bucket_prompt := Label.new()
+	bucket_prompt.text = ""
+	bucket_prompt.add_theme_font_size_override("font_size", 5)
+	bucket_prompt.add_theme_color_override("font_color", Color(0.95, 0.78, 0.32, 1.0))
+	bucket_prompt.position = Vector2(
+		BUCKET_TILE.x * TILE - 10,
+		(BUCKET_TILE.y + 1) * TILE + 2)
+	bucket_prompt.size = Vector2(70, 10)
+	bucket_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	bucket_prompt.visible = false
+	add_child(bucket_prompt)
+	_station_prompts[Station.BUCKET] = bucket_prompt
 
 func _add_station_label(station: Station, text: String, tile_rect: Rect2) -> void:
 	var lbl := Label.new()
@@ -216,6 +264,18 @@ func _create_ui() -> void:
 	_progress_fill.size = Vector2(0, 6)
 	_progress_fill.position = Vector2(1, 1)
 	_progress_bar.add_child(_progress_fill)
+
+	# Carrying indicator -- shown at top when player holds the honey bucket
+	_carry_label = Label.new()
+	_carry_label.text = ""
+	_carry_label.add_theme_font_size_override("font_size", 5)
+	_carry_label.add_theme_color_override("font_color", Color(0.95, 0.78, 0.32, 1.0))
+	_carry_label.position = Vector2(TILE + 4, 14)
+	_carry_label.size = Vector2((room_width - 2) * TILE, 10)
+	_carry_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_carry_label.z_index = 10
+	_carry_label.visible = false
+	add_child(_carry_label)
 
 # -- Walls (same as generic_interior) ----------------------------------------
 func _build_walls() -> void:
@@ -296,20 +356,60 @@ const INTERACT_DIST := 48.0
 func _update_station_prompts(player: Node2D) -> void:
 	var ppos: Vector2 = player.global_position
 	_active_station = Station.NONE
+	var nearest_dist: float = INF
+	var nearest_station: Station = Station.NONE
+
+	# Sync bucket sprite visibility with state
+	if _bucket_sprite:
+		_bucket_sprite.visible = (_bucket_honey_lbs > 0.0 and not _player_carrying_bucket)
+
+	# Sync carry label
+	if _carry_label:
+		if _player_carrying_bucket:
+			_carry_label.text = "[ Carrying honey bucket -- %.1f lbs ]" % _bucket_honey_lbs
+			_carry_label.visible = true
+		else:
+			_carry_label.visible = false
 
 	for station_id in _station_areas:
-		var area: Rect2 = _station_areas[station_id]
+		var s: Station = station_id as Station
+
+		# When carrying bucket, only CANNING is interactable
+		if _player_carrying_bucket and s != Station.CANNING:
+			var pl: Label = _station_prompts.get(s)
+			if pl:
+				pl.visible = false
+			continue
+
+		# BUCKET station only valid when honey present and not carrying
+		if s == Station.BUCKET and (_bucket_honey_lbs <= 0.0 or _player_carrying_bucket):
+			var pl: Label = _station_prompts.get(s)
+			if pl:
+				pl.visible = false
+			continue
+
+		var area: Rect2 = _station_areas[s]
 		var center: Vector2 = area.get_center()
 		var dist: float = ppos.distance_to(center)
-		var prompt_lbl: Label = _station_prompts.get(station_id)
-		if dist < INTERACT_DIST + area.size.length() * 0.5:
-			_active_station = station_id as Station
-			if prompt_lbl:
-				prompt_lbl.text = _get_station_prompt(station_id as Station)
-				prompt_lbl.visible = true
+		var threshold: float = INTERACT_DIST + area.size.length() * 0.3
+
+		if dist < threshold and dist < nearest_dist:
+			nearest_dist = dist
+			nearest_station = s
+
+	# Show prompt only for the nearest valid station; hide all others
+	for station_id in _station_prompts:
+		var s: Station = station_id as Station
+		var lbl: Label = _station_prompts.get(s)
+		if not lbl:
+			continue
+		if s == nearest_station:
+			lbl.text = _get_station_prompt(s)
+			lbl.visible = lbl.text != ""
 		else:
-			if prompt_lbl:
-				prompt_lbl.visible = false
+			lbl.visible = false
+
+	_active_station = nearest_station
 
 func _get_station_prompt(station: Station) -> String:
 	match station:
@@ -337,13 +437,16 @@ func _get_station_prompt(station: Station) -> String:
 				return "[E] Spin! (%d frames)" % _frames_in_spinner.size()
 			return "Spinner (%d/10)" % _frames_in_spinner.size()
 		Station.CANNING:
-			if _bucket_honey_lbs > 0.0:
-				var player := _find_player()
-				var jars: int = 0
-				if player and player.has_method("count_item"):
-					jars = player.count_item(GameData.ITEM_JAR)
-				return "[E] Fill Jar (%.1f lbs)" % _bucket_honey_lbs
+			if _player_carrying_bucket:
+				if _bucket_honey_lbs >= 1.0:
+					return "[E] Fill jar (%.1f lbs)" % _bucket_honey_lbs
+				return "Bucket empty"
+			elif _bucket_honey_lbs > 0.0:
+				return "Pick up bucket first"
 			return "No honey in bucket"
+		Station.BUCKET:
+			if _bucket_honey_lbs > 0.0 and not _player_carrying_bucket:
+				return "[E] Pick up bucket (%.1f lbs)" % _bucket_honey_lbs
 	return ""
 
 # -- Input Handling -----------------------------------------------------------
@@ -373,6 +476,8 @@ func _interact_with_station() -> void:
 			_action_spinner()
 		Station.CANNING:
 			_action_canning()
+		Station.BUCKET:
+			_action_pickup_bucket()
 
 # -- Station Actions ----------------------------------------------------------
 
@@ -511,18 +616,47 @@ func _finish_spinning() -> void:
 			player.add_item(GameData.ITEM_BEESWAX, extra)
 		GameData.beeswax_fractional -= float(extra)
 
-	_show_status("Honey extracted! %.1f lbs in bucket. Take to canning table!" % _bucket_honey_lbs)
+	_show_status("Honey extracted! %.1f lbs in bucket. Pick it up and take it to the canning table!" % _bucket_honey_lbs)
+
+	# Make bucket visible on the floor near the spinner
+	if _bucket_sprite:
+		_bucket_sprite.position = Vector2(
+			BUCKET_TILE.x * TILE + TILE * 0.5,
+			BUCKET_TILE.y * TILE + TILE * 0.5)
+		_bucket_sprite.visible = true
 
 	# XP for extraction
 	GameData.add_xp(GameData.XP_HARVEST)
 
-## CANNING: Fill jars from the honey bucket.
+## BUCKET PICKUP: Player picks up the honey bucket from the floor.
+func _action_pickup_bucket() -> void:
+	if _bucket_honey_lbs <= 0.0:
+		_show_status("Bucket is empty -- spin honey first!")
+		return
+	if _player_carrying_bucket:
+		_show_status("You are already carrying the bucket!")
+		return
+	_player_carrying_bucket = true
+	if _bucket_sprite:
+		_bucket_sprite.visible = false
+	_show_status("Carrying honey bucket (%.1f lbs). Take it to the canning table!" % _bucket_honey_lbs)
+
+## CANNING: Fill jars from the honey bucket (must be carrying it).
 func _action_canning() -> void:
+	if not _player_carrying_bucket:
+		if _bucket_honey_lbs > 0.0:
+			_show_status("Pick up the honey bucket near the spinner first!")
+		else:
+			_show_status("No honey in bucket! Extract honey first.")
+		return
+
 	if _bucket_honey_lbs < 1.0:
 		if _bucket_honey_lbs > 0.0:
 			_show_status("Not enough honey for a full jar (%.1f lbs)." % _bucket_honey_lbs)
 		else:
-			_show_status("No honey in bucket! Extract honey first.")
+			# Bucket drained completely -- put it down
+			_player_carrying_bucket = false
+			_show_status("Bucket empty! All honey has been jarred.")
 		return
 
 	var player := _find_player()
@@ -543,6 +677,12 @@ func _action_canning() -> void:
 	player.add_item(GameData.ITEM_HONEY_JAR, 1)
 	if player.has_method("update_hud_inventory"):
 		player.update_hud_inventory()
+
+	# Auto-release bucket when empty
+	if _bucket_honey_lbs < 1.0:
+		_player_carrying_bucket = false
+		_show_status("Last jar filled! Bucket empty. Harvest complete!")
+		return
 
 	var jars_remaining: int = player.count_item(GameData.ITEM_JAR)
 	var can_fill: int = int(_bucket_honey_lbs)
