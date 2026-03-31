@@ -1,3 +1,21 @@
+[2026-03-31 CDT] ART: Leonardo AI sprites for honey spinner + bucket; TileSet error fix
+  1. HONEY SPINNER SPRITE (objects/honey_spinner.png): Replaced gray circle placeholder with
+     Leonardo AI extractor barrel art (128x96, transparent bg). harvest_yard.gd now creates
+     a Sprite2D node (_extractor_sprite) instead of drawing a circle in _draw().
+  2. HONEY BUCKET SPRITES:
+     - honey_bucket.png (48x48): Full bucket -- Leonardo art with orange honey visible.
+     - honey_bucket_empty.png (48x48): NEW -- empty bucket with cream interior (derived from full).
+     harvest_yard.gd preloads both textures in _create_bucket_sprite(), _update_bucket_visual()
+     switches between them based on _bucket_honey_lbs and moves the sprite between yard/table.
+  3. HARVEST_YARD.GD CLEANUP: Removed unused _station_sprites and _bucket_node variables
+     (eliminated two GDScript reload warnings visible in debugger).
+  4. TILESET ERROR FIX: Upscaled 5 flower tile textures from 16x16 -> 32x32 (nearest-neighbor)
+     -- clover_mature, aster_mature, coneflower_mature, dandelion_mature, goldenrod_mature.
+     TileSetAtlasSource in home_property.tscn specifies texture_region_size 32x32; 16x16 textures
+     caused repeated "create_tile: Cannot create tile -- outside texture" errors at startup.
+  PENDING ASSETS (not yet generated in Leonardo): pallet (new version), jarring/bottling table.
+  Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
+
 [2026-03-31 CDT] FEATURE: Beeswax tracking, winter reserve warning, HUD standing/smoker display, quest system, name injection
   1. BEESWAX TRACKING (task 2.22): Scraping minigame already collects beeswax at ~0.735 lbs per frame
      and stores in _bucket_beeswax_lbs. _try_give_beeswax() converts fractional lbs to ITEM_BEESWAX
