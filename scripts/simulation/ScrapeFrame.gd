@@ -42,10 +42,16 @@ func get_cell(x: int, y: int, side: int = 0) -> int:
 func fill_for_harvest(capping_pct: float) -> void:
 	var cap_norm: float = clampf(capping_pct / 100.0, 0.0, 1.0)
 	var curing_pct: float = (1.0 - cap_norm) * 0.5  # half the uncapped cells are curing
-
+	# Build fresh local arrays, then assign -- avoids any copy-on-write ambiguity
+	var new_a: PackedByteArray = PackedByteArray()
+	var new_b: PackedByteArray = PackedByteArray()
+	new_a.resize(SUPER_SIZE)
+	new_b.resize(SUPER_SIZE)
 	for i in SUPER_SIZE:
-		cells[i]   = _pick_state(cap_norm, curing_pct)
-		cells_b[i] = _pick_state(cap_norm, curing_pct)
+		new_a[i] = _pick_state(cap_norm, curing_pct)
+		new_b[i] = _pick_state(cap_norm, curing_pct)
+	cells   = new_a
+	cells_b = new_b
 
 func _pick_state(cap_norm: float, curing_norm: float) -> int:
 	var r: float = randf()

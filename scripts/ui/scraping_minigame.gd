@@ -80,6 +80,10 @@ const C_ACCENT     := Color(0.95, 0.78, 0.32, 1.0)
 # Scraper knife highlight -- warm honey gold, semi-transparent
 const C_BRUSH      := Color(0.95, 0.85, 0.30, 0.22)
 const C_BRUSH_EDGE := Color(0.95, 0.78, 0.32, 0.55)
+const C_HANDLE     := Color(0.45, 0.30, 0.12, 0.92)   # dark wood handle below blade
+const C_HANDLE_HI  := Color(0.62, 0.44, 0.20, 0.85)   # handle highlight edge
+const HANDLE_W     := 8    # handle width in px
+const HANDLE_H     := 20   # handle height below cell area in px
 
 # -- Scraping state -----------------------------------------------------------
 var _current_side: int = 0     # 0 = Side A, 1 = Side B
@@ -94,9 +98,11 @@ const BRUSH_HALF := 3
 # -- UI nodes -----------------------------------------------------------------
 var _bg:           Control  = null   # root control parent (matches InspectionOverlay bg)
 var _cell_rect:    TextureRect = null
-var _brush_rect:   ColorRect  = null  # scraper knife visual
-var _brush_edge_l: ColorRect  = null  # left edge highlight
-var _brush_edge_r: ColorRect  = null  # right edge highlight
+var _brush_rect:   ColorRect  = null  # scraper knife blade (over cell area)
+var _brush_edge_l: ColorRect  = null  # left blade edge highlight
+var _brush_edge_r: ColorRect  = null  # right blade edge highlight
+var _brush_handle: ColorRect  = null  # handle stub below frame bottom bar
+var _brush_hnd_hi: ColorRect  = null  # handle left highlight stripe
 var _header_lbl:   Label      = null
 var _side_lbl:     Label      = null
 var _progress_lbl: Label      = null
@@ -113,13 +119,20 @@ func _ready() -> void:
 	layer = 20
 	_renderer = FrameRenderer.new()
 	_build_ui()
-	if frame != null:
-		_count_cappable()
-	# Defer the initial render one frame so the GPU-side texture pipeline
-	# is fully initialised before we push pixel data into it. (Same pattern
-	# as InspectionOverlay, which calls _refresh_frame() from open() *after*
-	# add_child completes.)
-	call_deferred("_render")
+	# Safety: if no frame was injected, or the frame has no honey cells,
+	# create/fill one so the minigame always shows the correct honeycomb.
+	if frame == null:
+		var sf: ScrapeFrame = ScrapeFrame.new()
+		sf.fill_for_harvest(85.0)
+		frame = sf
+	elif frame.has_method("count_capped"):
+		var capped: int = int(frame.call("count_capped", 0))
+		if capped == 0 and frame.has_method("fill_for_harvest"):
+			frame.call("fill_for_harvest", 85.0)
+	_count_cappable()
+	# Render directly -- same approach as InspectionOverlay._refresh_frame()
+	# which assigns texture synchronously without any deferred call.
+	_render()
 
 func _apply_cursor() -> void:
 	if ResourceLoader.exists(CURSOR_PATH):
@@ -277,6 +290,28 @@ func _build_ui() -> void:
 	_brush_edge_r.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_bg.add_child(_brush_edge_r)
 
+	# -- Scraper handle (below the frame bottom bar, centered on blade) --
+	# Appears below the cell area to suggest a physical uncapping knife held
+	# from below. Width = HANDLE_W, height = HANDLE_H, dark wood colour.
+	var hand_y: float = float(cell_y + EFF_CELL_H)
+	var hand_x: float = float(cell_x) + float(CELL_AREA_W) / 2.0 - float(HANDLE_W) / 2.0
+	_brush_handle = ColorRect.new()
+	_brush_handle.color    = C_HANDLE
+	_brush_handle.size     = Vector2(HANDLE_W, HANDLE_H)
+	_brush_handle.position = Vector2(hand_x, hand_y)
+	_brush_handle.visible  = false
+	_brush_handle.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bg.add_child(_brush_handle)
+
+	# Handle left highlight stripe (1 px, lighter wood)
+	_brush_hnd_hi = ColorRect.new()
+	_brush_hnd_hi.color    = C_HANDLE_HI
+	_brush_hnd_hi.size     = Vector2(1, HANDLE_H)
+	_brush_hnd_hi.position = Vector2(hand_x, hand_y)
+	_brush_hnd_hi.visible  = false
+	_brush_hnd_hi.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bg.add_child(_brush_hnd_hi)
+
 	# -- Footer --
 	_crect(C_BORDER,    0, VP_H - FOOTER_H, VP_W, 1)
 	_crect(C_HEADER_BG, 0, VP_H - FOOTER_H, VP_W, FOOTER_H)
@@ -353,6 +388,17 @@ func _update_brush(screen_pos: Vector2, col: int) -> void:
 	_brush_edge_l.position = Vector2(bx, cell_y)
 	_brush_edge_r.position = Vector2(bx + bw - 1.0, cell_y)
 
+	# Handle: centered below blade
+	var blade_cx: float = bx + bw / 2.0
+	var hand_y: float   = cell_y + float(EFF_CELL_H)
+	var hand_x: float   = blade_cx - float(HANDLE_W) / 2.0
+	if _brush_handle:
+		_brush_handle.position = Vector2(hand_x, hand_y)
+		_brush_handle.visible  = inside
+	if _brush_hnd_hi:
+		_brush_hnd_hi.position = Vector2(hand_x, hand_y)
+		_brush_hnd_hi.visible  = inside
+
 func _hide_brush() -> void:
 	if _brush_rect:
 		_brush_rect.visible   = false
@@ -360,6 +406,10 @@ func _hide_brush() -> void:
 		_brush_edge_l.visible = false
 	if _brush_edge_r:
 		_brush_edge_r.visible = false
+	if _brush_handle:
+		_brush_handle.visible = false
+	if _brush_hnd_hi:
+		_brush_hnd_hi.visible = false
 
 # =========================================================================
 # FRAME RENDERING (FrameRenderer, same pipeline as InspectionOverlay)

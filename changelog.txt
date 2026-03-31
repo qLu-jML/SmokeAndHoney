@@ -335,3 +335,25 @@
 2026-03-30 - Add comb scraper + bucket grip to starting player inventory
   ITEM_COMB_SCRAPER and ITEM_BUCKET_GRIP added to player._ready() starting slots.
   Removed duplicate copies from _stock_starting_chest().
+
+2026-03-30 - Fix de-capping frame rendering dark + add scraper knife handle
+  Problem 1: ScrapeFrame.fill_for_harvest() cells were not reliably propagating.
+    Changed to build fresh local PackedByteArrays (new_a, new_b), fill them,
+    then assign back to cells/cells_b -- avoids any copy-on-write ambiguity.
+  Problem 2: scraping_minigame._render() was deferred; changed to direct call
+    (same pattern as InspectionOverlay._refresh_frame() which works fine sync).
+    Added safety net: if frame is null or has 0 capped cells on arrival,
+    create/fill a default ScrapeFrame so the minigame always shows honey.
+  Scraper knife handle: added _brush_handle + _brush_hnd_hi ColorRects below
+    the frame bottom bar. Handle (dark wood, 8x20px) tracks the blade center,
+    giving the visual of a real uncapping knife held from below. Blade width
+    (BRUSH_HALF=3, ~27px = 1/10 of cell area) unchanged per user spec.
+
+2026-03-30 - Dev buttons in InspectionOverlay: more visible + auto-toggle with G key
+  Added "DEV:" amber label to the left of the +Day/+Month buttons.
+  Increased button height from 10 to 11, font size from 4 to 5.
+  Brighter button backgrounds (0.28, 0.20, 0.06 vs old 0.15, 0.10, 0.05).
+  Border width increased from 1 to 2px.
+  Font color changed to bright yellow-white so text stands out on dark footer.
+  All three elements (label + 2 buttons) added to "dev_label" group so the
+    G key auto-shows/hides them instantly without needing _apply_tier_visibility.

@@ -424,26 +424,39 @@ func _ready() -> void:
 
 func _build_dev_advance_buttons(bg: Control) -> void:
 	var btn_w: int = 36
-	var btn_h: int = 10
+	var btn_h: int = 11
 	var gap: int = 2
-	# Place buttons side-by-side in the footer blank space (right of instructions,
-	# left of the stats column). Footer top = VP_H - FOOTER_H, centered vertically.
-	var by: int = VP_H - FOOTER_H + 1
+	# Place buttons in the footer. The "DEV" label sits left of the buttons.
+	var by: int   = VP_H - FOOTER_H + 1
 	var bx_month: int = GRID_W - btn_w - 2
 	var bx_day: int   = bx_month - btn_w - gap
 
+	# "DEV:" marker label -- added to dev_label group so G key auto-shows it
+	var dev_lbl: Label = Label.new()
+	dev_lbl.text = "DEV:"
+	dev_lbl.add_theme_font_size_override("font_size", 5)
+	dev_lbl.add_theme_color_override("font_color", Color(1.0, 0.88, 0.15, 1.0))
+	dev_lbl.position = Vector2(bx_day - 30, by + 1)
+	dev_lbl.size     = Vector2(28, 9)
+	dev_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	dev_lbl.add_to_group("dev_label")
+	bg.add_child(dev_lbl)
+
 	_dev_day_btn = _make_dev_btn("+ Day", bx_day, by, btn_w, btn_h, C_ACCENT)
 	_dev_day_btn.pressed.connect(_on_dev_advance_day_inspection)
+	_dev_day_btn.add_to_group("dev_label")
 	bg.add_child(_dev_day_btn)
 
 	_dev_month_btn = _make_dev_btn("+ Month", bx_month, by, btn_w, btn_h,
 		Color(0.95, 0.65, 0.20))
 	_dev_month_btn.pressed.connect(_on_dev_advance_month_inspection)
+	_dev_month_btn.add_to_group("dev_label")
 	bg.add_child(_dev_month_btn)
 
-	# Only visible in dev mode
+	# Set initial visibility -- also handled by G-key group toggle and _apply_tier_visibility
 	var vis: bool = GameData.dev_labels_visible
-	_dev_day_btn.visible = vis
+	dev_lbl.visible        = vis
+	_dev_day_btn.visible   = vis
 	_dev_month_btn.visible = vis
 
 func _make_dev_btn(label: String, x: int, y: int, w: int, h: int, col: Color) -> Button:
@@ -451,22 +464,24 @@ func _make_dev_btn(label: String, x: int, y: int, w: int, h: int, col: Color) ->
 	btn.text = label
 	btn.clip_text = true
 	btn.focus_mode = Control.FOCUS_NONE
-	btn.add_theme_font_size_override("font_size", 4)
-	btn.add_theme_color_override("font_color", Color(0.95, 0.90, 0.75))
+	btn.add_theme_font_size_override("font_size", 5)
+	btn.add_theme_color_override("font_color", Color(1.0, 0.96, 0.60, 1.0))
 	btn.add_theme_color_override("font_hover_color", col)
 	btn.add_theme_color_override("font_pressed_color", Color(1.0, 1.0, 1.0))
 	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
 		var sb := StyleBoxFlat.new()
 		if state == "hover":
-			sb.bg_color = Color(0.22, 0.16, 0.08, 0.95)
+			sb.bg_color = Color(0.30, 0.22, 0.06, 0.98)
 		elif state == "pressed":
-			sb.bg_color = Color(0.30, 0.22, 0.10, 0.95)
+			sb.bg_color = Color(0.42, 0.30, 0.08, 0.98)
 		elif state == "focus":
 			sb.bg_color = Color(0, 0, 0, 0)
 		else:
-			sb.bg_color = Color(0.15, 0.10, 0.05, 0.95)
+			# Noticeably lighter amber than the footer background so the
+			# button is easy to spot even at the game's small pixel scale.
+			sb.bg_color = Color(0.28, 0.20, 0.06, 0.98)
 		sb.border_color = col
-		sb.set_border_width_all(1)
+		sb.set_border_width_all(2)
 		sb.set_content_margin_all(0)
 		btn.add_theme_stylebox_override(state, sb)
 	btn.position = Vector2(x, y)
