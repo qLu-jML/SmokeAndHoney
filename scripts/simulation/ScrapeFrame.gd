@@ -63,6 +63,22 @@ func _pick_state(cap_norm: float) -> int:
 		# Uncapped cells are still curing -- honey is present but not yet sealed
 		return CellStateTransition.S_CURING_HONEY
 
+# Fill from actual hive frame cell data (preserves exact inspection appearance).
+# cells_a / cells_b must be PackedByteArray of length >= SUPER_SIZE.
+func fill_from_hive_data(cells_a: PackedByteArray, cells_b: PackedByteArray) -> void:
+	var new_a: PackedByteArray = PackedByteArray()
+	var new_b: PackedByteArray = PackedByteArray()
+	new_a.resize(SUPER_SIZE)
+	new_b.resize(SUPER_SIZE)
+	var src_len_a: int = cells_a.size()
+	var src_len_b: int = cells_b.size()
+	for i in SUPER_SIZE:
+		# Copy real state; default to premium honey if source is shorter
+		new_a[i] = int(cells_a[i]) if i < src_len_a else CellStateTransition.S_PREMIUM_HONEY
+		new_b[i] = int(cells_b[i]) if i < src_len_b else CellStateTransition.S_PREMIUM_HONEY
+	cells   = new_a
+	cells_b = new_b
+
 # Count capped cells on one side (used for progress tracking)
 func count_capped(side: int = 0) -> int:
 	var arr: PackedByteArray = cells if side == 0 else cells_b

@@ -429,14 +429,23 @@ func _action_super_pallet(player: Node2D) -> void:
 	if player.has_method("update_hud_inventory"):
 		player.update_hud_inventory()
 
-	# Generate 10 frames from the super
+	# Generate 10 frames from the super using actual hive cell data
 	_frames_on_pallet.clear()
+	var stored: Array = GameData.harvested_super_frames
 	for i in 10:
+		var sf: ScrapeFrame = ScrapeFrame.new()
+		if i < stored.size():
+			sf.fill_from_hive_data(stored[i]["cells_a"], stored[i]["cells_b"])
+		else:
+			sf.fill_for_harvest(100.0)  # fallback: assume fully capped
 		_frames_on_pallet.append({
 			"frame_idx": i,
 			"honey_lbs": 4.0,
-			"capping_pct": 85.0,
+			"capping_pct": 100.0,
+			"scrap_frame": sf,
 		})
+	# Consume stored data so it is not reused for a different super
+	GameData.harvested_super_frames.clear()
 	_super_placed = true
 
 	# Return the empty super box to inventory
@@ -466,6 +475,14 @@ func _start_scraping_minigame() -> void:
 	_scraping_overlay.layer = 20
 	_scraping_overlay.name = "ScrapingOverlay"
 	_scraping_overlay.set_script(overlay_script)
+
+	# Pass actual frame cell data so de-capping matches inspection view
+	var frame_data: Dictionary = _frames_on_pallet[0]
+	var sf: Object = frame_data.get("scrap_frame", null)
+	_scraping_overlay.set("frame", sf)
+	_scraping_overlay.set("frame_index", 10 - _frames_on_pallet.size() + 1)
+	_scraping_overlay.set("frame_total", 10)
+
 	add_child(_scraping_overlay)
 	_scraping_overlay.add_to_group("inspection_overlay")
 
@@ -627,7 +644,12 @@ func _action_bottling(player: Node2D) -> void:
 			return
 		# Check if player has empty jars selected (active slot)
 		var held: String = _get_held_item(player)
+		# If player is NOT holding empty jars but there are filled jars,
+		# let them collect the filled jars (e.g. holding bucket grip or any other item)
 		if held != GameData.ITEM_JAR:
+			if _jars_on_table > 0:
+				_collect_jars(player)
+				return
 			_notify("Select Empty Jars in your inventory, then press [E].")
 			return
 		_start_bottling_minigame(player)
@@ -672,8 +694,8 @@ func _collect_jars(player: Node2D) -> void:
 			_notify("Collected %d jars! %d left (inventory full)." % [collected, remaining])
 		else:
 			_notify("Collected %d honey jars! Sell at the market." % collected)
-	# Clear table state when all jars collected
-	if _jars_on_table <= 0:
+	# Only remove bucket from table if jars are all collected AND bucket is empty
+	if _jars_on_table <= 0 and _bucket_honey_lbs < 1.0:
 		_bucket_on_bottling_table = false
 	queue_redraw()
 

@@ -108,6 +108,15 @@ var coffee_until_hour: float = -1.0
 # XP buff from seasonal special: until what game-day does the 5% XP bonus apply?
 var xp_buff_until_day: int = -1
 
+# -- Harvested Super Data ------------------------------------------------------
+# When a honey super is removed from a hive, its frame cell data is stored here
+# so the honey house / harvest yard can recreate the exact cell distribution the
+# player saw during inspection.  Each entry is a dict:
+#   { "cells_a": PackedByteArray, "cells_b": PackedByteArray,
+#     "cols": int, "rows": int }
+# The array holds up to 10 frames (one super).  Consumed when super is opened.
+var harvested_super_frames: Array = []
+
 # -- Pending Deliveries --------------------------------------------------------
 # Array of { "item": String, "count": int } -- checked by mailbox in county_road.gd
 var pending_deliveries: Array = []

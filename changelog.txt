@@ -1,3 +1,22 @@
+[2026-03-30 CDT] FIX: Frame data discrepancy + honey jar pickup
+  1. FRAME DATA DISCREPANCY: De-capping minigame now uses actual hive cell data
+     instead of a hardcoded 85% capping distribution. When a super is removed from
+     the hive, its frame cell arrays are stored in GameData.harvested_super_frames.
+     Both honey_house.gd and harvest_yard.gd read this stored data via
+     ScrapeFrame.fill_from_hive_data() so the de-capping view matches inspection.
+     Files changed: GameData.gd (new harvested_super_frames var),
+     ScrapeFrame.gd (new fill_from_hive_data method), hive_management.gd (store
+     frame data on remove), player.gd (store frame data on marked-super remove),
+     honey_house.gd (use stored data), harvest_yard.gd (use stored data + pass
+     ScrapeFrame to scraping overlay).
+  2. HONEY JAR STACKING: Max stack for ITEM_HONEY_JAR changed from 99 to 20
+     in player.gd get_max_stack().
+  3. JAR COLLECTION FIX: Players can now collect filled jars from the bottling
+     table even when the bucket still has honey. If the active item is not an
+     empty jar and there are filled jars on the table, pressing E collects them.
+     Bucket stays on table until both jars are collected AND bucket is empty.
+  Protected files verified: GDD 603,634 bytes, DevPlan 139,015 bytes.
+
 [2026-03-30 CDT] LOGO: Approved game logo propagated to Five Cats / beekeeperPro project files
   - Copied assets/ui/logo/game_logo.png to beekeeperPro/assets/game_logo.png
   - Updated beekeeperPro/Smoke_and_honey.html Slide 8 ("Logo concepts") to display the

@@ -523,20 +523,27 @@ func _action_super_prep() -> void:
 		player.update_hud_inventory()
 
 	# Generate 10 frame data entries from the super.
-	# Each frame carries a ScrapeFrame object with realistic cell state data so
-	# the uncapping minigame can render the exact InspectionOverlay view.
+	# Each frame carries a ScrapeFrame object with the actual cell state data
+	# from the hive so the uncapping minigame matches what the player saw
+	# during inspection.
 	_frames_in_holder.clear()
+	var stored: Array = GameData.harvested_super_frames
 	for i in 10:
 		var sf: ScrapeFrame = ScrapeFrame.new()
-		sf.fill_for_harvest(85.0)   # 85% capped honey, Level 1 default
+		if i < stored.size():
+			sf.fill_from_hive_data(stored[i]["cells_a"], stored[i]["cells_b"])
+		else:
+			sf.fill_for_harvest(100.0)  # fallback: assume fully capped
 		_frames_in_holder.append({
 			"frame_idx": i,
 			"honey_lbs": 4.0,   # Full medium super frame (40 lbs per 10-frame super)
-			"capping_pct": 85.0,
+			"capping_pct": 100.0,
 			"uncapped": false,
 			"beeswax_lbs": 0.0,
 			"scrap_frame": sf,  # ScrapeFrame for the de-capping minigame
 		})
+	# Consume stored data so it is not reused for a different super
+	GameData.harvested_super_frames.clear()
 	_show_status("Super opened! 10 frames loaded into Frame Holder.")
 	# Return the empty super box to player inventory
 	if player.has_method("add_item"):

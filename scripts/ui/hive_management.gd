@@ -355,6 +355,17 @@ func _on_remove_super() -> void:
 	# Give back the correct item based on honey content
 	if player.has_method("add_item"):
 		if has_honey:
+			# Store actual frame cell data so honey house / harvest yard can
+			# recreate the exact cell distribution the player saw in inspection.
+			GameData.harvested_super_frames.clear()
+			if removed.has_method("get") or "frames" in removed:
+				for frame in removed.frames:
+					GameData.harvested_super_frames.append({
+						"cells_a": frame.cells.duplicate(),
+						"cells_b": frame.cells_b.duplicate(),
+						"cols": frame.grid_cols,
+						"rows": frame.grid_rows,
+					})
 			player.add_item(GameData.ITEM_FULL_SUPER, 1)
 			_show_status("Super removed -- take it to the Honey House!")
 		else:

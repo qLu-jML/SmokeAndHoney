@@ -19,7 +19,7 @@ var active_slot: int = 0
 func get_max_stack(item_name: String) -> int:
 	match item_name:
 		GameData.ITEM_RAW_HONEY:  return 999
-		GameData.ITEM_HONEY_JAR:  return 99
+		GameData.ITEM_HONEY_JAR:  return 20
 		GameData.ITEM_BEESWAX:    return 99
 		GameData.ITEM_BEEHIVE:    return 5     # up to 5 complete hives per slot
 		GameData.ITEM_HIVE_STAND: return 5
@@ -497,6 +497,16 @@ func _perform_action() -> void:
 			if nearby_hive.has_method("has_marked_super") and nearby_hive.has_marked_super():
 				var removed = nearby_hive.remove_marked_super()
 				if removed != null:
+					# Store actual frame cell data for honey house / harvest yard
+					GameData.harvested_super_frames.clear()
+					if "frames" in removed:
+						for fr in removed.frames:
+							GameData.harvested_super_frames.append({
+								"cells_a": fr.cells.duplicate(),
+								"cells_b": fr.cells_b.duplicate(),
+								"cols": fr.grid_cols,
+								"rows": fr.grid_rows,
+							})
 					add_item(GameData.ITEM_FULL_SUPER, 1)
 					update_hud_inventory()
 					var nm = get_tree().root.get_node_or_null("NotificationManager")
