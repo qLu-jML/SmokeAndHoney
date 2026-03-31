@@ -3,7 +3,7 @@ REM Push Smoke & Honey GDD wiki pages to GitHub
 REM Run this script from the wiki_export folder
 
 echo Cloning wiki repo...
-git clone https://github.com/qLu-jML/SmokeAndHoney.wiki.git wiki_temp
+git clone git@github.com:qLu-jML/SmokeAndHoney.wiki.git wiki_temp
 if errorlevel 1 (
     echo.
     echo ERROR: Could not clone wiki repo.
