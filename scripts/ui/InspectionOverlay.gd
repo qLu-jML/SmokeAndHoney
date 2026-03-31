@@ -584,6 +584,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				_toggle_frame_harvest_mark()
 		KEY_E:
 			_harvest_from_overlay()
+		KEY_G:
+			# Forward G to GameData so dev mode toggles while overlay is open.
+			# Without this explicit case the unconditional set_input_as_handled()
+			# below would consume G before the player/GameData ever sees it.
+			GameData.toggle_dev_labels()
 	get_viewport().set_input_as_handled()
 
 func _unhandled_input(event: InputEvent) -> void:

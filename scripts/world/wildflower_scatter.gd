@@ -98,22 +98,6 @@ const TEXTURE_PATHS: Dictionary = {
 # Consistent seed so clusters look the same every load (but still organic)
 const SCATTER_SEED := 48271953
 
-# Equipment/building exclusion zones -- no flowers spawn inside these rects (world space).
-# Buildings zone: farmhouse (~80,-80), honey house (~450,-40), workbench (520,-20).
-# Harvest yard: node at (480,350), stations span ~420-860 x, 240-560 y.
-# Hive area: small buffer around hive at (300,350).
-const EXCLUSION_RECTS: Array = [
-	Rect2(-80, -200, 720, 250),
-	Rect2(420, 240, 460, 330),
-	Rect2(248, 298, 110, 110),
-]
-
-func _is_excluded(pos: Vector2) -> bool:
-	for r in EXCLUSION_RECTS:
-		if (r as Rect2).has_point(pos):
-			return true
-	return false
-
 func _ready() -> void:
 	# Remove any old static flower patch Sprite2D children (keep WillowTree etc.)
 	for child in get_children():
@@ -166,12 +150,7 @@ func _spawn_cluster(def: Dictionary, rng: RandomNumberGenerator) -> void:
 		var alpha := rng.randf_range(0.75, 0.95)
 		sprite.modulate = Color(1.0, 1.0, 1.0, alpha)
 
-		# -- Skip positions inside buildings, equipment, or hive zones
-		if _is_excluded(sprite.position):
-			sprite.queue_free()
-			continue
-
-		# -- Z-index: flowers sit just above grass tiles
+		# -- Z-index 1: renders below equipment/buildings (which use z=3+)
 		sprite.z_index = 1
 
 		# -- Metadata for forage system

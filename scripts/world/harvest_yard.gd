@@ -188,7 +188,7 @@ func _create_pallet_sprites() -> void:
 		_super_pallet_sprite.texture = tex
 	# Sprite origin is center; offset to align top-left corner with station pos
 	_super_pallet_sprite.position = STATION_POS[Station.SUPER_PALLET] + sp_size * 0.5
-	_super_pallet_sprite.z_index = 1
+	_super_pallet_sprite.z_index = 3
 	add_child(_super_pallet_sprite)
 
 	# Scraped Frame Pallet sprite (reuses same texture)
@@ -197,7 +197,7 @@ func _create_pallet_sprites() -> void:
 	if tex != null:
 		_scraped_pallet_sprite.texture = tex
 	_scraped_pallet_sprite.position = STATION_POS[Station.SCRAPED_PALLET] + sc_size * 0.5
-	_scraped_pallet_sprite.z_index = 1
+	_scraped_pallet_sprite.z_index = 3
 	add_child(_scraped_pallet_sprite)
 
 # =========================================================================

@@ -229,22 +229,19 @@ func _spawn_dandelions() -> void:
 
 	for row in range(rows):
 		for col in range(cols):
-			@warning_ignore("INTEGER_DIVISION")
-			var spawn_pos: Vector2 = Vector2(
-				zone.position.x + col * tile_w + tile_w / 2,
-				zone.position.y + row * tile_h + tile_h / 2
-			)
-			# Skip tiles that overlap buildings, hives, or equipment
-			if _is_excluded(spawn_pos):
-				continue
 			# Edge bias: tiles within 2 of the border get +25% chance
 			var is_edge: bool = (row <= 1 or row >= rows-2 or col <= 1 or col >= cols-2)
 			var threshold: float = current_density + (0.25 if is_edge else 0.0)
 			if rng.randf() < clampf(threshold, 0.0, 1.0):
 				var sprite := Sprite2D.new()
 				sprite.texture = tex
-				sprite.position = spawn_pos
-				sprite.z_index = 2
+				@warning_ignore("INTEGER_DIVISION")
+				sprite.position = Vector2(
+					zone.position.x + col * tile_w + tile_w / 2,
+					zone.position.y + row * tile_h + tile_h / 2
+				)
+				# z_index 1 -- renders below equipment/buildings (which use z=3+)
+				sprite.z_index = 1
 				_layer.add_child(sprite)
 				count += 1
 
@@ -268,27 +265,6 @@ func _get_grass_zone_rect() -> Rect2:
 	# HomeProperty: the playable lawn/field area excluding paths and buildings.
 	# Rough footprint based on tilemap position and known scene bounds.
 	return Rect2(Vector2(-14, -26), Vector2(1600, 900))
-
-## Equipment/building exclusion zones -- dandelions will not spawn inside these rects.
-## Rects are in world space and should cover all placed structures and equipment.
-## Buildings zone: farmhouse (~80,-80), honey house (~450,-40), workbench (520,-20).
-## Harvest yard: node at (480,350), stations span ~420-860 x, 240-560 y.
-## Hive area: small buffer around hive at (300,350).
-const EXCLUSION_RECTS: Array = [
-	# Buildings and north structures
-	Rect2(-80, -200, 720, 250),
-	# Harvest yard equipment footprint
-	Rect2(420, 240, 460, 330),
-	# Hive area buffer
-	Rect2(248, 298, 110, 110),
-]
-
-## Returns true if the given world-space point falls inside any exclusion zone.
-func _is_excluded(pos: Vector2) -> bool:
-	for r in EXCLUSION_RECTS:
-		if (r as Rect2).has_point(pos):
-			return true
-	return false
 
 # -- Public API -----------------------------------------------------------------
 

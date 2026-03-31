@@ -35,33 +35,33 @@ func get_cell(x: int, y: int, side: int = 0) -> int:
 	var i: int = y * grid_cols + x
 	return int(cells[i]) if side == 0 else int(cells_b[i])
 
-# Fill both sides with a realistic honey-super distribution:
-#   capping_pct % of cells -> S_CAPPED_HONEY
-#   some residual cells    -> S_CURING_HONEY (nearly capped)
-#   remainder              -> S_DRAWN_EMPTY (empty drawn comb)
+# Fill both sides with a realistic honey-super distribution.
+# A harvest-ready frame has:
+#   capping_pct % -> S_PREMIUM_HONEY (deep amber, aged and capped)
+#   remainder     -> S_CURING_HONEY  (amber, honey deposited but not yet capped)
+# No S_DRAWN_EMPTY cells -- every cell in a full super has honey at harvest time.
+# The pale "drawn empty" look was causing false "white cap" appearances on screen.
 func fill_for_harvest(capping_pct: float) -> void:
 	var cap_norm: float = clampf(capping_pct / 100.0, 0.0, 1.0)
-	var curing_pct: float = (1.0 - cap_norm) * 0.5  # half the uncapped cells are curing
 	# Build fresh local arrays, then assign -- avoids any copy-on-write ambiguity
 	var new_a: PackedByteArray = PackedByteArray()
 	var new_b: PackedByteArray = PackedByteArray()
 	new_a.resize(SUPER_SIZE)
 	new_b.resize(SUPER_SIZE)
 	for i in SUPER_SIZE:
-		new_a[i] = _pick_state(cap_norm, curing_pct)
-		new_b[i] = _pick_state(cap_norm, curing_pct)
+		new_a[i] = _pick_state(cap_norm)
+		new_b[i] = _pick_state(cap_norm)
 	cells   = new_a
 	cells_b = new_b
 
-func _pick_state(cap_norm: float, curing_norm: float) -> int:
+func _pick_state(cap_norm: float) -> int:
 	var r: float = randf()
 	if r < cap_norm:
-		# Harvest-ready frames have aged to premium honey (S_PREMIUM_HONEY = 9)
+		# Capped cells are premium honey: aged, ready to harvest
 		return CellStateTransition.S_PREMIUM_HONEY
-	elif r < cap_norm + curing_norm:
-		return CellStateTransition.S_CURING_HONEY
 	else:
-		return CellStateTransition.S_DRAWN_EMPTY
+		# Uncapped cells are still curing -- honey is present but not yet sealed
+		return CellStateTransition.S_CURING_HONEY
 
 # Count capped cells on one side (used for progress tracking)
 func count_capped(side: int = 0) -> int:

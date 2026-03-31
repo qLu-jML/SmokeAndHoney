@@ -37,7 +37,14 @@ var _bucket_beeswax_lbs: float = 0.0   # Beeswax collected during uncapping
 var _spinner_spinning: bool = false     # Is spinner currently active?
 var _spinner_progress: float = 0.0     # 0.0 to 1.0 spin progress
 var _active_station: Station = Station.NONE
-var _player_carrying_bucket: bool = false  # True when player has picked up honey bucket
+var _player_carrying_bucket: bool = false  # True after player picks up honey bucket
+var _bucket_on_table:        bool = false  # True after bucket placed on canning table
+var _jars_on_table: Array = []            # Sprite2D nodes for filled jars on table
+
+# Jar sprite path (filled honey jar displayed on the canning table)
+const JAR_SPRITE_PATH := "res://assets/sprites/items/honey_jar_standard.png"
+# Max jars that fit on the table in one row before wrapping
+const TABLE_JARS_PER_ROW := 4
 
 # -- Station interaction zones ------------------------------------------------
 var _station_areas: Dictionary = {}    # Station -> Rect2 (world coords)
@@ -447,15 +454,17 @@ func _get_station_prompt(station: Station) -> String:
 				return "[E] Spin! (%d frames)" % _frames_in_spinner.size()
 			return "Spinner (%d/10)" % _frames_in_spinner.size()
 		Station.CANNING:
-			if _player_carrying_bucket:
-				if _bucket_honey_lbs >= 1.0:
-					return "[E] Fill jar (%.1f lbs)" % _bucket_honey_lbs
-				return "Bucket empty"
+			if _bucket_on_table:
+				if _bucket_honey_lbs < 1.0 or not _player_has_jars():
+					return "[E] Collect jars (%d)" % _jars_on_table.size()
+				return "[E] Fill jar (%.1f lbs left)" % _bucket_honey_lbs
+			elif _player_carrying_bucket:
+				return "[E] Place bucket on table"
 			elif _bucket_honey_lbs > 0.0:
 				return "[E] Pick up bucket (%.1f lbs)" % _bucket_honey_lbs
-			return "No honey in bucket"
+			return "No honey yet"
 		Station.BUCKET:
-			if _bucket_honey_lbs > 0.0 and not _player_carrying_bucket:
+			if _bucket_honey_lbs > 0.0 and not _player_carrying_bucket and not _bucket_on_table:
 				return "[E] Pick up bucket (%.1f lbs)" % _bucket_honey_lbs
 	return ""
 
@@ -688,6 +697,7 @@ func _finish_spinning() -> void:
 	GameData.add_xp(GameData.XP_HARVEST)
 
 ## BUCKET PICKUP: Player picks up the honey bucket from the floor.
+## Also adds ITEM_HONEY_BUCKET to inventory so the carry sprite shows on the player.
 func _action_pickup_bucket() -> void:
 	if _bucket_honey_lbs <= 0.0:
 		_show_status("Bucket is empty -- spin honey first!")
@@ -698,61 +708,123 @@ func _action_pickup_bucket() -> void:
 	_player_carrying_bucket = true
 	if _bucket_sprite:
 		_bucket_sprite.visible = false
-	_show_status("Carrying honey bucket (%.1f lbs). Take it to the canning table!" % _bucket_honey_lbs)
+	# Add to player inventory so carry sprite becomes visible
+	var player := _find_player()
+	if player and player.has_method("add_item"):
+		player.add_item(GameData.ITEM_HONEY_BUCKET, 1)
+	_show_status("Picked up bucket (%.1f lbs). Carry it to the canning table!" % _bucket_honey_lbs)
 
-## CANNING: Fill jars from the honey bucket (must be carrying it).
-## If the player has honey but isn't carrying the bucket yet, auto-pick it up
-## so they don't have to navigate back to the BUCKET tile separately.
+## Returns true if the player has at least one empty jar in inventory.
+func _player_has_jars() -> bool:
+	var player := _find_player()
+	if player == null or not player.has_method("count_item"):
+		return false
+	return player.count_item(GameData.ITEM_JAR) > 0
+
+## Place a filled-jar sprite on the canning table surface, lined up left to right.
+func _place_jar_sprite_on_table() -> void:
+	var jar_tex: Texture2D = load(JAR_SPRITE_PATH) as Texture2D
+	if jar_tex == null:
+		return
+	var jar_sprite := Sprite2D.new()
+	jar_sprite.texture = jar_tex
+	# Layout: jars line up along the canning table (CANNING_RECT row 7, cols 1-4)
+	# Place them left to right, wrapping after TABLE_JARS_PER_ROW
+	var n: int = _jars_on_table.size()
+	var col_idx: int = n % TABLE_JARS_PER_ROW
+	@warning_ignore("INTEGER_DIVISION")
+	var row_idx: int = n / TABLE_JARS_PER_ROW
+	var table_px_x: float = (CANNING_RECT.position.x + 0.5 + float(col_idx)) * TILE
+	var table_px_y: float = (CANNING_RECT.position.y + 0.5 + float(row_idx) * 0.6) * TILE
+	jar_sprite.position = Vector2(table_px_x, table_px_y)
+	jar_sprite.z_index = 4
+	add_child(jar_sprite)
+	_jars_on_table.append(jar_sprite)
+
+## CANNING: Three-phase jarring workflow.
+## Phase 1 -- no bucket: auto-pickup if honey available, else show message.
+## Phase 2 -- carrying bucket: press E to place it on the canning table.
+## Phase 3 -- bucket on table: press E to fill jars one by one.
+##            When bucket empty or no more jars: press E to collect all jars.
 func _action_canning() -> void:
-	if not _player_carrying_bucket:
+	# -- Phase 1: no bucket anywhere, check if we can auto-pickup ---------------
+	if not _player_carrying_bucket and not _bucket_on_table:
 		if _bucket_honey_lbs > 0.0:
-			# Auto-pickup: grab the bucket on first E press at canning table
-			_player_carrying_bucket = true
+			_action_pickup_bucket()
+		else:
+			_show_status("No honey yet! Extract honey first.")
+		return
+
+	# -- Phase 2: player is carrying bucket, place it on table ------------------
+	if _player_carrying_bucket and not _bucket_on_table:
+		_bucket_on_table = true
+		_player_carrying_bucket = false
+		# Remove carry item from inventory so sprite disappears
+		var player := _find_player()
+		if player and player.has_method("consume_item"):
+			player.consume_item(GameData.ITEM_HONEY_BUCKET, 1)
+		# Move the bucket sprite to sit on the canning table
+		if _bucket_sprite:
+			_bucket_sprite.position = Vector2(
+				(CANNING_RECT.position.x + CANNING_RECT.size.x - 1) * TILE + TILE * 0.5,
+				CANNING_RECT.position.y * TILE + TILE * 0.5)
+			_bucket_sprite.visible = true
+		_show_status("Bucket placed! Press [E] to fill jars from your inventory.")
+		return
+
+	# -- Phase 3: bucket is on table, fill jars or collect ----------------------
+	if _bucket_on_table:
+		# Collect all when done
+		if _bucket_honey_lbs < 1.0 or not _player_has_jars():
+			_collect_all_jars()
+			return
+		# Fill one jar
+		var player := _find_player()
+		if player == null:
+			return
+		if not player.has_method("count_item") or player.count_item(GameData.ITEM_JAR) < 1:
+			_show_status("No empty jars! Buy some from the Feed & Supply.")
+			return
+		if not player.consume_item(GameData.ITEM_JAR, 1):
+			return
+		_bucket_honey_lbs -= 1.0
+		_place_jar_sprite_on_table()
+		if player.has_method("update_hud_inventory"):
+			player.update_hud_inventory()
+		if _bucket_honey_lbs < 1.0 or not _player_has_jars():
+			var why: String = "Bucket empty!" if _bucket_honey_lbs < 1.0 else "No more jars!"
+			_show_status("%s %d jars filled. Press [E] to collect them all!" % [why, _jars_on_table.size()])
+			# Hide the now-empty bucket sprite
 			if _bucket_sprite:
 				_bucket_sprite.visible = false
-			_show_status("Picked up honey bucket (%.1f lbs). Press [E] to fill jars!" % _bucket_honey_lbs)
 		else:
-			_show_status("No honey in bucket! Extract honey first.")
-		return
+			var jars_left: int = player.count_item(GameData.ITEM_JAR)
+			_show_status("Jar filled! %d on table. %.1f lbs left. %d jars remaining." % [
+				_jars_on_table.size(), _bucket_honey_lbs, jars_left])
 
-	if _bucket_honey_lbs < 1.0:
-		if _bucket_honey_lbs > 0.0:
-			_show_status("Not enough honey for a full jar (%.1f lbs)." % _bucket_honey_lbs)
-		else:
-			# Bucket drained completely -- put it down
-			_player_carrying_bucket = false
-			_show_status("Bucket empty! All honey has been jarred.")
+## Collect all jars from the canning table into the player's inventory at once.
+func _collect_all_jars() -> void:
+	if _jars_on_table.is_empty():
+		_show_status("Nothing on the table yet!")
 		return
-
 	var player := _find_player()
-	if player == null:
-		return
-
-	# Check for empty jars
-	if not player.has_method("count_item") or player.count_item(GameData.ITEM_JAR) < 1:
-		_show_status("No empty jars! Buy some from the Feed & Supply.")
-		return
-
-	# Fill one jar
-	if not player.consume_item(GameData.ITEM_JAR, 1):
-		_show_status("No empty jars!")
-		return
-
-	_bucket_honey_lbs -= 1.0
-	player.add_item(GameData.ITEM_HONEY_JAR, 1)
-	if player.has_method("update_hud_inventory"):
-		player.update_hud_inventory()
-
-	# Auto-release bucket when empty
-	if _bucket_honey_lbs < 1.0:
-		_player_carrying_bucket = false
-		_show_status("Last jar filled! Bucket empty. Harvest complete!")
-		return
-
-	var jars_remaining: int = player.count_item(GameData.ITEM_JAR)
-	var can_fill: int = int(_bucket_honey_lbs)
-	_show_status("Jar filled! Bucket: %.1f lbs | Jars: %d | Can fill: %d more" % [
-		_bucket_honey_lbs, jars_remaining, mini(can_fill, jars_remaining)])
+	var jar_count: int = _jars_on_table.size()
+	if player and player.has_method("add_item"):
+		player.add_item(GameData.ITEM_HONEY_JAR, jar_count)
+		if player.has_method("update_hud_inventory"):
+			player.update_hud_inventory()
+	# Remove all jar sprites from scene
+	for jar_sprite in _jars_on_table:
+		if is_instance_valid(jar_sprite):
+			jar_sprite.queue_free()
+	_jars_on_table.clear()
+	# Clean up table state
+	_bucket_on_table = false
+	_bucket_honey_lbs = 0.0
+	if _bucket_sprite:
+		_bucket_sprite.visible = false
+	GameData.add_xp(GameData.XP_HARVEST)
+	_show_status("Collected %d honey jars! Take them to town to sell." % jar_count)
 
 # -- Helpers ------------------------------------------------------------------
 func _show_status(msg: String) -> void:

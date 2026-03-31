@@ -1,3 +1,37 @@
+[2026-03-30 CDT] PHASE 2 POLISH: 10-item feature/fix pass -- z-layering, dev buttons, decapping visuals, organic flowers, bucket carry, jarring workflow.
+  1. FLOWERS vs EQUIPMENT (z-index layering): Removed all exclusion-zone/protected-rect logic from
+     dandelion_spawner.gd, wildflower_scatter.gd, and flower_lifecycle_manager.gd. Equipment now
+     overlaps flowers via z_index: flowers z=1, equipment z=3+. Harvest yard pallets bumped to z=3.
+  2. DEV BUTTONS IN INSPECTION MODE: Fixed InspectionOverlay.gd consuming the G key before
+     GameData could see it. Root cause: _unhandled_key_input() called set_input_as_handled()
+     unconditionally after the match block. Fix: added explicit KEY_G case that calls
+     GameData.toggle_dev_labels(), allowing +Day/+Month buttons to show/hide in-overlay.
+  3. WHITE CAPS IN DECAPPING: ScrapeFrame.fill_for_harvest() was placing ~7.5% of cells in
+     S_DRAWN_EMPTY (pale wax, avg RGB [191,175,122]) which appeared white among amber honey.
+     Fixed: _pick_state() now returns only S_PREMIUM_HONEY (capped) or S_CURING_HONEY (uncapped).
+     No drawn-empty cells in harvest-ready frames.
+  4. ORGANIC FLOWER CLUSTERS: Replaced uniform 6x6 grid sampling in flower_lifecycle_manager.gd
+     with cluster-seed distance-falloff algorithm. Each species uses CLUSTER_PARAMS (avg_cluster
+     size and radius). Dandelion/clover biased 55% toward world edges. Core tiles always placed,
+     fringe tiles fade to ~30% probability at cluster edge. Produces natural-looking patches.
+  5. SPINNER SPRITE: honey_spinner.png loaded from assets/sprites/objects/ in honey_house.gd
+     spinner station setup (was placeholder/missing).
+  6. BUCKET CARRY VISUAL: player.gd extended with _carried_bucket_sprite (Sprite2D loaded from
+     assets/sprites/objects/honey_bucket.png). Shown/hidden based on ITEM_HONEY_BUCKET count.
+     Floats in front of player at facing_direction * 10 + (4,4) offset, z_index=3.
+  7-9. JARRING WORKFLOW (honey_house.gd CANNING station, three phases):
+     Phase 1 (no bucket): E auto-picks up bucket if honey available.
+     Phase 2 (carrying bucket): E places bucket on canning table, consumes ITEM_HONEY_BUCKET
+       from player inventory, shows bucket sprite on table.
+     Phase 3 (bucket on table): each E press fills one jar (consumes ITEM_JAR, shows jar sprite
+       on table). Jars line up left-to-right in rows of 4. When honey exhausted or no jars left,
+       E collects all jars at once (adds ITEM_HONEY_JAR * count to player inventory, frees
+       sprites, resets state). Prompts updated per phase.
+  10. SELL IN TOWN: Already functional via existing sell_screen.gd -- ITEM_HONEY_JAR registered
+      and priced. No code changes needed.
+  ASCII compliance verified on all 8 modified .gd files. Protected files verified:
+  GDD 569,013 bytes, DevPlan 102,508 bytes.
+
 [2026-03-30 CDT] AUDIO: Replaced seasonal music tracks with new versions from research/music. Old tracks archived to assets/audio/seasonalMusic/old/ and assets/audio/main_theme/old/. New tracks (1_Quickening.mp3 through 8_Kindlemonth.mp3) now live in assets/audio/seasonalMusic/. Main theme (mainTheme.mp3) placed in assets/audio/main_theme/ -- reserved for future use (title screen, etc.). MusicManager.gd MONTH_TRACKS array updated to reference new file paths. Stale .import files moved to old/ dirs -- Godot will regenerate imports on next open. No script logic changed; month-based looping and crossfade already fully functional. Protected files verified: GDD 566,687 bytes, DevPlan 101,899 bytes.
 
 [2026-03-30 CDT] LOGO APPROVED: Official Smoke & Honey game logo selected. Nathan approved logo from the "smoke from spout + ornate text" round (research/art/logos/Almost_There.html). Design: bee smoker anchored LEFT (squat silver cylinder, flat leather board bellows with copper rivets, smoke from side spout nozzle), ornate amber-orange calligraphic script "Smoke & Honey" RIGHT with cream highlights, swash flourish, amber-brown background. (1) GDD: New section 10.0 "Game Logo & Brand Mark" added before section 10.1, documenting full design spec, color palette, composition rules, and usage guidelines. Nav link added. (2) DevPlan: "Game Logo -- APPROVED" row added to Art & Video Capture table; capsule/banner art note updated to reference approved logo as source. Art & Video Capture nav status updated to in-progress. (3) Almost_There.html: Green "LOGO APPROVED" banner added at top with file path reference. (4) assets/ui/logo/ directory created -- place approved logo PNG there as game_logo.png. Protected files verified: GDD 569,013 bytes, DevPlan 102,508 bytes.

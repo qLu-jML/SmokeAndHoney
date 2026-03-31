@@ -8,7 +8,8 @@ var facing_direction: Vector2 = Vector2.DOWN
 var facing_dir_8: Vector2i = Vector2i(0, 1)  # full 8-way, used for tile targeting
 
 # -- Carried item display ------------------------------------------------------
-var _carried_super_sprite: Sprite2D = null   # floating super visual when carrying
+var _carried_super_sprite:   Sprite2D = null   # floating super visual when carrying
+var _carried_bucket_sprite:  Sprite2D = null   # floating honey bucket when carrying
 
 # -- Inventory -----------------------------------------------------------------
 const INVENTORY_SIZE = 10
@@ -167,28 +168,45 @@ func update_hud_inventory() -> void:
 # -- Carried item visual -------------------------------------------------------
 
 func _setup_carry_sprite() -> void:
+	# -- Honey super carry sprite --
 	_carried_super_sprite = Sprite2D.new()
 	_carried_super_sprite.name = "CarriedSuperSprite"
-	# Load the super box sprite from the hive assets
 	var path: String = "res://assets/sprites/hive/hive_super.png"
 	var abs_path: String = ProjectSettings.globalize_path(path)
 	var img: Image = Image.load_from_file(abs_path)
 	if img != null:
 		_carried_super_sprite.texture = ImageTexture.create_from_image(img)
-	# Draw above player and ground tiles
 	_carried_super_sprite.z_index = 3
 	_carried_super_sprite.visible = false
 	add_child(_carried_super_sprite)
 
+	# -- Honey bucket carry sprite --
+	_carried_bucket_sprite = Sprite2D.new()
+	_carried_bucket_sprite.name = "CarriedBucketSprite"
+	var bkt_path: String = "res://assets/sprites/objects/honey_bucket.png"
+	var bkt_abs: String = ProjectSettings.globalize_path(bkt_path)
+	var bkt_img: Image = Image.load_from_file(bkt_abs)
+	if bkt_img != null:
+		_carried_bucket_sprite.texture = ImageTexture.create_from_image(bkt_img)
+	_carried_bucket_sprite.z_index = 3
+	_carried_bucket_sprite.visible = false
+	add_child(_carried_bucket_sprite)
+
 func _update_carry_visual() -> void:
-	if not is_instance_valid(_carried_super_sprite):
-		return
-	var carrying: bool = count_item(GameData.ITEM_FULL_SUPER) > 0
-	_carried_super_sprite.visible = carrying
-	if carrying:
-		# Float the super 10px in the direction the player is facing
-		var offset: Vector2 = facing_direction * 10.0
-		_carried_super_sprite.position = offset
+	# -- Super box --
+	if is_instance_valid(_carried_super_sprite):
+		var carrying_super: bool = count_item(GameData.ITEM_FULL_SUPER) > 0
+		_carried_super_sprite.visible = carrying_super
+		if carrying_super:
+			_carried_super_sprite.position = facing_direction * 10.0
+
+	# -- Honey bucket --
+	if is_instance_valid(_carried_bucket_sprite):
+		var carrying_bucket: bool = count_item(GameData.ITEM_HONEY_BUCKET) > 0
+		_carried_bucket_sprite.visible = carrying_bucket
+		if carrying_bucket:
+			# Float slightly lower and to the side of the player (it's heavy)
+			_carried_bucket_sprite.position = facing_direction * 10.0 + Vector2(4.0, 4.0)
 
 # -- Inventory -----------------------------------------------------------------
 

@@ -292,12 +292,6 @@ func _build_no_spawn_mask() -> void:
 			for fx in range(maxi(x0, 0), mini(x1 + 1, _grid_cols)):
 				_no_spawn_tiles[Vector2i(fx, fy)] = true
 
-	# --- HarvestYard equipment footprint (node at ~480,350; stations span ~420x300) ---
-	_mark_world_rect_no_spawn(Rect2(420, 240, 460, 330))
-
-	# --- Hive area (small buffer around hive at ~300,350) ---
-	_mark_world_rect_no_spawn(Rect2(248, 298, 110, 110))
-
 	# Recount spawnable tiles
 	_total_tiles = (_grid_cols * _grid_rows) - _no_spawn_tiles.size()
 	print("[FlowerLifecycle] No-spawn mask: %d blocked tiles, %d spawnable" % [_no_spawn_tiles.size(), _total_tiles])
@@ -314,18 +308,6 @@ func _mark_tilemap_cell_no_spawn(tm_tile: Vector2i, tm_pos: Vector2, tm_tile_siz
 
 	for fy in range(maxi(fy0, 0), mini(fy1 + 1, _grid_rows)):
 		for fx in range(maxi(fx0, 0), mini(fx1 + 1, _grid_cols)):
-			_no_spawn_tiles[Vector2i(fx, fy)] = true
-
-## Mark all flower-grid cells overlapping a world-space Rect2 as no-spawn.
-## Used to block equipment zones (HarvestYard, hive stand, etc.) that are
-## spawned at runtime rather than placed as TileMap tiles.
-func _mark_world_rect_no_spawn(world_rect: Rect2) -> void:
-	var fx0: int = maxi(int((world_rect.position.x - GRASS_ORIGIN.x) / TILE_SIZE) - 1, 0)
-	var fy0: int = maxi(int((world_rect.position.y - GRASS_ORIGIN.y) / TILE_SIZE) - 1, 0)
-	var fx1: int = mini(int((world_rect.end.x   - GRASS_ORIGIN.x) / TILE_SIZE) + 1, _grid_cols - 1)
-	var fy1: int = mini(int((world_rect.end.y   - GRASS_ORIGIN.y) / TILE_SIZE) + 1, _grid_rows - 1)
-	for fy in range(fy0, fy1 + 1):
-		for fx in range(fx0, fx1 + 1):
 			_no_spawn_tiles[Vector2i(fx, fy)] = true
 
 func _can_spawn_at(tile: Vector2i) -> bool:
@@ -474,8 +456,24 @@ func _update_flowers() -> void:
 		total += flower_grid[type_name].size()
 	flowers_updated.emit(total)
 
-# -- Initial Spawn ------------------------------------------------------------
+# -- Cluster size parameters per flower type ----------------------------------
+# avg_cluster: average flowers per cluster seed
+# cluster_radius: max tile radius around cluster center
+# cluster_count_lo/hi: range for per-cluster flower count (multiplied vs avg)
+const CLUSTER_PARAMS: Dictionary = {
+	"dandelion":   { "avg_cluster": 18, "radius": 7 },
+	"clover":      { "avg_cluster": 14, "radius": 6 },
+	"goldenrod":   { "avg_cluster": 10, "radius": 5 },
+	"aster":       { "avg_cluster":  8, "radius": 4 },
+	"bergamot":    { "avg_cluster":  8, "radius": 4 },
+	"coneflower":  { "avg_cluster":  8, "radius": 4 },
+	"sunflower":   { "avg_cluster":  6, "radius": 4 },
+}
 
+# -- Initial Spawn ------------------------------------------------------------
+# Uses organic cluster seeding: place N cluster centers, then scatter flowers
+# around each with linear distance falloff.  This produces natural-looking
+# patches instead of a uniform video-game grid.
 func _initial_spawn(type_name: String, params: Dictionary, abs_day: int) -> void:
 	var def: Dictionary = FLOWER_TYPES[type_name]
 	var density: float = params["initial_density"]
@@ -486,71 +484,102 @@ func _initial_spawn(type_name: String, params: Dictionary, abs_day: int) -> void
 	# immediately when spring arrives, so ~60% spawn already GROWING/MATURE
 	var fast_start: bool = (type_name == "dandelion")
 
-	# --- Even distribution via grid-cell sampling ---
-	# Instead of rolling per-tile (which creates random clumps), divide
-	# the map into coarse cells and place a controlled number of flowers
-	# per cell.  This gives an even spread with local randomness.
-	# Cell size controls clump scale: larger = more even, less natural.
-	var cell_size := 6  # 6x6 flower tiles per sampling cell (~96x96 world px)
-	var cells_x: int = (_grid_cols + cell_size - 1) / cell_size
-	var cells_y: int = (_grid_rows + cell_size - 1) / cell_size
-	var tiles_per_cell: float = float(cell_size * cell_size)
-	# Target flower count per cell based on density
-	var target_per_cell: float = tiles_per_cell * density
+	# Total target flower count across the whole map
+	var total_target: int = int(float(_total_tiles) * density)
+	if total_target == 0:
+		return
 
-	for cy in range(cells_y):
-		for cx in range(cells_x):
-			var cell_x0: int = cx * cell_size
-			var cell_y0: int = cy * cell_size
-			var cell_x1: int = mini(cell_x0 + cell_size, _grid_cols)
-			var cell_y1: int = mini(cell_y0 + cell_size, _grid_rows)
+	# --- Cluster parameters for this flower type ---
+	var cp: Dictionary = CLUSTER_PARAMS.get(type_name, { "avg_cluster": 10, "radius": 5 })
+	var avg_cluster: int = cp["avg_cluster"]
+	var cluster_radius: int = cp["radius"]
 
-			# Check if this cell is near an edge
-			var is_edge_cell := (cy == 0 or cy >= cells_y - 1 or cx == 0 or cx >= cells_x - 1)
-			var effective_target := target_per_cell
-			if edge_bias and is_edge_cell:
-				effective_target *= 1.5
-			elif not edge_bias and is_edge_cell:
-				effective_target *= 0.8
+	# Number of cluster seeds
+	var num_clusters: int = maxi(1, int(float(total_target) / float(avg_cluster)))
 
-			# How many flowers to place in this cell
-			var count_floor: int = int(effective_target)
-			var frac: float = effective_target - float(count_floor)
-			var flower_count: int = count_floor
-			if _rng.randf() < frac:
-				flower_count += 1
+	# Build an array of all spawnable tile positions for fast random sampling
+	var spawnable: Array = []
+	for fy in range(_grid_rows):
+		for fx in range(_grid_cols):
+			if _can_spawn_at(Vector2i(fx, fy)):
+				spawnable.append(Vector2i(fx, fy))
 
-			# Collect valid tiles in this cell
-			var valid_tiles: Array = []
-			for fy in range(cell_y0, cell_y1):
-				for fx in range(cell_x0, cell_x1):
-					var tile := Vector2i(fx, fy)
-					if not grid.has(tile) and _can_spawn_at(tile):
-						valid_tiles.append(tile)
+	if spawnable.is_empty():
+		return
 
-			# Shuffle and pick
-			if valid_tiles.is_empty():
+	# Edge bias: dandelions and clovers spread preferentially along edges
+	# Collect edge tiles separately for biased center selection
+	var edge_tiles: Array = []
+	if edge_bias:
+		for tile in spawnable:
+			if tile.x <= 4 or tile.x >= _grid_cols - 5 or tile.y <= 4 or tile.y >= _grid_rows - 5:
+				edge_tiles.append(tile)
+
+	var placed: int = 0
+
+	for _ci in range(num_clusters):
+		if placed >= total_target:
+			break
+
+		# Pick a cluster center -- edge-biased types favor the edge pool
+		var center: Vector2i
+		if edge_bias and edge_tiles.size() > 0 and _rng.randf() < 0.55:
+			center = edge_tiles[_rng.randi_range(0, edge_tiles.size() - 1)]
+		else:
+			center = spawnable[_rng.randi_range(0, spawnable.size() - 1)]
+
+		# Cluster size: vary ~50-150% of avg
+		var cluster_size: int = int(float(avg_cluster) * _rng.randf_range(0.5, 1.5))
+		cluster_size = mini(cluster_size, total_target - placed)
+
+		# Gather candidate tiles within the cluster radius, sorted by distance
+		# (nearest first) so the tightest core fills first
+		var candidates: Array = []
+		var r2: int = cluster_radius * cluster_radius
+		for dy in range(-cluster_radius, cluster_radius + 1):
+			for dx in range(-cluster_radius, cluster_radius + 1):
+				if dx * dx + dy * dy > r2:
+					continue
+				var tile: Vector2i = Vector2i(center.x + dx, center.y + dy)
+				if tile.x < 0 or tile.x >= _grid_cols or tile.y < 0 or tile.y >= _grid_rows:
+					continue
+				if grid.has(tile) or not _can_spawn_at(tile):
+					continue
+				# Distance weight: nearer tiles have higher priority
+				var dist: float = sqrt(float(dx * dx + dy * dy))
+				var weight: float = 1.0 - dist / float(cluster_radius + 1)
+				candidates.append([tile, weight])
+
+		if candidates.is_empty():
+			continue
+
+		# Sort by weight descending so core tiles fill before fringe
+		candidates.sort_custom(func(a: Array, b: Array) -> bool: return (a as Array)[1] > (b as Array)[1])
+
+		# Probabilistic pick: always place core tiles, fade out to ~30% at edge
+		var pick_limit: int = mini(cluster_size, candidates.size())
+		for i in range(candidates.size()):
+			if placed >= total_target:
+				break
+			if i >= pick_limit:
+				break
+			var entry: Array = candidates[i]
+			var weight: float = float(entry[1])
+			# Core tiles (weight > 0.6) always placed; fringe tiles probabilistic
+			if weight < 0.6 and _rng.randf() > weight * 1.4:
 				continue
-			# Fisher-Yates shuffle (partial -- only need flower_count elements)
-			var pick_count: int = mini(flower_count, valid_tiles.size())
-			for i in range(pick_count):
-				var j: int = _rng.randi_range(i, valid_tiles.size() - 1)
-				var tmp: Vector2i = valid_tiles[i]
-				valid_tiles[i] = valid_tiles[j]
-				valid_tiles[j] = tmp
-
-			for i in range(pick_count):
-				var tile: Vector2i = valid_tiles[i]
-				var start_phase: int = PHASE_SEED
-				if fast_start:
-					var roll: float = _rng.randf()
-					if roll < 0.30:
-						start_phase = PHASE_MATURE
-					elif roll < 0.60:
-						start_phase = PHASE_GROWING
-					elif roll < 0.80:
-						start_phase = PHASE_SPROUT
-				grid[tile] = { "phase": start_phase, "day": abs_day }
+			var tile: Vector2i = entry[0]
+			var start_phase: int = PHASE_SEED
+			if fast_start:
+				var roll: float = _rng.randf()
+				if roll < 0.30:
+					start_phase = PHASE_MATURE
+				elif roll < 0.60:
+					start_phase = PHASE_GROWING
+				elif roll < 0.80:
+					start_phase = PHASE_SPROUT
+			grid[tile] = { "phase": start_phase, "day": abs_day }
+			placed += 1
 
 # -- Phase Advancement --------------------------------------------------------
 # Each tile tracks when it entered its current phase.
