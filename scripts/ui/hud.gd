@@ -865,13 +865,13 @@ func _dev_month_finish() -> void:
 			"Dev: +28 days -> Day %d (%s)" % [end_day, end_month])
 
 
-func _on_dev_toggled(is_visible: bool) -> void:
+func _on_dev_toggled(panel_visible: bool) -> void:
 	if _dev_panel:
-		_dev_panel.visible = is_visible
+		_dev_panel.visible = panel_visible
 	if _dev_day_btn:
-		_dev_day_btn.visible = is_visible
+		_dev_day_btn.visible = panel_visible
 	if _dev_month_btn:
-		_dev_month_btn.visible = is_visible
+		_dev_month_btn.visible = panel_visible
 	# NOTE: next_day_button (scene "NextDayButton") is a legacy test button.
 	# Keep it hidden -- the programmatic +Day / +Month buttons replace it.
 	if next_day_button:
@@ -999,15 +999,15 @@ func _get_zone_pollen_units() -> int:
 
 
 func _make_icon(fname: String, pos: Vector2, sz: Vector2) -> TextureRect:
-	var tr = TextureRect.new()
-	tr.position = pos
-	tr.size = sz
-	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var icon: TextureRect = TextureRect.new()
+	icon.position = pos
+	icon.size = sz
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var path = "res://assets/sprites/ui/" + fname
 	if ResourceLoader.exists(path):
-		tr.texture = load(path)
-	return tr
+		icon.texture = load(path)
+	return icon
 
 
 func _make_lbl(text: String, font_size: int, pos: Vector2, sz: Vector2, color: Color = Color.WHITE) -> Label:
@@ -1627,6 +1627,7 @@ func update_player_inventory(inv_array: Array = []) -> void:
 		GameData.ITEM_HONEY_BUCKET: Color(0.90, 0.88, 0.82),
 	}
 
+	@warning_ignore("unused_variable")
 	var SHORT = {
 		GameData.ITEM_RAW_HONEY: "Hnny",
 		GameData.ITEM_HONEY_JAR: "Jar",

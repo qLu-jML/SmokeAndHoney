@@ -44,6 +44,7 @@ var _active: bool = false
 var _is_snow: bool = false
 @warning_ignore("UNUSED_PRIVATE_CLASS_VARIABLE")
 var _spawn_rect: Rect2 = Rect2(-20, -40, 360, 0)  # spawn strip above viewport
+@warning_ignore("unused_private_class_variable")
 var _ground_y: float = 200.0     # bottom of the play area
 
 const VP_W: int = 320
@@ -201,6 +202,7 @@ func _make_snowflake() -> Dictionary:
 		"alpha": randf_range(0.3, 0.7),
 	}
 
+@warning_ignore("unused_parameter")
 func _draw_snow(cam_offset: Vector2) -> void:
 	for flake in _snowflakes:
 		var x: float = flake["x"]
@@ -234,6 +236,7 @@ func _update_splashes(delta: float) -> void:
 			_splashes.remove_at(i)
 		i -= 1
 
+@warning_ignore("unused_parameter")
 func _draw_splashes(cam_offset: Vector2) -> void:
 	for splash in _splashes:
 		var life_ratio: float = splash["life"] / splash["max_life"]

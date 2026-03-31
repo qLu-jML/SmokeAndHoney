@@ -76,6 +76,12 @@ var _super_pallet_sprite: Sprite2D = null
 var _scraped_pallet_sprite: Sprite2D = null
 const PALLET_TEXTURE_PATH := "res://assets/sprites/objects/pallet_super.png"
 
+# -- Super box sprite nodes (sit on top of pallets, tint shows fill level) -
+var _super_box_sprite: Sprite2D = null          # On super pallet (empties as scraped)
+var _scraped_box_sprite: Sprite2D = null        # On scraped pallet (fills as scraped)
+const SUPER_BOX_TEXTURE_PATH := "res://assets/sprites/hive/hive_super.png"
+const SUPER_BOX_SCALE := 4.0                    # 24x14 -> 96x56
+
 # -- Extractor sprite node ------------------------------------------------
 var _extractor_sprite: Sprite2D = null
 const EXTRACTOR_TEXTURE_PATH := "res://assets/sprites/objects/honey_spinner.png"
@@ -95,6 +101,7 @@ func _ready() -> void:
 	_create_station_visuals()
 	_create_bucket_visual()
 	_create_pallet_sprites()
+	_create_super_box_sprites()
 	_create_extractor_sprite()
 	_create_bucket_sprite()
 	print("[HarvestYard] Outdoor harvest yard ready.")
@@ -103,33 +110,21 @@ func _ready() -> void:
 # DRAWING -- Placeholder colored rectangles for each station
 # =========================================================================
 func _draw() -> void:
-	# Extractor and bucket are Sprite2D nodes -- update their state here.
+	# Sprite2D nodes handle extractor, bucket, and super boxes -- just update state.
 	_update_bucket_visual()
+	_update_super_visuals()
 	# Bottling Table - warm wood placeholder (Leonardo asset pending)
 	_draw_station_box(Station.BOTTLING, Color(0.60, 0.42, 0.25, 1.0))
 	# Jars on bottling table
 	if _jars_on_table > 0:
 		_draw_jar_stacks()
-	# Super visual on pallet
-	if _super_placed:
-		var sp: Vector2 = STATION_POS[Station.SUPER_PALLET]
-		var ss: Vector2 = STATION_SIZE[Station.SUPER_PALLET]
-		var super_rect := Rect2(sp + Vector2(8, 8), Vector2(ss.x - 16, ss.y - 16))
-		draw_rect(super_rect, Color(0.75, 0.60, 0.30, 1.0), true)
-		draw_rect(super_rect, Color(0.4, 0.3, 0.15), false, 1.0)
-	# Frame count indicators
-	if _frames_on_pallet.size() > 0:
+	# Frame count text over super pallet
+	if _super_placed and _frames_on_pallet.size() > 0:
 		var sp: Vector2 = STATION_POS[Station.SUPER_PALLET]
 		var ss: Vector2 = STATION_SIZE[Station.SUPER_PALLET]
 		_draw_text_at(sp + Vector2(ss.x * 0.5, ss.y + 10),
 			"%d frames" % _frames_on_pallet.size(), Color(0.9, 0.85, 0.6))
-	# Super box visual on scraped pallet
-	if _super_box_on_scraped:
-		var fp: Vector2 = STATION_POS[Station.SCRAPED_PALLET]
-		var fs: Vector2 = STATION_SIZE[Station.SCRAPED_PALLET]
-		var box_rect := Rect2(fp + Vector2(8, 8), Vector2(fs.x - 16, fs.y - 16))
-		draw_rect(box_rect, Color(0.52, 0.36, 0.14, 1.0), true)
-		draw_rect(box_rect, Color(0.3, 0.2, 0.1), false, 1.0)
+	# Frame count text over scraped pallet
 	if _frames_scraped > 0:
 		var fp: Vector2 = STATION_POS[Station.SCRAPED_PALLET]
 		var fs: Vector2 = STATION_SIZE[Station.SCRAPED_PALLET]
@@ -199,6 +194,71 @@ func _create_pallet_sprites() -> void:
 	add_child(_scraped_pallet_sprite)
 
 # =========================================================================
+# SUPER BOX SPRITES -- Show hive_super.png on pallets, tinted by fill level
+# =========================================================================
+func _create_super_box_sprites() -> void:
+	var abs_path: String = ProjectSettings.globalize_path(SUPER_BOX_TEXTURE_PATH)
+	var img: Image = Image.load_from_file(abs_path)
+	var tex: Texture2D = null
+	if img != null:
+		tex = ImageTexture.create_from_image(img)
+	else:
+		push_warning("[HarvestYard] Super box texture not found: " + SUPER_BOX_TEXTURE_PATH)
+
+	var sp_size: Vector2 = STATION_SIZE[Station.SUPER_PALLET]
+	var sc_size: Vector2 = STATION_SIZE[Station.SCRAPED_PALLET]
+
+	# Super pallet: full super placed here, empties as frames are scraped
+	_super_box_sprite = Sprite2D.new()
+	_super_box_sprite.name = "SuperBoxSprite"
+	if tex != null:
+		_super_box_sprite.texture = tex
+	_super_box_sprite.scale = Vector2(SUPER_BOX_SCALE, SUPER_BOX_SCALE)
+	# Sit centered on top of the pallet -- shift up slightly so pallet base shows
+	_super_box_sprite.position = STATION_POS[Station.SUPER_PALLET] + sp_size * 0.5 + Vector2(0, -4)
+	_super_box_sprite.z_index = 4
+	_super_box_sprite.visible = false
+	add_child(_super_box_sprite)
+
+	# Scraped pallet: empty super box placed here, fills as frames are scraped
+	_scraped_box_sprite = Sprite2D.new()
+	_scraped_box_sprite.name = "ScrapedBoxSprite"
+	if tex != null:
+		_scraped_box_sprite.texture = tex
+	_scraped_box_sprite.scale = Vector2(SUPER_BOX_SCALE, SUPER_BOX_SCALE)
+	_scraped_box_sprite.position = STATION_POS[Station.SCRAPED_PALLET] + sc_size * 0.5 + Vector2(0, -4)
+	_scraped_box_sprite.z_index = 4
+	_scraped_box_sprite.visible = false
+	add_child(_scraped_box_sprite)
+
+## Update super box sprite visibility and tint based on pipeline state.
+## Full super on pallet: warm golden, dims as frames are removed.
+## Empty super on scraped pallet: starts pale, warms as frames fill it.
+func _update_super_visuals() -> void:
+	if _super_box_sprite == null or _scraped_box_sprite == null:
+		return
+	# -- Super pallet: show when super is placed --
+	_super_box_sprite.visible = _super_placed
+	if _super_placed:
+		# Warm golden when full (10 frames), cool grey-brown when nearly empty
+		var fill: float = clampf(float(_frames_on_pallet.size()) / 10.0, 0.0, 1.0)
+		_super_box_sprite.modulate = Color(
+			lerpf(0.65, 1.0, fill),   # R
+			lerpf(0.50, 0.85, fill),  # G
+			lerpf(0.30, 0.45, fill),  # B
+			1.0)
+	# -- Scraped pallet: show when empty super box is placed --
+	_scraped_box_sprite.visible = _super_box_on_scraped
+	if _super_box_on_scraped:
+		# Pale/empty when no frames, warms to golden as it fills
+		var fill: float = clampf(float(_frames_scraped) / 10.0, 0.0, 1.0)
+		_scraped_box_sprite.modulate = Color(
+			lerpf(0.65, 1.0, fill),
+			lerpf(0.50, 0.85, fill),
+			lerpf(0.30, 0.45, fill),
+			1.0)
+
+# =========================================================================
 # EXTRACTOR SPRITE -- Leonardo art replaces the placeholder circle
 # =========================================================================
 func _create_extractor_sprite() -> void:
@@ -210,6 +270,8 @@ func _create_extractor_sprite() -> void:
 		_extractor_sprite.texture = ImageTexture.create_from_image(img)
 	else:
 		push_warning("[HarvestYard] Extractor texture not found: " + EXTRACTOR_TEXTURE_PATH)
+	# Scale down to fit 64x64 station area (sprite is 128x96 natural)
+	_extractor_sprite.scale = Vector2(0.5, 0.5)
 	# Center sprite at the extractor station center
 	var ext_pos: Vector2 = STATION_POS[Station.EXTRACTOR]
 	var ext_size: Vector2 = STATION_SIZE[Station.EXTRACTOR]
@@ -247,9 +309,9 @@ func _create_bucket_sprite() -> void:
 func _update_bucket_visual() -> void:
 	if _bucket_sprite == null:
 		return
-	var show: bool = _bucket_at_yard or _bucket_on_bottling_table
-	_bucket_sprite.visible = show
-	if not show:
+	var bucket_visible: bool = _bucket_at_yard or _bucket_on_bottling_table
+	_bucket_sprite.visible = bucket_visible
+	if not bucket_visible:
 		return
 	# Move to bottling table when placed there, otherwise stay at yard spot
 	if _bucket_on_bottling_table:
@@ -627,6 +689,7 @@ func _action_scraped_pallet(player: Node2D) -> void:
 		_notify("Super box is ready. Scrape frames at the other pallet.")
 
 # -- Extractor: load super and run extraction minigame --------------------
+@warning_ignore("unused_parameter")
 func _action_extractor(player: Node2D) -> void:
 	if _frames_in_extractor == 0:
 		# Check if player just picked up scraped super

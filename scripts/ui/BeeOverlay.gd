@@ -341,6 +341,7 @@ func _create_worker(breed_key: String, spread: float) -> Dictionary:
 		"idle_behavior": 0,
 	}
 
+@warning_ignore("unused_parameter")
 func _create_queen(breed_key: String, spread: float) -> Dictionary:
 	# Queen spawns in the brood zone center area
 	var center_x: float = float(CANVAS_W) * 0.5
@@ -604,6 +605,7 @@ func _update_attendant(bee: Dictionary, delta: float) -> void:
 # TARGET SELECTION
 # =============================================================================
 
+@warning_ignore("unused_parameter")
 func _pick_new_target(bee: Dictionary, spread: float) -> void:
 	var roll: float = _rng.randf()
 

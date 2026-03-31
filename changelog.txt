@@ -1,3 +1,23 @@
+[2026-03-31 CDT] FIX: Debugger warning cleanup (harvest_yard, hud, BeeOverlay, weather_particles)
+  1. harvest_yard.gd -- _action_extractor: added @warning_ignore("unused_parameter") for 'player'
+     param (player interaction not yet implemented in extractor minigame).
+  2. harvest_yard.gd -- _update_bucket_visual: renamed 'var show' to 'var bucket_visible' to
+     eliminate shadowing of CanvasItem.show() method.
+  3. harvest_yard.gd -- super box Sprite2D nodes added: _super_box_sprite and _scraped_box_sprite
+     display hive_super.png at 4x scale on both pallets. Visibility and color modulate driven by
+     _super_placed / _super_box_on_scraped state and frame count fill fraction.
+  4. harvest_yard.gd -- extractor sprite scale set to Vector2(0.5, 0.5) so 128x96 PNG fits 64x64
+     station footprint.
+  5. hud.gd -- _on_dev_toggled: renamed 'is_visible' param to 'panel_visible' (shadowed CanvasLayer
+     method). Also renamed 'var tr' in _make_icon to 'var icon' (shadowed Object.tr() method).
+     Added @warning_ignore("unused_variable") before 'var SHORT' dict (kept for future short-label
+     display, never yet referenced).
+  6. BeeOverlay.gd -- added @warning_ignore("unused_parameter") before _create_queen() and
+     _pick_new_target() -- both accept a 'spread' float param that is not yet consumed.
+  7. weather_particles.gd -- added @warning_ignore("unused_private_class_variable") before
+     _ground_y. Added @warning_ignore("unused_parameter") before _draw_snow() and _draw_splashes()
+     -- cam_offset params carried for future scrolling support but not yet read.
+
 [2026-03-31 CDT] ART: Leonardo AI sprites for honey spinner + bucket; TileSet error fix
   1. HONEY SPINNER SPRITE (objects/honey_spinner.png): Replaced gray circle placeholder with
      Leonardo AI extractor barrel art (128x96, transparent bg). harvest_yard.gd now creates
