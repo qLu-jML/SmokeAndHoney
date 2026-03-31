@@ -481,6 +481,18 @@ func _perform_action() -> void:
 				else:
 					print("Colony is still establishing -- give them a few more days!")
 				return
+			# Check weather -- some conditions prevent hive inspection (GDD S6.9 / task 2.8)
+			if WeatherManager and not WeatherManager.can_inspect():
+				var weather_msg: String = "Can't open hives right now!"
+				match WeatherManager.current_weather:
+					"Rainy": weather_msg = "Too wet to open hives -- wait for dry weather!"
+					"Cold":  weather_msg = "Too cold to inspect -- bees are clustered!"
+				var nm_w = get_tree().root.get_node_or_null("NotificationManager")
+				if nm_w and nm_w.has_method("notify"):
+					nm_w.notify(weather_msg, "warn")
+				else:
+					print(weather_msg)
+				return
 			# Remove a fully-marked super for harvest transport
 			if nearby_hive.has_method("has_marked_super") and nearby_hive.has_marked_super():
 				var removed = nearby_hive.remove_marked_super()

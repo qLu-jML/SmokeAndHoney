@@ -544,3 +544,33 @@
   After jarring completes and jars collected, _bucket_on_bottling_table resets.
   Previously the bucket was consumed and minigame started in one step, which
   was confusing and gave no visual feedback of the bucket on the table.
+
+[2026-03-30 CDT] FEATURE: Step 2 Weather System -- tasks 2.5-2.10 complete
+  Tasks already done (confirmed wired):
+    2.5  WeatherManager autoload: 8-state system (Sunny/Overcast/Rainy/Windy/Cold/
+         HeatWave/Drought/Foggy), season-weighted Iowa climate probabilities, daily
+         temperature + wind + humidity generation, full signal system.
+    2.6  ForagerSystem wired: HiveSimulation passes WeatherManager.get_forage_multiplier()
+         as weather_season_mult into ForagerSystem.process(). Weather directly cuts
+         daily NU/PU collection (Rainy/Cold = 0.0x, Windy = 0.4x, Sunny = 1.0x, etc.)
+    2.7  HUD weather display: _weather_lbl in top bar, _on_weather_changed() signal
+         connected, _refresh_weather() updates text + color on each weather roll.
+         Dev panel also shows current weather + probability breakdown.
+    2.10 Weather serialization: WeatherManager.collect_save_data() / apply_save_data()
+         wired into SaveManager. All weather state persists across saves/loads.
+  New work this session:
+    2.8  Inspection weather gate (player.gd): After the 7-day colony lockout check,
+         player.gd now calls WeatherManager.can_inspect(). Rainy/Cold states block
+         hive opening with weather-specific toasts:
+           - "Too wet to open hives -- wait for dry weather!" (Rainy)
+           - "Too cold to inspect -- bees are clustered!" (Cold)
+         Sting multiplier already defined in WeatherManager.INSPECTION_RULES; full
+         sting probability system wires in at Step 4 (tasks 2.13-2.16).
+    2.9  Season transition banner (hud.gd): _show_season_banner() creates a 200x28
+         centered panel that fades in (0.5s), holds (2.5s), fades out (0.8s) on each
+         season change. Season-themed color pairs (green/Spring, gold/Summer,
+         orange/Fall, blue/Winter). Triggered from _on_season_changed() signal.
+         NotificationManager toast still fires alongside it (no duplication -- they
+         serve different visual purposes: banner = prominent center, toast = log).
+  DevPlan updated: tasks 2.5-2.10 marked DONE.
+  Protected files verified: GDD 603,634 bytes, DevPlan 139,015 bytes.

@@ -87,6 +87,9 @@ var _dev_pollen_lbl: Label = null
 var _dev_grade_lbl: Label = null
 var _dev_roll_lbl: Label = null
 
+# -- Season transition banner --
+var _season_banner: Control = null
+
 # -- Layout constants --
 const VP_W: int = 320
 const VP_H: int = 180
@@ -1074,8 +1077,9 @@ func _on_midnight_reached() -> void:
 	else:
 		_show_daily_summary()
 
-func _on_season_changed(_s: String) -> void:
+func _on_season_changed(s: String) -> void:
 	_refresh_season_icon()
+	_show_season_banner(s)
 
 func _on_money_changed(_a: float) -> void:
 	_refresh_money()
@@ -1135,6 +1139,76 @@ func _refresh_season_icon() -> void:
 	_last_season = s
 	if _season_icon and _season_textures.has(s):
 		_season_icon.texture = _season_textures[s]
+
+
+func _show_season_banner(season_name: String) -> void:
+	# Clean up any existing banner before showing a new one
+	if is_instance_valid(_season_banner):
+		_season_banner.queue_free()
+
+	# Pick season-themed colors
+	var banner_color: Color = Color(0.10, 0.08, 0.05, 0.88)
+	var text_color: Color = Color(0.92, 0.87, 0.72, 1.0)
+	match season_name:
+		"Spring":
+			banner_color = Color(0.10, 0.22, 0.12, 0.88)
+			text_color   = Color(0.70, 0.95, 0.60, 1.0)
+		"Summer":
+			banner_color = Color(0.20, 0.16, 0.04, 0.88)
+			text_color   = Color(1.00, 0.90, 0.40, 1.0)
+		"Fall":
+			banner_color = Color(0.20, 0.10, 0.02, 0.88)
+			text_color   = Color(0.95, 0.65, 0.30, 1.0)
+		"Winter":
+			banner_color = Color(0.08, 0.10, 0.18, 0.88)
+			text_color   = Color(0.75, 0.88, 1.00, 1.0)
+
+	const BW: int = 200
+	const BH: int = 28
+	var bx: float = float(VP_W - BW) / 2.0
+	var by: float = float(VP_H) / 2.0 - 14.0
+
+	var panel := Control.new()
+	panel.size     = Vector2(BW, BH)
+	panel.position = Vector2(bx, by)
+	panel.modulate.a = 0.0
+	panel.z_index = 90
+	add_child(panel)
+	_season_banner = panel
+
+	var bg := ColorRect.new()
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.color = banner_color
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(bg)
+
+	var border := Panel.new()
+	border.set_anchors_preset(Control.PRESET_FULL_RECT)
+	border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style := StyleBoxFlat.new()
+	style.bg_color     = Color(0.0, 0.0, 0.0, 0.0)
+	style.draw_center  = false
+	style.border_color = text_color
+	style.set_border_width_all(1)
+	border.add_theme_stylebox_override("panel", style)
+	panel.add_child(border)
+
+	var lbl := Label.new()
+	lbl.text = season_name
+	lbl.set_anchors_preset(Control.PRESET_FULL_RECT)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 12)
+	lbl.add_theme_color_override("font_color", text_color)
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(lbl)
+
+	# Fade in, hold, fade out, then free
+	var tw := create_tween()
+	tw.tween_property(panel, "modulate:a", 1.0, 0.5)
+	tw.tween_interval(2.5)
+	tw.tween_property(panel, "modulate:a", 0.0, 0.8)
+	tw.tween_callback(panel.queue_free)
 
 
 func _refresh_weather() -> void:

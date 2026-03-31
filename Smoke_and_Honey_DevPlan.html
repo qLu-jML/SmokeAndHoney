@@ -525,37 +525,37 @@
       <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
       <tr>
         <td>2.5</td>
-        <td>Weather data model</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Weather data model</td><td><span class="tag tag-done">DONE</span></td>
         <td>Daily weather state: Sunny/Calm (best), Overcast, Rainy, Cold, Windy. Roll once per day on wake. Store in TimeManager or new WeatherManager autoload. Season-weighted probabilities (more rain in spring, cold in winter).</td>
         <td>2.1 (day advance triggers roll)</td>
       </tr>
       <tr>
         <td>2.6</td>
-        <td>Weather affects ForagerSystem</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Weather affects ForagerSystem</td><td><span class="tag tag-done">DONE</span></td>
         <td>ForagerSystem.gd already has a weather gate placeholder. Wire it: Sunny = 1.0x, Overcast = 0.7x, Rainy = 0.0x (no flights), Cold = 0.0x, Windy = 0.4x. This directly impacts daily honey production.</td>
         <td>2.5, ForagerSystem (done)</td>
       </tr>
       <tr>
         <td>2.7</td>
-        <td>Weather HUD icon</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Weather HUD icon</td><td><span class="tag tag-done">DONE</span></td>
         <td>Small icon in top bar showing current weather. 5 weather icons needed (or use text placeholder initially). Tooltip shows forager impact.</td>
         <td>2.5, HUD (done)</td>
       </tr>
       <tr>
         <td>2.8</td>
-        <td>Weather affects inspection safety</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Weather affects inspection safety</td><td><span class="tag tag-done">DONE</span></td>
         <td>Cold/Windy weather increases sting chance multiplier. Rain prevents opening hives ("Too wet to inspect"). Warning toast when attempting inspection in bad weather.</td>
         <td>2.5</td>
       </tr>
       <tr>
         <td>2.9</td>
-        <td>Season transition visual</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Season transition visual</td><td><span class="tag tag-done">DONE</span></td>
         <td>Brief fade + "Season Name" text when season changes. TimeManager already emits season_changed signal -- connect it to a visual.</td>
         <td>2.5</td>
       </tr>
       <tr>
         <td>2.10</td>
-        <td>Weather serialization</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Weather serialization</td><td><span class="tag tag-done">DONE</span></td>
         <td>Save current weather state in SaveManager. Restore on load.</td>
         <td>2.5, SaveManager (done)</td>
       </tr>
