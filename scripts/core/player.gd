@@ -36,7 +36,7 @@ func get_max_stack(item_name: String) -> int:
 		GameData.ITEM_QUEEN_EXCLUDER: return 5
 		GameData.ITEM_FULL_SUPER: return 1      # heavy! carry limit: 1 super at a time
 		GameData.ITEM_DEEP_BOX:   return 5
-		GameData.ITEM_JAR:        return 99
+		GameData.ITEM_JAR:        return 20
 		GameData.ITEM_HONEY_BULK: return 20
 		GameData.ITEM_FERMENTED_HONEY: return 20
 		GameData.ITEM_CHEST:      return 5
@@ -63,6 +63,7 @@ func _ready():
 	add_item(GameData.ITEM_SUPER_BOX,      5)
 	add_item(GameData.ITEM_COMB_SCRAPER,   1)   # de-capping tool
 	add_item(GameData.ITEM_BUCKET_GRIP,    1)   # required to carry honey bucket
+	add_item(GameData.ITEM_JAR,           40)   # 2 stacks of 20 empty bottles
 	# Deferred: stock the storage chest with remaining items after scene loads
 	call_deferred("_stock_starting_chest")
 	add_to_group("player")
