@@ -378,3 +378,12 @@
   Variations: Classic Silver, Dramatic Backlit, Aged Patina/Wire Cage,
   Polished Steel/Engraved, Smoke Framed/Teal Wisps, Chrome/Honeycomb Bg,
   Ember Glow/Reddish Bellows, Rolling Smoke/Bees at Base.
+
+2026-03-30 - Logo art: Almost There v3 -- flat-panel bellows fix (ref sketch)
+  Replaced Almost_There.html again with 8 new Leonardo AI generations.
+  Corrected smoker anatomy based on reference sketch provided by Nathan:
+  - Bellows: flat rectangular leather boards like a closed book with rivet holes
+    (NOT teardrop/pear shaped)
+  - Lid: wide outward-flaring cone, narrow at base, broad open tube at top
+  - Body: squat wide barrel cylinder (wider than tall)
+  8 variations x 4 images = 32 total. Gen IDs and prompts embedded.
