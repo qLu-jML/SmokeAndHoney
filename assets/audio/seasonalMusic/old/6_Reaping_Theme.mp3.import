@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://cai0kqrb8hbus"
-path="res://.godot/imported/6_Reaping_Theme.mp3-e3a9f2949fab3ffd0258f598a719301e.mp3str"
+path="res://.godot/imported/6_Reaping_Theme.mp3-d9d5c79c8afb0a1c44f9454fb5019dd5.mp3str"
 
 [deps]
 
-source_file="res://assets/audio/seasonalMusic/6_Reaping_Theme.mp3"
-dest_files=["res://.godot/imported/6_Reaping_Theme.mp3-e3a9f2949fab3ffd0258f598a719301e.mp3str"]
+source_file="res://assets/audio/seasonalMusic/old/6_Reaping_Theme.mp3"
+dest_files=["res://.godot/imported/6_Reaping_Theme.mp3-d9d5c79c8afb0a1c44f9454fb5019dd5.mp3str"]
 
 [params]
 
@@ -16,4 +16,4 @@ loop=false
 loop_offset=0
 bpm=0
 beat_count=0
-bar_beats=4
+bar_beat

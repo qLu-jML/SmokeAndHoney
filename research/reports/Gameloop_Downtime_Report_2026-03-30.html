@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smoke & Honey -- Gameloop & Downtime Report</title>
+  <style>
+    :root {
+      --amber-light: #E8A020;
+      --amber-mid:   #C87010;
+      --honey-pale:  #F4CC6E;
+      --wax-white:   #FDF6E3;
+      --ink:         #2C1A0A;
+      --muted:       #7A5C3A;
+      --section-bg:  #FFF8EC;
+      --border:      #D4A050;
+      --warn-bg:     #FFF3CD;
+      --warn-border: #E8B030;
+      --suggest-bg:  #EAF4EA;
+      --suggest-border: #5A9E5A;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Georgia', serif;
+      background: var(--wax-white);
+      color: var(--ink);
+      line-height: 1.7;
+      padding: 2rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 2.2rem;
+      color: var(--amber-mid);
+      border-bottom: 3px solid var(--amber-light);
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .meta {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+    h2 {
+      font-size: 1.4rem;
+      color: var(--amber-mid);
+      margin: 2.5rem 0 0.75rem;
+      padding-left: 0.5rem;
+      border-left: 4px solid var(--amber-light);
+    }
+    h3 {
+      font-size: 1.1rem;
+      color: var(--ink);
+      margin: 1.5rem 0 0.5rem;
+      font-style: italic;
+    }
+    p { margin-bottom: 0.9rem; }
+    .month-card {
+      background: var(--section-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .month-card h3 {
+      font-style: normal;
+      font-size: 1.15rem;
+      color: var(--amber-mid);
+      margin-top: 0;
+      margin-bottom: 0.4rem;
+    }
+    .month-label {
+      font-size: 0.8rem;
+      font-weight: bold;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+    }
+    .activity-list {
+      margin: 0.5rem 0 0.5rem 1.2rem;
+    }
+    .activity-list li {
+      margin-bottom: 0.3rem;
+    }
+    .downtime-tag {
+      display: inline-block;
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      color: #7A5500;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+      letter-spacing: 0.04em;
+    }
+    .busy-tag {
+      display: inline-block;
+      background: #FDECEA;
+      border: 1px solid #D08070;
+      color: #7A2A1A;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+      letter-spacing: 0.04em;
+    }
+    .suggest-block {
+      background: var(--suggest-bg);
+      border-left: 4px solid var(--suggest-border);
+      padding: 1rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 0 6px 6px 0;
+    }
+    .suggest-block h4 {
+      color: #2E6E2E;
+      margin-bottom: 0.4rem;
+      font-size: 1rem;
+    }
+    .gap-block {
+      background: var(--warn-bg);
+      border-left: 4px solid var(--warn-border);
+      padding: 1rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 0 6px 6px 0;
+    }
+    .gap-block h4 {
+      color: #7A5500;
+      margin-bottom: 0.4rem;
+      font-size: 1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+    th {
+      background: var(--amber-mid);
+      color: white;
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+    }
+    td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #FFFBF2; }
+    .section-divider {
+      border: none;
+      border-top: 2px dashed var(--border);
+      margin: 2.5rem 0;
+    }
+    .note {
+      font-style: italic;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+    .toc {
+      background: var(--section-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .toc h3 { margin-top: 0; font-style: normal; }
+    .toc ol { margin-left: 1.2rem; }
+    .toc li { margin-bottom: 0.2rem; }
+    .toc a { color: var(--amber-mid); }
+    .crafting-priority {
+      font-weight: bold;
+      color: #2E6E2E;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Smoke &amp; Honey -- Gameloop &amp; Downtime Report</h1>
+<p class="meta">Prepared: 2026-03-30 &nbsp;|&nbsp; Reference: Smoke_and_Honey_GDD.html (Sections 2, 5, 6.8, 7.1.1, 8.2)</p>
+
+<div class="toc">
+  <h3>Contents</h3>
+  <ol>
+    <li><a href="#overview">Overview & Purpose</a></li>
+    <li><a href="#monthly">Month-by-Month Gameloop (GDD Source)</a></li>
+    <li><a href="#gaps">Downtime Gap Analysis</a></li>
+    <li><a href="#fillers">Suggested Time-Filler Activities</a></li>
+    <li><a href="#crafting">Crafting -- The Big One</a></li>
+    <li><a href="#priority">Implementation Priority</a></li>
+  </ol>
+</div>
+
+<hr class="section-divider">
+
+<h2 id="overview">1. Overview &amp; Purpose</h2>
+
+<p>Smoke &amp; Honey is structured around real beekeeping rhythms -- which means there are real beekeeping lulls baked into the calendar. During peak flow months (Wide-Clover, Full-Earth), the player is genuinely busy: inspecting, managing space, harvesting, treating. But during low-flow windows -- especially Quickening (early spring), High-Sun dearth, and both winter months -- the player's primary bee-related duties drop off sharply. A typical day during these windows might use fewer than 40 of the player's 100 energy points on hive work alone.</p>
+
+<p>This report maps out what the GDD currently prescribes for each of the eight months, identifies the downtime windows by severity, and proposes a suite of time-filler activities -- with crafting as the primary solution -- to give the player meaningful, rewarding things to do when the bees are handling themselves.</p>
+
+<p class="note">All month names, durations, and activity descriptions are sourced directly from the GDD. Suggestions in Sections 4 and 5 are design proposals not yet in the GDD.</p>
+
+<hr class="section-divider">
+
+<h2 id="monthly">2. Month-by-Month Gameloop (GDD Source)</h2>
+
+<!-- QUICKENING -->
+<div class="month-card" id="m-quickening">
+  <div class="month-label">Spring, Month 1 -- Days 1-28</div>
+  <h3>Quickening <span class="downtime-tag">MODERATE DOWNTIME</span></h3>
+  <p>The world wakes up. Ice thaws. First willow catkins appear. Bees take cleansing flights. Everything is uncertain and fragile.</p>
+  <p><strong>GDD-Prescribed Activities:</strong></p>
+  <ul class="activity-list">
+    <li>Evaluate hive loss from winter -- open and assess surviving colonies, clean dead-out equipment</li>
+    <li>Emergency or stimulative feeding if stores are low (1:1 syrup)</li>
+    <li>Monitor dandelion density; it determines whether a meaningful early flow will exist</li>
+    <li>Order bee packages or nucs if colonies were lost (lead time applies -- plan ahead)</li>
+    <li>Do NOT add supers yet; colony is too small to draw comb efficiently</li>
+    <li>Watch for swarm risk as the colony rebuilds -- though this is not yet a primary concern</li>
+    <li>CVBA Club Meeting (one per month) -- attend for XP and Knowledge Log entry</li>
+    <li>Uncle Bob mentorship visit (bi-weekly available)</li>
+    <li>Begin forage garden bed prep and early planting (clover, wild bergamot, coneflower)</li>
+    <li>Workbench crafting -- build frames and supers to prepare for the coming flow</li>
+  </ul>
+  <div class="gap-block">
+    <h4>Downtime Gap</h4>
+    <p>Most hive-related work in Quickening is observational or passive. A full inspection takes moderate energy, but once per week per hive is the limit. Bees aren't building fast enough to require urgent intervention. Much of the week is genuinely open. The player has no honey to process, no harvest pipeline to run, and winter craft stockpiles may already be depleted. <strong>Energy available for fillers: ~50-65 per day.</strong></p>
+  </div>
+</div>
+
+<!-- GREENING -->
+<div class="month-card" id="m-greening">
+  <div class="month-label">Spring, Month 2 -- Days 29-56</div>
+  <h3>Greening <span class="busy-tag">BUSY</span></h3>
+  <p>Dandelions bloom. Fruit trees flower. The colony explodes with new bees. The most beautiful and most anxious month for the beekeeper.</p>
+  <p><strong>GDD-Prescribed Activities:</strong></p>
+  <ul class="activity-list">
+    <li>Monitor for brood-bound conditions as population peaks -- queen may run out of laying room</li>
+    <li>Add first super when brood box is 70%+ full -- timing is critical</li>
+    <li>Dandelion harvest decision -- first potential honey pull of the year</li>
+    <li>Install ordered packages or nucs if purchased in Quickening</li>
+    <li>Split hives if swarm risk is building (monitor for swarm cells)</li>
+    <li>Weekly inspections ramp up in urgency</li>
+    <li>Forage garden planting continues</li>
+    <li>CVBA Club Meeting</li>
+    <li>Uncle Bob mentorship visits</li>
+  </ul>
+  <p class="note">Downtime is low in Greening. This is one of the action-dense periods the GDD specifically calls out. Player energy will be well-utilized most days.</p>
+</div>
+
+<!-- WIDE-CLOVER -->
+<div class="month-card" id="m-wide-clover">
+  <div class="month-label">Summer, Month 1 -- Days 57-84</div>
+  <h3>Wide-Clover <span class="busy-tag">PEAK BUSY</span></h3>
+  <p>The clover flows. Bees work from first light to dusk. Honey frames fill steadily. The beekeeper's richest and most demanding month.</p>
+  <p><strong>GDD-Prescribed Activities:</strong></p>
+  <ul class="activity-list">
+    <li>Add supers as needed -- monitor space weekly to prevent honey-bound conditions</li>
+    <li>Weekly inspections on every hive; brood-bound risk remains</li>
+    <li>Manage swarm season -- check for queen cells, split if needed</li>
+    <li>Watch for pesticide event (Week 2-3 of Wide-Clover is prime trigger window)</li>
+    <li>Apiary scouting for future expansion sites</li>
+    <li>CVBA Club Meeting</li>
+    <li>Saturday Market attendance to sell early honey</li>
+    <li>Frank Fischbach NPC quest chain likely active</li>
+  </ul>
+  <p class="note">Very little downtime. This is the most demanding month. Player energy is the binding constraint, not available tasks.</p>
+</div>
+
+<!-- HIGH-SUN -->
+<div class="month-card" id="m-high-sun">
+  <div class="month-label">Summer, Month 2 -- Days 85-112</div>
+  <h3>High-Sun <span class="downtime-tag">PARTIAL DOWNTIME</span></h3>
+  <p>Peak heat. Linden fades. The midsummer dearth may arrive. Goldenrod is still weeks away. Beautiful and relentless.</p>
+  <p><strong>GDD-Prescribed Activities:</strong></p>
+  <ul class="activity-list">
+    <li><strong>CRITICAL</strong> -- Pull premium summer supers before goldenrod begins late in the month; goldenrod honey mixing degrades varietal quality</li>
+    <li>Monitor for midsummer dearth (2-4 week window of reduced nectar) -- reduce entrances, watch for robbing</li>
+    <li>Heat wave management -- ensure water sources, add ventilation if needed</li>
+    <li>Begin harvest pipeline if pulling summer supers: uncapping, extraction, bottling</li>
+    <li>Continue weekly inspections but colony is stable; less urgency than spring</li>
+    <li>CVBA Club Meeting</li>
+    <li>Saturday Market attendance</li>
+    <li>Summer Honey Competition entry (if Standing threshold met)</li>
+  </ul>
+  <div class="gap-block">
+    <h4>Downtime Gap</h4>
+    <p>During the dearth window, bees do little and the player has already pulled supers. Inspection urgency drops. Harvest processing may be complete. There can be a 1-2 week window where the player is waiting for goldenrod to begin with relatively little to do. <strong>Energy available for fillers: ~40-60 per day during dearth.</strong></p>
+  </div>
+</div>
+
+<!-- FULL-EARTH -->
+<div class="month-card" id="m-full-earth">
+  <div class="month-label">Fall, Month 1 -- Days 113-140</div>
+  <h3>Full-Earth <span class="busy-tag">BUSY</span></h3>
+  <p>Goldenrod burns gold along every fence line. The main harvest happens. Hives are heavy and the air smells of ripe honey.</p>
+  <p><strong>GDD-Prescribed Activities:</strong></p>
+  <ul class="activity-list">
+    <li>Main goldenrod harvest -- the year's biggest pull</li>
+    <li>Goldenrod honey decision: let bees use it for winter stores, or pull for the market</li>
+    <li>Full extraction pipeline -- uncapping minigame, spinning, settling, bottling</li>
+    <li>Begin varroa treatment on all hives (critical pre-winter window)</li>
+    <li>Fall Harvest Market event -- surge pricing for 2 weeks</li>
+    <li>CVBA Club Meeting</li>
+    <li>Saturday Market, sell premium and varietal honey</li>
+    <li>Begin planting late-season forage, cover crops</li>
+    <li>Plant trees (willow, linden, fruit) for long-term forage investment</li>
+  </ul>
+  <p class="note">Busy month overall, though the pace is more controlled than Greening. The main harvest and varroa treatment are the dominant tasks.</p>
+</div>
+
+<!-- REAPING -->
+<div class="month-card" id="m-reaping">
+  <div class="month-label">Fall, Month 2 -- Days 141-168</div>
+  <h3>Reaping <span class="downtime-tag">MODERATE DOWNTIME</span></h3>
+  <p>First frosts come. Goldenrod ends. Hives close up. Feed syrup goes on. The last accounting of the year.</p>
+  <p><strong>GDD-Prescribed Activities:</strong></p>
+  <ul class="activity-list">
+    <li>Final harvest window -- last chance to pull any remaining capped frames before winter</li>
+    <li>Winter preparation sequence: entrance reduction, insulation/moisture quilt, ventilation board, mouse guards</li>
+    <li>Verify stores -- minimum 60 lbs per hive; emergency feed (2:1 syrup) if short</li>
+    <li>Complete varroa treatment if not done in Full-Earth</li>
+    <li>Wrap hives if cold climate option is selected</li>
+    <li>Equipment maintenance -- clean supers, repair boxes, store frames</li>
+    <li>Seed saving from forage garden</li>
+    <li>CVBA Club Meeting</li>
+    <li>Begin processing beeswax from harvest cappings</li>
+    <li>Ship finished honey or hold for Winter Crafting Fair</li>
+  </ul>
+  <div class="gap-block">
+    <h4>Downtime Gap</h4>
+    <p>Once winter prep is complete (approximately week 2-3 of Reaping), the hives go quiet and the player's outdoor bee work essentially ends. The remaining week of Reaping can feel empty. Winter-mode activities (crafting, planning) are relevant but the systems may not be fully primed with materials yet. <strong>Energy available for fillers: ~50-70 per day in final week.</strong></p>
+  </div>
+</div>
+
+<!-- DEEPCOLD -->
+<div class="month-card" id="m-deepcold">
+  <div class="month-label">Winter, Month 1 -- Days 169-196</div>
+  <h3>Deepcold <span class="downtime-tag">HIGH DOWNTIME</span></h3>
+  <p>True winter. Snow covers the fields. Bees are clustered. No inspections, no harvests. The beekeeper makes frames, renders wax, brews mead, and waits.</p>
+  <p><strong>GDD-Prescribed Activities:</strong></p>
+  <ul class="activity-list">
+    <li>Warm-day hive checks when daily high exceeds 45F -- passive observation only (hive weight, entrance activity, cluster sound); costs 3 energy, once per week per hive</li>
+    <li>Craft harvesting materials and equipment for the coming year (frames, supers, stands)</li>
+    <li>Craft value-added products: beeswax candles, mead, lip balm</li>
+    <li>Render cappings wax in the kitchen double-boiler</li>
+    <li>Ship finished goods or hold for seasonal market events</li>
+    <li>Review the previous year -- plan next spring's apiary layout</li>
+    <li>Order queens, packages, or equipment for spring</li>
+    <li>CVBA Club Meeting (inside the Grange Hall)</li>
+    <li>Crossroads Diner visits for NPC encounters (Uncle Bob on Tuesdays, Darlene on Fridays)</li>
+    <li>Review Knowledge Log, plan skill development</li>
+    <li>Winter Crafting Fair (late Deepcold or early Kindlemonth)</li>
+  </ul>
+  <div class="gap-block">
+    <h4>Downtime Gap</h4>
+    <p>This is the most structurally open month in the game. The GDD acknowledges this directly -- Deepcold is described as "the patient month." Without enough crafting content, mead fermentation queues, and interior activities, this month risks feeling like mandatory waiting. A player with no crafting recipes unlocked, no mead vessel, and no projects in progress could run out of things to do within 3-4 in-game days. <strong>Energy available for fillers: ~70-90 per day.</strong></p>
+  </div>
+</div>
+
+<!-- KINDLEMONTH -->
+<div class="month-card" id="m-kindlemonth">
+  <div class="month-label">Winter, Month 2 -- Days 197-224</div>
+  <h3>Kindlemonth <span class="downtime-tag">HIGH DOWNTIME</span></h3>
+  <p>The cold remains but light is returning. The queen may begin laying again late in the month. The beekeeper orders bees, plans spring apiaries, and tends the fire.</p>
+  <p><strong>GDD-Prescribed Activities:</strong></p>
+  <ul class="activity-list">
+    <li>Monitor cluster via hive weight checks (same as Deepcold -- warm-day passive checks only)</li>
+    <li>Order spring bees and equipment well in advance of Quickening</li>
+    <li>Spring plan finalized -- review apiary layout, queen genetics, expansion goals</li>
+    <li>Continue crafting: finish mead batches started in Deepcold (8-12 week fermentation timeline)</li>
+    <li>Finish any remaining wax products for the Winter Crafting Fair or Year-End Market</li>
+    <li>Year-End Review event -- full summary of hives, finances, XP, achievements</li>
+    <li>CVBA Club Meeting</li>
+    <li>NPC visits at the diner -- late-winter relationship building</li>
+    <li>Prep forage beds conceptually; seeds arrive but cannot be planted until Quickening</li>
+  </ul>
+  <div class="gap-block">
+    <h4>Downtime Gap</h4>
+    <p>Very similar to Deepcold. The slight difference is Kindlemonth carries a sense of anticipation -- spring is coming. But the playable activities are structurally identical. Two full months of winter with the same limited activity set creates a real risk of player fatigue. The GDD's prescription of crafting and planning is correct but needs more content depth to fill 56 days of winter meaningfully. <strong>Energy available for fillers: ~70-90 per day.</strong></p>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<h2 id="gaps">3. Downtime Gap Analysis</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Month</th>
+      <th>Downtime Level</th>
+      <th>Primary Gap</th>
+      <th>Days at Risk</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Quickening</td>
+      <td>Moderate</td>
+      <td>Bees building slowly; inspections are low-urgency; no harvest pipeline active</td>
+      <td>~14 days</td>
+    </tr>
+    <tr>
+      <td>Greening</td>
+      <td>Low</td>
+      <td>Busy. Action-dense. No significant gap.</td>
+      <td>~0 days</td>
+    </tr>
+    <tr>
+      <td>Wide-Clover</td>
+      <td>Very Low</td>
+      <td>Peak season. Player energy is the limit.</td>
+      <td>~0 days</td>
+    </tr>
+    <tr>
+      <td>High-Sun</td>
+      <td>Partial</td>
+      <td>Midsummer dearth window (2-4 weeks). Harvest may be complete. Waiting for goldenrod.</td>
+      <td>~10-20 days</td>
+    </tr>
+    <tr>
+      <td>Full-Earth</td>
+      <td>Low</td>
+      <td>Main harvest and varroa treatment fill most days. Mostly busy.</td>
+      <td>~3-5 days</td>
+    </tr>
+    <tr>
+      <td>Reaping</td>
+      <td>Moderate</td>
+      <td>Once winter prep is complete (~week 2), outdoor work ends abruptly.</td>
+      <td>~7-10 days</td>
+    </tr>
+    <tr>
+      <td>Deepcold</td>
+      <td>High</td>
+      <td>No bee work possible. Current GDD activities insufficient without expanded crafting.</td>
+      <td>~20-25 days</td>
+    </tr>
+    <tr>
+      <td>Kindlemonth</td>
+      <td>High</td>
+      <td>Same as Deepcold. Two months of winter with shallow activity depth is the biggest design risk.</td>
+      <td>~20-25 days</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The two winter months account for roughly 50 days of high-downtime gameplay. Add the moderate gaps in Quickening, High-Sun, and late Reaping, and the game has approximately <strong>70-80 days per year</strong> where the player needs meaningful things to do beyond bee management. That is roughly one third of the full calendar year.</p>
+
+<hr class="section-divider">
+
+<h2 id="fillers">4. Suggested Time-Filler Activities</h2>
+
+<p>The following are design proposals, grouped by category. Each is intended to feel like a natural extension of the beekeeper's world -- not padding, not mini-games for their own sake, but activities that a real small-farm beekeeper would actually do between bee seasons.</p>
+
+<h3>Property Maintenance &amp; Improvement</h3>
+<div class="suggest-block">
+  <h4>Hive Equipment Repair &amp; Maintenance</h4>
+  <p>The GDD already includes a hive equipment condition system (0-100 scale). Expand the repair system into a genuine winter activity. The player sorts stored supers and brood boxes, sands rough edges, repaints weathered boxes, replaces warped frames, and applies beeswax wood polish. Each box repaired restores condition points. Higher condition boxes carry into the next season with meaningful performance bonuses. This is satisfying, tangible, and directly rewards the player for winter industriousness. Could be implemented as a simple drag-and-sort interface at the shed workbench.</p>
+</div>
+<div class="suggest-block">
+  <h4>Property Expansion &amp; Fencing</h4>
+  <p>Give the player structural work on the home property during off-season: repairing the fence line between the apiary and the road, building a shed lean-to for additional storage, clearing brush from future apiary slots. These are multi-day projects that consume energy meaningfully and produce permanent property improvements the player can see. Use the existing lumber-and-workbench resource chain.</p>
+</div>
+<div class="suggest-block">
+  <h4>Tool Maintenance</h4>
+  <p>The smoker, hive tool, and extracting equipment all accumulate wear. A simple "sharpen/clean/oil" routine done at the workbench once per season keeps tools at peak efficiency and provides a small daily task in winter. A neglected smoker works less reliably; a dull uncapping knife leaves more wax behind. Costs a small amount of energy and keeps the player engaged in the shed without requiring complex systems.</p>
+</div>
+
+<h3>Forage &amp; Land Management</h3>
+<div class="suggest-block">
+  <h4>Winter Tree Care</h4>
+  <p>The GDD mentions tree planting as a long-horizon investment (willows, linden, fruit trees). Expand this into a multi-season caretaking loop: pruning in winter and early spring, fertilizing in spring, monitoring growth status. Trees have a "health" modifier that affects their contribution to the forage pool. Winter is the correct real-world time for dormant pruning. Gives the player outdoor activity even in Deepcold and provides a reason to walk the property beyond hive checks.</p>
+</div>
+<div class="suggest-block">
+  <h4>Seed Saving &amp; Catalog Orders</h4>
+  <p>Expand the forage garden system. In Reaping, the player harvests seeds from their garden beds (a short minigame of selecting the best specimens). In Deepcold and Kindlemonth, they review seed catalogs (Tanner's Supply winter catalog), plan next year's beds, and place pre-orders. Some specialty seeds (borage, anise hyssop, phacelia) only arrive if ordered in winter. This creates a planning ritual that feels authentic and rewards long-term thinking.</p>
+</div>
+<div class="suggest-block">
+  <h4>Cover Cropping &amp; Soil Work</h4>
+  <p>In Reaping, the player can plant winter rye or buckwheat as cover crops in garden beds. In Quickening, they till these under before planting. This is a one-action-per-plot investment that slightly improves garden yield the following summer. It gives Reaping's final week a productive outdoor task and teaches real small-farm practice.</p>
+</div>
+
+<h3>Community &amp; NPC Activities</h3>
+<div class="suggest-block">
+  <h4>Expand CVBA Club Meetings</h4>
+  <p>Currently one meeting per month earns XP and a Knowledge Log entry. Add optional post-meeting activities: helping set up chairs (minor rep gain), staying late to talk with a specific NPC (triggers relationship dialogue), volunteering to give a short presentation at Level 3+ (significant XP and standing gain). Club meetings are already on the calendar -- adding more player choice within them costs relatively little development effort for significant engagement payoff.</p>
+</div>
+<div class="suggest-block">
+  <h4>Diner Regular Status</h4>
+  <p>A player who eats at the Crossroads Diner at the same time on the same day for several consecutive weeks earns "Regular" status with a small daily XP bump and unlocked NPC dialogue. The diner already exists and has NPC presence tied to specific days -- formalizing this into a small meta-system gives winter players a reason to make the trip to town even when they have no errands.</p>
+</div>
+<div class="suggest-block">
+  <h4>Letter Writing / Local Bulletin Board Quests</h4>
+  <p>The GDD mentions a town bulletin board unlocking at reputation level "Known" (100+ standing). Populate this with simple winter tasks: "Help Lloyd carry firewood" (visit Lloyd's property, spend 10 energy, gain standing + XP + a small gift item), "Bring a jar of honey to the Grange Hall potluck" (attend an informal event during Deepcold), "Check on Mrs. Harwick's hive" (a 1-visit observation quest from Dr. Harwick). Small-scale quests that feel neighborly and fill individual days rather than full storylines.</p>
+</div>
+
+<h3>Knowledge &amp; Planning</h3>
+<div class="suggest-block">
+  <h4>Beekeeper's Journal</h4>
+  <p>A structured end-of-year journaling activity available in Kindlemonth. The player reviews the year's inspection notes, flags patterns (which hive consistently outperformed? where did mite counts spike? which forage drove the best honey?), and records a few observations. This is narrative and reflective, not mechanical -- but it unlocks a small XP bonus and a "Lessons Learned" Knowledge Log entry. Also seeds NPC dialogue for the coming year (Uncle Bob comments on whatever the player flagged).</p>
+</div>
+<div class="suggest-block">
+  <h4>Spring Planning Map</h4>
+  <p>An interactive map tool (available in the existing apiary view) where the player can mark planned changes for spring: new hive slots, forage bed locations, expansion to a new apiary site. Filling out the plan earns a small XP bonus and gives the player something purposeful to look at on slow winter days. The plan can serve as a reminder/checklist at the start of Quickening.</p>
+</div>
+
+<hr class="section-divider">
+
+<h2 id="crafting">5. Crafting -- The Big One</h2>
+
+<p>The GDD's crafting section (6.8) is the strongest answer to the downtime problem, but in its current form it is too shallow and too locked behind progression to fill winter meaningfully for Year 1-2 players. The proposals below are intended to expand crafting into the <span class="crafting-priority">primary downtime activity</span> it needs to be.</p>
+
+<h3>Current GDD Crafting State</h3>
+<p>The GDD prescribes the following crafting recipe tiers:</p>
+<table>
+  <thead>
+    <tr><th>Product</th><th>Unlock</th><th>Inputs</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Honey Jars (standard)</td><td>Year 1 start</td><td>Raw honey, jars, labels</td></tr>
+    <tr><td>Beeswax Blocks (raw)</td><td>Year 1 start</td><td>Cappings, rendered wax</td></tr>
+    <tr><td>Beeswax Candles</td><td>Year 1 craft station unlock</td><td>Rendered wax, wicks, molds</td></tr>
+    <tr><td>Varietal Honey Jars</td><td>Year 2 + forage management</td><td>Single-source raw honey (70%+ from one plant)</td></tr>
+    <tr><td>Creamed Honey</td><td>Year 2 + Honey House upgrade</td><td>Raw honey + seed honey, temperature control</td></tr>
+    <tr><td>Mead (traditional)</td><td>Year 2 + fermentation vessel</td><td>Honey, water, yeast, 8-12 weeks</td></tr>
+    <tr><td>Lip Balm</td><td>Year 2 cosmetics recipe</td><td>Beeswax, carrier oil, optional honey</td></tr>
+    <tr><td>Pollen Supplement Blend</td><td>Year 2 -- also sellable</td><td>Collected pollen, soy flour</td></tr>
+    <tr><td>Fruit Mead (Melomel)</td><td>Year 3 + reputation threshold</td><td>Honey, water, yeast, seasonal fruit</td></tr>
+    <tr><td>Face/Body Cream</td><td>Year 3 cosmetics recipe</td><td>Beeswax, shea butter, honey, essential oils</td></tr>
+    <tr><td>Foundation Sheets</td><td>Year 3 + equipment unlock</td><td>Rendered wax, foundation press</td></tr>
+  </tbody>
+</table>
+
+<p>Also available from game start: lumber crafting at the shed workbench (frames, supers, hive bodies, stands, lids) and kitchen wax rendering (Year 1 after first harvest).</p>
+
+<h3>The Problem</h3>
+<p>Year 1 players -- who face the first two winters with only 1-2 hives -- have very limited crafting options: standard honey jars, basic beeswax blocks, beeswax candles, and lumber equipment. That is a shallow menu for 56 days of winter content. Mead (the most time-consuming and satisfying crafting arc) is locked to Year 2. Cosmetics do not arrive until Year 2-3. A Year 1 player who finishes winterizing in Reaping and enters Deepcold with a handful of jars and a wax block has almost nothing to craft.</p>
+
+<h3>Proposed Crafting Expansions</h3>
+
+<div class="suggest-block">
+  <h4>Candle Variety System (Year 1)</h4>
+  <p>Expand candle crafting from a single recipe into a small system. Pillar candles are the base (already in GDD at $12 each). Add: taper candles (smaller molds, faster to make, lower margin -- $5 each), tea light discs (large batches, low-effort, good for market bundles -- $2 each), and molded novelty candles using seasonal flower presses gathered from the forage garden (clover candle, goldenrod candle -- $15-18 each, small batch). The variety lets the player fill different price points at the market and creates a reason to gather and press flowers during active seasons as a secondary activity.</p>
+</div>
+<div class="suggest-block">
+  <h4>Honey Gift Sets &amp; Packaging (Year 1)</h4>
+  <p>A packaging station at the house table allows the player to assemble gift sets: a jar of honey + a small candle + dried wildflowers in a kraft paper sleeve. Inputs available in Year 1; the value is in the presentation. Gift sets sell for 20-30% above the combined individual price at the market and are especially valued during Deepcold's Crafting Fair. Introduces the concept of product bundling and "premium presentation" that the GDD hints at through Frank Fischbach's quest chain.</p>
+</div>
+<div class="suggest-block">
+  <h4>Infused Honey (Year 1, Late Season)</h4>
+  <p>After the first harvest, allow the player to infuse honey with dried herbs gathered from the forage garden or bought at Tanner's: lavender honey, hot honey (dried chili from the garden), cinnamon-clove honey (bought spices). These are slow infusions (3-5 in-game days sitting in the jar) that require no active attention but reward the player for planning ahead. Infused honey sells for $2-4 more per jar and appeals to a specific buyer segment. Gives the player a passive production queue during winter downtime -- start an infusion, do other things, come back to bottle.</p>
+</div>
+<div class="suggest-block">
+  <h4>Mead: Move Starter Recipe to Year 1 (Design Proposal)</h4>
+  <p>This is the most impactful single change. The current GDD locks mead to Year 2 + fermentation vessel. Proposal: add a "farmhouse mead" starter recipe available in Year 1 using a simple ceramic crock (purchasable at Tanner's for $25, no special room required). Yield is smaller and quality is lower than proper mead (cannot enter the Crafting Fair), but it introduces the fermentation mechanic and gives Year 1 winter players a meaningful long-term craft project to tend. The 8-12 week fermentation timeline maps almost perfectly to the two winter months -- start a crock at the beginning of Deepcold, bottle it at the end of Kindlemonth, sell it in early spring. This single addition would transform winter gameplay for Year 1 players.</p>
+</div>
+<div class="suggest-block">
+  <h4>Propolis Tincture (Year 2)</h4>
+  <p>Propolis accumulates on frames during inspection (currently a background byproduct). Add a simple processing step: scrape propolis into jars during inspections in summer and fall, dissolve in food-grade alcohol over winter (passive, no minigame), bottle as propolis tincture in Kindlemonth. Sells to Dr. Harwick as a quest item and at the Saturday Market as a natural remedy product ($8-12 per small bottle). Connects the inspection loop to the crafting loop and gives a use to propolis that would otherwise be discarded.</p>
+</div>
+<div class="suggest-block">
+  <h4>Beeswax Furniture Polish &amp; Wood Conditioner (Year 1)</h4>
+  <p>A dead-simple recipe: rendered beeswax + linseed oil (available at Tanner's) mixed hot and poured into tins. Used by the player to maintain their own equipment (applying it to hive boxes gives a small condition bonus) and sold at market ($7-9 per tin). Fast to produce, requires minimal materials, and has dual use (player benefit + income). Good "low stakes" crafting for slow winter days when the player wants to be productive without committing to a major project.</p>
+</div>
+<div class="suggest-block">
+  <h4>Crafting Queue &amp; Passive Production</h4>
+  <p>Currently the GDD does not specify whether crafting is active (player must be present the whole time) or passive (set it and come back). Recommend a hybrid system for longer recipes: the player initiates the process (sets up the fermentation vessel, pours the infusion, starts the wax melt), then the recipe ticks in the background while the player does other things. A notification appears when it is ready. This is especially important for mead (weeks of fermentation) -- it transforms a "waiting" mechanic into a satisfying check-in loop. The player starts a batch on Day 170, checks it on Day 185, bottles it on Day 200. Each check-in is a small moment of anticipation and reward.</p>
+</div>
+<div class="suggest-block">
+  <h4>Crafting Skill Track</h4>
+  <p>Add a parallel light crafting skill that tracks batches completed and gradually unlocks quality improvements: candles burn longer, mead has better clarity, honey jars get a premium label unlock. This does not need to be a separate XP bar -- it can be folded into the existing Knowledge Log as a series of "Craft Mastery" entries that unlock after a certain number of batches. Gives crafting a sense of progression separate from the beekeeping level track and rewards players who invest in winter productivity.</p>
+</div>
+
+<hr class="section-divider">
+
+<h2 id="priority">6. Implementation Priority</h2>
+
+<p>The following is a rough prioritization by impact-to-effort ratio for the downtime problem:</p>
+
+<table>
+  <thead>
+    <tr><th>Activity</th><th>Impact on Downtime</th><th>Implementation Effort</th><th>When to Build</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Passive crafting queue (background recipes)</td>
+      <td>Very High -- transforms winter from "waiting" to "tending"</td>
+      <td>Medium (new system, but contained)</td>
+      <td>Before first winter playtest</td>
+    </tr>
+    <tr>
+      <td>Farmhouse mead starter (Year 1 unlock)</td>
+      <td>Very High -- fills 8-12 weeks of winter with a satisfying long arc</td>
+      <td>Low-Medium (existing mead system, earlier unlock)</td>
+      <td>Before first winter playtest</td>
+    </tr>
+    <tr>
+      <td>Candle variety system</td>
+      <td>High -- expands a working system into a real crafting loop</td>
+      <td>Low (add mold variants to existing candle recipe)</td>
+      <td>Near-term</td>
+    </tr>
+    <tr>
+      <td>Infused honey</td>
+      <td>High -- passive production, Year 1 accessible, satisfying check-in loop</td>
+      <td>Low (timer + variant item, no new UI needed)</td>
+      <td>Near-term</td>
+    </tr>
+    <tr>
+      <td>Hive equipment repair activity</td>
+      <td>High -- fills individual days with tangible progress</td>
+      <td>Low (extend existing condition system)</td>
+      <td>Near-term</td>
+    </tr>
+    <tr>
+      <td>Honey gift sets &amp; packaging</td>
+      <td>Medium -- adds market strategy depth and a winter crafting activity</td>
+      <td>Low-Medium (new item type + market display)</td>
+      <td>Mid-term</td>
+    </tr>
+    <tr>
+      <td>Tree care &amp; winter pruning</td>
+      <td>Medium -- outdoor activity in winter, connects to forage long game</td>
+      <td>Medium (extend tree system)</td>
+      <td>Mid-term</td>
+    </tr>
+    <tr>
+      <td>Propolis tincture</td>
+      <td>Medium -- closes the inspection-to-craft loop, ties to Dr. Harwick</td>
+      <td>Medium (new resource tracking in inspections)</td>
+      <td>Mid-term</td>
+    </tr>
+    <tr>
+      <td>Beeswax furniture polish</td>
+      <td>Low-Medium -- quick-to-craft item with dual use</td>
+      <td>Low (simple recipe)</td>
+      <td>Near-term filler</td>
+    </tr>
+    <tr>
+      <td>Expanded bulletin board quests</td>
+      <td>Medium -- adds variety and community texture to winter</td>
+      <td>Medium (new quest content per NPC)</td>
+      <td>After core crafting is in place</td>
+    </tr>
+    <tr>
+      <td>Crafting skill track</td>
+      <td>Medium-High -- gives winter productivity a progression payoff</td>
+      <td>Medium (Knowledge Log entries + quality modifiers)</td>
+      <td>After core crafting loop is stable</td>
+    </tr>
+    <tr>
+      <td>Beekeeper's Journal &amp; Spring Planning Map</td>
+      <td>Low-Medium -- narrative and reflective value, not engagement depth</td>
+      <td>Low-Medium</td>
+      <td>Polish pass</td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="margin-top:1.5rem;"><strong>Bottom line:</strong> The single most important change is giving Year 1 players access to the mead fermentation arc during their first winter, combined with a passive crafting queue that lets long recipes tick in the background. Together, these two additions transform the winter months from a waiting room into a workshop -- which is exactly what the GDD says they are supposed to feel like.</p>
+
+<p class="note">-- End of Report -- Prepared for Smoke &amp; Honey / Five Cats Studios LLC -- 2026-03-30</p>
+
+</body>
+</html>

@@ -1333,7 +1333,7 @@ func _count_bee_bread_cells() -> int:
 
 ## Draw comb using NU wax budget. Each NU of wax draws ~2-3 cells.
 ## Replaces the old store_mult-based system with direct NU input.
-func _draw_comb_with_nu(foundation_remaining: int, nu_wax: int) -> void:
+func _draw_comb_with_nu(_foundation_remaining: int, nu_wax: int) -> void:
 	# Stores check now handled upstream by wax_fraction allocation.
 	# nu_wax will be 0 if stores are too low.
 	# Each NU of wax draws ~3 cells (game balance tuning)

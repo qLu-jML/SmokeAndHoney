@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://b7lwwjghgqq6j"
-path="res://.godot/imported/Main_Theme.mp3-b904bb8fa65f0ec26aa7e5f2b245d01c.mp3str"
+path="res://.godot/imported/Main_Theme.mp3-42af2c4b775c130f4e4c2c84d3e291cd.mp3str"
 
 [deps]
 
-source_file="res://assets/audio/main_theme/Main_Theme.mp3"
-dest_files=["res://.godot/imported/Main_Theme.mp3-b904bb8fa65f0ec26aa7e5f2b245d01c.mp3str"]
+source_file="res://assets/audio/main_theme/old/Main_Theme.mp3"
+dest_files=["res://.godot/imported/Main_Theme.mp3-42af2c4b775c130f4e4c2c84d3e291cd.mp3str"]
 
 [params]
 
@@ -16,4 +16,4 @@ loop=false
 loop_offset=0
 bpm=0
 beat_count=0
-bar_beats=4
+bar_beat

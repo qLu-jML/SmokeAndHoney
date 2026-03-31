@@ -9,7 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://dtj6572wwej54" path="res://assets/sprites/paid/Pixel Art Top Down - Village v1.0.7/Texture/Extra/TX Village Plant with Shadow.png" id="7_hxvsk"]
 [ext_resource type="Script" uid="uid://fq4bb4j3t1ww" path="res://scripts/ui/grid_overlay.gd" id="grid_overlay_script"]
 [ext_resource type="PackedScene" uid="uid://merchant01" path="res://scenes/npc/merchant.tscn" id="merchant_scene"]
-[ext_resource type="Script" uid="uid://ykw0xvtgsnlg" path="res://scripts/world/home_property.gd" id="test_env_script"]
+[ext_resource type="Script" uid="uid://6dyvoe4x0ot4" path="res://scripts/world/home_property.gd" id="test_env_script"]
 
 [ext_resource type="Script" path="res://scripts/npc/uncle_bob.gd" id="uncle_bob_script"]
 [ext_resource type="Texture2D" path="res://assets/sprites/world/forage/dandelion_mature.png" id="dandelion_tex"]

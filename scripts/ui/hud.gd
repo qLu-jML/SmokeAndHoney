@@ -26,6 +26,7 @@ var _level_lbl: Label = null
 var _xp_fill: TextureRect = null
 var _xp_lbl: Label = null
 var _slots: Array = []
+@warning_ignore("UNUSED_PRIVATE_CLASS_VARIABLE")
 var _menu_open: bool = false
 var _summary_overlay: ColorRect = null
 
@@ -48,6 +49,7 @@ var _info_energy_lbl: Label = null
 var _honey_energy_bar: Control = null
 var _honey_energy_fill: ColorRect = null
 var _honey_energy_drip: ColorRect = null
+@warning_ignore("UNUSED_PRIVATE_CLASS_VARIABLE")
 var _honey_energy_pct_lbl: Label = null
 
 # -- Hotbar --

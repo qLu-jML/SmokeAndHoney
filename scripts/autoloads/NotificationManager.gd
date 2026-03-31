@@ -183,7 +183,6 @@ func _animate_in_then_out(entry: Dictionary, hold_time: float) -> void:
 	var panel: Control = entry["panel"]
 	var slot: int      = entry["slot"]
 	var target_x       := float(NOTIF_X)
-	var target_y       := float(NOTIF_TOP + slot * (NOTIF_H + NOTIF_PAD))
 
 	# Slide-in tween
 	var tw := create_tween()

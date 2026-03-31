@@ -686,18 +686,7 @@ func _update_sprites(type_name: String) -> void:
 	var grid: Dictionary = flower_grid[type_name]
 
 	# Remove sprites for tiles that no longer exist
-	var keys_to_remove: Array = []
-	var prefix := type_name + "_"
-	for sprite_key: String in _active_sprites:
-		if sprite_key.begins_with(prefix):
-			# Extract tile coords from key
-			var parts: PackedStringArray = sprite_key.split("_")
-			if parts.size() >= 3:
-				# Key format: "typename_x_y" but typename may have underscores
-				# Use suffix approach
-				pass
-
-	# Simpler approach: rebuild sprites for all tiles
+	# Rebuild sprites for all tiles
 	for tile: Vector2i in grid:
 		var data: Dictionary = grid[tile]
 		var phase: int = data["phase"]
@@ -888,7 +877,7 @@ func get_blooming_types() -> Array:
 	return result
 
 ## Called by external systems (e.g. hud.gd +Day button) to advance flowers.
-func advance_day_with_global(new_day: int) -> void:
+func advance_day_with_global(_new_day: int) -> void:
 	_check_year_change()
 	_update_flowers()
 

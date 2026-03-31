@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://bxfpm6v4ujoby"
-path="res://.godot/imported/7_Deepcold_Theme.mp3-164343ce1b7a99a0f55060a9a74fbad2.mp3str"
+path="res://.godot/imported/7_Deepcold_Theme.mp3-ddabc6ad79581be59abb99a8d9b99911.mp3str"
 
 [deps]
 
-source_file="res://assets/audio/seasonalMusic/7_Deepcold_Theme.mp3"
-dest_files=["res://.godot/imported/7_Deepcold_Theme.mp3-164343ce1b7a99a0f55060a9a74fbad2.mp3str"]
+source_file="res://assets/audio/seasonalMusic/old/7_Deepcold_Theme.mp3"
+dest_files=["res://.godot/imported/7_Deepcold_Theme.mp3-ddabc6ad79581be59abb99a8d9b99911.mp3str"]
 
 [params]
 
@@ -16,4 +16,4 @@ loop=false
 loop_offset=0
 bpm=0
 beat_count=0
-bar_beats=4
+bar_beat

@@ -48,6 +48,7 @@ const PLANT_DATA: Dictionary = {
 var _forage_pools: Dictionary = {}
 
 # -- Signals ------------------------------------------------------------------
+@warning_ignore("UNUSED_SIGNAL")
 signal forage_updated(level: float)
 
 # -- Public API ---------------------------------------------------------------
@@ -94,7 +95,7 @@ func calculate_forage_pool(world_position: Vector2) -> float:
 	return clampf(baseline, 0.0, 1.0)
 
 ## Returns the dominant nectar source name for a position (for varietal labeling).
-func get_dominant_plant(world_position: Vector2) -> String:
+func get_dominant_plant(_world_position: Vector2) -> String:
 	var flm := _get_flower_manager()
 	if flm:
 		return flm.get_dominant_plant()

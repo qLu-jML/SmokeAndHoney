@@ -502,7 +502,7 @@ func _rebuild_sprite_stack() -> void:
 	# each piece (GAP_PX) so you can see each component.
 	# The lid sits flush on top, fully covering the box below.
 	var layers: Array = []
-	const GAP_PX := 1  # 1px gap between stacked components
+	const _GAP_PX := 1  # 1px gap between stacked components
 	# Track which layer indices are super sprites (for honey fill tinting)
 	_super_sprite_indices = []
 	var super_data_idx: int = 0  # index into snapshot super_visuals array

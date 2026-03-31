@@ -362,9 +362,10 @@ func _get_prompt_text(station: Station, player: Node2D) -> String:
 			if _jars_on_table > 0 and _bucket_honey_lbs < 1.0:
 				return "[E] Collect Jars (%d)" % _jars_on_table
 			if _bucket_honey_lbs >= 1.0:
-				# Bucket must be physically carried to the table
+				# Accept bucket grip OR bucket item -- player just used grip to pick it up
 				var held: String = _get_held_item(player)
-				if held == GameData.ITEM_HONEY_BUCKET:
+				var has_bkt: bool = player.has_method("count_item") and player.call("count_item", GameData.ITEM_HONEY_BUCKET) > 0
+				if held == GameData.ITEM_HONEY_BUCKET or held == GameData.ITEM_BUCKET_GRIP or has_bkt:
 					return "[E] Place Bucket -- Fill Jars (%.1f lbs)" % _bucket_honey_lbs
 				return "Carry honey bucket here first"
 			if _jars_on_table > 0:
@@ -598,10 +599,11 @@ func _action_bottling(player: Node2D) -> void:
 		_collect_jars(player)
 		return
 
-	# If there's honey to bottle, player must have carried the bucket here
+	# If there's honey to bottle, accept bucket grip OR bucket item as valid carry
 	if _bucket_honey_lbs >= 1.0:
 		var held: String = _get_held_item(player)
-		if held != GameData.ITEM_HONEY_BUCKET:
+		var has_bkt: bool = player.has_method("count_item") and player.call("count_item", GameData.ITEM_HONEY_BUCKET) > 0
+		if held != GameData.ITEM_HONEY_BUCKET and held != GameData.ITEM_BUCKET_GRIP and not has_bkt:
 			_notify("Carry the honey bucket here with your Bucket Grip first!")
 			return
 		# Player placed the bucket -- consume the carried item

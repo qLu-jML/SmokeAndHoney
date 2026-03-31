@@ -1,3 +1,13 @@
+[2026-03-30 CDT] LOGO: Approved game logo propagated to Five Cats / beekeeperPro project files
+  - Copied assets/ui/logo/game_logo.png to beekeeperPro/assets/game_logo.png
+  - Updated beekeeperPro/Smoke_and_honey.html Slide 8 ("Logo concepts") to display the
+    approved logo image (assets/game_logo.png) in place of the three SVG concept sketches.
+    Added composition/typography/source summary cards below the logo display.
+  - FiveCatsStudios_BusinessPlan.html: no game logo section needed (references studio cat logo only).
+  - beekeeperPro/BeeKeeper_Pro_DevPlan.html: no logo section found; no update needed.
+  Protected files verified: SmokeAndHoney GDD 603,634 bytes, DevPlan 104,468 bytes.
+  beekeeperPro GDD 541,708 bytes, DevPlan 65,903 bytes.
+
 [2026-03-30 CDT] FIX: Canning table bucket placement (honey_house.gd)
   Three targeted fixes to the bucket-to-table workflow:
   1. State desync recovery: each frame, if _player_carrying_bucket is false but
@@ -443,3 +453,83 @@
   - Lid: wide outward-flaring cone, narrow at base, broad open tube at top
   - Body: squat wide barrel cylinder (wider than tall)
   8 variations x 4 images = 32 total. Gen IDs and prompts embedded.
+
+[2026-03-30 CDT] DESIGN EXPANSION: Gameloop Downtime Analysis -- new GDD sections + DevPlan Phase 4 expansion.
+  REPORT: Created research/reports/Gameloop_Downtime_Report_2026-03-30.html
+    - Full month-by-month activity audit across all 8 Cedar Bend months
+    - Identified ~70-80 days/year of downtime (winter = 56 days, highest risk)
+    - Suggested time-filler categories: crafting (major), property maintenance,
+      forage/land, community, knowledge/planning
+    - Prioritized implementation table with effort/impact ratings
+    - Key finding: farmhouse mead (Y1 unlock) + passive crafting queue = highest impact
+  GDD: Section 6.8 (Crafting System) completely rewritten and expanded with 9 subsections:
+    - 6.8.1 Master Recipe Table: expanded to ~20 products with prices
+    - 6.8.2 Passive Crafting Queue: background tick system, check-in actions
+    - 6.8.3 Infused Honey System: lavender/hot honey/spiced variants, cross-season loop
+    - 6.8.4 Candle Variety System: tea light/taper/pillar/novelty, flower pressing mechanic
+    - 6.8.5 Honey Gift Sets: packaging station, 3 set types, 25-30% price premium
+    - 6.8.6 Farmhouse Mead: Y1 unlock (no Fermentation Room), 8-12 weeks passive
+    - 6.8.7 Propolis Tincture: inspection collection, 4-6 weeks passive, Dr. Harwick quest
+    - 6.8.8 Beeswax Furniture Polish: dual use (sell or apply to hive box +10 condition)
+    - 6.8.9 Crafting Skill Track: 6 Knowledge Log milestones with quality modifiers
+  GDD: New Section 6.10 (Downtime Activity Systems) added with 11 subsections:
+    - 6.10.1 Hive Equipment Repair & Maintenance (shed sorting UI, traffic-light system)
+    - 6.10.2 Tool Maintenance (wear tracking, neglect penalties)
+    - 6.10.3 Property Expansion & Off-Season Construction (4 multi-day projects)
+    - 6.10.4 Winter Tree Care & Pruning (dormant pruning, spring fertilization)
+    - 6.10.5 Seed Saving & Winter Catalog Orders (Tanner's specialty seeds)
+    - 6.10.6 Cover Cropping & Soil Work (winter rye, buckwheat, crimson clover)
+    - 6.10.7 CVBA Meeting Expansion (5 optional meeting activities)
+    - 6.10.8 Crossroads Diner Regular Status (4-visit streak, packed lunch reward)
+    - 6.10.9 Bulletin Board Winter Micro-Quests (Standing 100 unlock, 5 rotating quests)
+    - 6.10.10 Beekeeper's Journal & Annual Review (Kindlemonth, +70 XP base)
+    - 6.10.11 Spring Planning Map (winter overlay, drag-and-drop markers)
+  DEVPLAN: Phase 4 expanded from 4-task crafting block (4.23-4.26) to 33-task system (4.23-4.55):
+    - 4.23-4.26 Core structures (CraftingManager autoload, Honey House tiers, Fermentation Room, Queen Rearing)
+    - 4.27-4.29 Passive queue (tick system, vessel items, weekly check-in dialogue)
+    - 4.30-4.32 Candles (recipe variants, flower pressing, mold catalog)
+    - 4.33-4.34 Infused honey (recipes + queue, botanical drying)
+    - 4.35-4.37 Mead (farmhouse Y1, traditional Y2, melomel Y3)
+    - 4.38-4.39 Propolis (inspection collection, tincture recipe)
+    - 4.40-4.41 Gift sets (packaging materials + winter catalog, assembly recipes)
+    - 4.42 Beeswax polish (recipe + dual use)
+    - 4.43-4.44 Crafting skill (milestone tracking, Knowledge Log entries)
+    - 4.45a-4.46b Equipment repair (shed UI, repair wiring, tool wear, maintenance)
+    - 4.47a-4.47c Tree care (health system, dormant pruning, spring fertilization)
+    - 4.48a-4.48c Seeds (seed saving, winter catalog, bed planning)
+    - 4.50a-4.50d Off-season construction (project system, shed lean-to, fence, water station)
+    - 4.51a-4.51b CVBA expansion (optional activities, bring-a-guest)
+    - 4.52 Diner Regular (attendance tracking + status)
+    - 4.53a-4.53b Bulletin board (scene + interaction, winter micro-quest pool)
+    - 4.54 Beekeeper's Journal (annual activity)
+    - 4.55 Spring Planning Map (overlay)
+    - Art callout added: 15+ new sprites + 3 new structures + new props
+    - Sidebar nav updated with 18 new Phase 4 anchor links
+  Protected files verified: GDD 603,634 bytes, DevPlan 139,015 bytes.
+
+[2026-03-30 CDT] FIX: Harvest yard bucket placement -- accept Bucket Grip or Honey Bucket at bottling table
+  Root cause: _action_bottling() checked held == ITEM_HONEY_BUCKET, but player
+  still had Bucket Grip selected after picking up the bucket. The prompt showed
+  "Carry honey bucket here first" even while visibly carrying the bucket.
+  Fix: both the prompt check and _action_bottling() now accept ITEM_HONEY_BUCKET,
+  ITEM_BUCKET_GRIP, or count_item(ITEM_HONEY_BUCKET) > 0 as valid carry states.
+  Player can walk to the bottling table with bucket grip still selected and press E.
+
+[2026-03-30 CDT] CLEANUP: GDScript debugger warnings (65 -> ~10 expected)
+  - flower_lifecycle_manager.gd: removed dead keys_to_remove loop (leftover from
+    exclusion-zone revert), renamed unused param advance_day_with_global(new_day)
+    to _new_day.
+  - ForageManager.gd: renamed unused param get_dominant_plant(world_position) to
+    _world_position; added @warning_ignore("UNUSED_SIGNAL") on forage_updated.
+  - HiveSimulation.gd: renamed unused param _draw_comb_with_nu(foundation_remaining)
+    to _foundation_remaining.
+  - NurseSystem.gd: renamed unused param process(stunted_brood) to _stunted_brood.
+  - NotificationManager.gd: removed unused local var target_y (line 186).
+  - hud.gd: added @warning_ignore("UNUSED_PRIVATE_CLASS_VARIABLE") on _menu_open
+    and _honey_energy_pct_lbl.
+  - weather_particles.gd: added @warning_ignore("UNUSED_PRIVATE_CLASS_VARIABLE")
+    on _spawn_rect.
+  - hive.gd: renamed local const GAP_PX to _GAP_PX.
+  - scenes/home_property.tscn: fixed stale UID (uid://ykw0xvtgsnlg -> uid://6dyvoe4x0ot4)
+    for home_property.gd -- was causing "ext_resource, invalid UID" error on load.
+  Protected files verified: GDD 603,634 bytes, DevPlan 139,015 bytes.

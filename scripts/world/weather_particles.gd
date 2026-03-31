@@ -42,6 +42,7 @@ var _splashes: Array = []        # tiny splash effects at impact points
 # -- State -------------------------------------------------------------------
 var _active: bool = false
 var _is_snow: bool = false
+@warning_ignore("UNUSED_PRIVATE_CLASS_VARIABLE")
 var _spawn_rect: Rect2 = Rect2(-20, -40, 360, 0)  # spawn strip above viewport
 var _ground_y: float = 200.0     # bottom of the play area
 

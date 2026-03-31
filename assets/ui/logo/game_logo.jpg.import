@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dwr5layhmx2n8"
-path="res://.godot/imported/honey_bucket.png-20477249d8added914e3780fed7de2cf.ctex"
+uid="uid://xnxl4c2lro3k"
+path="res://.godot/imported/game_logo.jpg-f1f59b7f45219cfc5e5b105edcd3cec8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/items/honey_bucket.png"
-dest_files=["res://.godot/imported/honey_bucket.png-20477249d8added914e3780fed7de2cf.ctex"]
+source_file="res://assets/ui/logo/game_logo.jpg"
+dest_files=["res://.godot/imported/game_logo.jpg-f1f59b7f45219cfc5e5b105edcd3cec8.ctex"]
 
 [params]
 

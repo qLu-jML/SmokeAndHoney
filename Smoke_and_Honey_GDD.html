@@ -2505,20 +2505,109 @@ total_honey_lbs = sum of all extracted frames</code></pre>
 </tbody></table>
 <div class="pitch-block"><p><em>Design Note: Starting cash is $500. A new player's first spring requires: one package at $185 (if they lose the starting hive), one super at $28, one round of varroa treatment at $8, and a bag of sugar for spring feeding at $8. That leaves plenty of margin for the first harvest investment. The economy is intentionally forgiving in Year 1 and progressively tighter as the player expands.</em></p></div>
 <h3 id="h2_6_8_Crafting_System">6.8 Crafting System</h3>
-<p>Crafting is the primary route to high-margin products. It is concentrated in winter but can be performed year-round if the player has the materials and equipment.</p>
+<p>Crafting is the primary route to high-margin products and is the central activity during the winter months when direct hive work is impossible. It is concentrated in winter but can be performed year-round if the player has the materials and equipment. The crafting system is the primary solution to the downtime problem: during Deepcold and Kindlemonth -- 56 days when bees are clustered and no inspections are possible -- crafting turns a potential waiting room into a workshop.</p>
+<h4 id="h3_6_8_1_Master_Recipe_Table">6.8.1 Master Recipe Table</h4>
 <table class="data-table">
-<tr><td>Product</td><td>Inputs</td><td>Unlock / Requirements</td></tr>
-<tr><td>Honey Jars (standard)</td><td>Raw honey, glass jars, labels</td><td>Available from start</td></tr>
-<tr><td>Varietal Honey Jars</td><td>Single-source raw honey (70%+ from one plant type)</td><td>Requires forage management + Year 2</td></tr>
-<tr><td>Creamed Honey</td><td>Raw honey + seed honey, temperature control</td><td>Year 2 + Honey House upgrade</td></tr>
-<tr><td>Beeswax Blocks (raw)</td><td>Cappings + rendered wax</td><td>Available from start</td></tr>
-<tr><td>Beeswax Candles</td><td>Rendered wax, wicks, molds</td><td>Year 1 craft station unlock</td></tr>
-<tr><td>Lip Balm</td><td>Beeswax, carrier oil, optional honey</td><td>Year 2 cosmetics recipe</td></tr>
-<tr><td>Face/Body Cream</td><td>Beeswax, shea butter, honey, essential oils</td><td>Year 3 cosmetics recipe</td></tr>
-<tr><td>Mead (traditional)</td><td>Honey, water, yeast, time (8–12 weeks)</td><td>Year 2 + fermentation vessel</td></tr>
-<tr><td>Fruit Mead (Melomel)</td><td>Honey, water, yeast, seasonal fruit</td><td>Year 3 + reputation threshold</td></tr>
-<tr><td>Pollen Supplement Blend</td><td>Collected pollen + soy flour, store for feeding</td><td>Year 2 — also sellable</td></tr>
-<tr><td>Foundation Sheets</td><td>Rendered wax, foundation press</td><td>Year 3 + equipment unlock</td></tr>
+<tr><td>Product</td><td>Inputs</td><td>Unlock / Requirements</td><td>Sale Price</td></tr>
+<tr><td>Honey Jars (standard)</td><td>Raw honey, glass jars, labels</td><td>Available from start</td><td>$8/lb standard, $11.20 premium, $6.40 economy</td></tr>
+<tr><td>Varietal Honey Jars</td><td>Single-source raw honey (70%+ from one plant type)</td><td>Requires forage management + Year 2</td><td>+15% over standard grade price</td></tr>
+<tr><td>Creamed Honey</td><td>Raw honey + seed honey, temperature control</td><td>Year 2 + Honey House upgrade</td><td>$14/lb</td></tr>
+<tr><td>Infused Honey -- Lavender</td><td>Raw honey + dried lavender (garden or Tanner's)</td><td>Year 1, after first harvest</td><td>$10/lb</td></tr>
+<tr><td>Infused Honey -- Hot Honey</td><td>Raw honey + dried chili (garden or Tanner's)</td><td>Year 1, after first harvest</td><td>$11/lb</td></tr>
+<tr><td>Infused Honey -- Spiced</td><td>Raw honey + cinnamon + cloves (Tanner's)</td><td>Year 1, after first harvest</td><td>$10/lb</td></tr>
+<tr><td>Honey Gift Set</td><td>1 honey jar + 1 candle + dried wildflowers, kraft sleeve</td><td>Year 1, after first harvest + candle unlock</td><td>25-30% above combined component price</td></tr>
+<tr><td>Beeswax Blocks (raw)</td><td>Cappings + rendered wax</td><td>Available from start</td><td>$10/lb</td></tr>
+<tr><td>Beeswax Candle -- Pillar</td><td>Rendered wax, wicks, pillar molds</td><td>Year 1 craft station unlock</td><td>$12 each</td></tr>
+<tr><td>Beeswax Candle -- Taper</td><td>Rendered wax, wicks, taper molds (smaller)</td><td>Year 1 craft station unlock</td><td>$5 each, fast to make</td></tr>
+<tr><td>Beeswax Candle -- Tea Light</td><td>Rendered wax, wicks, tea light cups</td><td>Year 1 craft station unlock</td><td>$2 each, large batches</td></tr>
+<tr><td>Beeswax Candle -- Novelty/Molded</td><td>Rendered wax, wicks, novelty mold + pressed seasonal flower</td><td>Year 1 -- requires flower pressing from forage garden</td><td>$15-18 each, small batch</td></tr>
+<tr><td>Beeswax Furniture Polish</td><td>Rendered beeswax + linseed oil (Tanner's)</td><td>Year 1 -- quick kitchen recipe</td><td>$7-9 per tin; dual use (sell OR apply to hive equipment for +condition)</td></tr>
+<tr><td>Farmhouse Mead (starter)</td><td>Honey, water, yeast, ceramic crock ($25 at Tanner's)</td><td>Year 1 -- no fermentation room required. Lower yield and quality than proper mead. Cannot enter Crafting Fair.</td><td>$12/bottle. Fermentation: 8-12 weeks passive.</td></tr>
+<tr><td>Mead (traditional)</td><td>Honey, water, yeast, time (8-12 weeks)</td><td>Year 2 + Fermentation Room</td><td>$18/bottle (750ml)</td></tr>
+<tr><td>Fruit Mead (Melomel)</td><td>Honey, water, yeast, seasonal fruit</td><td>Year 3 + reputation threshold</td><td>$22-28/bottle depending on fruit</td></tr>
+<tr><td>Lip Balm</td><td>Beeswax, carrier oil, optional honey</td><td>Year 2 cosmetics recipe</td><td>$6/tube</td></tr>
+<tr><td>Face/Body Cream</td><td>Beeswax, shea butter, honey, essential oils</td><td>Year 3 cosmetics recipe</td><td>$18-24/jar</td></tr>
+<tr><td>Propolis Tincture</td><td>Scraped propolis + food-grade alcohol (Tanner's); dissolve over winter</td><td>Year 2. Propolis collected passively during inspections.</td><td>$8-12/small bottle. Sold at Saturday Market and as Dr. Harwick quest item.</td></tr>
+<tr><td>Pollen Supplement Blend</td><td>Collected pollen + soy flour, store for feeding</td><td>Year 2 -- also sellable</td><td>$8/lb supplement</td></tr>
+<tr><td>Foundation Sheets</td><td>Rendered wax, foundation press</td><td>Year 3 + equipment unlock</td><td>Saves $8/sheet vs. purchasing</td></tr>
+</tbody></table>
+<div class="pitch-block"><p><em>Design Note: The Year 1 crafting tier (infused honey, candle variety, furniture polish, farmhouse mead, gift sets) is the key solution to the winter downtime problem. A Year 1 player who starts a farmhouse mead crock at the beginning of Deepcold and tends infusions and candle batches across both winter months arrives at Quickening with meaningful income and a genuine sense of craft progression. The 8-12 week fermentation arc of farmhouse mead maps almost exactly onto the 56 days of winter -- this timing is intentional.</em></p></div>
+<h4 id="h3_6_8_2_Passive_Crafting_Queue">6.8.2 Passive Crafting Queue (Background Recipes)</h4>
+<p>Some crafting recipes are long-duration processes that require no active attention once initiated. These use a passive background queue: the player starts the recipe (sets up the vessel, mixes the ingredients, pours the mold), then the recipe ticks forward in the background while the player does other things. A notification appears when it is ready to be completed or bottled.</p>
+<table class="data-table">
+<tr><td>Recipe Type</td><td>Active Time</td><td>Passive Duration</td><td>Check-In Action</td></tr>
+<tr><td>Farmhouse Mead / Traditional Mead</td><td>10-15 energy to set up; 5 energy to bottle</td><td>8-12 weeks (56-84 in-game days)</td><td>Optional weekly check-in: observe color, smell, bubbling. Flavor text only. No mechanical action required between start and bottle.</td></tr>
+<tr><td>Fruit Mead (Melomel)</td><td>15 energy to set up; 5 energy to bottle</td><td>10-14 weeks</td><td>Weekly check-in reveals fermentation status and expected finish date.</td></tr>
+<tr><td>Infused Honey (all variants)</td><td>5 energy to mix; 5 energy to bottle</td><td>3-5 in-game days</td><td>No action needed. Notification fires when ready. Can batch multiple jars.</td></tr>
+<tr><td>Propolis Tincture</td><td>5 energy to prepare; 5 energy to bottle</td><td>4-6 weeks (28-42 days)</td><td>Check once mid-way: "It is darkening nicely." Notification fires when complete.</td></tr>
+</tbody></table>
+<div class="pitch-block"><p><em>Design Note: The passive queue transforms the winter months from waiting mechanics into satisfying tend-and-check loops. A player who starts a mead crock on Day 170 (first day of Deepcold), checks it on Day 196 (end of Deepcold), and bottles it on Day 210 (Kindlemonth) has three distinct moments of engagement spread across winter -- each one a small moment of anticipation and reward. Multiple queues can run simultaneously if the player has the vessels.</em></p></div>
+<h4 id="h3_6_8_3_Infused_Honey_System">6.8.3 Infused Honey System</h4>
+<p>Infused honey is the most accessible Year 1 passive craft. The player mixes raw honey with a dried botanical, seals the jar, and lets it sit for 3-5 in-game days. No active minigame, no special equipment -- just a mason jar and patience. The result sells for $2-4/lb more than plain honey and appeals to a specific Saturday Market buyer segment ("Herb buyers," flagged by Frank in his quest chain).</p>
+<table class="data-table">
+<tr><td>Variant</td><td>Botanical Source</td><td>Added Value</td><td>Flavor Text</td></tr>
+<tr><td>Lavender Honey</td><td>Lavender from forage garden (planted) or $3/packet at Tanner's</td><td>+$2/lb</td><td>"Floral, calming. The market can't keep this on the shelf."</td></tr>
+<tr><td>Hot Honey</td><td>Dried chili from garden or $2/packet at Tanner's</td><td>+$3/lb</td><td>"The heat blooms slow. Takes people by surprise."</td></tr>
+<tr><td>Spiced Honey</td><td>Cinnamon + cloves from Tanner's, $4/packet combo</td><td>+$2/lb</td><td>"A fall staple. Goes with everything in November."</td></tr>
+</tbody></table>
+<p><strong>Botanicals from the forage garden</strong> cost no cash; botanicals from Tanner's cost $2-4 per batch. Garden-grown botanicals can be dried in late summer (a brief harvest action during Full-Earth) and stored for winter infusions. This creates a deliberate cross-season investment: plant lavender in spring, dry it in fall, infuse it in winter.</p>
+<h4 id="h3_6_8_4_Candle_Variety_System">6.8.4 Candle Variety System</h4>
+<p>Candles are expanded beyond a single pillar candle recipe into a small system that supports different price points, production speeds, and market strategies. All candle types use the same rendered beeswax and wick inputs; the variation comes from the mold type and any embedded additives.</p>
+<table class="data-table">
+<tr><td>Candle Type</td><td>Mold Cost (one-time)</td><td>Wax Per Unit</td><td>Energy</td><td>Sell Price</td><td>Strategy</td></tr>
+<tr><td>Tea Light</td><td>$8 (25-pack cups)</td><td>0.05 lbs</td><td>2 energy per 10-pack</td><td>$2 each / $18 for 10-pack</td><td>Volume. Quick to make. Good for Crafting Fair bundles.</td></tr>
+<tr><td>Taper</td><td>$12 (set of 4 molds)</td><td>0.15 lbs per pair</td><td>3 energy per pair</td><td>$5 each / $9 per pair</td><td>Mid-range. Fast to make. Pairs well as a gift set add-on.</td></tr>
+<tr><td>Pillar</td><td>$15 (set of 3 molds)</td><td>0.3 lbs each</td><td>5 energy each</td><td>$12 each</td><td>Standard. Best standalone value. Market staple.</td></tr>
+<tr><td>Novelty/Molded</td><td>$8-20 per mold (seasonal, from Tanner's catalog)</td><td>0.3-0.5 lbs</td><td>6 energy + 2 for pressing flower</td><td>$15-18 each</td><td>Premium. Requires flower pressing. Best at the Crafting Fair.</td></tr>
+</tbody></table>
+<p><strong>Flower Pressing:</strong> Novelty candles require a pressed flower embedded in the wax. The player presses flowers by picking them during the active growing season (Wide-Clover through Full-Earth) and leaving them under a heavy book in the house interior for 3 in-game days. Pressed flowers are a storage item that persists through winter. Running out of pressed flowers is a natural consequence of not planning ahead -- reinforcing the seasonal preparation loop.</p>
+<div class="pitch-block"><p><em>Design Note: The tea light batch is the "just need to do something useful" option. A player with 30 minutes of in-game energy and a pile of wax can pour a batch of tea lights, feel productive, and end the winter day with something to show for it. This is the correct emotional function of the low-tier candle: it is not high margin, but it is always available and always satisfying.</em></p></div>
+<h4 id="h3_6_8_5_Honey_Gift_Sets">6.8.5 Honey Gift Sets &amp; Packaging</h4>
+<p>A packaging station at the house kitchen table allows the player to assemble gift sets from finished products. Gift sets sell for 25-30% more than the sum of their components at the Saturday Market and are especially sought during the Winter Crafting Fair and holiday-adjacent market weeks.</p>
+<table class="data-table">
+<tr><td>Gift Set</td><td>Components</td><td>Assembly Energy</td><td>Sale Price vs. Separate</td></tr>
+<tr><td>Honey + Candle Bundle</td><td>1 honey jar + 1 taper candle pair + kraft sleeve</td><td>3 energy</td><td>+25%</td></tr>
+<tr><td>Beekeeper's Sampler</td><td>1 standard jar + 1 infused jar + 1 tea light 3-pack + kraft box</td><td>5 energy</td><td>+30%</td></tr>
+<tr><td>Wax Gift Set</td><td>1 pillar candle + 1 lip balm tube + 1 furniture polish tin</td><td>4 energy</td><td>+28%</td></tr>
+</tbody></table>
+<p><strong>Packaging materials</strong> (kraft sleeves, kraft boxes, ribbon, twine) are purchased from Tanner's Supply catalogue (winter stock only, $3-8 per pack). The player must pre-order packaging in fall to have it available during the winter crafting season -- another deliberate cross-season planning mechanic.</p>
+<h4 id="h3_6_8_6_Farmhouse_Mead">6.8.6 Farmhouse Mead (Year 1 Entry Point)</h4>
+<p>Farmhouse mead is a simplified, Year 1-accessible version of the mead system. It uses a ceramic crock ($25 at Tanner's, reusable) instead of requiring a dedicated Fermentation Room. The quality and yield are lower than proper mead, and farmhouse mead cannot be entered in the Winter Crafting Fair competition, but it is a meaningful income source and introduces the fermentation mechanic to Year 1 players during their first winter.</p>
+<table class="data-table">
+<tr><td>Property</td><td>Farmhouse Mead (Year 1)</td><td>Traditional Mead (Year 2+)</td></tr>
+<tr><td>Equipment</td><td>Ceramic crock ($25 one-time purchase, reusable)</td><td>Fermentation Room (Year 2 structure unlock)</td></tr>
+<tr><td>Inputs</td><td>3 lbs honey + 1 gallon water + $3 wine yeast packet</td><td>4 lbs honey + 1 gallon water + $3 wine yeast packet</td></tr>
+<tr><td>Fermentation time</td><td>8-12 weeks (passive)</td><td>8-12 weeks (passive, -0.5% moisture bonus from room)</td></tr>
+<tr><td>Output</td><td>3-4 bottles at $12/bottle</td><td>4-5 bottles at $18/bottle</td></tr>
+<tr><td>Quality modifier</td><td>-1 quality tier vs. traditional (lower clarity, rougher flavor notes)</td><td>Full quality range based on honey source and timing</td></tr>
+<tr><td>Competition eligible</td><td>No (cannot enter Crafting Fair)</td><td>Yes</td></tr>
+<tr><td>Unlock</td><td>Year 1 -- purchase crock from Tanner's. Available immediately after game start.</td><td>Year 2 + Fermentation Room structure</td></tr>
+</tbody></table>
+<div class="pitch-block"><p><em>Design Note: The farmhouse mead arc is the single highest-impact addition to the downtime system. A Year 1 player who starts a crock at the beginning of Deepcold (Day 169) will finish it in mid-to-late Kindlemonth (Day 225+), right as spring is arriving. The ritual of checking in on the fermentation weekly, bottling in Kindlemonth, and selling at the first spring market is a complete emotional arc contained entirely within the winter months. It transforms the "waiting" experience of winter into something that feels earned.</em></p></div>
+<h4 id="h3_6_8_7_Propolis_Tincture">6.8.7 Propolis Tincture (Year 2)</h4>
+<p>Propolis accumulates on hive frames as a natural byproduct of bee behavior -- bees use it to seal gaps and sterilize the hive interior. During inspections, the player can optionally scrape propolis into a storage jar (a brief action, 2 energy, once per inspection per hive). Over a full season of regular inspections, the player accumulates enough propolis to produce 3-6 bottles of tincture per winter.</p>
+<p>Processing: dissolve stored propolis in food-grade alcohol (available at Tanner's, $6/bottle) in a small jar. This is a passive queue item that takes 4-6 weeks. Bottle the finished tincture in Kindlemonth. Sell at Saturday Market ($8-12/bottle) or supply as a quest item for Dr. Harwick's health and wellness product chain.</p>
+<div class="pitch-block"><p><em>Design Note: Propolis tincture is the "inspection-to-craft" connection. Every inspection yields a small amount of a raw material the player would otherwise discard. The decision to scrape or not scrape during each inspection is a small but interesting player choice -- it costs energy now for crafting options in winter. Over a full year, a player who consistently scrapes will have enough for 4-6 bottles; a player who never scrapes will have none. This is exactly the kind of long-horizon cause-and-effect the game rewards.</em></p></div>
+<h4 id="h3_6_8_8_Beeswax_Furniture_Polish">6.8.8 Beeswax Furniture Polish &amp; Equipment Conditioner</h4>
+<p>A fast kitchen recipe: rendered beeswax + linseed oil (available at Tanner's, $4/bottle) mixed hot in a double boiler and poured into tins. Used in two ways: sell at the Saturday Market ($7-9 per tin) or apply directly to hive wooden components to restore +10 condition points. This dual use means the player is never producing "nothing useful" -- if the market is slow, apply the polish to hive boxes instead.</p>
+<table class="data-table">
+<tr><td>Property</td><td>Value</td></tr>
+<tr><td>Recipe</td><td>0.25 lbs rendered beeswax + 0.25 lbs linseed oil = 1 tin (8 oz)</td></tr>
+<tr><td>Active energy cost</td><td>4 energy per batch (2-3 tins)</td></tr>
+<tr><td>Sell price</td><td>$7-9 per tin at Saturday Market</td></tr>
+<tr><td>Equipment use</td><td>Apply 1 tin to one hive box: +10 condition, +2% waterproofing modifier</td></tr>
+<tr><td>Unlock</td><td>Year 1, kitchen setup -- no special equipment beyond the double boiler (already present for wax rendering)</td></tr>
+</tbody></table>
+<h4 id="h3_6_8_9_Crafting_Skill_Track">6.8.9 Crafting Skill Track</h4>
+<p>Crafting progress is tracked through the Knowledge Log as a series of "Craft Mastery" entries that unlock after milestone batch counts. This does not require a separate XP bar -- it uses the existing Knowledge Log system and unlocks quality improvements as the player gains experience with each category.</p>
+<table class="data-table">
+<tr><td>Milestone</td><td>Trigger</td><td>Unlock</td></tr>
+<tr><td>First Batch (Candles)</td><td>Complete first candle batch of any type</td><td>Knowledge Log: "Wax Work." Candle burn time +10% from proper wick depth.</td></tr>
+<tr><td>Candle Mastery</td><td>20 candle batches completed (any type)</td><td>Knowledge Log: "The Craft of Light." Novelty mold catalog unlocks (Tanner's winter order). Candle sale price +5%.</td></tr>
+<tr><td>First Fermentation</td><td>Complete first mead batch (farmhouse or traditional)</td><td>Knowledge Log: "First Ferment." Mead clarity +1 tier on next batch (better appearance, higher sell price).</td></tr>
+<tr><td>Mead Mastery</td><td>5 mead batches completed</td><td>Knowledge Log: "Reading the Ferment." Fruit mead recipe available one season early. Mead sale price +8%.</td></tr>
+<tr><td>Product Diversity</td><td>Successfully produce 5 different product types</td><td>Knowledge Log: "The Full Workshop." Gift set premium price +5%. Standing gain from Crafting Fair +10%.</td></tr>
+<tr><td>Winter Workshop</td><td>Produce at least 10 products during a single winter season</td><td>Knowledge Log: "Deep in Deepcold." Minor XP bonus during winter crafting for remainder of game (+5 XP per batch).</td></tr>
 </tbody></table>
 <h4 id="Lumber_Crafting_Workbench">Lumber Crafting (Shed Workbench)</h4>
 <p>The shed workbench allows players to build hive equipment from lumber harvested on the county road. This is a cheaper alternative to buying finished equipment at Tanner's Feed &amp; Supply -- it costs time and energy instead of money. All recipes are available from game start once the player has lumber and the required tools.</p>
@@ -2557,6 +2646,108 @@ total_honey_lbs = sum of all extracted frames</code></pre>
 <tr><td>Drought</td><td>Nectar dearth even when flowers are present. Robbing risk high.</td><td>Reduce entrances. Watch for fighting at hive entrances.</td></tr>
 <tr><td>First frost</td><td>Signals end of nectar season. Triggers colony winter mode.</td><td>Final harvest window. Begin winter prep sequence.</td></tr>
 </tbody></table>
+<h3 id="h2_6_10_Downtime_Activity_Systems">6.10 Downtime Activity Systems</h3>
+<p>The game has approximately 70-80 days per year where the player's primary bee-related duties are minimal: the two winter months (Deepcold + Kindlemonth), the midsummer dearth window in High-Sun, early Quickening before colonies rebuild, and the tail end of Reaping once winter prep is complete. The systems in this section give the player meaningful, rewarding activities during these windows -- drawn from real things a small-farm beekeeper would actually do between bee seasons.</p>
+<div class="pitch-block"><p><em>Design Note: These activities are not filler -- they are the other half of the beekeeper's life. Real beekeepers spend winter in the shop building equipment, tending fermentation, caring for trees, and planning the coming year. The goal is for the player to naturally discover these activities and find them as satisfying as the beekeeping itself.</em></p></div>
+<h4 id="h3_6_10_1_Hive_Equipment_Repair_Activity">6.10.1 Hive Equipment Repair &amp; Maintenance</h4>
+<p>The existing hive equipment condition system (0-100 scale, see Section 3.1) creates natural demand for a repair activity. During winter and slow periods, the player can pull stored equipment from the shed chest, inspect it for damage, and perform maintenance work at the shed workbench.</p>
+<table class="data-table">
+<tr><td>Repair Option</td><td>Inputs</td><td>Energy</td><td>Condition Restored</td><td>Unlock</td></tr>
+<tr><td>Basic repair kit (purchased)</td><td>$25 at Tanner's</td><td>3 energy</td><td>+20 condition</td><td>Year 1</td></tr>
+<tr><td>Full refurbishment (purchased kit)</td><td>$60 at Tanner's</td><td>8 energy</td><td>To 75 condition</td><td>Year 1</td></tr>
+<tr><td>Craftable repair pack (workbench)</td><td>Beeswax + wood scraps (lumber byproduct)</td><td>5 energy</td><td>To 65 condition</td><td>Level 3 unlock</td></tr>
+<tr><td>Beeswax polish application</td><td>1 furniture polish tin (see S6.8.8)</td><td>2 energy per box</td><td>+10 condition + weatherproofing modifier</td><td>Year 1</td></tr>
+<tr><td>Frame rebuilding</td><td>2 lumber + 1 energy per frame</td><td>1 energy per frame</td><td>Replaces degraded frames with full-condition new frames</td><td>Year 1 (requires workbench tools)</td></tr>
+</tbody></table>
+<p>The shed sorting UI presents stored equipment sorted by condition. A visual traffic-light system (green/yellow/red) lets the player quickly identify what needs attention. Maintaining equipment during winter is cheaper in both money and energy than emergency repairs during the active season.</p>
+<div class="pitch-block"><p><em>Design Note: The equipment sorting and repair session is intended as a satisfying 20-30 minute real-time activity. The player opens their equipment chest, sees which boxes are showing wear, repairs them methodically, and closes the shed knowing next season's gear is in good shape. This is the game-feel equivalent of organizing a tackle box or a woodworking shop -- low stakes, satisfying, productive.</em></p></div>
+<h4 id="h3_6_10_2_Tool_Maintenance">6.10.2 Tool Maintenance</h4>
+<p>The smoker, hive tool, uncapping knife, and extractor all accumulate wear through use. A simple maintenance routine at the shed workbench (sharpen, clean, oil) can be performed once per season and keeps tools at peak efficiency. Neglected tools carry gameplay penalties:</p>
+<table class="data-table">
+<tr><td>Tool</td><td>Neglect Penalty</td><td>Maintenance Action</td><td>Energy / Cost</td></tr>
+<tr><td>Hive Tool</td><td>Dull tool increases inspection time (1 extra energy per frame pulled)</td><td>Sharpen with whetstone ($5 at Tanner's, reusable 10x)</td><td>2 energy</td></tr>
+<tr><td>Smoker</td><td>Clogged smoker reduces smoke duration by 30%; increases relight failures</td><td>Clean chamber with pipe brush ($4, reusable)</td><td>3 energy</td></tr>
+<tr><td>Uncapping Knife</td><td>Dull knife leaves more wax on frames; reduces beeswax recovery by 15%</td><td>Sharpen on whetstone</td><td>2 energy</td></tr>
+<tr><td>Extractor (if owned)</td><td>Uncleaned extractor contaminates next batch with fermented honey remnants (moisture +0.5%)</td><td>Clean with warm water after each use; annual deep clean in winter (15 energy)</td><td>15 energy once/year</td></tr>
+</tbody></table>
+<h4 id="h3_6_10_3_Property_Expansion_Structures">6.10.3 Property Expansion &amp; Off-Season Construction</h4>
+<p>Winter and the tail of Reaping are the correct real-world times for structural work on the property. The player can undertake construction projects during these windows that would consume productive hive-work time during the active season. Projects are multi-day and use the lumber crafting resource chain.</p>
+<table class="data-table">
+<tr><td>Project</td><td>Inputs</td><td>Energy</td><td>Unlock</td><td>Benefit</td></tr>
+<tr><td>Shed lean-to (additional storage)</td><td>15 lumber + $40 hardware (Tanner's)</td><td>40 energy across 2-3 sessions</td><td>Year 1</td><td>+20 equipment storage slots; equipment stored outside degrades 2x faster without it</td></tr>
+<tr><td>Fence line repair (apiary perimeter)</td><td>8 lumber + $20 hardware</td><td>20 energy</td><td>Year 1</td><td>+5% pest resistance (SHB, wax moth), minor aesthetic improvement visible year-round</td></tr>
+<tr><td>Bee water station (proper)</td><td>4 lumber + 1 stock tank ($30 at Tanner's)</td><td>15 energy</td><td>Year 1</td><td>Eliminates heat wave water-emergency risk; reduces summer stress events by 20%</td></tr>
+<tr><td>Firewood split &amp; stack</td><td>County Road tree logs (already gathered for lumber)</td><td>8 energy per session</td><td>Year 1</td><td>Optional atmosphere; unlocks diner conversation with Lloyd about the woodlot. No mechanical benefit.</td></tr>
+</tbody></table>
+<h4 id="h3_6_10_4_Winter_Tree_Care">6.10.4 Winter Tree Care &amp; Pruning</h4>
+<p>The GDD's long-horizon forage investment system (willow, linden, fruit trees) is extended with a winter care loop. Dormant pruning during Deepcold and Kindlemonth is the correct real-world practice and gives the player outdoor activity even in the coldest months. Trees have a condition/health modifier that affects their contribution to the forage pool; neglected trees plateau earlier and contribute less nectar units per season.</p>
+<table class="data-table">
+<tr><td>Tree Care Action</td><td>Season</td><td>Energy</td><td>Tool Required</td><td>Payoff</td></tr>
+<tr><td>Dormant pruning (winter)</td><td>Deepcold or Kindlemonth</td><td>8 energy per tree</td><td>Pruning shears ($18 at Tanner's, one-time)</td><td>+5% forage contribution next season; prevents overcrowding that reduces nectar yield</td></tr>
+<tr><td>Spring fertilization</td><td>Early Quickening</td><td>5 energy per tree</td><td>Compost/fertilizer ($8/bag, covers 3 trees)</td><td>+8% bloom quality (nectar unit multiplier for that tree that season)</td></tr>
+<tr><td>Fruit harvest (fruit trees only)</td><td>Full-Earth or Reaping</td><td>10 energy per tree</td><td>None</td><td>Fruit stored as crafting ingredient for Melomel; small cash income from selling to Tanner's ($0.50/lb)</td></tr>
+<tr><td>Growth check</td><td>Any season</td><td>2 energy per tree</td><td>None</td><td>Reveals: years to maturity, current health, projected forage contribution. Knowledge Log entry on first tree inspection.</td></tr>
+</tbody></table>
+<p><strong>Pruning Shears unlock:</strong> Available at Tanner's from Year 1 once the player has planted at least one tree. Pruning the first tree triggers a Knowledge Log entry: "Caring for Your Forage Trees." This is also a natural hook for Lloyd Petersen's character -- he is an expert woodlot manager and will comment on the player's pruning technique, good or bad.</p>
+<h4 id="h3_6_10_5_Seed_Saving_Catalog_Orders">6.10.5 Seed Saving &amp; Winter Catalog Orders</h4>
+<p>The forage garden system is extended with a cross-season seed loop. In Reaping (fall), the player harvests seeds from mature garden beds -- a short minigame of selecting the best-looking plants to pull seeds from. In Deepcold and Kindlemonth, the Tanner's Supply winter catalog arrives with specialty seeds not available in-store during spring. Some high-value forage species (borage, anise hyssop, phacelia, crimson clover) are catalog-only and only available if pre-ordered during winter.</p>
+<table class="data-table">
+<tr><td>Activity</td><td>Season</td><td>Energy</td><td>Payoff</td></tr>
+<tr><td>Seed saving (fall harvest)</td><td>Reaping, Week 2-3</td><td>5 energy per bed</td><td>Free seeds for next spring; best-plant selection gives +5% germination rate next year</td></tr>
+<tr><td>Tanner's winter catalog review</td><td>Deepcold / Kindlemonth</td><td>1 energy (Reading)</td><td>Access to 8 specialty species not available in spring stock. Order placed, seeds arrive Day 1 of Quickening.</td></tr>
+<tr><td>Specialty seeds (catalog-only)</td><td>Order in winter, plant in spring</td><td>--</td><td>Borage (+NU Wide-Clover), Phacelia (+NU Greening), Crimson Clover (fall fill), Anise Hyssop (multi-season)</td></tr>
+<tr><td>Bed planning map</td><td>Winter (any)</td><td>2 energy</td><td>Drag-and-drop bed layout for next year; completed plan gives +3 XP and unlocks a spring "First Plant" reminder notification</td></tr>
+</tbody></table>
+<h4 id="h3_6_10_6_Cover_Cropping">6.10.6 Cover Cropping &amp; Soil Work</h4>
+<p>In Reaping, the player can plant winter cover crops in garden beds between the end of the main season and the first hard frost. In early Quickening, these are tilled under before main planting begins. This is a single action per plot (plant in Reaping, till in Quickening) that improves the following year's yield.</p>
+<table class="data-table">
+<tr><td>Cover Crop</td><td>Seed Cost</td><td>Plant Window</td><td>Till Window</td><td>Soil Benefit</td></tr>
+<tr><td>Winter Rye</td><td>$3/packet (covers 3 beds)</td><td>Reaping, Week 1-2</td><td>Quickening, Week 1-2</td><td>+8% nitrogen; +5% moisture retention the following season</td></tr>
+<tr><td>Buckwheat</td><td>$3/packet</td><td>Reaping, Week 1 only (needs warmth to establish)</td><td>Quickening, Week 1</td><td>+6% phosphorus; outcompetes weeds (reduces garden upkeep energy cost)</td></tr>
+<tr><td>Crimson Clover (dual-use)</td><td>$4/packet</td><td>Reaping, Week 1-2</td><td>Do not till -- let it bloom in Quickening for forage NU bonus, then till after first bloom</td><td>+NU forage (Quickening early flow) + nitrogen fixing</td></tr>
+</tbody></table>
+<h4 id="h3_6_10_7_CVBA_Meeting_Expansion">6.10.7 CVBA Club Meeting Expansion</h4>
+<p>The Cedar Valley Beekeepers Association meets monthly at the Grange Hall. Beyond the base activity (30 XP + Knowledge Log entry per meeting), the player can engage in optional activities within each meeting that add depth and relationship value.</p>
+<table class="data-table">
+<tr><td>Optional Activity</td><td>Energy</td><td>Unlock</td><td>Reward</td></tr>
+<tr><td>Help set up chairs before meeting</td><td>2 energy</td><td>Year 1</td><td>+3 Community Standing; NPC mentions player's helpfulness at next visit</td></tr>
+<tr><td>Stay late to talk with specific NPC</td><td>2 energy + time slot</td><td>Year 1</td><td>+5 NPC relationship score; triggers a relationship dialogue branch unavailable elsewhere</td></tr>
+<tr><td>Volunteer as a presenter (Level 3+)</td><td>15 energy (prep) + meeting</td><td>Level 3</td><td>+50 XP, +20 Community Standing, +15 relationship with all NPCs present</td></tr>
+<tr><td>Donate a jar of honey to the club table</td><td>1 honey jar</td><td>Year 1</td><td>+8 Community Standing (matches the GDD donation bonus), +5 with NPCs who were present</td></tr>
+<tr><td>Bring a guest (Lloyd, Kacey, etc.)</td><td>None -- requires relationship score 40+ with that NPC</td><td>Year 2+</td><td>+10 NPC relationship, +10 Community Standing, unlocks cross-chain dialogue between that NPC and the club</td></tr>
+</tbody></table>
+<h4 id="h3_6_10_8_Diner_Regular_Status">6.10.8 Crossroads Diner Regular Status</h4>
+<p>A player who eats at the Crossroads Diner at the same general time on the same day of the week for 4 consecutive weeks earns "Regular" status with the diner. This is a passive reputation system tracked separately from Community Standing.</p>
+<table class="data-table">
+<tr><td>Regular Status</td><td>Trigger</td><td>Benefit</td></tr>
+<tr><td>Breakfast Regular</td><td>4 consecutive Tuesdays at breakfast (6-11am)</td><td>+3 XP/visit ongoing; Agnes the waitress gives a small seasonal tip on weather or market prices ("Heard old Walt say the goldenrod's coming early this year")</td></tr>
+<tr><td>Lunch Regular</td><td>4 consecutive weekday lunches</td><td>Daily special unlocked before arrival (notification: "Today is corn chowder day"); +2 XP/visit</td></tr>
+<tr><td>Full Regular (both)</td><td>Both Breakfast + Lunch Regular achieved</td><td>Packed lunch made by diner for the next day (free, 25 energy when consumed) -- "Agnes left something for you" notification. Once per week maximum.</td></tr>
+</tbody></table>
+<div class="pitch-block"><p><em>Design Note: Regular status is not a quest or an explicit goal -- the player may never know it exists until Agnes suddenly says "The usual?" on a Tuesday morning. It is the kind of small, discovered reward that makes the world feel like it is paying attention. NPCs visiting the diner on their set schedules (Bob on Tuesdays, Darlene on Fridays) create natural overlap moments with Diner Regular play.</em></p></div>
+<h4 id="h3_6_10_9_Bulletin_Board_Quests">6.10.9 Bulletin Board Winter Micro-Quests</h4>
+<p>The Cedar Bend town bulletin board (unlocked at Community Standing 100 -- Known tier) offers a rotating set of micro-quests during the winter months. These are single-session tasks that feel neighborly and fill individual days without the scope of a full NPC quest chain.</p>
+<table class="data-table">
+<tr><td>Micro-Quest</td><td>Winter</td><td>Objective</td><td>Reward</td></tr>
+<tr><td>Help Lloyd with firewood</td><td>Deepcold</td><td>Visit Lloyd's property; spend 10 energy helping split/stack. One-time visit.</td><td>+15 Standing, +20 XP, +10 Lloyd relationship. He gives the player a small bag of dried wildflower seeds.</td></tr>
+<tr><td>Honey for the potluck</td><td>Deepcold (Grange Hall potluck event)</td><td>Bring 2 lbs honey to the Grange Hall potluck on the posted date.</td><td>+12 Standing, +15 XP. Agnes comments at the diner next week: "That was your honey at the potluck? Best thing there."</td></tr>
+<tr><td>Check on Dr. Harwick's hive</td><td>Deepcold / Kindlemonth</td><td>Visit Ellen's property; perform a warm-day weight check on her hive. Report back.</td><td>+25 XP, +15 Ellen relationship. First instance of this quest triggers Ellen's quest chain if not already active.</td></tr>
+<tr><td>Library book return (for Frank)</td><td>Any winter month</td><td>Pick up a beekeeping book from Frank at the market, return it to the Cedar Bend Library.</td><td>+10 Frank relationship, +5 Standing. Library unlocks as a minor location (Study Session XP bonus when visiting in-person).</td></tr>
+<tr><td>Darlene's equipment loan</td><td>Kindlemonth</td><td>Darlene needs to borrow a specific piece of equipment (posted on board). Deliver it.</td><td>+20 Darlene relationship. She returns it in spring with a small upgrade applied ("I gave your smoker bellows a new gasket while I had it").</td></tr>
+</tbody></table>
+<p>Bulletin board quests refresh at the start of each month. The player can only have 2 active at a time. Micro-quests expire if not completed within the month -- a small "Miss a posted event" -2 Standing penalty applies.</p>
+<h4 id="h3_6_10_10_Beekeepers_Journal">6.10.10 Beekeeper's Journal &amp; Annual Review</h4>
+<p>Available in Kindlemonth (the final month of winter), the Beekeeper's Journal is a structured year-end reflection activity. The player reviews the past year's inspection records (automatically compiled from the Knowledge Log), flags patterns, and records observations. This is narrative and reflective, not mechanical -- but it produces a Knowledge Log entry, a small XP bonus, and seeds NPC dialogue for the coming spring.</p>
+<table class="data-table">
+<tr><td>Journal Section</td><td>Content</td><td>Unlock</td><td>Payoff</td></tr>
+<tr><td>Hive Performance Review</td><td>Which hives outperformed? Which struggled? Flag strongest colony for potential queen source.</td><td>Year 1</td><td>+25 XP. "Best Colony" tag applied -- Bob comments on it in spring.</td></tr>
+<tr><td>Forage Notes</td><td>Which plant sources drove the best honey? What gaps existed in the flow calendar?</td><td>Year 1</td><td>+15 XP. Seeds a specific Knowledge Log entry about the player's local forage profile.</td></tr>
+<tr><td>Lessons Learned</td><td>Free text: what would you do differently? (3 choices presented as short prompts)</td><td>Year 1</td><td>+20 XP. The chosen lesson becomes the first dialogue exchange with Bob in Quickening ("You mentioned you want to try splitting earlier this year...").</td></tr>
+<tr><td>Spring Intent</td><td>Set 1-3 goals for the coming year (choose from a curated list or write one in 80 chars)</td><td>Year 1</td><td>Goals appear in the HUD as soft reminders during Quickening and Greening. +10 XP per goal achieved by summer solstice (end of Wide-Clover).</td></tr>
+</tbody></table>
+<h4 id="h3_6_10_11_Spring_Planning_Map">6.10.11 Spring Planning Map</h4>
+<p>An interactive overlay on the home property (and any unlocked apiary locations) available during winter. The player can drop markers for: planned new hive slots, forage bed changes, tree planting locations, and structure improvements. Completing the planning map for the home property (at least 3 markers placed and described) earns a small XP bonus and generates a "Spring Checklist" notification that fires on Day 1 of Quickening.</p>
+<p>The planning map is a low-friction way to make winter feel purposeful. The player is not just waiting for spring -- they are designing it. The checklist generated at the end of winter gives Quickening immediate direction without requiring a formal quest assignment.</p>
 <div class="divider"></div>
 <div class="section" id="h1_7_Progression_Unlocks">
 <p class="section-label">07</p>

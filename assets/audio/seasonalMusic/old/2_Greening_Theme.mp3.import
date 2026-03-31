@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://7vcb2weggu83"
-path="res://.godot/imported/2_Greening_Theme.mp3-50e1cc4366c49774da6ec36038dcf26e.mp3str"
+path="res://.godot/imported/2_Greening_Theme.mp3-588161a27c6ef7110911f72a0e18e4e4.mp3str"
 
 [deps]
 
-source_file="res://assets/audio/seasonalMusic/2_Greening_Theme.mp3"
-dest_files=["res://.godot/imported/2_Greening_Theme.mp3-50e1cc4366c49774da6ec36038dcf26e.mp3str"]
+source_file="res://assets/audio/seasonalMusic/old/2_Greening_Theme.mp3"
+dest_files=["res://.godot/imported/2_Greening_Theme.mp3-588161a27c6ef7110911f72a0e18e4e4.mp3str"]
 
 [params]
 
@@ -16,4 +16,4 @@ loop=false
 loop_offset=0
 bpm=0
 beat_count=0
-bar_beats=4
+bar_beat

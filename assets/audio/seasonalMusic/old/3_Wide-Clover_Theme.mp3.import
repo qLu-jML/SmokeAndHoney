@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://bnodgk8j31dt8"
-path="res://.godot/imported/3_Wide-Clover_Theme.mp3-218360fbeb6a9d74eaf70893916bbc3d.mp3str"
+path="res://.godot/imported/3_Wide-Clover_Theme.mp3-bc6bc89803807fd8de6867af3e1aef61.mp3str"
 
 [deps]
 
-source_file="res://assets/audio/seasonalMusic/3_Wide-Clover_Theme.mp3"
-dest_files=["res://.godot/imported/3_Wide-Clover_Theme.mp3-218360fbeb6a9d74eaf70893916bbc3d.mp3str"]
+source_file="res://assets/audio/seasonalMusic/old/3_Wide-Clover_Theme.mp3"
+dest_files=["res://.godot/imported/3_Wide-Clover_Theme.mp3-bc6bc89803807fd8de6867af3e1aef61.mp3str"]
 
 [params]
 
@@ -16,4 +16,4 @@ loop=false
 loop_offset=0
 bpm=0
 beat_count=0
-bar_beats=4
+bar_beat

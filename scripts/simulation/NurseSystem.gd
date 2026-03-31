@@ -65,7 +65,7 @@ static func process(nurse_count: int,
                     open_larva_count: int,
                     pu_incoming: int,
                     bee_bread_stores: int,
-                    stunted_brood: int) -> Dictionary:
+                    _stunted_brood: int) -> Dictionary:
 
 	var total_actions: int = nurse_count * ACTIONS_PER_NURSE
 	var actions_used: int = 0

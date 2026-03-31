@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://fmk3p7wqx9vt5"
-path="res://.godot/imported/uncapping_fork_cursor.png-7c4a92f1b8e53d06a2f97c1b4d830e71.ctex"
+uid="uid://bq57450ie203e"
+path="res://.godot/imported/uncapping_fork_cursor.png-f12e7a77985eb83e38a060550dccb04b.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/ui/cursors/uncapping_fork_cursor.png"
-dest_files=["res://.godot/imported/uncapping_fork_cursor.png-7c4a92f1b8e53d06a2f97c1b4d830e71.ctex"]
+dest_files=["res://.godot/imported/uncapping_fork_cursor.png-f12e7a77985eb83e38a060550dccb04b.ctex"]
 
 [params]
 

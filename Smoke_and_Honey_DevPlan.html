@@ -186,6 +186,24 @@
     <li class="h2"><a href="#p4-swarm"><span class="status-todo">[ ]</span> Swarm Management</a></li>
     <li class="h2"><a href="#p4-locations"><span class="status-todo">[ ]</span> Multi-Apiary</a></li>
     <li class="h2"><a href="#p4-craft"><span class="status-todo">[ ]</span> Crafting &amp; Structures</a></li>
+    <li class="h2"><a href="#p4-crafting-passive"><span class="status-todo">[ ]</span> Passive Crafting Queue</a></li>
+    <li class="h2"><a href="#p4-candles"><span class="status-todo">[ ]</span> Candle Variety System</a></li>
+    <li class="h2"><a href="#p4-infused-honey"><span class="status-todo">[ ]</span> Infused Honey</a></li>
+    <li class="h2"><a href="#p4-mead-y1"><span class="status-todo">[ ]</span> Farmhouse Mead (Y1)</a></li>
+    <li class="h2"><a href="#p4-propolis"><span class="status-todo">[ ]</span> Propolis Tincture</a></li>
+    <li class="h2"><a href="#p4-gift-sets"><span class="status-todo">[ ]</span> Gift Sets</a></li>
+    <li class="h2"><a href="#p4-polish"><span class="status-todo">[ ]</span> Beeswax Polish</a></li>
+    <li class="h2"><a href="#p4-craft-skill"><span class="status-todo">[ ]</span> Crafting Skill Track</a></li>
+    <li class="h2"><a href="#p4-downtime"><span class="status-todo">[ ]</span> Downtime Systems</a></li>
+    <li class="h2"><a href="#p4-equip-repair"><span class="status-todo">[ ]</span> Equipment Repair Loop</a></li>
+    <li class="h2"><a href="#p4-trees"><span class="status-todo">[ ]</span> Tree Care &amp; Pruning</a></li>
+    <li class="h2"><a href="#p4-seeds"><span class="status-todo">[ ]</span> Seed Saving &amp; Catalog</a></li>
+    <li class="h2"><a href="#p4-construction"><span class="status-todo">[ ]</span> Property Construction</a></li>
+    <li class="h2"><a href="#p4-cvba-expand"><span class="status-todo">[ ]</span> CVBA Expansion</a></li>
+    <li class="h2"><a href="#p4-diner-regular"><span class="status-todo">[ ]</span> Diner Regular Status</a></li>
+    <li class="h2"><a href="#p4-bulletin"><span class="status-todo">[ ]</span> Bulletin Board Quests</a></li>
+    <li class="h2"><a href="#p4-journal"><span class="status-todo">[ ]</span> Beekeeper's Journal</a></li>
+    <li class="h2"><a href="#p4-spring-map"><span class="status-todo">[ ]</span> Spring Planning Map</a></li>
     <li class="h1"><a href="#phase5"><span class="status-todo">[ ]</span> Phase 5 -- Polish &amp; Ship</a></li>
     <li class="h1"><a href="#business"><span class="status-ref">$</span> Business &amp; Funding</a></li>
     <li class="h2"><a href="#b-priority"><span class="status-ref">!</span> Master Priority List</a></li>
@@ -1090,30 +1108,434 @@
   </div>
 
   <div class="task-section" id="p4-craft">
-    <h3>Crafting &amp; Structures (GDD S6.8, S7.2)</h3>
+    <h3>Crafting &amp; Structures -- Core (GDD S6.8, S7.2)</h3>
     <table>
-      <tr><th>#</th><th>System</th><th>Status</th><th>Details</th></tr>
+      <tr><th>#</th><th>System</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
       <tr>
         <td>4.23</td>
-        <td>Crafting system</td><td><span class="tag tag-todo">TODO</span></td>
-        <td>Beeswax into candles, lip balm, furniture polish (2-5x value). Pollen into supplements. Honey + water into mead (fermentation time). Honey + botanicals into infusions.</td>
+        <td>Crafting system -- core infrastructure</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>CraftingManager autoload (or singleton on Crafting Station scene): recipe_definitions dict, craft_item(recipe_id) function, material check/deduct logic, output to inventory. Serialization hook for in-progress passive recipes. Crafting Station scene (Year 1 Level 2 structure) serves as the interaction point for all non-kitchen recipes. Kitchen recipes (wax rendering, infusions, mead) work from the house interior.</td>
+        <td>2.22 (beeswax tracking), GameData inventory</td>
       </tr>
       <tr>
         <td>4.24</td>
-        <td>Honey house structure</td><td><span class="tag tag-todo">TODO</span></td>
-        <td>Required for extraction. Tiered extractors (2-frame manual, 4-frame electric). Settling tanks. Bottling station. Built on home property.</td>
+        <td>Honey House structure (Silas quest chain)</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Three-tier structure system: Dilapidated (visible, inaccessible from game start), Restored Tier 1 (Silas Q1-Q3, ~$230, mid-summer Y1: 2-frame extractor, indoor settling, bottling), Upgraded Tier 2 (Silas Q4, Year 2, ~$375: 4-frame extractor, curing room, -0.8% moisture bonus). Wire Silas Crenshaw NPC quest chain (4 quests) as the unlock path. See GDD S7.2 for full structure spec.</td>
+        <td>4.23, NPC quest system (3.1)</td>
       </tr>
       <tr>
         <td>4.25</td>
-        <td>Workshop structure</td><td><span class="tag tag-todo">TODO</span></td>
-        <td>Craft frames, boxes, tools. Repair equipment. Wax foundation making.</td>
+        <td>Fermentation Room structure</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Year 2, Level 3 unlock. Built as an addition to the Honey House or as a separate cellar structure. Enables Traditional Mead and Fruit Mead (Melomel) production. Provides stable-temperature environment that reduces off-flavors (quality modifier). Cost: ~$200 materials + 30 energy to build. Visible from game start as a locked-out area.</td>
+        <td>4.24 (Honey House restored)</td>
       </tr>
       <tr>
         <td>4.26</td>
-        <td>Queen rearing station</td><td><span class="tag tag-todo">TODO</span></td>
-        <td>Level 3+ unlock. Required for controlled queen rearing. Mating nuc placement.</td>
+        <td>Queen Rearing Area structure</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Level 3+ unlock. Dedicated apiary zone for queen cups, mating nucs, and rearing frames. Required for the queen rearing system (task 4.12). Small footprint on home property. Costs $150 + 20 energy to build.</td>
+        <td>4.12 (queen rearing system)</td>
       </tr>
     </table>
+  </div>
+
+  <!-- PASSIVE CRAFTING QUEUE -->
+  <div class="task-section" id="p4-crafting-passive">
+    <h3>Passive Crafting Queue (GDD S6.8.2)</h3>
+    <table>
+      <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>4.27</td>
+        <td>Passive recipe tick system</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>CraftingManager tracks in-progress passive recipes: {recipe_id, start_day, duration_days, vessel_item_id}. Each daily tick: check if (current_day - start_day) >= duration_days; if yes, emit recipe_complete signal. SaveManager serializes active_recipes array. Max 3 simultaneous passive recipes (vessel count limit). Completion notification via NotificationManager.</td>
+        <td>4.23, TimeManager (done)</td>
+      </tr>
+      <tr>
+        <td>4.28</td>
+        <td>Vessel item system</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Vessels are inventory items that become "occupied" during a passive recipe: ceramic_crock (farmhouse mead), fermentation_vessel (traditional mead/melomel), mason_jar (infusions, propolis tincture). An occupied vessel cannot be used for another recipe. Vessel must be in storage (shed chest or kitchen) to start recipe. Item sprite: occupied vs. empty variant (color-coded lid/seal indicator).</td>
+        <td>4.27</td>
+      </tr>
+      <tr>
+        <td>4.29</td>
+        <td>Weekly check-in dialogue</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>For mead and tincture: optional weekly "check in" action on the occupied vessel (E key). Returns flavor-text-only status update from a predefined table (5-7 entries per recipe type). No mechanical effect -- pure atmosphere and reassurance. Examples: "The airlock is bubbling steadily -- a good sign." / "Clearing nicely. Another 3 weeks or so." Costs 1 energy per check-in.</td>
+        <td>4.28</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- CANDLE VARIETY -->
+  <div class="task-section" id="p4-candles">
+    <h3>Candle Variety System (GDD S6.8.4)</h3>
+    <table>
+      <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>4.30</td>
+        <td>Candle recipe variants</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Four candle recipes in CraftingManager: tea_light_batch (10-pack, 2 energy, 0.5 lbs wax, $18 batch value), taper_pair (2 energy, 0.15 lbs wax, $9 pair), pillar (5 energy, 0.3 lbs wax, $12 each), novelty_molded (6 energy + 2 for flower press, 0.3-0.5 lbs wax, $15-18). All require rendered_beeswax + wicks. Mold types are one-time purchases from Tanner's ($8-20 each).</td>
+        <td>4.23</td>
+      </tr>
+      <tr>
+        <td>4.31</td>
+        <td>Flower pressing system</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>New action: pick flower from garden or field during bloom season (Wide-Clover through Full-Earth). Add to inventory as item_fresh_flower. From house interior: interact with "press book" prop on bookshelf. After 3 in-game days, fresh_flower converts to pressed_flower (a passive tick, not a queue slot). Pressed_flower is a storage item that persists. Required input for novelty candle recipe. Runs out if player does not gather during active season -- natural cross-season planning mechanic.</td>
+        <td>4.30, FlowerLifecycleManager (done)</td>
+      </tr>
+      <tr>
+        <td>4.32</td>
+        <td>Mold catalog (Tanner's winter order)</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Novelty mold catalog appears in Tanner's winter stock (Deepcold / Kindlemonth only). 4 molds available per year (randomized from a pool of 10): honeybee, hexagon, leaf, acorn, pinecone, flower, bear, sunflower, etc. Each mold costs $8-20 and is reusable. Mold in inventory = recipe unlocked. Buying from catalog is a deliberate winter decision that requires planning ahead (no in-store spring stock).</td>
+        <td>4.30</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- INFUSED HONEY -->
+  <div class="task-section" id="p4-infused-honey">
+    <h3>Infused Honey System (GDD S6.8.3)</h3>
+    <table>
+      <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>4.33</td>
+        <td>Infused honey recipes + passive queue</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Three recipes: lavender_honey, hot_honey, spiced_honey. Each uses 1 lb raw honey + 1 botanical item. Botanical items: dried_lavender, dried_chili, spice_packet (Tanner's $2-4 each; garden-grown variants free if player cultivated and dried them). Infusion uses 1 mason_jar vessel, passive tick of 3-5 days. Output: 1 jar infused honey (labeled variant). Sell prices: lavender +$2/lb, hot +$3/lb, spiced +$2/lb over base honey price.</td>
+        <td>4.23, 4.28 (vessel system)</td>
+      </tr>
+      <tr>
+        <td>4.34</td>
+        <td>Botanical drying (forage garden harvest action)</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>New action during Full-Earth / early Reaping: "Dry herbs" from forage garden beds containing lavender, chili, or herbs. Costs 5 energy per bed. Output: 3-6 dried_botanical items per bed. Items stored in shed chest or kitchen. If dried botanicals not gathered before winter, must buy from Tanner's ($2-4 per packet). Teaches the cross-season planning loop: plant in spring, dry in fall, infuse in winter.</td>
+        <td>4.33, FlowerLifecycleManager (done)</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- FARMHOUSE MEAD Y1 -->
+  <div class="task-section" id="p4-mead-y1">
+    <h3>Farmhouse Mead -- Year 1 Entry (GDD S6.8.6)</h3>
+    <table>
+      <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>4.35</td>
+        <td>Ceramic crock vessel + farmhouse mead recipe</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>ceramic_crock item: purchased at Tanner's ($25, reusable, takes 1 inventory slot when occupied). Farmhouse mead recipe: 3 lbs raw_honey + 1 gallon water (implicit) + wine_yeast ($3 packet at Tanner's). Initiated from house kitchen. Passive queue duration: 56-84 days (randomized per batch within range). Output: 3-4 item_farmhouse_mead_bottle at $12 each. Cannot be entered in Crafting Fair competition. Quality modifier: -1 tier below traditional mead.</td>
+        <td>4.27, 4.28</td>
+      </tr>
+      <tr>
+        <td>4.36</td>
+        <td>Traditional mead recipe (Year 2)</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Gated behind Fermentation Room structure (4.25). Recipe: 4 lbs raw_honey + water + wine_yeast ($3). Uses fermentation_vessel item ($45 at Tanner's Level 2 shop stock). Duration: 56-84 days passive. Output: 4-5 item_traditional_mead_bottle at $18 each. Quality range based on honey grade input (premium honey = better mead). Competition eligible for Winter Crafting Fair.</td>
+        <td>4.25 (Fermentation Room), 4.35</td>
+      </tr>
+      <tr>
+        <td>4.37</td>
+        <td>Fruit mead / Melomel (Year 3)</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Gated behind Year 3 + Community Standing &gt;= 400 (Respected). Recipe: 4 lbs raw_honey + seasonal fruit (apple, cherry, blackberry from orchard or wild forage) + water + yeast. Duration: 70-98 days passive. Output: 4-5 bottles at $22-28 depending on fruit type. Art: new bottle sprite variant with fruit label. Requires player to have grown or gathered fruit in previous season.</td>
+        <td>4.36, 4.21 (River Bottom / orchard forage)</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- PROPOLIS TINCTURE -->
+  <div class="task-section" id="p4-propolis">
+    <h3>Propolis Tincture (GDD S6.8.7)</h3>
+    <table>
+      <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>4.38</td>
+        <td>Propolis collection during inspection</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>New optional action during inspection (after frame pull step): "Scrape propolis" button. Costs 2 energy per use, once per hive per inspection. Yields 0.02-0.05 lbs propolis per hive visit. Track propolis_lbs in GameData. Show propolis inventory in shed chest. Must accumulate ~0.5 lbs for a tincture batch (typically 3-6 months of consistent scraping).</td>
+        <td>InspectionOverlay.gd (done)</td>
+      </tr>
+      <tr>
+        <td>4.39</td>
+        <td>Propolis tincture recipe + passive queue</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Year 2 unlock. Recipe: 0.5 lbs propolis + 1 bottle food-grade alcohol ($6 at Tanner's Level 2 stock). Uses mason_jar vessel. Passive duration: 28-42 days. Output: 3-6 item_propolis_tincture_bottle at $8-12 each. Dr. Harwick quest chain uses propolis tincture as a quest item (her health and wellness research chain). Saturday Market buyer segment: "Natural remedy buyers" unlocked at Frank relationship 40+.</td>
+        <td>4.38, 4.28 (vessel system)</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- GIFT SETS -->
+  <div class="task-section" id="p4-gift-sets">
+    <h3>Honey Gift Sets &amp; Packaging (GDD S6.8.5)</h3>
+    <table>
+      <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>4.40</td>
+        <td>Packaging materials + Tanner's winter catalog</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>New item category: packaging_materials. Types: kraft_sleeve ($3/5-pack), kraft_box ($5/3-pack), ribbon_twine ($4/roll). Available ONLY in Tanner's winter catalog (Deepcold/Kindlemonth stock). Must be pre-ordered before winter; not available in spring/summer shop. Introduce through Frank Fischbach quest (Q3: "Label and Shelf" -- he mentions gift packaging as a way to get the premium shelf price).</td>
+        <td>2.11 (shop wiring), Tanner's shop screen</td>
+      </tr>
+      <tr>
+        <td>4.41</td>
+        <td>Gift set assembly recipes</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Three gift set recipes at the house kitchen table (packaging station -- a small prop interaction point, no new scene needed): honey_candle_bundle (1 honey jar + 1 taper pair + 1 kraft_sleeve, 3 energy, +25% combined value), beekeeper_sampler (1 standard jar + 1 infused jar + 1 tea light 3-pack + 1 kraft_box, 5 energy, +30% combined value), wax_gift_set (1 pillar candle + 1 lip balm + 1 polish tin + 1 ribbon_twine, 4 energy, +28% combined value). Gift sets are a distinct market item with their own sprite (wrapped package icon).</td>
+        <td>4.40, 4.30 (candles), 4.33 (infused honey)</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- BEESWAX POLISH -->
+  <div class="task-section" id="p4-polish">
+    <h3>Beeswax Furniture Polish (GDD S6.8.8)</h3>
+    <table>
+      <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>4.42</td>
+        <td>Furniture polish recipe + dual use</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Recipe: 0.25 lbs rendered_beeswax + 1 linseed_oil bottle ($4 at Tanner's) = 2-3 polish_tin items. Active kitchen recipe (no passive queue), 4 energy per batch. Output: item_polish_tin. Two uses: (1) Sell at Saturday Market $7-9 each. (2) Apply to hive box/equipment: [E] on stored equipment with polish_tin in hand = +10 condition + weatherproofing_modifier flag (reduces degradation rate by 10% for that season). Weatherproofing flag is visible in equipment inspection tooltip. Year 1 accessible -- no unlock gate beyond having beeswax.</td>
+        <td>4.23, 2.22 (beeswax tracking)</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- CRAFTING SKILL TRACK -->
+  <div class="task-section" id="p4-craft-skill">
+    <h3>Crafting Skill Track (GDD S6.8.9)</h3>
+    <table>
+      <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>4.43</td>
+        <td>Craft milestone tracking in CraftingManager</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Track per-category batch counts in GameData: candles_batches_completed, mead_batches_completed, products_types_completed (set of recipe IDs), winter_products_this_season. Persist in SaveManager. These counters drive Knowledge Log entry triggers and unlock quality modifiers.</td>
+        <td>4.23, 3.16 (Knowledge Log entry triggers)</td>
+      </tr>
+      <tr>
+        <td>4.44</td>
+        <td>Craft Knowledge Log entries + quality modifiers</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Six new Knowledge Log entries (see GDD S6.8.9 milestone table). Entry triggers: first candle batch, 20 candle batches, first fermentation, 5 mead batches, 5 different product types, 10 winter products in one season. Quality modifiers delivered as GameData flags: candle_burn_bonus (+10% burn time after entry 1), candle_price_bonus (+5% after entry 2), mead_clarity_bonus (+1 quality tier after entry 3), mead_price_bonus (+8% after entry 4), gift_set_premium (+5% after entry 5), winter_xp_bonus (+5 XP/batch after entry 6).</td>
+        <td>4.43, 3.15 (Knowledge Log UI)</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- DOWNTIME SYSTEMS HEADER -->
+  <div class="task-section" id="p4-downtime">
+    <h3>Downtime Systems -- Overview (GDD S6.10)</h3>
+    <div class="callout callout-amber">
+      <strong>Context:</strong> The game has ~70-80 days/year of low-bee-work time (winter, midsummer dearth, early spring, late fall). The systems below fill this time with activities a real beekeeper would do. They are lower priority than the crafting loop but critical for the game not feeling empty during Year 1 winters. Implement after the core crafting system is functional.
+    </div>
+    <table>
+      <tr><th>#</th><th>System</th><th>Scope</th><th>Status</th></tr>
+      <tr><td>4.45</td><td>Equipment Repair Loop</td><td>Extends existing condition system into a shed sorting and repair activity</td><td><span class="tag tag-todo">TODO</span></td></tr>
+      <tr><td>4.46</td><td>Tool Maintenance</td><td>Seasonal sharpen/clean/oil for smoker, hive tool, uncapping knife</td><td><span class="tag tag-todo">TODO</span></td></tr>
+      <tr><td>4.47</td><td>Tree Care &amp; Pruning</td><td>Extends tree planting into a multi-season care loop</td><td><span class="tag tag-todo">TODO</span></td></tr>
+      <tr><td>4.48</td><td>Seed Saving &amp; Catalog Orders</td><td>Fall seed harvest + winter catalog ordering for specialty forage species</td><td><span class="tag tag-todo">TODO</span></td></tr>
+      <tr><td>4.49</td><td>Cover Cropping &amp; Soil Work</td><td>Reaping-to-Quickening soil improvement loop for garden beds</td><td><span class="tag tag-todo">TODO</span></td></tr>
+      <tr><td>4.50</td><td>Property Construction Projects</td><td>Shed lean-to, fence repair, bee water station -- off-season construction</td><td><span class="tag tag-todo">TODO</span></td></tr>
+      <tr><td>4.51</td><td>CVBA Meeting Expansion</td><td>Optional activities within monthly meetings (setup, presentations, donations)</td><td><span class="tag tag-todo">TODO</span></td></tr>
+      <tr><td>4.52</td><td>Diner Regular Status</td><td>Passive reputation system for consistent diner attendance</td><td><span class="tag tag-todo">TODO</span></td></tr>
+      <tr><td>4.53</td><td>Bulletin Board Winter Micro-Quests</td><td>Monthly rotating single-session neighborly tasks</td><td><span class="tag tag-todo">TODO</span></td></tr>
+      <tr><td>4.54</td><td>Beekeeper's Journal &amp; Annual Review</td><td>Year-end Kindlemonth reflection activity with NPC narrative seeds</td><td><span class="tag tag-todo">TODO</span></td></tr>
+      <tr><td>4.55</td><td>Spring Planning Map</td><td>Winter drag-and-drop layout tool generating spring checklist</td><td><span class="tag tag-todo">TODO</span></td></tr>
+    </table>
+  </div>
+
+  <!-- EQUIPMENT REPAIR LOOP -->
+  <div class="task-section" id="p4-equip-repair">
+    <h3>Hive Equipment Repair Loop (GDD S6.10.1 + S6.10.2)</h3>
+    <table>
+      <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>4.45a</td>
+        <td>Shed sorting UI</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>New interaction at the shed chest: "Sort Equipment" mode shows all stored hive components in a grid sorted by condition (worst first). Each item displays condition as a colored bar (green &gt;70, yellow 50-70, red &lt;50). Player can select and repair. Traffic-light color system uses the existing condition scale. No new data needed -- reads existing equipment_condition from HiveSimulation data.</td>
+        <td>StorageChest.gd (done), hive condition system (done)</td>
+      </tr>
+      <tr>
+        <td>4.45b</td>
+        <td>Repair action wiring</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Wire all three repair tiers to the sorting UI: basic_repair_kit ($25, +20 condition, 3 energy), full_refurbishment ($60, to 75 condition, 8 energy), craftable_repair_pack (beeswax + wood_scraps, to 65 condition, 5 energy, Level 3 unlock). repair_kit and refurbishment_kit are purchasable items at Tanner's. wood_scraps are a new byproduct from lumber conversion (1 scrap per 3 lumber batches -- minor resource stream).</td>
+        <td>4.45a, 2.11 (shop wiring)</td>
+      </tr>
+      <tr>
+        <td>4.46a</td>
+        <td>Tool wear tracking</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Add tool_condition dict to GameData: {hive_tool: 100, smoker: 100, uncapping_knife: 100, extractor: 100}. Each use during relevant action decrements by 0.5-1.0 points. At 70: warning notification "Your hive tool is getting dull." At 40: penalty applies (see GDD S6.10.2 penalty table). At 0: tool is unusable until maintained. Serialize in SaveManager.</td>
+        <td>GameData (done), relevant action scripts</td>
+      </tr>
+      <tr>
+        <td>4.46b</td>
+        <td>Tool maintenance actions</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>New action at shed workbench: "Maintain Tools." Opens a simple UI showing tool conditions. Available actions: sharpen (hive_tool + uncapping_knife: whetstone $5 reusable 10x, 2 energy, restores to 100), clean smoker (pipe_brush $4 reusable, 3 energy, restores to 100), deep clean extractor (15 energy, 1x per year, restores to 100, required to prevent contamination modifier). Whetstone and brush are one-time purchases from Tanner's.</td>
+        <td>4.46a</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- TREE CARE -->
+  <div class="task-section" id="p4-trees">
+    <h3>Tree Care &amp; Pruning (GDD S6.10.4)</h3>
+    <table>
+      <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>4.47a</td>
+        <td>Tree health/condition system</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Each planted tree gets a condition score (0-100). Condition affects forage NU contribution: &gt;75 = 100%, 50-75 = 80%, 25-50 = 60%, &lt;25 = 40%. Condition decrements by 2/season passively (natural wear) and is restored by pruning (+15), fertilizing (+10), and healthy rainfall (+5, weather-driven). Track per-tree in a tree_data dict in GameData. New item: tree entry with {species, planted_year, condition, years_to_maturity}.</td>
+        <td>GDD forage system (S14)</td>
+      </tr>
+      <tr>
+        <td>4.47b</td>
+        <td>Dormant pruning action</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>New action available on any planted tree during Deepcold or Kindlemonth: "Prune." Requires pruning_shears ($18 one-time purchase at Tanner's from Year 1). Costs 8 energy per tree. Restores +15 condition. Triggers first-ever-prune Knowledge Log entry: "Caring for Your Forage Trees." Lloyd Petersen dialogue hook: if Lloyd is nearby (at County Road/Timber zones), he comments on pruning technique within 2 days of the action ("Saw you out in the trees last week...").</td>
+        <td>4.47a, tree planting system (existing)</td>
+      </tr>
+      <tr>
+        <td>4.47c</td>
+        <td>Spring fertilization action</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Available in early Quickening. Requires fertilizer_bag ($8, covers 3 trees, Tanner's spring stock). 5 energy per tree. +10 condition + bloom_quality_bonus flag (1.08x NU multiplier for that tree this season only). Flag resets each year. Must be purchased and applied before Greening for full effect; late application in Greening gives half the bonus.</td>
+        <td>4.47a, 2.11 (shop)</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- SEED SAVING & CATALOG -->
+  <div class="task-section" id="p4-seeds">
+    <h3>Seed Saving &amp; Winter Catalog Orders (GDD S6.10.5)</h3>
+    <table>
+      <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>4.48a</td>
+        <td>Seed saving action (fall)</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>New action on mature garden beds during Reaping: "Save Seeds." Costs 5 energy per bed. Output: 3-5 item_saved_seeds (species-tagged). Saved seeds have 5% better germination rate than purchased seeds (flag modifier on planting). Seeds stored in shed chest, persist through winter. Beds that are not saved-from can still be replanted from Tanner's stock next year. First seed saving action triggers Knowledge Log entry: "The Seed Loop."</td>
+        <td>Forage garden system, FlowerLifecycleManager (done)</td>
+      </tr>
+      <tr>
+        <td>4.48b</td>
+        <td>Tanner's winter catalog</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>New seasonal shop stock mode: Tanner's seed catalog opens in Deepcold Week 1 and closes at end of Kindlemonth. Catalog includes 8 specialty seeds not available during spring (borage, phacelia, crimson clover, anise hyssop, buckwheat, lemon balm, catnip, cosmos). Ordered seeds arrive Day 1 of Quickening (delivery mechanic via Post Office notification). Regular spring stock (clover, sunflower, coneflower, wild bergamot) unavailable during winter -- players who run out must wait or order specialty alternatives. Implement as a second stock_mode on the existing shop_screen.gd.</td>
+        <td>2.11 (shop), Post Office delivery system (3.18)</td>
+      </tr>
+      <tr>
+        <td>4.48c</td>
+        <td>Bed planning drag-and-drop (Spring Planning Map)</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>See 4.55. Seed catalog integrates with planning map: seeds in inventory show up as placeable items on the planning map UI. Player can "assign" seeds to specific beds during winter planning. This is a soft system -- assignment is a reminder, not a hard lock. Completing a plan with 3+ beds assigned earns +3 XP and a spring checklist notification.</td>
+        <td>4.48b, 4.55</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- PROPERTY CONSTRUCTION -->
+  <div class="task-section" id="p4-construction">
+    <h3>Property Construction Projects (GDD S6.10.3)</h3>
+    <table>
+      <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>4.50a</td>
+        <td>Construction project system</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>New system for multi-day buildable property improvements. Each project has: required_materials dict, energy_sessions (N sessions of M energy each), days_per_session (1), visual_state progression (foundation &gt; frame &gt; complete). Projects initiated from a "Blueprint" item (purchased at Tanner's or drafted at workbench). Session state saved each day. Cannot be abandoned mid-build without losing half materials.</td>
+        <td>4.23 (lumber system), 2.11 (shop)</td>
+      </tr>
+      <tr>
+        <td>4.50b</td>
+        <td>Shed lean-to project</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Materials: 15 lumber + hardware_pack ($40 Tanner's). Energy: 3 sessions of ~13 energy each. Unlock: Year 1. Benefit: +20 equipment storage slots in shed chest (currently 50-slot -- expands to 70). Visual: lean-to structure added to east wall of shed sprite (seasonal variants). One of the "visible progression" milestones a new player will work toward in their first winter.</td>
+        <td>4.50a</td>
+      </tr>
+      <tr>
+        <td>4.50c</td>
+        <td>Fence line repair project</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Materials: 8 lumber + hardware_pack ($20 Tanner's). Energy: 2 sessions of 10 energy. Unlock: Year 1. Benefit: pest_resistance_modifier +5% applied to all home apiary hives (affects SHB entry probability and wax moth chance). Visual: fence line appears complete in home property scene. Minor narrative payoff: Darlene comments "Nice to see the fence fixed -- keeps the deer out of those hives."</td>
+        <td>4.50a</td>
+      </tr>
+      <tr>
+        <td>4.50d</td>
+        <td>Proper bee water station</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Materials: 4 lumber + stock_tank ($30 Tanner's). Energy: 15 energy (1 session). Unlock: Year 1. Benefit: eliminates heat_wave_water_emergency event (currently a 20% chance heat event where player must manually provide water or colony takes stress damage). Visual: small tank near hive yard with a water ripple idle animation in summer. Seasonal fill reminder notification in Quickening ("Time to fill the bee water station").</td>
+        <td>4.50a, 2.5 (weather/heat wave system)</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- CVBA EXPANSION -->
+  <div class="task-section" id="p4-cvba-expand">
+    <h3>CVBA Meeting Expansion (GDD S6.10.7)</h3>
+    <table>
+      <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>4.51a</td>
+        <td>Optional meeting activities</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>After arriving at the Grange Hall for a meeting, present 2-3 optional action choices before the meeting begins: "Help set up" (2 energy, +3 Standing, NPC acknowledgment next visit), "Stay late to talk with [NPC]" (2 energy + time slot, +5 NPC relationship, unlocks relationship dialogue branch), "Donate a jar of honey" (1 honey jar, +8 Standing + +5 NPC relationship for all present). Only 1 optional action available per meeting (chosen once per visit). Presentation option (Level 3+): separate dialogue chain, +50 XP +20 Standing.</td>
+        <td>QuestManager (3.1), NPC relationship system (3.8)</td>
+      </tr>
+      <tr>
+        <td>4.51b</td>
+        <td>Bring-a-guest mechanic</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>When walking to the Grange Hall and passing an NPC who is available (not on their fixed schedule), a prompt: "[E] Invite [NPC] to the meeting." Requires NPC relationship &gt;= 40. Invited NPC accompanies player, shows in meeting scene as a background character. Rewards: +10 NPC relationship, +10 Standing, unlocks a cross-chain dialogue line between that NPC and another club member (unique to each combination). Max 1 guest per meeting.</td>
+        <td>4.51a, 3.8 (NPC friendship system)</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- DINER REGULAR STATUS -->
+  <div class="task-section" id="p4-diner-regular">
+    <h3>Diner Regular Status (GDD S6.10.8)</h3>
+    <table>
+      <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>4.52</td>
+        <td>Diner attendance tracking + Regular status</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Track diner visits in GameData: diner_visit_log (array of {day, meal_period}). Regular detection: 4 consecutive week-day same-meal-period visits = Regular for that slot. Two tracks: breakfast_regular (4 consecutive Tuesdays at breakfast), lunch_regular (4 consecutive weekday lunches). Full_regular = both. Regular status persists; a 2-week gap resets to "almost regular" (not fully reset -- give benefit of doubt). Agnes NPC (new: diner waitress background character, no sprite needed -- dialogue only) delivers Regular-status lines and tips. Packed_lunch item generated 1x per week for Full_regulars.</td>
+        <td>TimeManager (done), diner interior (done)</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- BULLETIN BOARD QUESTS -->
+  <div class="task-section" id="p4-bulletin">
+    <h3>Bulletin Board Winter Micro-Quests (GDD S6.10.9)</h3>
+    <table>
+      <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>4.53a</td>
+        <td>Bulletin board scene + interaction</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Physical prop in Cedar Bend exterior scene: a corkboard on the exterior wall of the Grange Hall. Interactable with [E]. Opens a simple UI showing 0-2 active micro-quests (rotates at month start). Bulletin board is visible from Year 1 but shows "No postings yet" until Community Standing reaches 100 (Known tier). Micro-quests display: title, brief description, objective, reward, expiry date.</td>
+        <td>Cedar Bend scene (done), QuestManager (3.1), Standing system (2.28)</td>
+      </tr>
+      <tr>
+        <td>4.53b</td>
+        <td>Winter micro-quest pool (5 quests)</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Five winter micro-quests (see GDD S6.10.9): Lloyd_firewood (Deepcold, visit + 10 energy + wildflower seeds reward), honey_potluck (Deepcold, 2 lbs honey donation + narrative payoff), check_harwick_hive (winter, warm-day weight check + Ellen relationship + quest chain hook), library_book_return (any winter, Frank relationship + Library location unlock), darlene_equipment_loan (Kindlemonth, deliver item + equipment upgrade gift). Each is a QuestDefinition in QuestManager. One micro-quest active per zone per month. Expire on month rollover (-2 Standing if expired while active).</td>
+        <td>4.53a, 3.1 (QuestManager)</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- BEEKEEPER'S JOURNAL -->
+  <div class="task-section" id="p4-journal">
+    <h3>Beekeeper's Journal &amp; Annual Review (GDD S6.10.10)</h3>
+    <table>
+      <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>4.54</td>
+        <td>Annual journal activity (Kindlemonth)</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Available in Kindlemonth from the house interior (desk/writing prop). Opens a structured 4-section UI: (1) Hive Performance Review: auto-populated from inspection data -- shows per-hive stats, player selects "Best Colony" (tags that hive, seeds Bob spring dialogue). (2) Forage Notes: auto-populated from ForageManager flow data -- shows which plants contributed most NU. Player writes one observation (3 preset prompts). (3) Lessons Learned: 3 choice prompts (e.g. "Split earlier," "Monitor mites weekly," "Plant more linden"). Chosen lesson = first Bob spring exchange topic. (4) Spring Intent: set 1-3 goals from curated list or free text (80 chars). Goals appear as soft HUD reminders during Quickening/Greening. +10 XP per goal achieved by end of Wide-Clover. Total journal XP: +70 base, +10 per spring goal met. Knowledge Log entry: "Year One in Review" (or "Year [N] in Review").</td>
+        <td>3.15 (Knowledge Log UI), 3.9 (Bob dialogue), GameData inspection history</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- SPRING PLANNING MAP -->
+  <div class="task-section" id="p4-spring-map">
+    <h3>Spring Planning Map (GDD S6.10.11)</h3>
+    <table>
+      <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th><th>Depends on</th></tr>
+      <tr>
+        <td>4.55</td>
+        <td>Planning map overlay</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Available in winter (Deepcold/Kindlemonth) from PauseMenu &gt; "Plan Spring." Opens the existing map_overlay.gd in a special "planning mode." In planning mode, the player can drop color-coded markers on any apiary location they own: new hive slot (blue), forage bed change (green), tree planting (brown), structure improvement (yellow). Each marker requires a short text description (40 chars max, one of 5 preset tags). Completing 3+ markers on the home property: +3 XP + "Spring Checklist" notification fires on Day 1 of Quickening listing all markers as a soft to-do. Markers are cosmetic (no hard lock) -- they simply appear during Quickening as highlighted areas on the overworld to guide the player's early season focus.</td>
+        <td>map_overlay.gd (done), 4.48c (seed integration)</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="callout callout-blue">
+    <strong>Art needed for Phase 4 (crafting + downtime systems)</strong>
+    New item sprites (32x32): ceramic_crock (occupied + empty), fermentation_vessel, mason_jar (occupied + empty), polish_tin, gift_set_bundle, pressed_flower (3-4 variants), dried_botanical (3 variants), propolis_tincture_bottle, farmhouse_mead_bottle, pruning_shears, whetstone, pipe_brush, hardware_pack, kraft_sleeve, kraft_box.
+    New structure art (home property): shed lean-to addition sprite (seasonal), proper fence line sprite (seasonal), bee water station sprite (idle water animation in summer).
+    New props: corkboard/bulletin board (Cedar Bend exterior), desk/writing prop (house interior), press book prop (house interior), packaging station prop (house kitchen).
+    All art must be approved via Leonardo AI workflow before implementation.
   </div>
 </div>
 
