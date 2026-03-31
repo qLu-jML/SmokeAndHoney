@@ -318,3 +318,16 @@
   - Moved dev button show/hide into _apply_tier_visibility() (single source of truth)
   - Added _apply_tier_visibility() call at end of _ready() after buttons are built
   - Removed duplicate dev button code from _on_dev_toggled() (now handled by the shared call)
+
+2026-03-30 - Fix de-capping minigame: honeycomb texture not rendering + add scraper brush
+  Root cause 1: _cell_rect (TextureRect) was a direct child of CanvasLayer.
+    TextureRect needs a Control parent to render its texture in Godot 4.
+    All UI nodes now go to _bg (a Control), matching InspectionOverlay's architecture.
+  Root cause 2: _render() was called synchronously in _ready(), before the GPU
+    texture pipeline was ready. Changed to call_deferred("_render") so it fires
+    after the current frame settles -- same as InspectionOverlay's pattern.
+  Scraper knife brush visual:
+    - Semi-transparent gold highlight shows the 7-column scraping width
+    - Spans full frame height (representing uncapping knife coverage)
+    - Left/right edge lines suggest the blade edge
+    - Visible on hover, updates live, hides on done/flip/ESC
