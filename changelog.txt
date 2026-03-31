@@ -533,3 +533,14 @@
   - scenes/home_property.tscn: fixed stale UID (uid://ykw0xvtgsnlg -> uid://6dyvoe4x0ot4)
     for home_property.gd -- was causing "ext_resource, invalid UID" error on load.
   Protected files verified: GDD 603,634 bytes, DevPlan 139,015 bytes.
+
+[2026-03-30 CDT] FIX: Two-step bottling workflow -- place bucket, then select jars
+  Bottling table (harvest_yard.gd) now uses a two-step flow:
+  Step 1: Press [E] with bucket carried -> places bucket on table (stays visible).
+    Bucket drawn on right side of bottling table with honey fill level.
+    New state var _bucket_on_bottling_table tracks this.
+  Step 2: Select Empty Jars in inventory, press [E] -> starts jarring minigame.
+    Prompt shows "Select Empty Jars to start" until jars are in active slot.
+  After jarring completes and jars collected, _bucket_on_bottling_table resets.
+  Previously the bucket was consumed and minigame started in one step, which
+  was confusing and gave no visual feedback of the bucket on the table.

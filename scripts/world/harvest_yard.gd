@@ -57,6 +57,7 @@ var _super_placed: bool = false             # Visual: super is on the pallet
 # True = bucket is sitting at the yard waiting to be picked up.
 # False = player picked it up (ITEM_HONEY_BUCKET in inventory) or bucket is empty.
 var _bucket_at_yard: bool = false
+var _bucket_on_bottling_table: bool = false  # True when bucket placed on bottling table
 
 # -- Minigame overlays ----------------------------------------------------
 var _scraping_overlay: Node = null
@@ -109,6 +110,16 @@ func _draw() -> void:
 		var fill_pct: float = clampf(_bucket_honey_lbs / 40.0, 0.0, 1.0)
 		var fill_radius: float = BUCKET_RADIUS * 0.8 * fill_pct
 		draw_circle(BUCKET_OFFSET, fill_radius, Color(0.90, 0.72, 0.20, 0.8))
+	# Bucket placed on bottling table
+	if _bucket_on_bottling_table and _bucket_honey_lbs > 0.0:
+		var btp: Vector2 = STATION_POS[Station.BOTTLING]
+		var bts: Vector2 = STATION_SIZE[Station.BOTTLING]
+		var bkt_cx: float = btp.x + bts.x - 20.0
+		var bkt_cy: float = btp.y + bts.y * 0.5
+		draw_circle(Vector2(bkt_cx, bkt_cy), BUCKET_RADIUS * 0.9, Color(0.92, 0.92, 0.92, 1.0))
+		draw_arc(Vector2(bkt_cx, bkt_cy), BUCKET_RADIUS * 0.9, 0, TAU, 16, Color(0.5, 0.5, 0.5), 1.0)
+		var fill_r: float = BUCKET_RADIUS * 0.7 * clampf(_bucket_honey_lbs / 40.0, 0.0, 1.0)
+		draw_circle(Vector2(bkt_cx, bkt_cy), fill_r, Color(0.90, 0.72, 0.20, 0.8))
 	# Jars on bottling table
 	if _jars_on_table > 0:
 		_draw_jar_stacks()
@@ -359,14 +370,23 @@ func _get_prompt_text(station: Station, player: Node2D) -> String:
 				return "Take super from scraped pallet first"
 			return "Load scraped super first"
 		Station.BOTTLING:
-			if _jars_on_table > 0 and _bucket_honey_lbs < 1.0:
+			# Collect finished jars (bucket empty or gone)
+			if _jars_on_table > 0 and not _bucket_on_bottling_table:
 				return "[E] Collect Jars (%d)" % _jars_on_table
+			# Bucket is on table -- need jars selected to start filling
+			if _bucket_on_bottling_table:
+				if _jars_on_table > 0 and _bucket_honey_lbs < 1.0:
+					return "[E] Collect Jars (%d)" % _jars_on_table
+				var held_b: String = _get_held_item(player)
+				if held_b == GameData.ITEM_JAR:
+					return "[E] Start Jarring (%.1f lbs honey)" % _bucket_honey_lbs
+				return "Select Empty Jars to start"
+			# Bucket not placed yet -- need to carry it here
 			if _bucket_honey_lbs >= 1.0:
-				# Accept bucket grip OR bucket item -- player just used grip to pick it up
-				var held: String = _get_held_item(player)
+				var held_b: String = _get_held_item(player)
 				var has_bkt: bool = player.has_method("count_item") and player.call("count_item", GameData.ITEM_HONEY_BUCKET) > 0
-				if held == GameData.ITEM_HONEY_BUCKET or held == GameData.ITEM_BUCKET_GRIP or has_bkt:
-					return "[E] Place Bucket -- Fill Jars (%.1f lbs)" % _bucket_honey_lbs
+				if held_b == GameData.ITEM_HONEY_BUCKET or held_b == GameData.ITEM_BUCKET_GRIP or has_bkt:
+					return "[E] Place Bucket (%.1f lbs)" % _bucket_honey_lbs
 				return "Carry honey bucket here first"
 			if _jars_on_table > 0:
 				return "[E] Collect Jars (%d)" % _jars_on_table
@@ -594,30 +614,44 @@ func _on_extraction_cancelled() -> void:
 
 # -- Bottling Table: fill jars or collect filled jars ---------------------
 func _action_bottling(player: Node2D) -> void:
-	# If there are jars to collect with no honey waiting, collect them
-	if _jars_on_table > 0 and _bucket_honey_lbs < 1.0:
+	# -- Collect finished jars (bucket done or removed) -----------------------
+	if _jars_on_table > 0 and not _bucket_on_bottling_table:
 		_collect_jars(player)
 		return
 
-	# If there's honey to bottle, accept bucket grip OR bucket item as valid carry
+	# -- Bucket is on table: start jarring if jars selected -------------------
+	if _bucket_on_bottling_table:
+		# Collect jars when honey is exhausted
+		if _jars_on_table > 0 and _bucket_honey_lbs < 1.0:
+			_collect_jars(player)
+			return
+		# Check if player has empty jars selected (active slot)
+		var held: String = _get_held_item(player)
+		if held != GameData.ITEM_JAR:
+			_notify("Select Empty Jars in your inventory, then press [E].")
+			return
+		_start_bottling_minigame(player)
+		return
+
+	# -- Bucket not on table yet: place it ------------------------------------
 	if _bucket_honey_lbs >= 1.0:
 		var held: String = _get_held_item(player)
 		var has_bkt: bool = player.has_method("count_item") and player.call("count_item", GameData.ITEM_HONEY_BUCKET) > 0
 		if held != GameData.ITEM_HONEY_BUCKET and held != GameData.ITEM_BUCKET_GRIP and not has_bkt:
 			_notify("Carry the honey bucket here with your Bucket Grip first!")
 			return
-		# Player placed the bucket -- consume the carried item
+		# Consume the carried bucket item from inventory
 		if player.has_method("consume_item"):
 			player.consume_item(GameData.ITEM_HONEY_BUCKET, 1)
 			if player.has_method("update_hud_inventory"):
 				player.update_hud_inventory()
-		# Bucket is now on the table, no longer needs to be carried
 		_bucket_at_yard = false
+		_bucket_on_bottling_table = true
 		queue_redraw()
-		_start_bottling_minigame(player)
+		_notify("Bucket placed! Select Empty Jars and press [E] to start jarring.")
 		return
 
-	# If only jars on table, collect them
+	# -- Collect leftover jars ------------------------------------------------
 	if _jars_on_table > 0:
 		_collect_jars(player)
 		return
@@ -638,6 +672,9 @@ func _collect_jars(player: Node2D) -> void:
 			_notify("Collected %d jars! %d left (inventory full)." % [collected, remaining])
 		else:
 			_notify("Collected %d honey jars! Sell at the market." % collected)
+	# Clear table state when all jars collected
+	if _jars_on_table <= 0:
+		_bucket_on_bottling_table = false
 	queue_redraw()
 
 func _start_bottling_minigame(player: Node2D) -> void:
