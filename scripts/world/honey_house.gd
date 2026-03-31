@@ -388,6 +388,14 @@ func _update_station_prompts(player: Node2D) -> void:
 		else:
 			_carry_label.visible = false
 
+	# Sync carry state with inventory (recover from any state desync on re-entry etc.)
+	if not _player_carrying_bucket and not _bucket_on_table and _bucket_honey_lbs > 0.0:
+		var sync_p := _find_player()
+		if sync_p != null and sync_p.has_method("count_item"):
+			var bkt_count: int = sync_p.call("count_item", GameData.ITEM_HONEY_BUCKET)
+			if bkt_count > 0:
+				_player_carrying_bucket = true
+
 	for station_id in _station_areas:
 		var s: Station = station_id as Station
 
@@ -408,7 +416,10 @@ func _update_station_prompts(player: Node2D) -> void:
 		var area: Rect2 = _station_areas[s]
 		var center: Vector2 = area.get_center()
 		var dist: float = ppos.distance_to(center)
+		# Give the canning table a larger reach when player is carrying the bucket
 		var threshold: float = INTERACT_DIST + area.size.length() * 0.3
+		if _player_carrying_bucket and s == Station.CANNING:
+			threshold = INTERACT_DIST * 2.5 + area.size.length() * 0.5
 
 		if dist < threshold and dist < nearest_dist:
 			nearest_dist = dist
@@ -461,7 +472,7 @@ func _get_station_prompt(station: Station) -> String:
 			elif _player_carrying_bucket:
 				return "[E] Place bucket on table"
 			elif _bucket_honey_lbs > 0.0:
-				return "[E] Pick up bucket (%.1f lbs)" % _bucket_honey_lbs
+				return "Pick up the bucket first!"
 			return "No honey yet"
 		Station.BUCKET:
 			if _bucket_honey_lbs > 0.0 and not _player_carrying_bucket and not _bucket_on_table:
@@ -747,12 +758,12 @@ func _place_jar_sprite_on_table() -> void:
 ## Phase 3 -- bucket on table: press E to fill jars one by one.
 ##            When bucket empty or no more jars: press E to collect all jars.
 func _action_canning() -> void:
-	# -- Phase 1: no bucket anywhere, check if we can auto-pickup ---------------
+	# -- Phase 1: no bucket anywhere -- send player to the BUCKET station -------
 	if not _player_carrying_bucket and not _bucket_on_table:
 		if _bucket_honey_lbs > 0.0:
-			_action_pickup_bucket()
+			_show_status("Pick up the honey bucket (to the right of the spinner) first!")
 		else:
-			_show_status("No honey yet! Extract honey first.")
+			_show_status("No honey yet! Extract honey from frames in the spinner first.")
 		return
 
 	# -- Phase 2: player is carrying bucket, place it on table ------------------

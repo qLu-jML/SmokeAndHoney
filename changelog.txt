@@ -1,3 +1,19 @@
+[2026-03-30 CDT] FIX: Canning table bucket placement (honey_house.gd)
+  Three targeted fixes to the bucket-to-table workflow:
+  1. State desync recovery: each frame, if _player_carrying_bucket is false but
+     the player has ITEM_HONEY_BUCKET in inventory (and honey exists in the bucket),
+     _player_carrying_bucket is automatically re-synced to true. Prevents stale
+     state after scene transitions or any other unexpected resets.
+  2. Larger CANNING proximity when carrying: threshold expands from 87px to ~186px
+     so the player can trigger [E] Place bucket on table from anywhere in the aisle,
+     not just the left side of the room near the table.
+  3. Removed Phase 1 auto-pickup from CANNING station action: pressing E at the
+     canning table without a bucket now shows a directional hint ("Pick up the honey
+     bucket to the right of the spinner first!") instead of silently picking up
+     and then confusing the player with "Carry it to the canning table!" status.
+     The BUCKET station remains the only place to physically pick up the bucket.
+  Protected files verified: GDD 585,523 bytes, DevPlan 102,508 bytes.
+
 [2026-03-30 CDT] PHASE 2 POLISH: 10-item feature/fix pass -- z-layering, dev buttons, decapping visuals, organic flowers, bucket carry, jarring workflow.
   1. FLOWERS vs EQUIPMENT (z-index layering): Removed all exclusion-zone/protected-rect logic from
      dandelion_spawner.gd, wildflower_scatter.gd, and flower_lifecycle_manager.gd. Equipment now
