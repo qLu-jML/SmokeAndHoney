@@ -330,7 +330,7 @@ position = Vector2(520, 70)
 texture = ExtResource("9")
 z_index = 3
 
-[node name="UncleBobScript" type="Node" parent="World/NPCs/UncleBoB"]
+[node name="UncleBobScript" type="Node2D" parent="World/NPCs/UncleBoB"]
 script = ExtResource("10")
 
 [node name="Pedestrians" type="Node2D" parent="World"]

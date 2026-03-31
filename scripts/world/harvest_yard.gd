@@ -52,7 +52,7 @@ var _bucket_honey_lbs: float = 0.0          # Raw honey in bucket
 var _bucket_beeswax_lbs: float = 0.0        # Beeswax collected
 var _jars_on_table: int = 0                 # Filled jars stacked on bottling table
 var _active_station: Station = Station.NONE
-var _super_placed: bool = false             # Visual: super is on the pallet
+var _supers_on_pallet: int = 0             # How many supers stacked (0-4)
 # Bucket grip / carry state
 # True = bucket is sitting at the yard waiting to be picked up.
 # False = player picked it up (ITEM_HONEY_BUCKET in inventory) or bucket is empty.
@@ -76,11 +76,20 @@ var _super_pallet_sprite: Sprite2D = null
 var _scraped_pallet_sprite: Sprite2D = null
 const PALLET_TEXTURE_PATH := "res://assets/sprites/objects/pallet_super.png"
 
-# -- Super box sprite nodes (sit on top of pallets, tint shows fill level) -
-var _super_box_sprite: Sprite2D = null          # On super pallet (empties as scraped)
+# -- Super box sprite nodes (sit on top of pallets) -----------------------
+# Super pallet holds up to 4 full supers shown as individual sprites in 2x2 grid.
+# Each sprite uses hive_super.png at 2x scale (24x14 -> 48x28 px).
+var _pallet_super_sprites: Array = []           # Array of 4 Sprite2D for super pallet slots
 var _scraped_box_sprite: Sprite2D = null        # On scraped pallet (fills as scraped)
 const SUPER_BOX_TEXTURE_PATH := "res://assets/sprites/hive/hive_super.png"
-const SUPER_BOX_SCALE := 4.0                    # 24x14 -> 96x56
+const SUPER_BOX_SCALE_PALLET := 2.0            # 24x14 -> 48x28 (4 fit in 2x2 grid on 96x64)
+const SUPER_BOX_SCALE_SCRAPED := 4.0           # 24x14 -> 96x56 (one super fills scraped pallet)
+# 2x2 slot offsets relative to pallet top-left corner (pixel coords).
+# Sprite2D is centered, so each offset is the top-left of the slot.
+const SUPER_SLOT_OFFSETS: Array = [
+	Vector2(0, 4), Vector2(48, 4),    # row 0: top-left, top-right
+	Vector2(0, 32), Vector2(48, 32),  # row 1: bottom-left, bottom-right
+]
 
 # -- Extractor sprite node ------------------------------------------------
 var _extractor_sprite: Sprite2D = null
@@ -119,7 +128,7 @@ func _draw() -> void:
 	if _jars_on_table > 0:
 		_draw_jar_stacks()
 	# Frame count text over super pallet
-	if _super_placed and _frames_on_pallet.size() > 0:
+	if _supers_on_pallet > 0 and _frames_on_pallet.size() > 0:
 		var sp: Vector2 = STATION_POS[Station.SUPER_PALLET]
 		var ss: Vector2 = STATION_SIZE[Station.SUPER_PALLET]
 		_draw_text_at(sp + Vector2(ss.x * 0.5, ss.y + 10),
@@ -207,48 +216,65 @@ func _create_super_box_sprites() -> void:
 	else:
 		push_warning("[HarvestYard] Super box texture not found: " + SUPER_BOX_TEXTURE_PATH)
 
-	var sp_size: Vector2 = STATION_SIZE[Station.SUPER_PALLET]
-	var sc_size: Vector2 = STATION_SIZE[Station.SCRAPED_PALLET]
+	var pallet_origin: Vector2 = STATION_POS[Station.SUPER_PALLET]
+	# Half the size of one super at SUPER_BOX_SCALE_PALLET for centering (24/2*2, 14/2*2)
+	var half: Vector2 = Vector2(24.0, 14.0) * SUPER_BOX_SCALE_PALLET * 0.5
 
-	# Super pallet: full super placed here, empties as frames are scraped
-	_super_box_sprite = Sprite2D.new()
-	_super_box_sprite.name = "SuperBoxSprite"
-	if tex != null:
-		_super_box_sprite.texture = tex
-	_super_box_sprite.scale = Vector2(SUPER_BOX_SCALE, SUPER_BOX_SCALE)
-	# Sit centered on top of the pallet -- shift up slightly so pallet base shows
-	_super_box_sprite.position = STATION_POS[Station.SUPER_PALLET] + sp_size * 0.5 + Vector2(0, -4)
-	_super_box_sprite.z_index = 4
-	_super_box_sprite.visible = false
-	add_child(_super_box_sprite)
+	# Create 4 individual super sprites in a 2x2 grid on the super pallet.
+	_pallet_super_sprites.clear()
+	for i in range(4):
+		var slot_offset: Vector2 = SUPER_SLOT_OFFSETS[i]
+		var sp := Sprite2D.new()
+		sp.name = "PalletSuper%d" % i
+		if tex != null:
+			sp.texture = tex
+		sp.scale = Vector2(SUPER_BOX_SCALE_PALLET, SUPER_BOX_SCALE_PALLET)
+		# Top-left of slot -> center for Sprite2D (which is centered by default)
+		sp.position = pallet_origin + slot_offset + half
+		sp.z_index = 4
+		sp.visible = false
+		add_child(sp)
+		_pallet_super_sprites.append(sp)
 
 	# Scraped pallet: empty super box placed here, fills as frames are scraped
+	var sc_size: Vector2 = STATION_SIZE[Station.SCRAPED_PALLET]
 	_scraped_box_sprite = Sprite2D.new()
 	_scraped_box_sprite.name = "ScrapedBoxSprite"
 	if tex != null:
 		_scraped_box_sprite.texture = tex
-	_scraped_box_sprite.scale = Vector2(SUPER_BOX_SCALE, SUPER_BOX_SCALE)
+	_scraped_box_sprite.scale = Vector2(SUPER_BOX_SCALE_SCRAPED, SUPER_BOX_SCALE_SCRAPED)
 	_scraped_box_sprite.position = STATION_POS[Station.SCRAPED_PALLET] + sc_size * 0.5 + Vector2(0, -4)
 	_scraped_box_sprite.z_index = 4
 	_scraped_box_sprite.visible = false
 	add_child(_scraped_box_sprite)
 
 ## Update super box sprite visibility and tint based on pipeline state.
-## Full super on pallet: warm golden, dims as frames are removed.
-## Empty super on scraped pallet: starts pale, warms as frames fill it.
+## Super pallet shows one sprite per queued super (up to 4).
+## Top super dims as frames are scraped out of it; others stay fully golden.
+## Scraped pallet: starts pale, warms to golden as frames fill it.
 func _update_super_visuals() -> void:
-	if _super_box_sprite == null or _scraped_box_sprite == null:
+	if _pallet_super_sprites.size() < 4 or _scraped_box_sprite == null:
 		return
-	# -- Super pallet: show when super is placed --
-	_super_box_sprite.visible = _super_placed
-	if _super_placed:
-		# Warm golden when full (10 frames), cool grey-brown when nearly empty
-		var fill: float = clampf(float(_frames_on_pallet.size()) / 10.0, 0.0, 1.0)
-		_super_box_sprite.modulate = Color(
-			lerpf(0.65, 1.0, fill),   # R
-			lerpf(0.50, 0.85, fill),  # G
-			lerpf(0.30, 0.45, fill),  # B
-			1.0)
+
+	# -- Super pallet: show one sprite per queued super, top super dims --
+	for i in range(4):
+		var sp: Sprite2D = _pallet_super_sprites[i]
+		if i < _supers_on_pallet:
+			sp.visible = true
+			# The topmost queued super (highest index) is the one being scraped.
+			# Dim it based on remaining frames; others stay fully golden.
+			if i == _supers_on_pallet - 1:
+				var fill: float = clampf(float(_frames_on_pallet.size()) / 10.0, 0.0, 1.0)
+				sp.modulate = Color(
+					lerpf(0.65, 1.0, fill),
+					lerpf(0.50, 0.85, fill),
+					lerpf(0.30, 0.45, fill),
+					1.0)
+			else:
+				sp.modulate = Color(1.0, 0.85, 0.42, 1.0)  # fully golden
+		else:
+			sp.visible = false
+
 	# -- Scraped pallet: show when empty super box is placed --
 	_scraped_box_sprite.visible = _super_box_on_scraped
 	if _super_box_on_scraped:
@@ -460,10 +486,12 @@ func _get_prompt_text(station: Station, player: Node2D) -> String:
 						return "Place Super Box on scraped pallet first!"
 					return "[E] Scrape Frame (%d left)" % _frames_on_pallet.size()
 				return "Equip Scraper to de-cap"
+			if _supers_on_pallet >= 4:
+				return "Pallet full (4 supers)"
 			if player.has_method("count_item"):
 				var count: int = player.count_item(GameData.ITEM_FULL_SUPER)
 				if count > 0:
-					return "[E] Place Super on Pallet"
+					return "[E] Place Super (%d/4 on pallet)" % _supers_on_pallet
 			return "Bring a Full Super"
 		Station.SCRAPED_PALLET:
 			if _scraped_super_ready:
@@ -539,6 +567,11 @@ func _action_super_pallet(player: Node2D) -> void:
 			_notify("Equip the Comb Scraper to de-cap frames!")
 		return
 
+	# Limit pallet to 4 supers
+	if _supers_on_pallet >= 4:
+		_notify("Pallet is full! Process some supers first.")
+		return
+
 	# Place a full super on the pallet
 	if not player.has_method("consume_item"):
 		return
@@ -548,8 +581,8 @@ func _action_super_pallet(player: Node2D) -> void:
 	if player.has_method("update_hud_inventory"):
 		player.update_hud_inventory()
 
-	# Generate 10 frames from the super using actual hive cell data
-	_frames_on_pallet.clear()
+	# Generate 10 frames from the super using actual hive cell data.
+	# Append to existing frames so multiple supers queue up.
 	var stored: Array = GameData.harvested_super_frames
 	for i in 10:
 		var sf: ScrapeFrame = ScrapeFrame.new()
@@ -565,7 +598,7 @@ func _action_super_pallet(player: Node2D) -> void:
 		})
 	# Consume stored data so it is not reused for a different super
 	GameData.harvested_super_frames.clear()
-	_super_placed = true
+	_supers_on_pallet += 1
 
 	# Return the empty super box to inventory
 	if player.has_method("add_item"):
@@ -573,7 +606,7 @@ func _action_super_pallet(player: Node2D) -> void:
 		if player.has_method("update_hud_inventory"):
 			player.update_hud_inventory()
 
-	_notify("Super placed! 10 frames ready. Equip Scraper to de-cap.")
+	_notify("Super placed! %d/4 on pallet. Equip Scraper to de-cap." % _supers_on_pallet)
 	queue_redraw()
 
 # -- Scraping Minigame Launch ---------------------------------------------
@@ -596,11 +629,12 @@ func _start_scraping_minigame() -> void:
 	_scraping_overlay.set_script(overlay_script)
 
 	# Pass actual frame cell data so de-capping matches inspection view
-	var frame_data: Dictionary = _frames_on_pallet[0]
-	var sf: Object = frame_data.get("scrap_frame", null)
+	var frame_data_d: Dictionary = _frames_on_pallet[0]
+	var sf: Object = frame_data_d.get("scrap_frame", null)
 	_scraping_overlay.set("frame", sf)
-	_scraping_overlay.set("frame_index", 10 - _frames_on_pallet.size() + 1)
-	_scraping_overlay.set("frame_total", 10)
+	var total_frames: int = _supers_on_pallet * 10
+	_scraping_overlay.set("frame_index", total_frames - _frames_on_pallet.size() + 1)
+	_scraping_overlay.set("frame_total", total_frames)
 
 	add_child(_scraping_overlay)
 	_scraping_overlay.add_to_group("inspection_overlay")
@@ -623,16 +657,28 @@ func _on_scraping_complete() -> void:
 		queue_redraw()
 		return
 
-	# Remove the scraped frame from pallet
+	var wax_per_frame: float = 4900.0 * 0.00015  # ~0.735 lbs per frame
+
+	# DevMode: auto-scrape all remaining frames in one shot (up to fill the super box)
+	if GameData.dev_labels_visible and _frames_on_pallet.size() > 0:
+		var max_to_scrape: int = mini(_frames_on_pallet.size(), 10 - _frames_scraped)
+		for _fi in range(max_to_scrape):
+			if _frames_on_pallet.size() > 0:
+				_frames_on_pallet.remove_at(0)
+				_bucket_beeswax_lbs += wax_per_frame
+				_frames_scraped += 1
+		if _frames_scraped >= 10:
+			_scraped_super_ready = true
+		_supers_on_pallet = _frames_on_pallet.size() / 10 if _frames_on_pallet.size() >= 10 else (0 if _frames_on_pallet.size() == 0 else 1)
+		_notify("[DevMode] All frames auto-scraped! Super ready for extractor.")
+		_try_give_beeswax()
+		queue_redraw()
+		return
+
+	# Normal: Remove the single scraped frame from pallet
 	if _frames_on_pallet.size() > 0:
-		var frame_data: Dictionary = _frames_on_pallet[0]
 		_frames_on_pallet.remove_at(0)
-
-		# Collect beeswax from scraping
-		var wax_lbs: float = 4900.0 * 0.00015  # ~0.735 lbs per frame
-		_bucket_beeswax_lbs += wax_lbs
-
-		# Move frame to scraped pallet super box
+		_bucket_beeswax_lbs += wax_per_frame
 		_frames_scraped += 1
 
 		if _frames_scraped >= 10:
@@ -640,10 +686,13 @@ func _on_scraping_complete() -> void:
 			_notify("All 10 frames scraped! Take super to extractor.")
 		else:
 			_notify("Frame scraped! Wax: %.2f lbs. %d/%d done." % [
-				wax_lbs, _frames_scraped, _frames_scraped + _frames_on_pallet.size()])
+				wax_per_frame, _frames_scraped, _frames_scraped + _frames_on_pallet.size()])
 
 	if _frames_on_pallet.size() == 0:
-		_super_placed = false
+		_supers_on_pallet = maxi(0, _supers_on_pallet - 1)
+	elif _frames_on_pallet.size() % 10 == 0 and _supers_on_pallet > 0:
+		@warning_ignore("integer_division")
+		_supers_on_pallet = _frames_on_pallet.size() / 10
 
 	# Add accumulated beeswax to player
 	_try_give_beeswax()
@@ -834,6 +883,19 @@ func _start_bottling_minigame(player: Node2D) -> void:
 	var jars_to_use: int = mini(jar_count, int(honey_available))
 	jars_to_use = mini(jars_to_use, 40)  # 40 jar max per session
 
+	# Consume jars from player inventory upfront
+	if player.has_method("consume_item"):
+		player.consume_item(GameData.ITEM_JAR, jars_to_use)
+		if player.has_method("update_hud_inventory"):
+			player.update_hud_inventory()
+
+	# DevMode: skip the bottling minigame, instantly fill all jars
+	if GameData.dev_labels_visible:
+		_minigame_active = false
+		_notify("[DevMode] All %d jars filled instantly!" % jars_to_use)
+		_on_bottling_complete(jars_to_use)
+		return
+
 	var overlay_script: GDScript = load("res://scripts/ui/bottling_minigame.gd")
 	_bottling_overlay = CanvasLayer.new()
 	_bottling_overlay.layer = 20
@@ -849,12 +911,6 @@ func _start_bottling_minigame(player: Node2D) -> void:
 		_bottling_overlay.bottling_complete.connect(_on_bottling_complete)
 	if _bottling_overlay.has_signal("bottling_cancelled"):
 		_bottling_overlay.bottling_cancelled.connect(_on_bottling_cancelled)
-
-	# Consume jars from player inventory upfront
-	if player.has_method("consume_item"):
-		player.consume_item(GameData.ITEM_JAR, jars_to_use)
-		if player.has_method("update_hud_inventory"):
-			player.update_hud_inventory()
 
 func _on_bottling_complete(jars_filled: int) -> void:
 	_minigame_active = false

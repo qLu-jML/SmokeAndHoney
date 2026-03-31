@@ -77,9 +77,18 @@ const C_WIRE       := Color(0.55, 0.48, 0.30, 0.35)
 const C_TEXT       := Color(0.90, 0.85, 0.70, 1.0)
 const C_MUTED      := Color(0.55, 0.50, 0.42, 1.0)
 const C_ACCENT     := Color(0.95, 0.78, 0.32, 1.0)
-# Scraper knife highlight -- warm honey gold, semi-transparent
-const C_BRUSH      := Color(0.95, 0.85, 0.30, 0.22)
+# Scraper fork / uncapping tool visual
+const C_BRUSH      := Color(0.95, 0.85, 0.30, 0.08)   # very faint gold background behind tines
 const C_BRUSH_EDGE := Color(0.95, 0.78, 0.32, 0.55)
+const C_TINE       := Color(0.72, 0.76, 0.80, 0.92)   # metallic silver tine body
+const C_TINE_HI    := Color(0.88, 0.92, 0.96, 0.80)   # tine highlight (left edge)
+const C_TINE_TIP   := Color(0.55, 0.58, 0.62, 1.0)    # tine tip (darker point)
+const TINE_W       := 2    # tine body width in px
+const TINE_GAP     := 3    # gap between tines in px (TINE_W + TINE_GAP = 5 px pitch)
+const TINE_TIP_H   := 3    # sharpened tip height in px
+const MAX_TINES    := 20   # pre-allocate this many tine triplets
+const C_SPINE      := Color(0.60, 0.63, 0.67, 0.95)   # horizontal spine bar
+const SPINE_H      := 3    # spine height in px
 const C_HANDLE     := Color(0.45, 0.30, 0.12, 0.92)   # dark wood handle below blade
 const C_HANDLE_HI  := Color(0.62, 0.44, 0.20, 0.85)   # handle highlight edge
 const HANDLE_W     := 8    # handle width in px
@@ -95,13 +104,20 @@ var _scraped_this_side: int = 0
 # -- Brush size (rectangular scraper blade) -----------------------------------
 # Width (columns left/right of cursor) and height (rows above/below cursor).
 # This creates a knife-shaped rectangle the player paints across the frame.
-const BRUSH_HALF_X := 5   # 11 columns wide  (~43 px)
-const BRUSH_HALF_Y := 3   # 7 rows tall       (~19 px)
+# Devmode doubles both values for faster testing.
+const BRUSH_HALF_X := 5   # 11 columns wide  (~43 px) -- normal
+const BRUSH_HALF_Y := 3   # 7 rows tall       (~19 px) -- normal
+var _brush_half_x: int = BRUSH_HALF_X   # actual value used (may be 2x in devmode)
+var _brush_half_y: int = BRUSH_HALF_Y   # actual value used (may be 2x in devmode)
 
 # -- UI nodes -----------------------------------------------------------------
 var _bg:           Control  = null   # root control parent (matches InspectionOverlay bg)
 var _cell_rect:    TextureRect = null
-var _brush_rect:   ColorRect  = null  # scraper knife blade (over cell area)
+var _brush_rect:   ColorRect  = null  # faint background behind tines
+var _brush_spine:  ColorRect  = null  # horizontal spine bar at top of fork
+var _brush_tine_body: Array   = []    # MAX_TINES ColorRect for tine shafts
+var _brush_tine_hi:   Array   = []    # MAX_TINES ColorRect for tine highlights
+var _brush_tine_tip:  Array   = []    # MAX_TINES ColorRect for tine tips
 var _brush_edge_l: ColorRect  = null  # left blade edge highlight
 var _brush_edge_r: ColorRect  = null  # right blade edge highlight
 var _brush_handle: ColorRect  = null  # handle stub below frame bottom bar
@@ -121,6 +137,10 @@ const CURSOR_HOTSPOT := Vector2(16, 60)
 func _ready() -> void:
 	layer = 20
 	_renderer = FrameRenderer.new()
+	# DevMode: double brush size for faster testing
+	if GameData.dev_labels_visible:
+		_brush_half_x = BRUSH_HALF_X * 2
+		_brush_half_y = BRUSH_HALF_Y * 2
 	_build_ui()
 	# Safety: if no frame was injected, or the frame has no honey cells,
 	# create/fill one so the minigame always shows the correct honeycomb.
@@ -263,14 +283,15 @@ func _build_ui() -> void:
 	_cell_rect.mouse_filter   = Control.MOUSE_FILTER_PASS
 	_bg.add_child(_cell_rect)
 
-	# -- Scraper knife brush overlay (rectangular, follows cursor) --
-	# Width = (BRUSH_HALF_X*2+1) columns, Height = (BRUSH_HALF_Y*2+1) rows
+	# -- Scraper fork brush overlay (uncapping fork with metal tines) --
+	# Width = (_brush_half_x*2+1) columns, Height = (_brush_half_y*2+1) rows
 	# Both scaled to display pixels. Positioned at cursor during drag/hover.
 	var brush_col_w: float = float(CELL_AREA_W) / float(F_COLS)
 	var brush_row_h: float = float(EFF_CELL_H) / float(F_ROWS)
-	var brush_px_w: float  = float(BRUSH_HALF_X * 2 + 1) * brush_col_w
-	var brush_px_h: float  = float(BRUSH_HALF_Y * 2 + 1) * brush_row_h
+	var brush_px_w: float  = float(_brush_half_x * 2 + 1) * brush_col_w
+	var brush_px_h: float  = float(_brush_half_y * 2 + 1) * brush_row_h
 
+	# Faint background rect (nearly transparent -- tines are the main visual)
 	_brush_rect = ColorRect.new()
 	_brush_rect.color    = C_BRUSH
 	_brush_rect.size     = Vector2(brush_px_w, brush_px_h)
@@ -279,7 +300,48 @@ func _build_ui() -> void:
 	_brush_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_bg.add_child(_brush_rect)
 
-	# Narrow edge lines around the rectangular blade
+	# Horizontal spine at top of brush (the back of the fork)
+	_brush_spine = ColorRect.new()
+	_brush_spine.color    = C_SPINE
+	_brush_spine.size     = Vector2(brush_px_w, SPINE_H)
+	_brush_spine.position = Vector2(cell_x, cell_y)
+	_brush_spine.visible  = false
+	_brush_spine.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bg.add_child(_brush_spine)
+
+	# Pre-create MAX_TINES tine triplets (body + highlight + tip)
+	_brush_tine_body.clear()
+	_brush_tine_hi.clear()
+	_brush_tine_tip.clear()
+	for _ti in range(MAX_TINES):
+		var tb := ColorRect.new()
+		tb.color       = C_TINE
+		tb.size        = Vector2(TINE_W, brush_px_h - SPINE_H - TINE_TIP_H)
+		tb.position    = Vector2(cell_x, cell_y + SPINE_H)
+		tb.visible     = false
+		tb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_bg.add_child(tb)
+		_brush_tine_body.append(tb)
+
+		var th := ColorRect.new()
+		th.color       = C_TINE_HI
+		th.size        = Vector2(1, brush_px_h - SPINE_H - TINE_TIP_H)
+		th.position    = Vector2(cell_x, cell_y + SPINE_H)
+		th.visible     = false
+		th.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_bg.add_child(th)
+		_brush_tine_hi.append(th)
+
+		var tt := ColorRect.new()
+		tt.color       = C_TINE_TIP
+		tt.size        = Vector2(TINE_W, TINE_TIP_H)
+		tt.position    = Vector2(cell_x, cell_y + brush_px_h - TINE_TIP_H)
+		tt.visible     = false
+		tt.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_bg.add_child(tt)
+		_brush_tine_tip.append(tt)
+
+	# Edge highlight lines on outer sides of fork
 	_brush_edge_l = ColorRect.new()
 	_brush_edge_l.color    = C_BRUSH_EDGE
 	_brush_edge_l.size     = Vector2(1, brush_px_h)
@@ -378,10 +440,10 @@ func _update_brush(screen_pos: Vector2, col: int, row: int) -> void:
 	var brush_row_h: float = tr_h / float(F_ROWS)
 
 	# Clamp brush rectangle to frame edges
-	var left_col: int   = maxi(0, col - BRUSH_HALF_X)
-	var right_col: int  = mini(F_COLS - 1, col + BRUSH_HALF_X)
-	var top_row: int    = maxi(0, row - BRUSH_HALF_Y)
-	var bot_row: int    = mini(F_ROWS - 1, row + BRUSH_HALF_Y)
+	var left_col: int   = maxi(0, col - _brush_half_x)
+	var right_col: int  = mini(F_COLS - 1, col + _brush_half_x)
+	var top_row: int    = maxi(0, row - _brush_half_y)
+	var bot_row: int    = mini(F_ROWS - 1, row + _brush_half_y)
 
 	var bx: float = cell_x + float(left_col) * brush_col_w
 	var bw: float = float(right_col - left_col + 1) * brush_col_w
@@ -390,6 +452,40 @@ func _update_brush(screen_pos: Vector2, col: int, row: int) -> void:
 
 	_brush_rect.position = Vector2(bx, by)
 	_brush_rect.size     = Vector2(bw, bh)
+
+	# Spine across the top of the fork
+	if _brush_spine:
+		_brush_spine.position = Vector2(bx, by)
+		_brush_spine.size     = Vector2(bw, SPINE_H)
+		_brush_spine.visible  = true
+
+	# Place tines: pitch = TINE_W + TINE_GAP, starting from left edge + 1px margin
+	var tine_h: float    = bh - float(SPINE_H) - float(TINE_TIP_H)
+	var pitch: int       = TINE_W + TINE_GAP
+	var tine_x: float    = bx + 1.0
+	var tine_count: int  = 0
+	while tine_x + float(TINE_W) <= bx + bw - 1.0 and tine_count < MAX_TINES:
+		if tine_count < _brush_tine_body.size():
+			var tb: ColorRect = _brush_tine_body[tine_count]
+			tb.position = Vector2(tine_x, by + float(SPINE_H))
+			tb.size     = Vector2(TINE_W, tine_h)
+			tb.visible  = true
+			var th: ColorRect = _brush_tine_hi[tine_count]
+			th.position = Vector2(tine_x, by + float(SPINE_H))
+			th.size     = Vector2(1, tine_h)
+			th.visible  = true
+			var tt: ColorRect = _brush_tine_tip[tine_count]
+			tt.position = Vector2(tine_x, by + bh - float(TINE_TIP_H))
+			tt.size     = Vector2(TINE_W, TINE_TIP_H)
+			tt.visible  = true
+		tine_x += float(pitch)
+		tine_count += 1
+	# Hide unused tine slots
+	for i in range(tine_count, _brush_tine_body.size()):
+		_brush_tine_body[i].visible = false
+		_brush_tine_hi[i].visible   = false
+		_brush_tine_tip[i].visible  = false
+
 	_brush_edge_l.position = Vector2(bx, by)
 	_brush_edge_l.size     = Vector2(1, bh)
 	_brush_edge_r.position = Vector2(bx + bw - 1.0, by)
@@ -409,6 +505,12 @@ func _update_brush(screen_pos: Vector2, col: int, row: int) -> void:
 func _hide_brush() -> void:
 	if _brush_rect:
 		_brush_rect.visible   = false
+	if _brush_spine:
+		_brush_spine.visible  = false
+	for i in range(_brush_tine_body.size()):
+		_brush_tine_body[i].visible = false
+		_brush_tine_hi[i].visible   = false
+		_brush_tine_tip[i].visible  = false
 	if _brush_edge_l:
 		_brush_edge_l.visible = false
 	if _brush_edge_r:
@@ -535,14 +637,14 @@ func _try_scrape(screen_pos: Vector2) -> void:
 	# Update brush visual
 	_update_brush(screen_pos, col, row)
 
-	# Apply rectangular brush: BRUSH_HALF_X columns and BRUSH_HALF_Y rows
+	# Apply rectangular brush: _brush_half_x columns and _brush_half_y rows
 	# around the cursor. Player must paint across the entire frame.
 	if _scraping:
 		var any_changed: bool = false
-		var left_col: int  = maxi(0, col - BRUSH_HALF_X)
-		var right_col: int = mini(F_COLS - 1, col + BRUSH_HALF_X)
-		var top_row: int   = maxi(0, row - BRUSH_HALF_Y)
-		var bot_row: int   = mini(F_ROWS - 1, row + BRUSH_HALF_Y)
+		var left_col: int  = maxi(0, col - _brush_half_x)
+		var right_col: int = mini(F_COLS - 1, col + _brush_half_x)
+		var top_row: int   = maxi(0, row - _brush_half_y)
+		var bot_row: int   = mini(F_ROWS - 1, row + _brush_half_y)
 		for r in range(top_row, bot_row + 1):
 			for c in range(left_col, right_col + 1):
 				if _uncap_cell_silent(r, c):
@@ -602,6 +704,10 @@ func _finish_side() -> void:
 		_status_lbl.text = "Frame de-capped!"
 	if _progress_lbl:
 		_progress_lbl.text = "100%"
+	# DevMode: skip delay and side-B requirement -- finish instantly
+	if GameData.dev_labels_visible:
+		_finish()
+		return
 	var timer: SceneTreeTimer = get_tree().create_timer(0.7)
 	timer.timeout.connect(_finish)
 

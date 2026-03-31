@@ -1,3 +1,21 @@
+[2026-03-31 CDT] FIX + FEAT: Pallet visuals, scraper fork, toolbar icon, cedar bend crash, devmode shortcuts
+  1. SUPER PALLET -- 4 individual super sprites: replaced single oversized (4x) sprite with 4 Sprite2D
+     nodes in a 2x2 grid (2x scale, 48x28px each) using hive_super.png. Supports stacking up to 4 full
+     supers. Prompt updates to show N/4. supers_on_pallet tracks count; correctly decrements as scraped.
+  2. SCRAPING MINIGAME BRUSH -- metal fork tines: replaced transparent yellow ColorRect with uncapping
+     fork visual (horizontal spine + MAX_TINES=20 metallic silver tines with highlight and tip). Tine
+     positions recalculate dynamically on every cursor move to match clamped brush area.
+  3. COMB SCRAPER TOOLBAR ICON -- added ITEM_COMB_SCRAPER -> "uncapping_knife.png" to hud.gd
+     _load_item_textures() ITEM_SPRITE_MAP. Scraper now shows correct icon in hotbar.
+  4. CEDAR BEND CRASH -- uncle_bob.gd extends Node2D but scene assigned it to type:Node. Fixed by
+     changing UncleBobScript node type from Node to Node2D in cedar_bend.tscn.
+  5. DEVMODE SHORTCUTS (active when dev labels are on):
+     - Scraper brush is 2x larger (BRUSH_HALF_X 5->10, BRUSH_HALF_Y 3->6).
+     - Scraping one side of one frame auto-completes ALL remaining frames for that super (fills scraped
+       pallet to 10/10 instantly). No 0.7s delay, no side-B requirement.
+     - Filling one jar at the bottling table auto-fills ALL available jars (up to 40, limited by honey
+       and inventory). Bottling minigame overlay is skipped entirely.
+
 [2026-03-31 CDT] FIX: Jar overlap, flower z-order, sell crash, debugger warnings (round 2)
   1. BOTTLING TABLE JARS: Fixed jar overlap in _draw_jar_stacks() -- jars were 8px tall with only
      2px vertical spacing (6px overlap). Changed to full jar_h + 2px gap, 5 per stack instead of 10.
