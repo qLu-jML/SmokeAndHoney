@@ -1,8 +1,7 @@
 # scraping_minigame.gd -- Interactive honeycomb de-capping minigame overlay.
 # Player clicks and drags a scraper/uncapping knife across the comb to uncap cells.
-# Each cell has a 95% chance of being uncapped when the scraper passes over,
-# dropping to 80% once the frame side is 90% done.
-# The frame visual shows a wood-bordered Langstroth frame with realistic comb colors.
+# Cells are drawn as pointy-top hexagons matching the inspection overlay look.
+# The mouse cursor is replaced with a pixel-art uncapping fork during the minigame.
 # -------------------------------------------------------------------------
 extends CanvasLayer
 
@@ -12,7 +11,6 @@ signal scraping_cancelled
 # -- Grid layout ----------------------------------------------------------
 const GRID_COLS := 24
 const GRID_ROWS := 14
-const CELL_SIZE := 8       # pixels per cell
 const TOTAL_CELLS: int = GRID_COLS * GRID_ROWS  # 336 per side
 
 # -- Probabilities --------------------------------------------------------
@@ -21,8 +19,22 @@ const UNCAP_CHANCE_LATE := 0.80
 const LATE_THRESHOLD := 0.90   # Switch to late chance after 90% uncapped
 
 # -- Brush width ----------------------------------------------------------
-# 7 cells wide = ~56px native = ~336px at 1080p -- feels like a real uncapping knife
+# 7 cells wide = ~49px native = a wide uncapping sweep
 const BRUSH_HALF := 3    # cells to each side of cursor column
+
+# -- Hex hit detection constants (must match scraping_hex_grid.gd) ---------
+const HEX_COL_STEP   := 7.0
+const HEX_ROW_STEP   := 6.0
+const HEX_MARGIN_X   := 12.0
+const HEX_MARGIN_Y   := 8.0
+const HEX_ODD_COL_OFFS := 3.0
+
+# -- Frame layout ---------------------------------------------------------
+const FRAME_X := 28
+const FRAME_Y := 22
+const FRAME_W : int = GRID_COLS * 8   # 192 px wide frame interior
+const FRAME_H : int = GRID_ROWS * 8   # 112 px tall frame interior
+const BORDER_T := 6   # Wood border thickness (px)
 
 # -- Frame state ----------------------------------------------------------
 var _current_side: int = 0     # 0 = Side A, 1 = Side B
@@ -34,34 +46,28 @@ var _frame_complete: bool = false
 # -- Scraper state --------------------------------------------------------
 var _scraping: bool = false    # Mouse button held
 var _scraper_pos: Vector2 = Vector2.ZERO
-var _last_scrape_cell: Vector2i = Vector2i(-1, -1)
 
 # -- Visual elements ------------------------------------------------------
+# Wood frame border elements
 var _bg: ColorRect = null
-var _frame_panel: Control = null
 var _side_label: Label = null
 var _progress_label: Label = null
 var _instruction_label: Label = null
-var _cell_rects: Array = []    # Array of ColorRect for each cell
 
-# -- Layout constants (viewport is 320x180) -------------------------------
-const FRAME_X := 28
-const FRAME_Y := 22
-const FRAME_W: int = GRID_COLS * CELL_SIZE  # 192
-const FRAME_H: int = GRID_ROWS * CELL_SIZE  # 112
-const BORDER_T := 6   # Wood border thickness (px)
+# Hex grid drawing node (Node2D child with _draw() for honeycomb cells)
+const HexGridScript = preload("res://scripts/ui/scraping_hex_grid.gd")
+var _hex_grid: Node2D = null
 
-# -- Colors (ASCII-safe names) -------------------------------------------
-# Outer frame wood (top/bottom rails)
-const C_WOOD_RAIL: Color = Color(0.32, 0.20, 0.07, 1.0)
-# Side stile wood (lighter grain highlight)
-const C_WOOD_STILE: Color = Color(0.44, 0.28, 0.10, 1.0)
-# Comb area background (dark beeswax amber)
-const C_COMB_BG: Color = Color(0.55, 0.36, 0.12, 1.0)
-# Capped cell (pale wax cap -- white-ish honey color)
-const C_CAPPED: Color = Color(0.80, 0.66, 0.30, 1.0)
-# Uncapped cell (exposed honey -- bright amber)
-const C_UNCAPPED: Color = Color(0.97, 0.83, 0.30, 1.0)
+# -- Colors (wood frame, info panel) ------------------------------------
+const C_WOOD_RAIL  : Color = Color(0.32, 0.20, 0.07, 1.0)
+const C_WOOD_STILE : Color = Color(0.44, 0.28, 0.10, 1.0)
+const C_COMB_BG    : Color = Color(0.22, 0.12, 0.04, 1.0)
+
+# -- Cursor ---------------------------------------------------------------
+const CURSOR_PATH := "res://assets/sprites/ui/cursors/uncapping_fork_cursor.png"
+# Hotspot: tip of the tines at bottom-center of the 32x64 sprite
+const CURSOR_HOTSPOT : Vector2 = Vector2(16, 60)
+var _cursor_tex: Texture2D = null
 
 # =========================================================================
 # LIFECYCLE
@@ -69,52 +75,58 @@ const C_UNCAPPED: Color = Color(0.97, 0.83, 0.30, 1.0)
 func _ready() -> void:
 	_build_ui()
 	_init_side(0)
+	_apply_cursor()
+
+func _apply_cursor() -> void:
+	if ResourceLoader.exists(CURSOR_PATH):
+		_cursor_tex = load(CURSOR_PATH) as Texture2D
+		if _cursor_tex:
+			Input.set_custom_mouse_cursor(_cursor_tex, Input.CURSOR_ARROW, CURSOR_HOTSPOT)
+
+func _restore_cursor() -> void:
+	Input.set_custom_mouse_cursor(null)
 
 func _build_ui() -> void:
 	# Semi-transparent background
 	_bg = ColorRect.new()
-	_bg.color = Color(0.0, 0.0, 0.0, 0.75)
+	_bg.color = Color(0.0, 0.0, 0.0, 0.78)
 	_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(_bg)
 
 	# Title
 	var title_lbl: Label = Label.new()
-	title_lbl.text = "Honey Frame  -- De-capping"
+	title_lbl.text = "Honey Frame  --  De-capping"
 	title_lbl.add_theme_font_size_override("font_size", 7)
 	title_lbl.add_theme_color_override("font_color", Color(0.95, 0.85, 0.40))
 	title_lbl.position = Vector2(FRAME_X - BORDER_T, 5)
 	add_child(title_lbl)
 
 	# ---- Wood frame borders ----
-	# Top rail (horizontal bar across top of comb)
 	var top_rail: ColorRect = ColorRect.new()
 	top_rail.color = C_WOOD_RAIL
 	top_rail.position = Vector2(FRAME_X - BORDER_T, FRAME_Y - BORDER_T)
 	top_rail.size = Vector2(FRAME_W + BORDER_T * 2, BORDER_T)
 	add_child(top_rail)
 
-	# Bottom rail
 	var bot_rail: ColorRect = ColorRect.new()
 	bot_rail.color = C_WOOD_RAIL
 	bot_rail.position = Vector2(FRAME_X - BORDER_T, FRAME_Y + FRAME_H)
 	bot_rail.size = Vector2(FRAME_W + BORDER_T * 2, BORDER_T)
 	add_child(bot_rail)
 
-	# Left stile (vertical end bar)
 	var left_stile: ColorRect = ColorRect.new()
 	left_stile.color = C_WOOD_STILE
 	left_stile.position = Vector2(FRAME_X - BORDER_T, FRAME_Y)
 	left_stile.size = Vector2(BORDER_T, FRAME_H)
 	add_child(left_stile)
 
-	# Right stile
 	var right_stile: ColorRect = ColorRect.new()
 	right_stile.color = C_WOOD_STILE
 	right_stile.position = Vector2(FRAME_X + FRAME_W, FRAME_Y)
 	right_stile.size = Vector2(BORDER_T, FRAME_H)
 	add_child(right_stile)
 
-	# Corner caps (square reinforcement at corners -- slightly darker)
+	# Corner caps
 	var corner_offsets: Array = [
 		Vector2(FRAME_X - BORDER_T, FRAME_Y - BORDER_T),
 		Vector2(FRAME_X + FRAME_W, FRAME_Y - BORDER_T),
@@ -128,38 +140,17 @@ func _build_ui() -> void:
 		corner.size = Vector2(BORDER_T, BORDER_T)
 		add_child(corner)
 
-	# Comb area background
-	var comb_bg: ColorRect = ColorRect.new()
-	comb_bg.color = C_COMB_BG
-	comb_bg.position = Vector2(FRAME_X, FRAME_Y)
-	comb_bg.size = Vector2(FRAME_W, FRAME_H)
-	add_child(comb_bg)
-
-	# Middle top-bar (horizontal divider across center -- authentic Langstroth detail)
+	# Middle top-bar (horizontal Langstroth divider)
 	var mid_bar: ColorRect = ColorRect.new()
 	mid_bar.color = C_WOOD_STILE
 	mid_bar.position = Vector2(FRAME_X, FRAME_Y + (FRAME_H / 2) - 1)
 	mid_bar.size = Vector2(FRAME_W, 2)
 	add_child(mid_bar)
 
-	# Frame panel (invisible control, size matches comb area for reference)
-	_frame_panel = Control.new()
-	_frame_panel.position = Vector2(FRAME_X, FRAME_Y)
-	_frame_panel.size = Vector2(FRAME_W, FRAME_H)
-	add_child(_frame_panel)
-
-	# Cell grid
-	_cell_rects.clear()
-	for row in range(GRID_ROWS):
-		for col in range(GRID_COLS):
-			var cell: ColorRect = ColorRect.new()
-			cell.size = Vector2(CELL_SIZE - 1, CELL_SIZE - 1)
-			cell.position = Vector2(
-				FRAME_X + col * CELL_SIZE,
-				FRAME_Y + row * CELL_SIZE)
-			cell.color = C_CAPPED
-			add_child(cell)
-			_cell_rects.append(cell)
+	# ---- Hex grid node (draws the actual honeycomb cells) ----
+	_hex_grid = HexGridScript.new()
+	_hex_grid.position = Vector2(FRAME_X, FRAME_Y)
+	add_child(_hex_grid)
 
 	# ---- Right-side info panel ----
 	var info_x: int = FRAME_X + FRAME_W + BORDER_T + 6
@@ -180,7 +171,7 @@ func _build_ui() -> void:
 
 	# Color legend
 	var legend_capped: ColorRect = ColorRect.new()
-	legend_capped.color = C_CAPPED
+	legend_capped.color = Color(0.80, 0.66, 0.30, 1.0)
 	legend_capped.position = Vector2(info_x, FRAME_Y + 38)
 	legend_capped.size = Vector2(7, 7)
 	add_child(legend_capped)
@@ -193,7 +184,7 @@ func _build_ui() -> void:
 	add_child(lbl_capped)
 
 	var legend_open: ColorRect = ColorRect.new()
-	legend_open.color = C_UNCAPPED
+	legend_open.color = Color(0.97, 0.83, 0.30, 1.0)
 	legend_open.position = Vector2(info_x, FRAME_Y + 50)
 	legend_open.size = Vector2(7, 7)
 	add_child(legend_open)
@@ -218,14 +209,14 @@ func _init_side(side: int) -> void:
 	_cells.clear()
 	_cells.resize(TOTAL_CELLS)
 	for i in range(TOTAL_CELLS):
-		_cells[i] = false  # false = capped
+		_cells[i] = false
 	_cells_uncapped = 0
 	_side_complete = false
-	_last_scrape_cell = Vector2i(-1, -1)
 
-	# Reset cell colors
-	for i in range(_cell_rects.size()):
-		_cell_rects[i].color = C_CAPPED
+	# Push state to hex grid and redraw
+	if _hex_grid:
+		_hex_grid.cells = _cells
+		_hex_grid.queue_redraw()
 
 	if _side_label:
 		_side_label.text = "Side A" if side == 0 else "Side B"
@@ -240,6 +231,7 @@ func _input(event: InputEvent) -> void:
 
 	# ESC to cancel
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		_restore_cursor()
 		scraping_cancelled.emit()
 		get_viewport().set_input_as_handled()
 		return
@@ -265,23 +257,32 @@ func _input(event: InputEvent) -> void:
 # SCRAPING LOGIC
 # =========================================================================
 func _try_scrape_at(screen_pos: Vector2) -> void:
-	# Convert screen position to cell coordinates
-	var local_x: float = screen_pos.x - float(FRAME_X)
-	var local_y: float = screen_pos.y - float(FRAME_Y)
+	# Convert screen pos to frame-interior coords, accounting for hex margins
+	var local_x: float = screen_pos.x - float(FRAME_X) - HEX_MARGIN_X
+	var local_y: float = screen_pos.y - float(FRAME_Y) - HEX_MARGIN_Y
 
-	if local_x < 0 or local_y < 0:
+	if local_x < 0.0 or local_y < 0.0:
 		return
 	if local_x >= float(FRAME_W) or local_y >= float(FRAME_H):
 		return
 
-	var col: int = int(local_x / float(CELL_SIZE))
-	var row: int = int(local_y / float(CELL_SIZE))
-
-	if col < 0 or col >= GRID_COLS or row < 0 or row >= GRID_ROWS:
+	# Determine column from x
+	var col: int = int(local_x / HEX_COL_STEP)
+	if col < 0 or col >= GRID_COLS:
 		return
 
-	# Wide brush: BRUSH_HALF cells to each side = 7 cells total
-	# Simulates a wide uncapping knife sweeping across the frame
+	# Adjust y for odd-column stagger, then determine row
+	var adj_y: float = local_y
+	if col % 2 == 1:
+		adj_y -= HEX_ODD_COL_OFFS
+	if adj_y < 0.0:
+		return
+
+	var row: int = int(adj_y / HEX_ROW_STEP)
+	if row < 0 or row >= GRID_ROWS:
+		return
+
+	# Wide brush: BRUSH_HALF cells to each side
 	for dc in range(-BRUSH_HALF, BRUSH_HALF + 1):
 		var c: int = col + dc
 		if c < 0 or c >= GRID_COLS:
@@ -295,18 +296,18 @@ func _uncap_cell(row: int, col: int) -> void:
 	if _cells[idx]:
 		return  # Already uncapped
 
-	# Determine probability
+	# Determine uncap probability
 	var pct_done: float = float(_cells_uncapped) / float(TOTAL_CELLS)
 	var chance: float = UNCAP_CHANCE_NORMAL if pct_done < LATE_THRESHOLD else UNCAP_CHANCE_LATE
 
-	# Roll the dice
 	if randf() <= chance:
 		_cells[idx] = true
 		_cells_uncapped += 1
 
-		# Update visual -- bright amber honey exposed
-		if idx < _cell_rects.size():
-			_cell_rects[idx].color = C_UNCAPPED
+		# Notify hex grid to redraw
+		if _hex_grid:
+			_hex_grid.cells = _cells
+			_hex_grid.queue_redraw()
 
 		_update_progress()
 		_check_side_complete()
@@ -318,18 +319,19 @@ func _update_progress() -> void:
 
 func _check_side_complete() -> void:
 	var pct_done: float = float(_cells_uncapped) / float(TOTAL_CELLS)
-	# Side is complete when 95%+ cells are uncapped (allowing some stubborn ones)
 	if pct_done >= 0.95:
 		_side_complete = true
-		# TEST MODE: one side only -- skip Side B and finish immediately
 		_frame_complete = true
-		_instruction_label.text = "Frame de-capped!"
+		if _instruction_label:
+			_instruction_label.text = "Frame de-capped!"
 		var timer: SceneTreeTimer = get_tree().create_timer(0.8)
 		timer.timeout.connect(_finish)
 
 func _flip_to_side_b() -> void:
 	_init_side(1)
-	_instruction_label.text = "Click + drag to scrape Side B | ESC to cancel"
+	if _instruction_label:
+		_instruction_label.text = "Click + drag to scrape Side B | ESC to cancel"
 
 func _finish() -> void:
+	_restore_cursor()
 	scraping_complete.emit()
