@@ -48,11 +48,13 @@ func get_max_stack(item_name: String) -> int:
 func _ready():
 	inventory.resize(INVENTORY_SIZE)
 	inventory.fill(null)
-	# Starting inventory: essentials only, everything else goes to chest
+	# Starting inventory: essentials + honey-house tools in hand from the start
 	add_item(GameData.ITEM_HIVE_TOOL,      1)
 	add_item(GameData.ITEM_GLOVES,         1)
 	add_item(GameData.ITEM_QUEEN_EXCLUDER, 1)
 	add_item(GameData.ITEM_SUPER_BOX,      5)
+	add_item(GameData.ITEM_COMB_SCRAPER,   1)   # de-capping tool
+	add_item(GameData.ITEM_BUCKET_GRIP,    1)   # required to carry honey bucket
 	# Deferred: stock the storage chest with remaining items after scene loads
 	call_deferred("_stock_starting_chest")
 	add_to_group("player")
@@ -109,8 +111,7 @@ func _stock_starting_chest() -> void:
 	chest.add_item(GameData.ITEM_SUPER_BOX, 5)
 	chest.add_item(GameData.ITEM_DEEP_BOX, 3)
 	chest.add_item(GameData.ITEM_JAR, 20)
-	chest.add_item(GameData.ITEM_COMB_SCRAPER, 1)
-	chest.add_item(GameData.ITEM_BUCKET_GRIP, 1)
+	# COMB_SCRAPER and BUCKET_GRIP already in player inventory -- not doubled here
 	chest.add_item(GameData.ITEM_AXE, 1)
 	chest.add_item(GameData.ITEM_HAMMER, 1)
 	print("[Player] Overflow items stocked in storage chest.")
