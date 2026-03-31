@@ -357,3 +357,13 @@
   Font color changed to bright yellow-white so text stands out on dark footer.
   All three elements (label + 2 buttons) added to "dev_label" group so the
     G key auto-shows/hides them instantly without needing _apply_tier_visibility.
+
+2026-03-30 - De-capping: premium honey cells + full-height blade scraping
+  ScrapeFrame._pick_state: changed S_CAPPED_HONEY to S_PREMIUM_HONEY for
+    harvest-ready frames (aged honey = state 9, deep amber visually).
+  scraping_minigame._try_scrape: blade now covers ALL F_ROWS rows per column,
+    not just the cursor row. One horizontal drag from edge to edge clears the
+    entire frame. Render + progress update batched once per motion event
+    (not per cell) so performance stays smooth even at 70x35 = 2450 cells.
+  Refactored _uncap_cell -> _uncap_cell_silent (bool return, no render) with
+    a legacy _uncap_cell wrapper for any single-cell callers.

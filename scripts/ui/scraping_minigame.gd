@@ -528,29 +528,38 @@ func _try_scrape(screen_pos: Vector2) -> void:
 	# Update brush visual
 	_update_brush(screen_pos, col)
 
-	# Apply brush: BRUSH_HALF columns either side of cursor column
+	# Apply brush: BRUSH_HALF columns either side of cursor, ALL rows.
+	# The blade spans the full frame height so one horizontal drag clears
+	# the entire column range -- fast and matching the visual.
 	if _scraping:
+		var any_changed: bool = false
 		for dc in range(-BRUSH_HALF, BRUSH_HALF + 1):
 			var c: int = col + dc
 			if c < 0 or c >= F_COLS:
 				continue
-			_uncap_cell(row, c)
+			for r in F_ROWS:
+				if _uncap_cell_silent(r, c):
+					any_changed = true
+		# One batched render + progress update per motion event
+		if any_changed:
+			_render()
+			_update_progress()
 
-func _uncap_cell(row: int, col: int) -> void:
+# Uncap a single cell in-place.  Returns true if the state changed.
+# Does NOT call _render() or _update_progress() -- callers batch those.
+func _uncap_cell_silent(row: int, col: int) -> bool:
 	var idx: int = row * F_COLS + col
 	if idx < 0 or idx >= frame.grid_size:
-		return
+		return false
 
-	# Read state from the correct side
 	var state: int
 	if _current_side == 0:
 		state = int(frame.cells[idx])
 	else:
 		state = int(frame.cells_b[idx])
 
-	# Only uncap capped honey cells
 	if state != CellStateTransition.S_CAPPED_HONEY and state != CellStateTransition.S_PREMIUM_HONEY:
-		return
+		return false
 
 	# Remove the wax cap: expose the liquid honey (S_CURING_HONEY)
 	if _current_side == 0:
@@ -560,10 +569,13 @@ func _uncap_cell(row: int, col: int) -> void:
 
 	_scraped_this_side += 1
 	result_cells_scraped += 1
+	return true
 
-	# Dirty the renderer cache so the texture refreshes next render call
-	_render()
-	_update_progress()
+# Legacy single-cell wrapper used by flip (keeps render+progress in one call)
+func _uncap_cell(row: int, col: int) -> void:
+	if _uncap_cell_silent(row, col):
+		_render()
+		_update_progress()
 
 func _flip_side() -> void:
 	_current_side = 1 - _current_side

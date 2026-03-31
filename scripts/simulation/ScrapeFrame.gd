@@ -56,7 +56,8 @@ func fill_for_harvest(capping_pct: float) -> void:
 func _pick_state(cap_norm: float, curing_norm: float) -> int:
 	var r: float = randf()
 	if r < cap_norm:
-		return CellStateTransition.S_CAPPED_HONEY
+		# Harvest-ready frames have aged to premium honey (S_PREMIUM_HONEY = 9)
+		return CellStateTransition.S_PREMIUM_HONEY
 	elif r < cap_norm + curing_norm:
 		return CellStateTransition.S_CURING_HONEY
 	else:
