@@ -57,6 +57,7 @@ var _spinner_timer: float = 0.0
 var _uncapping_active: bool = false
 var _uncapping_frame_idx: int = 0      # which frame in _frames_in_holder we're uncapping
 var _uncapping_overlay: Node = null
+const SCRAPING_MINIGAME_PATH := "res://scripts/ui/scraping_minigame.gd"
 
 # -- Canning state -----------------------------------------------------------
 var _canning_active: bool = false
@@ -354,6 +355,15 @@ func _find_player() -> Node:
 const INTERACT_DIST := 48.0
 
 func _update_station_prompts(player: Node2D) -> void:
+	# While the uncapping minigame overlay is open, hide all prompts
+	if _uncapping_active:
+		for station_id in _station_prompts:
+			var lbl: Label = _station_prompts.get(station_id)
+			if lbl:
+				lbl.visible = false
+		_active_station = Station.NONE
+		return
+
 	var ppos: Vector2 = player.global_position
 	_active_station = Station.NONE
 	var nearest_dist: float = INF
@@ -492,17 +502,20 @@ func _action_super_prep() -> void:
 	if player.has_method("update_hud_inventory"):
 		player.update_hud_inventory()
 
-	# Generate 10 frame data entries from the super
-	# In a full implementation, these would carry actual cell data from the HiveBox.
-	# For now, we generate standard yield data per frame.
+	# Generate 10 frame data entries from the super.
+	# Each frame carries a ScrapeFrame object with realistic cell state data so
+	# the uncapping minigame can render the exact InspectionOverlay view.
 	_frames_in_holder.clear()
 	for i in 10:
+		var sf: ScrapeFrame = ScrapeFrame.new()
+		sf.fill_for_harvest(85.0)   # 85% capped honey, Level 1 default
 		_frames_in_holder.append({
 			"frame_idx": i,
 			"honey_lbs": 4.0,   # Full medium super frame (40 lbs per 10-frame super)
-			"capping_pct": 85.0, # Default for Level 1
+			"capping_pct": 85.0,
 			"uncapped": false,
 			"beeswax_lbs": 0.0,
+			"scrap_frame": sf,  # ScrapeFrame for the de-capping minigame
 		})
 	_show_status("Super opened! 10 frames loaded into Frame Holder.")
 	# Return the empty super box to player inventory
@@ -511,27 +524,64 @@ func _action_super_prep() -> void:
 		if player.has_method("update_hud_inventory"):
 			player.update_hud_inventory()
 
-## UNCAPPING: Start uncapping the next frame from the holder.
+## UNCAPPING: Launch the scraping minigame for the next frame from the holder.
 func _action_uncapping() -> void:
+	if _uncapping_active:
+		return  # Minigame already open
+
 	if _frames_in_holder.size() == 0:
 		_show_status("No frames to uncap! Break open a super first.")
 		return
 
-	# Deduct energy (1 per frame)
 	if not GameData.deduct_energy(1.0):
 		_show_status("Too tired to uncap!")
 		return
 
-	# Simple uncapping for Level 1: auto-uncap with clean quality
-	# (The full mini-game overlay will be added in a future pass)
+	_uncapping_active = true
+	_uncapping_frame_idx = 0
+
+	var frame_data: Dictionary = _frames_in_holder[0]
+
+	# Build the overlay (script extends CanvasLayer -- same launch pattern as harvest_yard)
+	var overlay_script: GDScript = load(SCRAPING_MINIGAME_PATH) as GDScript
+	_uncapping_overlay = CanvasLayer.new()
+	_uncapping_overlay.layer = 20
+	_uncapping_overlay.name = "UncapOverlay"
+	_uncapping_overlay.set_script(overlay_script)
+
+	# Set frame data BEFORE add_child so _ready() sees it
+	var sf: Object = frame_data.get("scrap_frame", null)
+	_uncapping_overlay.set("frame", sf)
+	_uncapping_overlay.set("frame_index", 10 - _frames_in_holder.size() + 1)
+	_uncapping_overlay.set("frame_total", 10)
+
+	_uncapping_overlay.scraping_complete.connect(_on_uncapping_complete)
+	_uncapping_overlay.scraping_cancelled.connect(_on_uncapping_cancelled)
+	add_child(_uncapping_overlay)
+
+func _on_uncapping_complete() -> void:
+	if _uncapping_overlay == null:
+		return
+
+	# Read how many cells were actually scraped for wax calculation
+	var cells_scraped: int = 0
+	if _uncapping_overlay.has_method("get"):
+		cells_scraped = int(_uncapping_overlay.get("result_cells_scraped"))
+	# Fallback: assume full frame (both sides)
+	if cells_scraped == 0:
+		cells_scraped = 4900
+
+	_uncapping_overlay.queue_free()
+	_uncapping_overlay = null
+	_uncapping_active = false
+
+	if _frames_in_holder.size() == 0:
+		return
+
 	var frame_data: Dictionary = _frames_in_holder[0]
 	_frames_in_holder.remove_at(0)
 
-	# Calculate beeswax from uncapping (clean quality: 100% recovery)
-	# Medium super frame: 2450 cells * 2 sides = 4900 capped cells max
-	# Wax per cell: 0.00015 lbs
-	var cells_uncapped: int = 4900  # full frame, both sides
-	var wax_lbs: float = float(cells_uncapped) * 0.00015
+	var wax_lbs: float = float(cells_scraped) * 0.00015
 	frame_data["uncapped"] = true
 	frame_data["beeswax_lbs"] = wax_lbs
 
@@ -540,6 +590,15 @@ func _action_uncapping() -> void:
 
 	var remaining: int = _frames_in_holder.size()
 	_show_status("Frame uncapped! Wax: %.2f lbs. %d frames remaining." % [wax_lbs, remaining])
+
+func _on_uncapping_cancelled() -> void:
+	if _uncapping_overlay:
+		_uncapping_overlay.queue_free()
+		_uncapping_overlay = null
+	_uncapping_active = false
+	# Refund energy since player didn't complete the frame
+	GameData.restore_energy(1.0)
+	_show_status("Uncapping cancelled.")
 
 ## SPINNER: Load frames or start spinning.
 func _action_spinner() -> void:

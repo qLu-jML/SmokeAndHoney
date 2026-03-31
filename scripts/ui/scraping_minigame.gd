@@ -1,336 +1,420 @@
-# scraping_minigame.gd -- Interactive honeycomb de-capping minigame overlay.
-# Player clicks and drags a scraper/uncapping knife across the comb to uncap cells.
-# Cells are drawn as pointy-top hexagons matching the inspection overlay look.
-# The mouse cursor is replaced with a pixel-art uncapping fork during the minigame.
-# -------------------------------------------------------------------------
+# scraping_minigame.gd -- Honey-frame de-capping overlay.
+#
+# Visual layout is an EXACT replica of the hive InspectionOverlay (same
+# viewport constants, same Langstroth frame bars, same wood colours, same
+# FrameRenderer honeycomb texture).  The only difference is purpose: the
+# player drag-scrapes to uncap cells (S_CAPPED_HONEY -> S_CURING_HONEY)
+# rather than just inspecting them.
+#
+# Setup before add_child():
+#   overlay.frame       = ScrapeFrame instance (or any FrameRenderer-compatible)
+#   overlay.frame_index = 1-based frame number (shown in header)
+#   overlay.frame_total = total frames in batch (shown in header)
+#
+# Signals:
+#   scraping_complete  -- frame done (95%+ of side A uncapped)
+#   scraping_cancelled -- player pressed ESC
+#
+# After scraping_complete, read result_cells_scraped for wax calculation.
+# -----------------------------------------------------------------------------
 extends CanvasLayer
 
 signal scraping_complete
 signal scraping_cancelled
 
-# -- Grid layout ----------------------------------------------------------
-const GRID_COLS := 24
-const GRID_ROWS := 14
-const TOTAL_CELLS: int = GRID_COLS * GRID_ROWS  # 336 per side
+# -- FrameRenderer (same class used by InspectionOverlay) --------------------
+var _renderer: FrameRenderer = null
 
-# -- Probabilities --------------------------------------------------------
-const UNCAP_CHANCE_NORMAL := 0.95
-const UNCAP_CHANCE_LATE := 0.80
-const LATE_THRESHOLD := 0.90   # Switch to late chance after 90% uncapped
+# -- Frame reference ----------------------------------------------------------
+# Set BEFORE add_child so _ready() sees it.
+var frame: Object = null       # ScrapeFrame or any FrameRenderer-compatible object
+var frame_index: int = 1
+var frame_total: int = 10
+var result_cells_scraped: int = 0  # total cells uncapped (A+B combined)
 
-# -- Brush width ----------------------------------------------------------
-# 7 cells wide = ~49px native = a wide uncapping sweep
-const BRUSH_HALF := 3    # cells to each side of cursor column
+# -- Layout constants (exact mirror of InspectionOverlay) ---------------------
+const VP_W        := 320
+const VP_H        := 180
+const HEADER_H    := 18
+const FOOTER_H    := 12
+const STATS_W     := 40
+const GRID_W      := VP_W - STATS_W        # 280
+const GRID_H      := VP_H - HEADER_H - FOOTER_H  # 150
+const FRAME_BAR_T := 8
+const FRAME_BAR_B := 5
+const FRAME_BAR_L := 4
+const FRAME_BAR_R := 4
+const CELL_AREA_W := GRID_W - FRAME_BAR_L - FRAME_BAR_R  # 272
+const CELL_AREA_H := GRID_H - FRAME_BAR_T - FRAME_BAR_B  # 137
 
-# -- Hex hit detection constants (must match scraping_hex_grid.gd) ---------
-const HEX_COL_STEP   := 7.0
-const HEX_ROW_STEP   := 6.0
-const HEX_MARGIN_X   := 12.0
-const HEX_MARGIN_Y   := 8.0
-const HEX_ODD_COL_OFFS := 3.0
+# Super frame: 70 cols x 35 rows.
+# Effective height mirrors InspectionOverlay: int(137 * 35 / 50) = 95 px
+const F_COLS     := 70
+const F_ROWS     := 35
+const EFF_CELL_H := 95  # int(CELL_AREA_H * F_ROWS / 50)
 
-# -- Frame layout ---------------------------------------------------------
-const FRAME_X := 28
-const FRAME_Y := 22
-const FRAME_W : int = GRID_COLS * 8   # 192 px wide frame interior
-const FRAME_H : int = GRID_ROWS * 8   # 112 px tall frame interior
-const BORDER_T := 6   # Wood border thickness (px)
+# FrameRenderer honeycomb canvas size for a 70x35 frame:
+#   HEX_COL_STEP=26, HEX_ODD_SHIFT=13, HEX_ROW_STEP=15, CELL_H=20
+const HONEY_W := 1833   # 70 * 26 + 13
+const HONEY_H := 530    # 35 * 15 + (20 - 15)
 
-# -- Frame state ----------------------------------------------------------
+# FrameRenderer geometry constants (duplicated for hit-detection; must stay in sync)
+const HEX_COL_STEP  := 26
+const HEX_ROW_STEP  := 15
+const HEX_ODD_SHIFT := 13
+
+# -- Colour palette (exact match with InspectionOverlay) ---------------------
+const C_BG         := Color(0.06, 0.05, 0.04, 0.96)
+const C_HEADER_BG  := Color(0.12, 0.10, 0.07, 1.0)
+const C_STATS_BG   := Color(0.09, 0.07, 0.05, 1.0)
+const C_BORDER     := Color(0.70, 0.55, 0.22, 1.0)
+const C_WOOD       := Color(0.52, 0.36, 0.16, 1.0)
+const C_WOOD_HI    := Color(0.68, 0.50, 0.26, 1.0)
+const C_WOOD_SH    := Color(0.36, 0.24, 0.10, 1.0)
+const C_WOOD_LUG   := Color(0.42, 0.28, 0.12, 1.0)
+const C_FOUNDATION := Color(0.18, 0.14, 0.08, 1.0)
+const C_WIRE       := Color(0.55, 0.48, 0.30, 0.35)
+const C_TEXT       := Color(0.90, 0.85, 0.70, 1.0)
+const C_MUTED      := Color(0.55, 0.50, 0.42, 1.0)
+const C_ACCENT     := Color(0.95, 0.78, 0.32, 1.0)
+
+# -- Scraping state -----------------------------------------------------------
 var _current_side: int = 0     # 0 = Side A, 1 = Side B
-var _cells: Array = []         # Array of bool (true = uncapped)
-var _cells_uncapped: int = 0
-var _side_complete: bool = false
-var _frame_complete: bool = false
+var _scraping: bool = false
+var _done: bool = false
+var _total_cappable: int = 1   # init to 1 to avoid div/0
+var _scraped_this_side: int = 0
 
-# -- Scraper state --------------------------------------------------------
-var _scraping: bool = false    # Mouse button held
-var _scraper_pos: Vector2 = Vector2.ZERO
+# -- Brush width (columns left/right of hit column) --------------------------
+const BRUSH_HALF := 3
 
-# -- Visual elements ------------------------------------------------------
-# Wood frame border elements
-var _bg: ColorRect = null
-var _side_label: Label = null
-var _progress_label: Label = null
-var _instruction_label: Label = null
+# -- UI nodes -----------------------------------------------------------------
+var _cell_rect: TextureRect = null
+var _header_lbl: Label      = null
+var _side_lbl: Label        = null
+var _progress_lbl: Label    = null
+var _status_lbl: Label      = null
 
-# Hex grid drawing node (Node2D child with _draw() for honeycomb cells)
-const HexGridScript = preload("res://scripts/ui/scraping_hex_grid.gd")
-var _hex_grid: Node2D = null
-
-# -- Colors (wood frame, info panel) ------------------------------------
-const C_WOOD_RAIL  : Color = Color(0.32, 0.20, 0.07, 1.0)
-const C_WOOD_STILE : Color = Color(0.44, 0.28, 0.10, 1.0)
-const C_COMB_BG    : Color = Color(0.22, 0.12, 0.04, 1.0)
-
-# -- Cursor ---------------------------------------------------------------
-const CURSOR_PATH := "res://assets/sprites/ui/cursors/uncapping_fork_cursor.png"
-# Hotspot: tip of the tines at bottom-center of the 32x64 sprite
-const CURSOR_HOTSPOT : Vector2 = Vector2(16, 60)
-var _cursor_tex: Texture2D = null
+# -- Cursor -------------------------------------------------------------------
+const CURSOR_PATH    := "res://assets/sprites/ui/cursors/uncapping_fork_cursor.png"
+const CURSOR_HOTSPOT := Vector2(16, 60)
 
 # =========================================================================
 # LIFECYCLE
 # =========================================================================
 func _ready() -> void:
+	layer = 20
+	_renderer = FrameRenderer.new()
 	_build_ui()
-	_init_side(0)
-	_apply_cursor()
+	if frame != null:
+		_count_cappable()
+		_render()
 
 func _apply_cursor() -> void:
 	if ResourceLoader.exists(CURSOR_PATH):
-		_cursor_tex = load(CURSOR_PATH) as Texture2D
-		if _cursor_tex:
-			Input.set_custom_mouse_cursor(_cursor_tex, Input.CURSOR_ARROW, CURSOR_HOTSPOT)
+		var tex: Texture2D = load(CURSOR_PATH) as Texture2D
+		if tex:
+			Input.set_custom_mouse_cursor(tex, Input.CURSOR_ARROW, CURSOR_HOTSPOT)
 
 func _restore_cursor() -> void:
 	Input.set_custom_mouse_cursor(null)
 
+# =========================================================================
+# UI BUILD -- exact InspectionOverlay layout
+# =========================================================================
 func _build_ui() -> void:
-	# Semi-transparent background
-	_bg = ColorRect.new()
-	_bg.color = Color(0.0, 0.0, 0.0, 0.78)
-	_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(_bg)
+	# -- Dark background --
+	var bg := ColorRect.new()
+	bg.color = C_BG
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(bg)
 
-	# Title
-	var title_lbl: Label = Label.new()
-	title_lbl.text = "Honey Frame  --  De-capping"
-	title_lbl.add_theme_font_size_override("font_size", 7)
-	title_lbl.add_theme_color_override("font_color", Color(0.95, 0.85, 0.40))
-	title_lbl.position = Vector2(FRAME_X - BORDER_T, 5)
-	add_child(title_lbl)
+	# -- Header bar --
+	var hdr_bg := ColorRect.new()
+	hdr_bg.color    = C_HEADER_BG
+	hdr_bg.size     = Vector2(VP_W, HEADER_H)
+	hdr_bg.position = Vector2.ZERO
+	add_child(hdr_bg)
 
-	# ---- Wood frame borders ----
-	var top_rail: ColorRect = ColorRect.new()
-	top_rail.color = C_WOOD_RAIL
-	top_rail.position = Vector2(FRAME_X - BORDER_T, FRAME_Y - BORDER_T)
-	top_rail.size = Vector2(FRAME_W + BORDER_T * 2, BORDER_T)
-	add_child(top_rail)
+	# Left label: mode
+	var hdr_left := Label.new()
+	hdr_left.text = "De-capping"
+	hdr_left.add_theme_font_size_override("font_size", 6)
+	hdr_left.add_theme_color_override("font_color", C_ACCENT)
+	hdr_left.position = Vector2(4, 4)
+	add_child(hdr_left)
 
-	var bot_rail: ColorRect = ColorRect.new()
-	bot_rail.color = C_WOOD_RAIL
-	bot_rail.position = Vector2(FRAME_X - BORDER_T, FRAME_Y + FRAME_H)
-	bot_rail.size = Vector2(FRAME_W + BORDER_T * 2, BORDER_T)
-	add_child(bot_rail)
+	# Right label: "Frame N / total  Side A"
+	_header_lbl = Label.new()
+	_header_lbl.text = _header_text()
+	_header_lbl.add_theme_font_size_override("font_size", 6)
+	_header_lbl.add_theme_color_override("font_color", C_TEXT)
+	_header_lbl.position = Vector2(130, 4)
+	_header_lbl.size = Vector2(170, 12)
+	_header_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	add_child(_header_lbl)
 
-	var left_stile: ColorRect = ColorRect.new()
-	left_stile.color = C_WOOD_STILE
-	left_stile.position = Vector2(FRAME_X - BORDER_T, FRAME_Y)
-	left_stile.size = Vector2(BORDER_T, FRAME_H)
-	add_child(left_stile)
+	# Header divider (same as InspectionOverlay h_div)
+	var h_div := ColorRect.new()
+	h_div.color    = C_BORDER
+	h_div.size     = Vector2(VP_W, 1)
+	h_div.position = Vector2(0, HEADER_H - 1)
+	add_child(h_div)
 
-	var right_stile: ColorRect = ColorRect.new()
-	right_stile.color = C_WOOD_STILE
-	right_stile.position = Vector2(FRAME_X + FRAME_W, FRAME_Y)
-	right_stile.size = Vector2(BORDER_T, FRAME_H)
-	add_child(right_stile)
+	# -- Stats panel (right 40 px, same as InspectionOverlay) --
+	var stats_bg := ColorRect.new()
+	stats_bg.color    = C_STATS_BG
+	stats_bg.size     = Vector2(STATS_W, GRID_H)
+	stats_bg.position = Vector2(GRID_W, HEADER_H)
+	add_child(stats_bg)
 
-	# Corner caps
-	var corner_offsets: Array = [
-		Vector2(FRAME_X - BORDER_T, FRAME_Y - BORDER_T),
-		Vector2(FRAME_X + FRAME_W, FRAME_Y - BORDER_T),
-		Vector2(FRAME_X - BORDER_T, FRAME_Y + FRAME_H),
-		Vector2(FRAME_X + FRAME_W, FRAME_Y + FRAME_H),
-	]
-	for cpos in corner_offsets:
-		var corner: ColorRect = ColorRect.new()
-		corner.color = C_WOOD_RAIL
-		corner.position = cpos
-		corner.size = Vector2(BORDER_T, BORDER_T)
-		add_child(corner)
+	var stats_div := ColorRect.new()
+	stats_div.color    = C_BORDER
+	stats_div.size     = Vector2(1, GRID_H)
+	stats_div.position = Vector2(GRID_W, HEADER_H)
+	add_child(stats_div)
 
-	# Middle top-bar (horizontal Langstroth divider)
-	var mid_bar: ColorRect = ColorRect.new()
-	mid_bar.color = C_WOOD_STILE
-	mid_bar.position = Vector2(FRAME_X, FRAME_Y + (FRAME_H / 2) - 1)
-	mid_bar.size = Vector2(FRAME_W, 2)
-	add_child(mid_bar)
+	# Stats content
+	var sy: int = HEADER_H + 3
+	_side_lbl = _stat_lbl("Side A", sy)
+	sy += 9
+	_progress_lbl = _stat_lbl("0%", sy)
+	sy += 9
+	_stat_lbl("Drag to", sy, C_MUTED)
+	sy += 7
+	_stat_lbl("uncap", sy, C_MUTED)
+	sy += 9
+	_stat_lbl("[F] flip", sy, C_MUTED)
 
-	# ---- Hex grid node (draws the actual honeycomb cells) ----
-	_hex_grid = HexGridScript.new()
-	_hex_grid.position = Vector2(FRAME_X, FRAME_Y)
-	add_child(_hex_grid)
+	# -- Frame bars (same dimensions/colours as InspectionOverlay) --
+	var y_off: int = HEADER_H
+	var cell_x: int = FRAME_BAR_L
+	var cell_y: int = y_off + FRAME_BAR_T
 
-	# ---- Right-side info panel ----
-	var info_x: int = FRAME_X + FRAME_W + BORDER_T + 6
+	# Top bar
+	_crect(C_WOOD, 0, y_off, GRID_W, FRAME_BAR_T)
+	_crect(C_WOOD_HI, 0, y_off, GRID_W, 1)           # highlight top edge
+	_crect(C_WOOD_SH, 0, cell_y - 1, GRID_W, 1)      # shadow bottom edge
 
-	_side_label = Label.new()
-	_side_label.text = "Side A"
-	_side_label.add_theme_font_size_override("font_size", 7)
-	_side_label.add_theme_color_override("font_color", Color(0.95, 0.85, 0.40))
-	_side_label.position = Vector2(info_x, FRAME_Y)
-	add_child(_side_label)
+	# Lug knobs (same positions as InspectionOverlay)
+	for lug_x in [0, GRID_W - 14]:
+		_crect(C_WOOD_LUG, lug_x, y_off, 14, FRAME_BAR_T)
+		_crect(C_WOOD_HI,  lug_x, y_off, 14, 1)
 
-	_progress_label = Label.new()
-	_progress_label.text = "0%"
-	_progress_label.add_theme_font_size_override("font_size", 6)
-	_progress_label.add_theme_color_override("font_color", Color(0.90, 0.80, 0.50))
-	_progress_label.position = Vector2(info_x, FRAME_Y + 16)
-	add_child(_progress_label)
+	# Bottom bar
+	var bot_y: int = cell_y + EFF_CELL_H
+	_crect(C_WOOD,    0, bot_y, GRID_W, FRAME_BAR_B)
+	_crect(C_WOOD_HI, 0, bot_y, GRID_W, 1)
 
-	# Color legend
-	var legend_capped: ColorRect = ColorRect.new()
-	legend_capped.color = Color(0.80, 0.66, 0.30, 1.0)
-	legend_capped.position = Vector2(info_x, FRAME_Y + 38)
-	legend_capped.size = Vector2(7, 7)
-	add_child(legend_capped)
+	# Left side bar
+	_crect(C_WOOD,    0,            cell_y, FRAME_BAR_L, EFF_CELL_H)
+	_crect(C_WOOD_HI, FRAME_BAR_L - 1, cell_y, 1, EFF_CELL_H)
 
-	var lbl_capped: Label = Label.new()
-	lbl_capped.text = "Capped"
-	lbl_capped.add_theme_font_size_override("font_size", 4)
-	lbl_capped.add_theme_color_override("font_color", Color(0.70, 0.60, 0.40))
-	lbl_capped.position = Vector2(info_x + 9, FRAME_Y + 35)
-	add_child(lbl_capped)
+	# Right side bar
+	_crect(C_WOOD,    GRID_W - FRAME_BAR_R, cell_y, FRAME_BAR_R, EFF_CELL_H)
+	_crect(C_WOOD_SH, GRID_W - FRAME_BAR_R, cell_y, 1, EFF_CELL_H)
 
-	var legend_open: ColorRect = ColorRect.new()
-	legend_open.color = Color(0.97, 0.83, 0.30, 1.0)
-	legend_open.position = Vector2(info_x, FRAME_Y + 50)
-	legend_open.size = Vector2(7, 7)
-	add_child(legend_open)
+	# Foundation fill (shows through before renderer has run)
+	_crect(C_FOUNDATION, cell_x, cell_y, CELL_AREA_W, EFF_CELL_H)
 
-	var lbl_open: Label = Label.new()
-	lbl_open.text = "Open"
-	lbl_open.add_theme_font_size_override("font_size", 4)
-	lbl_open.add_theme_color_override("font_color", Color(0.70, 0.60, 0.40))
-	lbl_open.position = Vector2(info_x + 9, FRAME_Y + 47)
-	add_child(lbl_open)
+	# Wire support guides (decorative horizontal lines, same as InspectionOverlay)
+	for wi in range(3):
+		var wy: int = cell_y + int((wi + 1) * EFF_CELL_H / 4)
+		_crect(C_WIRE, cell_x, wy, CELL_AREA_W, 1)
 
-	# Instructions (below frame)
-	_instruction_label = Label.new()
-	_instruction_label.text = "Click + drag to scrape | ESC to cancel"
-	_instruction_label.add_theme_font_size_override("font_size", 5)
-	_instruction_label.add_theme_color_override("font_color", Color(0.7, 0.65, 0.5))
-	_instruction_label.position = Vector2(FRAME_X - BORDER_T, FRAME_Y + FRAME_H + BORDER_T + 4)
-	add_child(_instruction_label)
+	# -- Cell TextureRect -- same spec as InspectionOverlay's _cell_rect --
+	_cell_rect = TextureRect.new()
+	_cell_rect.position       = Vector2(cell_x, cell_y)
+	_cell_rect.size           = Vector2(CELL_AREA_W, EFF_CELL_H)
+	_cell_rect.expand_mode    = TextureRect.EXPAND_IGNORE_SIZE
+	_cell_rect.stretch_mode   = TextureRect.STRETCH_SCALE
+	_cell_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_cell_rect.mouse_filter   = Control.MOUSE_FILTER_PASS
+	add_child(_cell_rect)
 
-func _init_side(side: int) -> void:
-	_current_side = side
-	_cells.clear()
-	_cells.resize(TOTAL_CELLS)
-	for i in range(TOTAL_CELLS):
-		_cells[i] = false
-	_cells_uncapped = 0
-	_side_complete = false
+	# -- Footer --
+	_crect(C_BORDER,    0, VP_H - FOOTER_H, VP_W, 1)
+	_crect(C_HEADER_BG, 0, VP_H - FOOTER_H, VP_W, FOOTER_H)
 
-	# Push state to hex grid and redraw
-	if _hex_grid:
-		_hex_grid.cells = _cells
-		_hex_grid.queue_redraw()
+	_status_lbl = Label.new()
+	_status_lbl.text = "[Drag] Scrape  [F] Flip  [ESC] Cancel"
+	_status_lbl.add_theme_font_size_override("font_size", 5)
+	_status_lbl.add_theme_color_override("font_color", C_MUTED)
+	_status_lbl.position = Vector2(2, VP_H - FOOTER_H + 2)
+	_status_lbl.size     = Vector2(VP_W - 4, 8)
+	_status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	add_child(_status_lbl)
 
-	if _side_label:
-		_side_label.text = "Side A" if side == 0 else "Side B"
-	_update_progress()
+	_apply_cursor()
+
+# -- Helpers -----------------------------------------------------------------
+func _crect(col: Color, x: int, y: int, w: int, h: int) -> ColorRect:
+	var r := ColorRect.new()
+	r.color    = col
+	r.position = Vector2(x, y)
+	r.size     = Vector2(w, h)
+	add_child(r)
+	return r
+
+func _stat_lbl(text: String, y: int, col: Color = C_TEXT) -> Label:
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.add_theme_font_size_override("font_size", 4)
+	lbl.add_theme_color_override("font_color", col)
+	lbl.position = Vector2(GRID_W + 2, y)
+	lbl.size     = Vector2(STATS_W - 4, 8)
+	add_child(lbl)
+	return lbl
+
+func _header_text() -> String:
+	var side_str: String = "Side A" if _current_side == 0 else "Side B"
+	return "Frame %d / %d  %s" % [frame_index, frame_total, side_str]
+
+# =========================================================================
+# FRAME RENDERING (FrameRenderer, same pipeline as InspectionOverlay)
+# =========================================================================
+func _render() -> void:
+	if _cell_rect == null or _renderer == null or frame == null:
+		return
+	_cell_rect.texture = _renderer.render_honeycomb(frame, _current_side)
+
+func _count_cappable() -> void:
+	if frame == null:
+		_total_cappable = 1
+		return
+	var arr: PackedByteArray = frame.cells if _current_side == 0 else frame.cells_b
+	var n: int = 0
+	for i in frame.grid_size:
+		var s: int = int(arr[i])
+		if s == CellStateTransition.S_CAPPED_HONEY or s == CellStateTransition.S_PREMIUM_HONEY:
+			n += 1
+	_total_cappable = maxi(n, 1)
+
+func _update_progress() -> void:
+	var pct: int = mini(int(float(_scraped_this_side) / float(_total_cappable) * 100.0), 100)
+	if _progress_lbl:
+		_progress_lbl.text = "%d%%" % pct
+	if pct >= 95 and not _done:
+		_finish_side()
 
 # =========================================================================
 # INPUT
 # =========================================================================
 func _input(event: InputEvent) -> void:
-	if _frame_complete:
+	if _done:
 		return
 
-	# ESC to cancel
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		_restore_cursor()
-		scraping_cancelled.emit()
+	if event is InputEventKey and event.pressed and not event.echo:
+		match event.keycode:
+			KEY_ESCAPE:
+				_restore_cursor()
+				scraping_cancelled.emit()
+				get_viewport().set_input_as_handled()
+				return
+			KEY_F:
+				_flip_side()
+				get_viewport().set_input_as_handled()
+				return
+
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		_scraping = event.pressed
+		if _scraping:
+			_try_scrape(event.position)
 		get_viewport().set_input_as_handled()
 		return
 
-	# Mouse button for scraping
-	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			_scraping = event.pressed
-			if _scraping:
-				_scraper_pos = event.position
-				_try_scrape_at(_scraper_pos)
-			get_viewport().set_input_as_handled()
-			return
-
-	# Mouse motion while scraping
 	if event is InputEventMouseMotion and _scraping:
-		_scraper_pos = event.position
-		_try_scrape_at(_scraper_pos)
+		_try_scrape(event.position)
 		get_viewport().set_input_as_handled()
-		return
 
 # =========================================================================
 # SCRAPING LOGIC
+# Maps screen-space mouse position to FrameRenderer cell indices.
+# Same arithmetic as InspectionOverlay tooltip hit-detection.
 # =========================================================================
-func _try_scrape_at(screen_pos: Vector2) -> void:
-	# Convert screen pos to frame-interior coords, accounting for hex margins
-	var local_x: float = screen_pos.x - float(FRAME_X) - HEX_MARGIN_X
-	var local_y: float = screen_pos.y - float(FRAME_Y) - HEX_MARGIN_Y
-
-	if local_x < 0.0 or local_y < 0.0:
-		return
-	if local_x >= float(FRAME_W) or local_y >= float(FRAME_H):
+func _try_scrape(screen_pos: Vector2) -> void:
+	if frame == null:
 		return
 
-	# Determine column from x
-	var col: int = int(local_x / HEX_COL_STEP)
-	if col < 0 or col >= GRID_COLS:
+	# TextureRect occupies: x=[FRAME_BAR_L, FRAME_BAR_L+CELL_AREA_W)
+	#                        y=[HEADER_H+FRAME_BAR_T, ...+EFF_CELL_H)
+	var tr_x: float = float(FRAME_BAR_L)
+	var tr_y: float = float(HEADER_H + FRAME_BAR_T)
+	var tr_w: float = float(CELL_AREA_W)   # 272.0
+	var tr_h: float = float(EFF_CELL_H)    # 95.0
+
+	var lx: float = screen_pos.x - tr_x
+	var ly: float = screen_pos.y - tr_y
+
+	if lx < 0.0 or lx >= tr_w or ly < 0.0 or ly >= tr_h:
 		return
 
-	# Adjust y for odd-column stagger, then determine row
-	var adj_y: float = local_y
-	if col % 2 == 1:
-		adj_y -= HEX_ODD_COL_OFFS
-	if adj_y < 0.0:
-		return
+	# Scale local pixel coords up to honeycomb image space
+	var hx: float = lx / tr_w * float(HONEY_W)
+	var hy: float = ly / tr_h * float(HONEY_H)
 
-	var row: int = int(adj_y / HEX_ROW_STEP)
-	if row < 0 or row >= GRID_ROWS:
-		return
+	# Determine row (same formula as InspectionOverlay tooltip)
+	var row: int = clampi(int(hy / float(HEX_ROW_STEP)), 0, F_ROWS - 1)
 
-	# Wide brush: BRUSH_HALF cells to each side
+	# Odd rows shift right by HEX_ODD_SHIFT
+	var x_off: float = float(HEX_ODD_SHIFT) if (row % 2 == 1) else 0.0
+	var col: int = clampi(int((hx - x_off) / float(HEX_COL_STEP)), 0, F_COLS - 1)
+
+	# Apply brush: BRUSH_HALF columns either side of cursor column
 	for dc in range(-BRUSH_HALF, BRUSH_HALF + 1):
 		var c: int = col + dc
-		if c < 0 or c >= GRID_COLS:
+		if c < 0 or c >= F_COLS:
 			continue
 		_uncap_cell(row, c)
 
 func _uncap_cell(row: int, col: int) -> void:
-	var idx: int = row * GRID_COLS + col
-	if idx < 0 or idx >= TOTAL_CELLS:
+	var idx: int = row * F_COLS + col
+	if idx < 0 or idx >= frame.grid_size:
 		return
-	if _cells[idx]:
-		return  # Already uncapped
 
-	# Determine uncap probability
-	var pct_done: float = float(_cells_uncapped) / float(TOTAL_CELLS)
-	var chance: float = UNCAP_CHANCE_NORMAL if pct_done < LATE_THRESHOLD else UNCAP_CHANCE_LATE
+	# Read state from the correct side
+	var state: int
+	if _current_side == 0:
+		state = int(frame.cells[idx])
+	else:
+		state = int(frame.cells_b[idx])
 
-	if randf() <= chance:
-		_cells[idx] = true
-		_cells_uncapped += 1
+	# Only uncap capped honey cells
+	if state != CellStateTransition.S_CAPPED_HONEY and state != CellStateTransition.S_PREMIUM_HONEY:
+		return
 
-		# Notify hex grid to redraw
-		if _hex_grid:
-			_hex_grid.cells = _cells
-			_hex_grid.queue_redraw()
+	# Remove the wax cap: expose the liquid honey (S_CURING_HONEY)
+	if _current_side == 0:
+		frame.cells[idx] = CellStateTransition.S_CURING_HONEY
+	else:
+		frame.cells_b[idx] = CellStateTransition.S_CURING_HONEY
 
-		_update_progress()
-		_check_side_complete()
+	_scraped_this_side += 1
+	result_cells_scraped += 1
 
-func _update_progress() -> void:
-	if _progress_label:
-		var pct: int = int(float(_cells_uncapped) / float(TOTAL_CELLS) * 100.0)
-		_progress_label.text = "%d%%" % pct
+	# Dirty the renderer cache so the texture refreshes next render call
+	_render()
+	_update_progress()
 
-func _check_side_complete() -> void:
-	var pct_done: float = float(_cells_uncapped) / float(TOTAL_CELLS)
-	if pct_done >= 0.95:
-		_side_complete = true
-		_frame_complete = true
-		if _instruction_label:
-			_instruction_label.text = "Frame de-capped!"
-		var timer: SceneTreeTimer = get_tree().create_timer(0.8)
-		timer.timeout.connect(_finish)
+func _flip_side() -> void:
+	_current_side = 1 - _current_side
+	_scraped_this_side = 0
+	_count_cappable()
+	if _side_lbl:
+		_side_lbl.text = "Side A" if _current_side == 0 else "Side B"
+	if _header_lbl:
+		_header_lbl.text = _header_text()
+	_render()
+	_update_progress()
 
-func _flip_to_side_b() -> void:
-	_init_side(1)
-	if _instruction_label:
-		_instruction_label.text = "Click + drag to scrape Side B | ESC to cancel"
+func _finish_side() -> void:
+	_done = true
+	if _status_lbl:
+		_status_lbl.text = "Frame de-capped!"
+	if _progress_lbl:
+		_progress_lbl.text = "100%"
+	var timer: SceneTreeTimer = get_tree().create_timer(0.7)
+	timer.timeout.connect(_finish)
 
 func _finish() -> void:
 	_restore_cursor()
