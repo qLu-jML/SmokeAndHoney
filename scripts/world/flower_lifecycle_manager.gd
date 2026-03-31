@@ -719,7 +719,7 @@ func _update_sprites(type_name: String) -> void:
 			var jy: float = (float((tile_hash >> 8) & 0xFF) / 127.5 - 1.0) * 11.0
 			sprite.position = _tile_to_world(tile) + Vector2(jx, jy)
 			sprite.rotation = (t_rng - 0.5) * 0.45
-			var s := 0.82 + t_rng * 0.32
+			var s := 0.42 + t_rng * 0.16
 			sprite.scale = Vector2(s, s)
 			sprite.flip_h = (tile_hash % 3 == 0)
 			sprite.flip_v = (tile_hash % 7 == 0)
