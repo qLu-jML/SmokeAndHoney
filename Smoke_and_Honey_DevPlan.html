@@ -55,6 +55,7 @@
   }
   .status-done    { color: #5acc88; font-size: 10px; flex-shrink: 0; }
   .status-partial { color: #ccaa44; font-size: 10px; flex-shrink: 0; }
+  .status-wip     { color: #e8a030; font-size: 10px; flex-shrink: 0; }
   .status-todo    { color: #668ab4; font-size: 10px; flex-shrink: 0; }
   .status-ref     { color: var(--muted); font-size: 10px; flex-shrink: 0; }
 
@@ -169,8 +170,8 @@
     <li class="h2"><a href="#p1-inspect"><span class="status-done">+</span> Inspection &amp; Rendering</a></li>
     <li class="h2"><a href="#p1-world"><span class="status-done">+</span> World &amp; Characters</a></li>
     <li class="h2"><a href="#p1-infra"><span class="status-done">+</span> Infrastructure</a></li>
-    <li class="h1"><a href="#phase2"><span class="status-todo">[ ]</span> Phase 2 -- Harvest Loop</a></li>
-    <li class="h2"><a href="#p2-day"><span class="status-todo">[ ]</span> Day Cycle &amp; Weather</a></li>
+    <li class="h1"><a href="#phase2"><span class="status-wip">~</span> Phase 2 -- Harvest Loop</a></li>
+    <li class="h2"><a href="#p2-day"><span class="status-done">+</span> Day Cycle &amp; Weather</a></li>
     <li class="h2"><a href="#p2-harvest"><span class="status-todo">[ ]</span> Harvest System</a></li>
     <li class="h2"><a href="#p2-economy"><span class="status-todo">[ ]</span> Economy &amp; Market</a></li>
     <li class="h2"><a href="#p2-smoke"><span class="status-todo">[ ]</span> Smoke &amp; Stings</a></li>
@@ -285,9 +286,14 @@
   The simulation runs, inspection works, flowers grow, bees do their thing. What is missing is the player's reason to care:
   harvest the honey, grade it, sell it at market, buy supplies, and repeat. This is the farm-sim loop that turns observation into gameplay.
   <br><br>
-  <strong>Phase 2 honest status: 0% functional.</strong> GameData has wallet/energy/XP fields (infrastructure from Phase 1).
-  shop_screen.gd exists but no purchase wiring. Sleep/nap/auto-save complete (2.1-2.4). No weather, no harvest, no market, no smoke/stings.
-  Everything below is TODO until it works in-game.
+  <strong>Phase 2 progress: Steps 1-2 complete (~25% of Phase 2 tasks done).</strong>
+  Sleep/nap/auto-save fully wired (2.1-2.4). Weather system complete end-to-end: WeatherManager
+  (8 states, Iowa-calibrated season probabilities), ForagerSystem weather gate (2.6), HUD weather
+  display (2.7), inspection weather block with per-condition toasts (2.8), season transition banner
+  (2.9), and full save/load serialization (2.10).<br><br>
+  <strong>Remaining for Phase 2:</strong> Equipment shop wiring (Step 3), smoker/sting system (Step 4),
+  harvest pipeline (Step 5), Saturday Market (Step 6), Community Standing (Step 7).
+  No harvest, no market, no smoke/stings yet.
 </div>
 
 <!-- ================================================================= -->
