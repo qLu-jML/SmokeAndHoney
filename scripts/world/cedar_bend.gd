@@ -142,7 +142,7 @@ func _on_door_entered(body: Node2D, building_name: String) -> void:
 	print("[Cedar Bend] Entering %s ..." % building_name)
 	TimeManager.previous_scene = "res://scenes/world/cedar_bend.tscn"
 	TimeManager.next_scene = target_scene
-	get_tree().change_scene_to_file("res://scenes/loading/loading_screen.tscn")
+	get_tree().call_deferred("change_scene_to_file", "res://scenes/loading/loading_screen.tscn")
 
 func _try_enter_grange() -> void:
 	# Grange Hall is only open on meeting night -- once per in-game month (day 14 or 15)
@@ -153,7 +153,7 @@ func _try_enter_grange() -> void:
 			print("[Cedar Bend] Grange Hall meeting tonight -- entering...")
 			TimeManager.previous_scene = "res://scenes/world/cedar_bend.tscn"
 			TimeManager.next_scene = "res://scenes/world/grange_interior.tscn"
-			get_tree().change_scene_to_file("res://scenes/loading/loading_screen.tscn")
+			get_tree().call_deferred("change_scene_to_file", "res://scenes/loading/loading_screen.tscn")
 			return
 	print("[Cedar Bend] Grange Hall: meeting on the 14th at 6pm. Check the marquee sign.")
 

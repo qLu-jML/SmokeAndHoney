@@ -1,3 +1,28 @@
+[2026-03-31 CDT] FIX + FEAT: All NPC shop/menu UIs redesigned + Godot error fixes
+  1. FEED SUPPLY SHOP (feed_supply_interior.gd) -- complete UI rewrite:
+     - Carl Tanner's shop now uses the same black-bg/gold-border button system as shop_screen.gd.
+     - 11 item rows as clickable Buttons with selection highlight (StyleBoxFlat, offset-based layout).
+     - Seasonal items show "[out of season]" and are grayed/disabled when not available.
+     - Control row: [-] qty [+] [BUY] [SELL HONEY] [CLOSE] -- all mouse-clickable.
+     - Keyboard nav: W/S select, A/D qty, E buy, Esc close.
+     - Bulletin board UI also updated: removed deprecated set_anchors_preset(15) enum errors,
+       now uses proper offset-based positioning with gold border styling.
+     - Fixed unused "season" variable warning (renamed to _season).
+     - Replaced unicode bullet chars in bulletin text with ASCII asterisks.
+  2. DINER MENU (diner_interior.gd) -- complete UI rewrite:
+     - Rose's diner menu now uses same black-bg/gold-border button system.
+     - 5 menu item rows (ROW_H=12, slightly taller for readability) with selection highlight.
+     - Shows availability: "Not served now" or "Already eaten" for unavailable items.
+     - Control row: [ORDER] [CLOSE] buttons. Keyboard: W/S select, E order, Esc close.
+     - Removed deprecated set_anchors_preset(15) and mouse_filter=2 enum errors.
+     - Removed old toast system; error/feedback uses standard _err_lbl pattern.
+  3. CEDAR BEND PHYSICS FIX (cedar_bend.gd):
+     - _on_door_entered() and _try_enter_grange() now use call_deferred for scene changes.
+     - Fixes "Removing CollisionObject during physics callback" error.
+  4. ENUM CASTING FIXES across all three files:
+     - Replaced set_anchors_preset(15) with proper offset-based layout (no enum needed).
+     - Replaced mouse_filter = 2 with Control.MOUSE_FILTER_IGNORE.
+
 [2026-03-31 CDT] FIX + FEAT: Dev buttons, super carry mechanic, frame return, pallet sprite
   1. INSPECTION OVERLAY DEV BUTTONS: +Day / +Month buttons invisible against dark footer bg.
      Normal bg raised Color(0.28,0.20,0.06) -> Color(0.50,0.34,0.09), bright amber. Text -> white.
@@ -872,3 +897,20 @@
     - hud.gd: "SMOKED" indicator (orange) visible when player._smoker_active=true
   Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
 2026-03-31 - Updated Smoke_and_Honey_Master_Art_Sheet.xlsx: Comprehensive master pixel artist commission sheet. 291 total assets across 4 phases (P1: 81 core loop + location layouts, P2: 61 NPCs/buildings/interiors, P3: 78 environment/props/trees, P4: 71 polish/minigames/wildlife). Includes all 10 location maps (Home, Back Field, County Road, Cedar Bend, Timber, Harmon Farm, Orchard, River Bottom, Fairgrounds, County Map). Added missing NPCs (Lloyd Petersen, Terri Vogel), truck, fairgrounds, ambient wildlife, lighting overlays, and all GDD Section 13 location-specific assets. Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
+
+[2026-03-31 11:08:37 CDT] DOCS: Created Testing_Guide_2026-03-31.html in research/reports/. Comprehensive QA playtester guide covering all 20 implemented game systems: Main Menu/Start Modes, Character Creator, Player Movement/Controls, HUD, Time & Calendar, Weather System, Hive Building, Hive Management, Inspection (with sting mechanics), Smoker & Bee Suit, Harvest Yard (5-station pipeline), Saturday Market, Feed & Supply Shop, Tree Chopping Minigame, Workbench Crafting, Quest System, Save/Load, Zone Transitions, Dev Mode, Music System. Includes Quick Controls Reference table, per-system Expected Results and Edge Cases callouts, and Test Results Checklist. QR code/feedback form placeholder included (URL to be filled in). 70,659 bytes. Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
+
+[2026-03-31 11:10:56 CDT] BUGFIX: Main menu not appearing on game launch. project.godot run/main_scene was pointed at res://scenes/home_property.tscn instead of res://scenes/ui/MainMenu.tscn. Fixed -- game now boots to the title screen with logo, Start in Spring / Start in Fall buttons, Continue, and Quit. Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
+
+[2026-03-31 11:13:53 CDT] FEATURE: ESC menu now accessible + music controls on main pause panel.
+  (1) hud.gd: Added KEY_ESCAPE alongside KEY_P in _unhandled_key_input to trigger
+      _toggle_pause(). ESC now opens the pause menu on first press (previously only P
+      worked, and only after lazy-loading the PauseMenu scene).
+  (2) PauseMenu.gd: Music volume slider and Mute Music checkbox added directly to the
+      main pause panel below the Resume/Save/Settings/Quit buttons. No longer need to
+      click into Settings to adjust music volume. Slider and checkbox sync bidirectionally
+      with the Settings sub-panel controls. Dragging the slider above 0% auto-unchecks
+      mute. Mute checkbox toggles AudioServer bus mute on the Music bus.
+  (3) Settings sub-panel: Also received a Mute Music checkbox (synced with main panel).
+      Panel height expanded from 90 to 105. Main panel height expanded from 130 to 156.
+  All files ASCII-verified. Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
