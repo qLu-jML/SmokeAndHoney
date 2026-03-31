@@ -708,16 +708,21 @@ func _update_sprites(type_name: String) -> void:
 			# Create new sprite
 			var sprite := Sprite2D.new()
 			sprite.texture = tex
-			sprite.position = _tile_to_world(tile)
 			sprite.z_index = 1
 
-			# Per-tile visual variation (subtle -- sprites are already small)
+			# Per-tile visual variation -- fully deterministic from tile coords
 			var tile_hash := (tile.x * 7919 + tile.y * 6271) & 0xFFFF
 			var t_rng := float(tile_hash) / 65535.0
-			sprite.rotation = (t_rng - 0.5) * 0.25
-			var s := 0.90 + t_rng * 0.20
+			# Position jitter: up to +/-11px on each axis so flowers overlap
+			# neighbouring cells and break the grid look.
+			var jx: float = (float(tile_hash & 0xFF) / 127.5 - 1.0) * 11.0
+			var jy: float = (float((tile_hash >> 8) & 0xFF) / 127.5 - 1.0) * 11.0
+			sprite.position = _tile_to_world(tile) + Vector2(jx, jy)
+			sprite.rotation = (t_rng - 0.5) * 0.45
+			var s := 0.82 + t_rng * 0.32
 			sprite.scale = Vector2(s, s)
 			sprite.flip_h = (tile_hash % 3 == 0)
+			sprite.flip_v = (tile_hash % 7 == 0)
 
 			_flower_layer.add_child(sprite)
 			_active_sprites[sprite_key] = sprite
