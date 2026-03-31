@@ -367,7 +367,11 @@ func _on_remove_super() -> void:
 						"rows": frame.grid_rows,
 					})
 			player.add_item(GameData.ITEM_FULL_SUPER, 1)
-			_show_status("Super removed -- take it to the Honey House!")
+			if player.has_method("update_hud_inventory"):
+				player.update_hud_inventory()
+			# Auto-close: super is now in the player's hands, no need to stay in menu
+			_close()
+			return
 		else:
 			player.add_item(GameData.ITEM_SUPER_BOX, 1)
 			_show_status("Empty super returned to inventory.")

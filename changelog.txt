@@ -1,3 +1,48 @@
+[2026-03-31 CDT] FEAT: NPC menu redesign -- sell_screen and shop_screen clickable buttons
+  1. SELL SCREEN (sell_screen.gd) -- full UI overhaul:
+     - Replaced old keyboard-only interface with proper clickable [-] [SELL] [CANCEL] [+] buttons.
+     - New _on_minus() / _on_plus() callbacks; _refresh() disables buttons at qty bounds (can't
+       go below 1 or above max jars; SELL greys out when 0 jars available).
+     - Removed stale _make_label() helper (replaced by _abs_label() in previous session).
+     - Qty label no longer shows < > arrow text; buttons communicate directionality visually.
+  2. SHOP SCREEN (shop_screen.gd) -- full redesign from scratch:
+     - FIXED CRITICAL BUG: old layout rendered 12 rows x 20px = 240px inside a 149px usable
+       area -- ALL rows below row 7 were completely off-screen.
+     - New layout: PANEL_X=16, PANEL_Y=2, PANEL_W=288, PANEL_H=178 (fills most of 320x180 viewport).
+     - 12 item rows as clickable Button nodes (ROW_H=10px, font_size=7) -- mouse-clickable to select.
+     - Selection highlighted with gold border and gold text via pre-built StyleBoxFlat objects
+       (swapped in _refresh(), avoids per-frame garbage allocation).
+     - Control row at bottom: [-] x(qty) [+]  ...  [BUY] [CLOSE] -- all mouse-clickable.
+     - W/S keyboard navigation still works; A/D adjusts qty; E buys; Esc closes.
+     - BUY button auto-disables when player cannot afford selected item.
+     - Keyboard hint + error/feedback label both fit inside panel (layout verified at 178px height).
+  3. HIVE MANAGEMENT (hive_management.gd) -- auto-close on super pickup:
+     - _on_remove_super() now calls _close() + return after giving player ITEM_FULL_SUPER.
+     - Empty supers (no honey) still show status message and stay open as before.
+
+[2026-03-31 CDT] DOC: Complete Visual Asset Inventory for pixel artist
+  Extracted and compiled ALL visual/art content from GDD (Sections 1-20):
+  1. Game logo & branding specifications (1200x1200px, smoker design, typography)
+  2. Player character sprite: beekeeper_spritesheet.png (960x2880px, 8-dir, idle/walk/run)
+  3. NPC characters: Uncle Bob, Darlene, Frank, Dr. Ellen, Walt/Kacey, Silas (all 120x120px, 8-dir)
+  4. Buildings: House, Honey House, shed, Feed & Supply, Diner, Market stall, town buildings
+  5. Hive equipment: Modular sprites (base, deep, super, excluder, lid) + 5 hive stand variants
+  6. Inventory items: 25 hotbar item icons (32x32px each: honey, frames, tools, treatments, etc.)
+  7. Tilesets: Grass, dirt, stone, water, trees, wildflowers, fences, vegetation (16x16px base)
+  8. UI elements: Langstroth Frame Design System (panels, buttons, fill bars, dialogs, notifications)
+  9. Hive frame inspection: 320x192px front-facing view with hex cell grid, color-coded states
+  10. Minigames: Queen Finder (bee sprites), uncapping, extraction, bottling, grafting, mating
+  11. Environmental: Seasonal tints, particles (bees, smoke), weather effects, location-specific assets
+  12. NPC dialogue: Portrait frames, speech bubbles, interaction visuals
+  13. Quest/progression: Markers, knowledge log icons, level-up visuals
+  14. Props & miscellaneous: Crafted goods, containers, tools, detailed decorative items
+  15. Color palette: Reference muted earth tones, amber, cream, greens (with hex codes)
+  16. Animation states: 8-directional idle/walk/run framework for all characters
+  17. Title screen & pause menu UI assets
+  18. Complete implementation checklist (5 phases: core, NPCs, environmental, minigames, advanced)
+  Deliverable: research/art/COMPLETE_VISUAL_ASSET_INVENTORY.md (20,000+ word specification)
+  Ready for: Pixel artist iteration and Leonardo AI asset generation prompt development
+
 [2026-03-31 CDT] FIX + FEAT: Pallet visuals, scraper fork, toolbar icon, cedar bend crash, devmode shortcuts
   1. SUPER PALLET -- 4 individual super sprites: replaced single oversized (4x) sprite with 4 Sprite2D
      nodes in a 2x2 grid (2x scale, 48x28px each) using hive_super.png. Supports stacking up to 4 full

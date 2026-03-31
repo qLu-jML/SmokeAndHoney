@@ -19,21 +19,32 @@ var price_per_jar: int  = 8       # default: Feed & Supply everyday rate
 var buyer_name: String  = "Carl"  # NPC name shown in title bar
 
 # -- Layout constants ----------------------------------------------------
-const PANEL_W   := 220
-const PANEL_H   := 120
-const PANEL_X   := 50    # (320 - 220) / 2
-const PANEL_Y   := 30    # (180 - 120) / 2
+const PANEL_W   := 224
+const PANEL_H   := 140
+const PANEL_X   := 48    # (320 - 224) / 2
+const PANEL_Y   := 20
 const FONT_SM   := 7
 const FONT_MD   := 8
 
+# Accent / button colours (matching HUD palette)
+const C_ACCENT  := Color(0.95, 0.78, 0.32, 1.0)
+const C_BG_BTN  := Color(0.22, 0.15, 0.07, 0.97)
+const C_BG_HOV  := Color(0.35, 0.24, 0.10, 0.97)
+const C_TEXT    := Color(0.92, 0.85, 0.65, 1.0)
+const C_MUTED   := Color(0.45, 0.40, 0.28, 0.55)
+
 # -- State ---------------------------------------------------------------
-var _qty: int         = 0    # how many jars to sell (starts at max)
-var _max_jars: int    = 0    # player's current honey_jar count
-var _total_label: Label = null
-var _qty_label: Label   = null
-var _err_label: Label   = null
-var _money_label: Label = null
-var _err_timer: float   = 0.0
+var _qty: int          = 0    # how many jars to sell (starts at max)
+var _max_jars: int     = 0    # player's current honey_jar count
+var _total_label: Label  = null
+var _qty_label: Label    = null
+var _err_label: Label    = null
+var _money_label: Label  = null
+var _btn_minus: Button   = null
+var _btn_plus: Button    = null
+var _btn_sell: Button    = null
+var _btn_cancel: Button  = null
+var _err_timer: float    = 0.0
 
 # -- Lifecycle -----------------------------------------------------------
 
@@ -151,16 +162,28 @@ func _get_jar_count() -> int:
 
 # -- Refresh display -----------------------------------------------------
 
+func _on_minus() -> void:
+	_qty = maxi(1, _qty - 1)
+	_refresh()
+
+func _on_plus() -> void:
+	_qty = mini(_max_jars, _qty + 1)
+	_refresh()
+
 func _refresh() -> void:
 	if _money_label:
 		_money_label.text = "Your money: $%.0f" % GameData.money
 	if _qty_label:
-		var arrow_l: String = "< " if _qty > 1 else "  "
-		var arrow_r: String = " >" if _qty < _max_jars else "  "
-		_qty_label.text = "%s %d jar%s %s" % [arrow_l, _qty, "s" if _qty != 1 else " ", arrow_r]
+		_qty_label.text = "%d jar%s" % [_qty, "s" if _qty != 1 else ""]
 	if _total_label:
 		var total: int = _qty * price_per_jar
 		_total_label.text = "Total: $%d" % total
+	if _btn_minus:
+		_btn_minus.disabled = (_qty <= 1 or _max_jars <= 0)
+	if _btn_plus:
+		_btn_plus.disabled = (_qty >= _max_jars or _max_jars <= 0)
+	if _btn_sell:
+		_btn_sell.disabled = (_max_jars <= 0 or _qty <= 0)
 
 # -- UI construction -----------------------------------------------------
 
@@ -175,114 +198,174 @@ func _build_ui() -> void:
 
 	# -- Main panel
 	var panel := ColorRect.new()
-	panel.position = Vector2(PANEL_X, PANEL_Y)
-	panel.size     = Vector2(PANEL_W, PANEL_H)
-	panel.color    = Color(0.07, 0.06, 0.05, 0.97)
+	panel.color = Color(0.09, 0.07, 0.04, 0.97)
+	panel.anchor_left   = 0; panel.anchor_top    = 0
+	panel.anchor_right  = 0; panel.anchor_bottom = 0
+	panel.offset_left   = PANEL_X;          panel.offset_top    = PANEL_Y
+	panel.offset_right  = PANEL_X + PANEL_W; panel.offset_bottom = PANEL_Y + PANEL_H
+	panel.mouse_filter  = Control.MOUSE_FILTER_STOP
 	add_child(panel)
 
-	# -- Border
-	var border := Panel.new()
-	border.position = Vector2(PANEL_X, PANEL_Y)
-	border.size     = Vector2(PANEL_W, PANEL_H)
-	border.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var sty := StyleBoxFlat.new()
-	sty.bg_color          = Color(0, 0, 0, 0)
-	sty.draw_center       = false
-	sty.border_color      = Color(0.75, 0.60, 0.20, 1.0)
-	sty.border_width_left  = 1
-	sty.border_width_right = 1
-	sty.border_width_top   = 1
-	sty.border_width_bottom = 1
-	border.add_theme_stylebox_override("panel", sty)
-	add_child(border)
+	# -- Gold border (1px accent line around panel)
+	for edge_rect in _border_rects(PANEL_X, PANEL_Y, PANEL_W, PANEL_H):
+		add_child(edge_rect)
 
-	# -- Title
-	var title := _make_label("-- SELL HONEY --", FONT_MD, Color(0.95, 0.80, 0.30, 1.0))
-	title.position              = Vector2(PANEL_X, PANEL_Y + 5)
-	title.custom_minimum_size   = Vector2(PANEL_W, 12)
-	title.horizontal_alignment  = HORIZONTAL_ALIGNMENT_CENTER
-	add_child(title)
+	# -- Title bar
+	var title_bar := ColorRect.new()
+	title_bar.color = Color(0.28, 0.18, 0.06, 0.90)
+	title_bar.anchor_left = 0; title_bar.anchor_right = 0
+	title_bar.offset_left = PANEL_X + 1; title_bar.offset_right = PANEL_X + PANEL_W - 1
+	title_bar.offset_top  = PANEL_Y + 1; title_bar.offset_bottom = PANEL_Y + 16
+	add_child(title_bar)
 
-	# -- Buyer name + price (with player name injection if available)
-	var info_text: String = "%s buys at $%d / jar" % [buyer_name, price_per_jar]
+	_abs_label("-- SELL HONEY --", PANEL_X + 1, PANEL_Y + 3,
+		PANEL_W - 2, 12, FONT_MD, Color(0.95, 0.80, 0.30, 1.0), true)
+
+	_divider(PANEL_X + 1, PANEL_Y + 16, PANEL_W - 2, C_ACCENT)
+
+	# -- Buyer greeting
 	var name_part: String = ""
-	if Engine.has_singleton("PlayerData") or get_tree().root.has_node("/root/PlayerData"):
-		var pd: Node = get_tree().root.get_node_or_null("/root/PlayerData")
-		if pd and "player_name" in pd:
-			name_part = pd.player_name
+	var pd: Node = get_tree().root.get_node_or_null("/root/PlayerData")
+	if pd and "player_name" in pd:
+		name_part = str(pd.get("player_name"))
 	var greeting: String = ""
 	if name_part.length() > 0:
 		greeting = "\"%s, I'll pay $%d/jar!\"" % [name_part, price_per_jar]
 	else:
 		greeting = "%s buys at $%d / jar" % [buyer_name, price_per_jar]
-	var info := _make_label(greeting, FONT_SM, Color(0.80, 0.75, 0.55, 1.0))
-	info.position              = Vector2(PANEL_X, PANEL_Y + 19)
-	info.custom_minimum_size   = Vector2(PANEL_W, 10)
-	info.horizontal_alignment  = HORIZONTAL_ALIGNMENT_CENTER
-	add_child(info)
+	_abs_label(greeting, PANEL_X + 2, PANEL_Y + 19,
+		PANEL_W - 4, 10, FONT_SM, Color(0.80, 0.75, 0.55, 1.0), true)
 
 	# -- Money display
-	_money_label = _make_label("", FONT_SM, Color(0.95, 0.75, 0.20, 1.0))
-	_money_label.position             = Vector2(PANEL_X, PANEL_Y + 31)
-	_money_label.custom_minimum_size  = Vector2(PANEL_W, 10)
-	_money_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	add_child(_money_label)
+	_money_label = _abs_label("", PANEL_X + 2, PANEL_Y + 31,
+		PANEL_W - 4, 10, FONT_SM, Color(0.95, 0.75, 0.20, 1.0), true)
 
-	# -- Divider
-	var div := ColorRect.new()
-	div.position = Vector2(PANEL_X + 4, PANEL_Y + 43)
-	div.size     = Vector2(PANEL_W - 8, 1)
-	div.color    = Color(0.75, 0.60, 0.20, 0.5)
-	add_child(div)
+	_divider(PANEL_X + 4, PANEL_Y + 43, PANEL_W - 8, Color(0.60, 0.50, 0.20, 0.5))
 
-	# -- "You have X jars" line
+	# -- "You have X jars"
 	var have_text: String = "You have %d honey jar%s" % [_max_jars, "s" if _max_jars != 1 else ""]
-	var have_lbl := _make_label(have_text, FONT_SM, Color(0.85, 0.82, 0.70, 1.0))
-	have_lbl.position              = Vector2(PANEL_X, PANEL_Y + 48)
-	have_lbl.custom_minimum_size   = Vector2(PANEL_W, 10)
-	have_lbl.horizontal_alignment  = HORIZONTAL_ALIGNMENT_CENTER
-	add_child(have_lbl)
+	_abs_label(have_text, PANEL_X + 2, PANEL_Y + 47,
+		PANEL_W - 4, 10, FONT_SM, Color(0.85, 0.82, 0.70, 1.0), true)
 
-	# -- Quantity selector
-	_qty_label = _make_label("", FONT_MD, Color(0.95, 0.92, 0.85, 1.0))
-	_qty_label.position              = Vector2(PANEL_X, PANEL_Y + 62)
-	_qty_label.custom_minimum_size   = Vector2(PANEL_W, 12)
-	_qty_label.horizontal_alignment  = HORIZONTAL_ALIGNMENT_CENTER
-	add_child(_qty_label)
+	# -- Quantity row: [-] qty [+]
+	#    Layout: [-] = 22px | qty label = 130px | [+] = 22px
+	#    Total = 174, centered in PANEL_W=224 -> margin = (224-174)/2 = 25px
+	var QY: int = PANEL_Y + 60
+	var QL: int = PANEL_X + 25   # left of [-]
+	_btn_minus = _make_btn("<", QL,      QY, 22, 13)
+	_btn_minus.pressed.connect(_on_minus)
+	add_child(_btn_minus)
+
+	_qty_label = _abs_label("", QL + 24, QY + 1, 130, 12,
+		FONT_MD, Color(0.95, 0.92, 0.85, 1.0), true)
+
+	_btn_plus = _make_btn(">", QL + 156, QY, 22, 13)
+	_btn_plus.pressed.connect(_on_plus)
+	add_child(_btn_plus)
 
 	# -- Total line
-	_total_label = _make_label("", FONT_MD, Color(0.40, 0.85, 0.40, 1.0))
-	_total_label.position              = Vector2(PANEL_X, PANEL_Y + 76)
-	_total_label.custom_minimum_size   = Vector2(PANEL_W, 12)
-	_total_label.horizontal_alignment  = HORIZONTAL_ALIGNMENT_CENTER
-	add_child(_total_label)
+	_total_label = _abs_label("", PANEL_X + 2, PANEL_Y + 77,
+		PANEL_W - 4, 12, FONT_MD, Color(0.40, 0.85, 0.40, 1.0), true)
 
-	# -- Divider 2
-	var div2 := ColorRect.new()
-	div2.position = Vector2(PANEL_X + 4, PANEL_Y + 90)
-	div2.size     = Vector2(PANEL_W - 8, 1)
-	div2.color    = Color(0.75, 0.60, 0.20, 0.5)
-	add_child(div2)
+	_divider(PANEL_X + 4, PANEL_Y + 92, PANEL_W - 8, Color(0.60, 0.50, 0.20, 0.5))
 
-	# -- Hint
-	var hint := _make_label("A/D Qty   E Sell   Esc Close", FONT_SM,
-							Color(0.60, 0.60, 0.60, 1.0))
-	hint.position              = Vector2(PANEL_X, PANEL_Y + 94)
-	hint.custom_minimum_size   = Vector2(PANEL_W, 10)
-	hint.horizontal_alignment  = HORIZONTAL_ALIGNMENT_CENTER
-	add_child(hint)
+	# -- Action buttons: [SELL] and [CANCEL] side by side
+	#    Two 86px buttons with 16px gap and 18px margin each side
+	var AY: int = PANEL_Y + 97
+	_btn_sell = _make_btn("SELL", PANEL_X + 18, AY, 86, 16)
+	_btn_sell.add_theme_font_size_override("font_size", FONT_MD)
+	_btn_sell.pressed.connect(_try_sell)
+	add_child(_btn_sell)
+
+	_btn_cancel = _make_btn("CANCEL", PANEL_X + 120, AY, 86, 16)
+	_btn_cancel.add_theme_font_size_override("font_size", FONT_MD)
+	_btn_cancel.pressed.connect(_close)
+	add_child(_btn_cancel)
+
+	# -- Keyboard hint (small, below buttons)
+	_abs_label("A/D or click  <>  to set qty", PANEL_X + 2, PANEL_Y + 116,
+		PANEL_W - 4, 8, 5, Color(0.45, 0.42, 0.32, 0.85), true)
 
 	# -- Error/feedback label
-	_err_label = _make_label("", FONT_SM, Color(0.95, 0.50, 0.30, 1.0))
-	_err_label.position              = Vector2(PANEL_X, PANEL_Y + 106)
-	_err_label.custom_minimum_size   = Vector2(PANEL_W, 10)
-	_err_label.horizontal_alignment  = HORIZONTAL_ALIGNMENT_CENTER
-	add_child(_err_label)
+	_err_label = _abs_label("", PANEL_X + 2, PANEL_Y + 126,
+		PANEL_W - 4, 12, FONT_SM, Color(0.95, 0.50, 0.30, 1.0), true)
 
-func _make_label(text_val: String, fsize: int, col: Color) -> Label:
-	var l := Label.new()
+# -- Widget helpers -------------------------------------------------------
+
+func _abs_label(text_val: String, x: int, y: int, w: int, h: int,
+		fsize: int, col: Color, centred: bool) -> Label:
+	var l: Label = Label.new()
 	l.text = text_val
 	l.add_theme_font_size_override("font_size", fsize)
 	l.add_theme_color_override("font_color", col)
-	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if centred:
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.anchor_left   = 0; l.anchor_top    = 0
+	l.anchor_right  = 0; l.anchor_bottom = 0
+	l.offset_left   = x; l.offset_top    = y
+	l.offset_right  = x + w; l.offset_bottom = y + h
+	l.z_index = 5
+	add_child(l)
 	return l
+
+func _divider(x: int, y: int, w: int, col: Color) -> void:
+	var d: ColorRect = ColorRect.new()
+	d.color = col
+	d.anchor_left = 0; d.anchor_right = 0
+	d.offset_left = x; d.offset_right = x + w
+	d.offset_top  = y; d.offset_bottom = y + 1
+	d.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(d)
+
+func _border_rects(x: int, y: int, w: int, h: int) -> Array:
+	var rects: Array = []
+	for coords in [
+		[x,         y,         w, 1],  # top
+		[x,         y + h - 1, w, 1],  # bottom
+		[x,         y,         1, h],  # left
+		[x + w - 1, y,         1, h],  # right
+	]:
+		var r: ColorRect = ColorRect.new()
+		r.color  = C_ACCENT
+		r.anchor_left = 0; r.anchor_right = 0
+		r.offset_left  = coords[0]; r.offset_top    = coords[1]
+		r.offset_right = coords[0] + coords[2]
+		r.offset_bottom = coords[1] + coords[3]
+		r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		rects.append(r)
+	return rects
+
+func _make_btn(label_text: String, x: int, y: int, w: int, h: int) -> Button:
+	var btn: Button = Button.new()
+	btn.text = label_text
+	btn.clip_text = true
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.add_theme_font_size_override("font_size", FONT_SM)
+	btn.add_theme_color_override("font_color",          C_TEXT)
+	btn.add_theme_color_override("font_hover_color",    C_ACCENT)
+	btn.add_theme_color_override("font_pressed_color",  Color(1.0, 1.0, 1.0))
+	btn.add_theme_color_override("font_disabled_color", C_MUTED)
+	for state_name in ["normal", "hover", "pressed", "disabled", "focus"]:
+		var sb: StyleBoxFlat = StyleBoxFlat.new()
+		if state_name == "normal":
+			sb.bg_color = C_BG_BTN
+		elif state_name == "hover":
+			sb.bg_color = C_BG_HOV
+		elif state_name == "pressed":
+			sb.bg_color = Color(0.12, 0.08, 0.03, 0.97)
+		elif state_name == "disabled":
+			sb.bg_color = Color(0.14, 0.09, 0.04, 0.55)
+		else:
+			sb.bg_color = Color(0, 0, 0, 0)
+		sb.border_color = C_ACCENT
+		sb.set_border_width_all(1)
+		sb.set_content_margin_all(0)
+		btn.add_theme_stylebox_override(state_name, sb)
+	btn.anchor_left   = 0; btn.anchor_top    = 0
+	btn.anchor_right  = 0; btn.anchor_bottom = 0
+	btn.offset_left   = x; btn.offset_top    = y
+	btn.offset_right  = x + w; btn.offset_bottom = y + h
+	btn.z_index = 10
+	return btn
+
