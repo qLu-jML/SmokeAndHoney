@@ -8,12 +8,15 @@ signal extraction_complete
 signal extraction_cancelled
 
 # -- Tuning constants -----------------------------------------------------
-const EXTRACT_DURATION := 20.0       # Seconds of sustained effort needed
-const GAUGE_DECAY_RATE := 1.8        # Gauge drops per second (0-1 range)
-const GAUGE_PER_TAP := 0.15          # Each E tap adds this to gauge
+# Target feel: ~3 taps/sec to maintain threshold, ~10 seconds to complete.
+# Old decay 1.8 + tap 0.15 required 12 taps/sec -- impossible to sustain.
+# New: decay 0.65, tap 0.22 => need 0.65/0.22 = ~3 taps/sec to hold 40%+.
+const EXTRACT_DURATION := 10.0       # Seconds of sustained effort needed
+const GAUGE_DECAY_RATE := 0.65       # Gauge drops per second (0-1 range)
+const GAUGE_PER_TAP := 0.22          # Each E tap adds this to gauge
 const GAUGE_MAX := 1.0
-const PROGRESS_THRESHOLD := 0.60     # Gauge must be above this to gain progress
-const PROGRESS_RATE := 0.055         # Progress gained per second when above threshold
+const PROGRESS_THRESHOLD := 0.40     # Gauge must be above this to gain progress
+const PROGRESS_RATE := 0.10          # Progress gained per second when above threshold
 
 # -- State ----------------------------------------------------------------
 var _gauge: float = 0.0              # Current speed gauge (0.0 to 1.0)
@@ -112,9 +115,9 @@ func _build_ui() -> void:
 	_gauge_threshold_line.position = Vector2(float(GAUGE_X) - 4.0, threshold_y)
 	add_child(_gauge_threshold_line)
 
-	# 60% label
+	# 40% label
 	var thresh_label := Label.new()
-	thresh_label.text = "60%"
+	thresh_label.text = "40%"
 	thresh_label.add_theme_font_size_override("font_size", 4)
 	thresh_label.add_theme_color_override("font_color", Color(0.95, 0.40, 0.30))
 	thresh_label.position = Vector2(float(GAUGE_X) + float(GAUGE_W) + 4.0, threshold_y - 4.0)

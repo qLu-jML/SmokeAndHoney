@@ -219,19 +219,11 @@ func _check_side_complete() -> void:
 	# Side is complete when 95%+ cells are uncapped (allowing some stubborn ones)
 	if pct_done >= 0.95:
 		_side_complete = true
-		if _current_side == 0:
-			# Flip to side B
-			_instruction_label.text = "Side A done! Flipping to Side B..."
-			# Small delay before flipping
-			var timer: SceneTreeTimer = get_tree().create_timer(0.8)
-			timer.timeout.connect(_flip_to_side_b)
-		else:
-			# Frame complete!
-			_frame_complete = true
-			_instruction_label.text = "Frame complete! De-capping done."
-			# Small delay before closing
-			var timer: SceneTreeTimer = get_tree().create_timer(1.0)
-			timer.timeout.connect(_finish)
+		# TEST MODE: one side only -- skip Side B and finish immediately
+		_frame_complete = true
+		_instruction_label.text = "Frame de-capped!"
+		var timer: SceneTreeTimer = get_tree().create_timer(0.8)
+		timer.timeout.connect(_finish)
 
 func _flip_to_side_b() -> void:
 	_init_side(1)
