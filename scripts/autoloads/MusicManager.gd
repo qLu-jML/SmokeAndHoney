@@ -19,15 +19,16 @@ var _fade_to: AudioStreamPlayer
 const DEFAULT_VOLUME_DB: float = -6.0
 
 # -- Track mapping (month index 0-7 -> resource path) -------------------------
+# Main theme: res://assets/audio/main_theme/mainTheme.mp3 (reserved for future use)
 const MONTH_TRACKS: Array = [
-	"res://assets/audio/seasonalMusic/1_Quickening_theme.mp3",
-	"res://assets/audio/seasonalMusic/2_Greening_Theme.mp3",
-	"res://assets/audio/seasonalMusic/3_Wide-Clover_Theme.mp3",
-	"res://assets/audio/seasonalMusic/4_High-Sun_Theme.mp3",
-	"res://assets/audio/seasonalMusic/5_Full-Earth_theme.mp3",
-	"res://assets/audio/seasonalMusic/6_Reaping_Theme.mp3",
-	"res://assets/audio/seasonalMusic/7_Deepcold_Theme.mp3",
-	"res://assets/audio/seasonalMusic/8_Kindlemonth_Theme.mp3",
+	"res://assets/audio/seasonalMusic/1_Quickening.mp3",
+	"res://assets/audio/seasonalMusic/2_Greening.mp3",
+	"res://assets/audio/seasonalMusic/3_Wide_Clover.mp3",
+	"res://assets/audio/seasonalMusic/4_High_Sun.mp3",
+	"res://assets/audio/seasonalMusic/5_Full_Earth.mp3",
+	"res://assets/audio/seasonalMusic/6_Reaping.mp3",
+	"res://assets/audio/seasonalMusic/7_Deepcold.mp3",
+	"res://assets/audio/seasonalMusic/8_Kindlemonth.mp3",
 ]
 
 var _current_month_index: int = -1
