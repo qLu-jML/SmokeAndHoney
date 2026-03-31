@@ -170,6 +170,8 @@ func _load_item_textures() -> void:
 		GameData.ITEM_SUGAR_SYRUP: "sugar_syrup.png",
 		GameData.ITEM_GLOVES: "gloves.png",
 		GameData.ITEM_COMB_SCRAPER: "uncapping_knife.png",
+		GameData.ITEM_BUCKET_GRIP: "bucket_grip.png",
+		GameData.ITEM_HONEY_BUCKET: "honey_bucket.png",
 	}
 	for item_id in ITEM_SPRITE_MAP:
 		var p: String = "res://assets/sprites/items/%s" % ITEM_SPRITE_MAP[item_id]

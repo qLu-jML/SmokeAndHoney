@@ -1035,6 +1035,8 @@ func _load_item_textures() -> void:
 		GameData.ITEM_CHEST: "chest.png",
 		GameData.ITEM_SUGAR_SYRUP: "sugar_syrup.png",
 		GameData.ITEM_GLOVES: "gloves.png",
+		GameData.ITEM_BUCKET_GRIP: "bucket_grip.png",
+		GameData.ITEM_HONEY_BUCKET: "honey_bucket.png",
 	}
 	for item_id in ITEM_SPRITE_MAP:
 		var p = "res://assets/sprites/items/%s" % ITEM_SPRITE_MAP[item_id]
@@ -1512,6 +1514,8 @@ func update_player_inventory(inv_array: Array = []) -> void:
 		GameData.ITEM_FERMENTED_HONEY: Color(0.55, 0.35, 0.15),
 		GameData.ITEM_CHEST: Color(0.55, 0.38, 0.22),
 		GameData.ITEM_GLOVES: Color(0.85, 0.78, 0.60),
+		GameData.ITEM_BUCKET_GRIP: Color(0.80, 0.55, 0.15),
+		GameData.ITEM_HONEY_BUCKET: Color(0.90, 0.88, 0.82),
 	}
 
 	var SHORT = {
@@ -1540,6 +1544,8 @@ func update_player_inventory(inv_array: Array = []) -> void:
 		GameData.ITEM_FERMENTED_HONEY: "Ferm",
 		GameData.ITEM_CHEST: "Chst",
 		GameData.ITEM_GLOVES: "Glvs",
+		GameData.ITEM_BUCKET_GRIP: "Grip",
+		GameData.ITEM_HONEY_BUCKET: "Bckt",
 	}
 
 	var LONG_NAME = {
@@ -1568,6 +1574,8 @@ func update_player_inventory(inv_array: Array = []) -> void:
 		GameData.ITEM_FERMENTED_HONEY: "Fermented Honey",
 		GameData.ITEM_CHEST: "Storage Chest",
 		GameData.ITEM_GLOVES: "Beekeeping Gloves",
+		GameData.ITEM_BUCKET_GRIP: "Bucket Grip",
+		GameData.ITEM_HONEY_BUCKET: "Honey Bucket",
 	}
 
 	for i in range(_slots.size()):

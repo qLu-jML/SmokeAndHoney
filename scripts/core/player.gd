@@ -37,9 +37,11 @@ func get_max_stack(item_name: String) -> int:
 		GameData.ITEM_CHEST:      return 5
 		GameData.ITEM_LOGS:       return 20
 		GameData.ITEM_LUMBER:     return 20
-		GameData.ITEM_AXE:        return 1
-		GameData.ITEM_HAMMER:     return 1
-		_:                        return 20
+		GameData.ITEM_AXE:          return 1
+		GameData.ITEM_HAMMER:       return 1
+		GameData.ITEM_BUCKET_GRIP:  return 1    # One grip tool per slot
+		GameData.ITEM_HONEY_BUCKET: return 1    # One full bucket -- it's heavy
+		_:                          return 20
 
 # -- Initialisation ------------------------------------------------------------
 
@@ -108,6 +110,7 @@ func _stock_starting_chest() -> void:
 	chest.add_item(GameData.ITEM_DEEP_BOX, 3)
 	chest.add_item(GameData.ITEM_JAR, 20)
 	chest.add_item(GameData.ITEM_COMB_SCRAPER, 1)
+	chest.add_item(GameData.ITEM_BUCKET_GRIP, 1)
 	chest.add_item(GameData.ITEM_AXE, 1)
 	chest.add_item(GameData.ITEM_HAMMER, 1)
 	print("[Player] Overflow items stocked in storage chest.")

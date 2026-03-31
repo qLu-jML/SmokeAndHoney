@@ -53,6 +53,10 @@ var _bucket_beeswax_lbs: float = 0.0        # Beeswax collected
 var _jars_on_table: int = 0                 # Filled jars stacked on bottling table
 var _active_station: Station = Station.NONE
 var _super_placed: bool = false             # Visual: super is on the pallet
+# Bucket grip / carry state
+# True = bucket is sitting at the yard waiting to be picked up.
+# False = player picked it up (ITEM_HONEY_BUCKET in inventory) or bucket is empty.
+var _bucket_at_yard: bool = false
 
 # -- Minigame overlays ----------------------------------------------------
 var _scraping_overlay: Node = null
@@ -276,10 +280,13 @@ func try_interact(player: Node2D) -> bool:
 			best_dist = dist
 			best_station = station_id
 
-	# Also check bucket area (for picking up honey)
+	# Check bucket area for picking it up (requires ITEM_BUCKET_GRIP)
 	var bucket_center: Vector2 = global_position + BUCKET_OFFSET
 	var bucket_dist: float = ppos.distance_to(bucket_center)
-	# Bucket is not directly interactable -- honey flows automatically
+	if _bucket_at_yard and bucket_dist < INTERACT_DIST:
+		_active_station = Station.NONE
+		_action_pick_up_bucket(player)
+		return true
 
 	if best_station == Station.NONE:
 		return false
@@ -293,6 +300,14 @@ func get_nearby_prompt(player: Node2D) -> String:
 	if _minigame_active:
 		return ""
 	var ppos: Vector2 = player.global_position
+	# Bucket prompt
+	if _bucket_at_yard:
+		var bucket_center: Vector2 = global_position + BUCKET_OFFSET
+		if ppos.distance_to(bucket_center) < INTERACT_DIST:
+			var held: String = _get_held_item(player)
+			if held == GameData.ITEM_BUCKET_GRIP:
+				return "[E] Pick up Honey Bucket (%.1f lbs)" % _bucket_honey_lbs
+			return "Need Bucket Grip to carry"
 	for station_id in [Station.SUPER_PALLET, Station.SCRAPED_PALLET, Station.EXTRACTOR, Station.BOTTLING]:
 		var s_pos: Vector2 = global_position + STATION_POS[station_id]
 		var s_size: Vector2 = STATION_SIZE.get(station_id, Vector2(64, 64))
@@ -344,8 +359,14 @@ func _get_prompt_text(station: Station, player: Node2D) -> String:
 				return "Take super from scraped pallet first"
 			return "Load scraped super first"
 		Station.BOTTLING:
+			if _jars_on_table > 0 and _bucket_honey_lbs < 1.0:
+				return "[E] Collect Jars (%d)" % _jars_on_table
 			if _bucket_honey_lbs >= 1.0:
-				return "[E] Fill Jars (%.1f lbs honey)" % _bucket_honey_lbs
+				# Bucket must be physically carried to the table
+				var held: String = _get_held_item(player)
+				if held == GameData.ITEM_HONEY_BUCKET:
+					return "[E] Place Bucket -- Fill Jars (%.1f lbs)" % _bucket_honey_lbs
+				return "Carry honey bucket here first"
 			if _jars_on_table > 0:
 				return "[E] Collect Jars (%d)" % _jars_on_table
 			return "No honey to bottle"
@@ -557,8 +578,10 @@ func _on_extraction_complete() -> void:
 	var total_honey: float = float(_frames_in_extractor) * 4.0
 	_bucket_honey_lbs += total_honey
 	_frames_in_extractor = 0
+	# Bucket is now full -- player must pick it up with the bucket grip
+	_bucket_at_yard = true
 
-	_notify("Honey extracted! %.1f lbs in bucket. Take to bottling table!" % _bucket_honey_lbs)
+	_notify("Honey extracted! %.1f lbs in bucket. Use Bucket Grip to carry it to bottling table!" % _bucket_honey_lbs)
 	GameData.add_xp(GameData.XP_HARVEST)
 	queue_redraw()
 
@@ -570,13 +593,25 @@ func _on_extraction_cancelled() -> void:
 
 # -- Bottling Table: fill jars or collect filled jars ---------------------
 func _action_bottling(player: Node2D) -> void:
-	# If there are jars to collect, pick them up
+	# If there are jars to collect with no honey waiting, collect them
 	if _jars_on_table > 0 and _bucket_honey_lbs < 1.0:
 		_collect_jars(player)
 		return
 
-	# If there's honey to bottle
+	# If there's honey to bottle, player must have carried the bucket here
 	if _bucket_honey_lbs >= 1.0:
+		var held: String = _get_held_item(player)
+		if held != GameData.ITEM_HONEY_BUCKET:
+			_notify("Carry the honey bucket here with your Bucket Grip first!")
+			return
+		# Player placed the bucket -- consume the carried item
+		if player.has_method("consume_item"):
+			player.consume_item(GameData.ITEM_HONEY_BUCKET, 1)
+			if player.has_method("update_hud_inventory"):
+				player.update_hud_inventory()
+		# Bucket is now on the table, no longer needs to be carried
+		_bucket_at_yard = false
+		queue_redraw()
 		_start_bottling_minigame(player)
 		return
 
@@ -675,8 +710,43 @@ func _on_bottling_cancelled(jars_filled: int, jars_unused: int) -> void:
 	queue_redraw()
 
 # =========================================================================
+# BUCKET GRIP ACTION
+# =========================================================================
+## Player equips ITEM_BUCKET_GRIP and presses E near the honey bucket.
+## Transfers the full bucket to their inventory as ITEM_HONEY_BUCKET.
+func _action_pick_up_bucket(player: Node2D) -> void:
+	if not _bucket_at_yard or _bucket_honey_lbs < 1.0:
+		_notify("The bucket is empty -- nothing to carry.")
+		return
+	var held: String = _get_held_item(player)
+	if held != GameData.ITEM_BUCKET_GRIP:
+		_notify("Equip your Bucket Grip to carry the honey bucket!")
+		return
+	# Check carry space
+	if player.has_method("count_item"):
+		if player.count_item(GameData.ITEM_HONEY_BUCKET) >= 1:
+			_notify("You are already carrying a honey bucket!")
+			return
+	# Give player the full bucket as a carry item
+	if player.has_method("add_item"):
+		var overflow: int = player.add_item(GameData.ITEM_HONEY_BUCKET, 1)
+		if overflow > 0:
+			_notify("No room in inventory for the bucket!")
+			return
+		if player.has_method("update_hud_inventory"):
+			player.update_hud_inventory()
+	_bucket_at_yard = false
+	queue_redraw()
+	_notify("Bucket picked up! Carry it to the Bottling Table.")
+
+# =========================================================================
 # HELPERS
 # =========================================================================
+func _get_held_item(player: Node2D) -> String:
+	if player.has_method("get_active_item_name"):
+		return player.get_active_item_name()
+	return ""
+
 func _find_player() -> Node2D:
 	var players: Array = get_tree().get_nodes_in_group("player")
 	if players.size() > 0:
