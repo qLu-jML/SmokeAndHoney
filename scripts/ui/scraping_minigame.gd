@@ -77,6 +77,9 @@ const C_WIRE       := Color(0.55, 0.48, 0.30, 0.35)
 const C_TEXT       := Color(0.90, 0.85, 0.70, 1.0)
 const C_MUTED      := Color(0.55, 0.50, 0.42, 1.0)
 const C_ACCENT     := Color(0.95, 0.78, 0.32, 1.0)
+# Scraper knife highlight -- warm honey gold, semi-transparent
+const C_BRUSH      := Color(0.95, 0.85, 0.30, 0.22)
+const C_BRUSH_EDGE := Color(0.95, 0.78, 0.32, 0.55)
 
 # -- Scraping state -----------------------------------------------------------
 var _current_side: int = 0     # 0 = Side A, 1 = Side B
@@ -89,11 +92,15 @@ var _scraped_this_side: int = 0
 const BRUSH_HALF := 3
 
 # -- UI nodes -----------------------------------------------------------------
-var _cell_rect: TextureRect = null
-var _header_lbl: Label      = null
-var _side_lbl: Label        = null
-var _progress_lbl: Label    = null
-var _status_lbl: Label      = null
+var _bg:           Control  = null   # root control parent (matches InspectionOverlay bg)
+var _cell_rect:    TextureRect = null
+var _brush_rect:   ColorRect  = null  # scraper knife visual
+var _brush_edge_l: ColorRect  = null  # left edge highlight
+var _brush_edge_r: ColorRect  = null  # right edge highlight
+var _header_lbl:   Label      = null
+var _side_lbl:     Label      = null
+var _progress_lbl: Label      = null
+var _status_lbl:   Label      = null
 
 # -- Cursor -------------------------------------------------------------------
 const CURSOR_PATH    := "res://assets/sprites/ui/cursors/uncapping_fork_cursor.png"
@@ -108,7 +115,11 @@ func _ready() -> void:
 	_build_ui()
 	if frame != null:
 		_count_cappable()
-		_render()
+	# Defer the initial render one frame so the GPU-side texture pipeline
+	# is fully initialised before we push pixel data into it. (Same pattern
+	# as InspectionOverlay, which calls _refresh_frame() from open() *after*
+	# add_child completes.)
+	call_deferred("_render")
 
 func _apply_cursor() -> void:
 	if ResourceLoader.exists(CURSOR_PATH):
@@ -123,18 +134,20 @@ func _restore_cursor() -> void:
 # UI BUILD -- exact InspectionOverlay layout
 # =========================================================================
 func _build_ui() -> void:
-	# -- Dark background --
-	var bg := ColorRect.new()
-	bg.color = C_BG
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
+	# -- Root background (Control parent -- all children go here, matching
+	#    InspectionOverlay's bg-child architecture so TextureRect renders) --
+	_bg = ColorRect.new()
+	(_bg as ColorRect).color = C_BG
+	_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_bg.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(_bg)
 
 	# -- Header bar --
 	var hdr_bg := ColorRect.new()
 	hdr_bg.color    = C_HEADER_BG
 	hdr_bg.size     = Vector2(VP_W, HEADER_H)
 	hdr_bg.position = Vector2.ZERO
-	add_child(hdr_bg)
+	_bg.add_child(hdr_bg)
 
 	# Left label: mode
 	var hdr_left := Label.new()
@@ -142,7 +155,7 @@ func _build_ui() -> void:
 	hdr_left.add_theme_font_size_override("font_size", 6)
 	hdr_left.add_theme_color_override("font_color", C_ACCENT)
 	hdr_left.position = Vector2(4, 4)
-	add_child(hdr_left)
+	_bg.add_child(hdr_left)
 
 	# Right label: "Frame N / total  Side A"
 	_header_lbl = Label.new()
@@ -152,27 +165,27 @@ func _build_ui() -> void:
 	_header_lbl.position = Vector2(130, 4)
 	_header_lbl.size = Vector2(170, 12)
 	_header_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	add_child(_header_lbl)
+	_bg.add_child(_header_lbl)
 
 	# Header divider (same as InspectionOverlay h_div)
 	var h_div := ColorRect.new()
 	h_div.color    = C_BORDER
 	h_div.size     = Vector2(VP_W, 1)
 	h_div.position = Vector2(0, HEADER_H - 1)
-	add_child(h_div)
+	_bg.add_child(h_div)
 
 	# -- Stats panel (right 40 px, same as InspectionOverlay) --
 	var stats_bg := ColorRect.new()
 	stats_bg.color    = C_STATS_BG
 	stats_bg.size     = Vector2(STATS_W, GRID_H)
 	stats_bg.position = Vector2(GRID_W, HEADER_H)
-	add_child(stats_bg)
+	_bg.add_child(stats_bg)
 
 	var stats_div := ColorRect.new()
 	stats_div.color    = C_BORDER
 	stats_div.size     = Vector2(1, GRID_H)
 	stats_div.position = Vector2(GRID_W, HEADER_H)
-	add_child(stats_div)
+	_bg.add_child(stats_div)
 
 	# Stats content
 	var sy: int = HEADER_H + 3
@@ -192,7 +205,7 @@ func _build_ui() -> void:
 	var cell_y: int = y_off + FRAME_BAR_T
 
 	# Top bar
-	_crect(C_WOOD, 0, y_off, GRID_W, FRAME_BAR_T)
+	_crect(C_WOOD,    0, y_off, GRID_W, FRAME_BAR_T)
 	_crect(C_WOOD_HI, 0, y_off, GRID_W, 1)           # highlight top edge
 	_crect(C_WOOD_SH, 0, cell_y - 1, GRID_W, 1)      # shadow bottom edge
 
@@ -207,7 +220,7 @@ func _build_ui() -> void:
 	_crect(C_WOOD_HI, 0, bot_y, GRID_W, 1)
 
 	# Left side bar
-	_crect(C_WOOD,    0,            cell_y, FRAME_BAR_L, EFF_CELL_H)
+	_crect(C_WOOD,         0,            cell_y, FRAME_BAR_L, EFF_CELL_H)
 	_crect(C_WOOD_HI, FRAME_BAR_L - 1, cell_y, 1, EFF_CELL_H)
 
 	# Right side bar
@@ -222,7 +235,8 @@ func _build_ui() -> void:
 		var wy: int = cell_y + int((wi + 1) * EFF_CELL_H / 4)
 		_crect(C_WIRE, cell_x, wy, CELL_AREA_W, 1)
 
-	# -- Cell TextureRect -- same spec as InspectionOverlay's _cell_rect --
+	# -- Cell TextureRect (child of _bg -- MUST be a Control grandchild of the
+	#    CanvasLayer, not a direct child, so TextureRect texture renders) --
 	_cell_rect = TextureRect.new()
 	_cell_rect.position       = Vector2(cell_x, cell_y)
 	_cell_rect.size           = Vector2(CELL_AREA_W, EFF_CELL_H)
@@ -230,7 +244,38 @@ func _build_ui() -> void:
 	_cell_rect.stretch_mode   = TextureRect.STRETCH_SCALE
 	_cell_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_cell_rect.mouse_filter   = Control.MOUSE_FILTER_PASS
-	add_child(_cell_rect)
+	_bg.add_child(_cell_rect)
+
+	# -- Scraper knife brush overlay --
+	# Width = (BRUSH_HALF*2+1) columns scaled to display pixels.
+	# Height = full frame height. Shown while mouse is over the cell area.
+	var brush_col_w: float = float(CELL_AREA_W) / float(F_COLS)
+	var brush_px_w: float  = float(BRUSH_HALF * 2 + 1) * brush_col_w
+
+	_brush_rect = ColorRect.new()
+	_brush_rect.color    = C_BRUSH
+	_brush_rect.size     = Vector2(brush_px_w, EFF_CELL_H)
+	_brush_rect.position = Vector2(cell_x, cell_y)
+	_brush_rect.visible  = false
+	_brush_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bg.add_child(_brush_rect)
+
+	# Narrow left/right edge lines to suggest the knife blade edge
+	_brush_edge_l = ColorRect.new()
+	_brush_edge_l.color    = C_BRUSH_EDGE
+	_brush_edge_l.size     = Vector2(1, EFF_CELL_H)
+	_brush_edge_l.position = Vector2(cell_x, cell_y)
+	_brush_edge_l.visible  = false
+	_brush_edge_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bg.add_child(_brush_edge_l)
+
+	_brush_edge_r = ColorRect.new()
+	_brush_edge_r.color    = C_BRUSH_EDGE
+	_brush_edge_r.size     = Vector2(1, EFF_CELL_H)
+	_brush_edge_r.position = Vector2(cell_x + brush_px_w - 1, cell_y)
+	_brush_edge_r.visible  = false
+	_brush_edge_r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bg.add_child(_brush_edge_r)
 
 	# -- Footer --
 	_crect(C_BORDER,    0, VP_H - FOOTER_H, VP_W, 1)
@@ -243,7 +288,7 @@ func _build_ui() -> void:
 	_status_lbl.position = Vector2(2, VP_H - FOOTER_H + 2)
 	_status_lbl.size     = Vector2(VP_W - 4, 8)
 	_status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	add_child(_status_lbl)
+	_bg.add_child(_status_lbl)
 
 	_apply_cursor()
 
@@ -253,7 +298,7 @@ func _crect(col: Color, x: int, y: int, w: int, h: int) -> ColorRect:
 	r.color    = col
 	r.position = Vector2(x, y)
 	r.size     = Vector2(w, h)
-	add_child(r)
+	_bg.add_child(r)
 	return r
 
 func _stat_lbl(text: String, y: int, col: Color = C_TEXT) -> Label:
@@ -263,12 +308,58 @@ func _stat_lbl(text: String, y: int, col: Color = C_TEXT) -> Label:
 	lbl.add_theme_color_override("font_color", col)
 	lbl.position = Vector2(GRID_W + 2, y)
 	lbl.size     = Vector2(STATS_W - 4, 8)
-	add_child(lbl)
+	_bg.add_child(lbl)
 	return lbl
 
 func _header_text() -> String:
 	var side_str: String = "Side A" if _current_side == 0 else "Side B"
 	return "Frame %d / %d  %s" % [frame_index, frame_total, side_str]
+
+# =========================================================================
+# BRUSH VISUAL -- update position/visibility based on mouse position
+# =========================================================================
+func _update_brush(screen_pos: Vector2, col: int) -> void:
+	if _done or _brush_rect == null:
+		return
+	var cell_x: float   = float(FRAME_BAR_L)
+	var cell_y: float   = float(HEADER_H + FRAME_BAR_T)
+	var tr_x: float     = cell_x
+	var tr_y: float     = cell_y
+	var tr_w: float     = float(CELL_AREA_W)
+	var tr_h: float     = float(EFF_CELL_H)
+
+	var lx: float = screen_pos.x - tr_x
+	var ly: float = screen_pos.y - tr_y
+	var inside: bool = lx >= 0.0 and lx < tr_w and ly >= 0.0 and ly < tr_h
+
+	_brush_rect.visible   = inside
+	_brush_edge_l.visible = inside
+	_brush_edge_r.visible = inside
+
+	if not inside:
+		return
+
+	var brush_col_w: float = tr_w / float(F_COLS)
+	var brush_px_w: float  = float(BRUSH_HALF * 2 + 1) * brush_col_w
+
+	# Clamp so brush never extends past the frame edges
+	var left_col: int   = maxi(0, col - BRUSH_HALF)
+	var right_col: int  = mini(F_COLS - 1, col + BRUSH_HALF)
+	var bx: float       = cell_x + float(left_col) * brush_col_w
+	var bw: float       = float(right_col - left_col + 1) * brush_col_w
+
+	_brush_rect.position   = Vector2(bx, cell_y)
+	_brush_rect.size       = Vector2(bw, float(EFF_CELL_H))
+	_brush_edge_l.position = Vector2(bx, cell_y)
+	_brush_edge_r.position = Vector2(bx + bw - 1.0, cell_y)
+
+func _hide_brush() -> void:
+	if _brush_rect:
+		_brush_rect.visible   = false
+	if _brush_edge_l:
+		_brush_edge_l.visible = false
+	if _brush_edge_r:
+		_brush_edge_r.visible = false
 
 # =========================================================================
 # FRAME RENDERING (FrameRenderer, same pipeline as InspectionOverlay)
@@ -307,6 +398,7 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.keycode:
 			KEY_ESCAPE:
+				_hide_brush()
 				_restore_cursor()
 				scraping_cancelled.emit()
 				get_viewport().set_input_as_handled()
@@ -323,8 +415,11 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 
-	if event is InputEventMouseMotion and _scraping:
+	if event is InputEventMouseMotion:
 		_try_scrape(event.position)
+		if not _scraping:
+			# Still update brush on hover even without left-click held
+			_update_brush_from_pos(event.position)
 		get_viewport().set_input_as_handled()
 
 # =========================================================================
@@ -332,6 +427,25 @@ func _input(event: InputEvent) -> void:
 # Maps screen-space mouse position to FrameRenderer cell indices.
 # Same arithmetic as InspectionOverlay tooltip hit-detection.
 # =========================================================================
+func _update_brush_from_pos(screen_pos: Vector2) -> void:
+	var tr_x: float = float(FRAME_BAR_L)
+	var tr_y: float = float(HEADER_H + FRAME_BAR_T)
+	var tr_w: float = float(CELL_AREA_W)
+	var tr_h: float = float(EFF_CELL_H)
+
+	var lx: float = screen_pos.x - tr_x
+	var ly: float = screen_pos.y - tr_y
+	if lx < 0.0 or lx >= tr_w or ly < 0.0 or ly >= tr_h:
+		_hide_brush()
+		return
+
+	var hx: float = lx / tr_w * float(HONEY_W)
+	var hy: float = ly / tr_h * float(HONEY_H)
+	var row: int  = clampi(int(hy / float(HEX_ROW_STEP)), 0, F_ROWS - 1)
+	var x_off: float = float(HEX_ODD_SHIFT) if (row % 2 == 1) else 0.0
+	var col: int  = clampi(int((hx - x_off) / float(HEX_COL_STEP)), 0, F_COLS - 1)
+	_update_brush(screen_pos, col)
+
 func _try_scrape(screen_pos: Vector2) -> void:
 	if frame == null:
 		return
@@ -347,6 +461,7 @@ func _try_scrape(screen_pos: Vector2) -> void:
 	var ly: float = screen_pos.y - tr_y
 
 	if lx < 0.0 or lx >= tr_w or ly < 0.0 or ly >= tr_h:
+		_hide_brush()
 		return
 
 	# Scale local pixel coords up to honeycomb image space
@@ -360,12 +475,16 @@ func _try_scrape(screen_pos: Vector2) -> void:
 	var x_off: float = float(HEX_ODD_SHIFT) if (row % 2 == 1) else 0.0
 	var col: int = clampi(int((hx - x_off) / float(HEX_COL_STEP)), 0, F_COLS - 1)
 
+	# Update brush visual
+	_update_brush(screen_pos, col)
+
 	# Apply brush: BRUSH_HALF columns either side of cursor column
-	for dc in range(-BRUSH_HALF, BRUSH_HALF + 1):
-		var c: int = col + dc
-		if c < 0 or c >= F_COLS:
-			continue
-		_uncap_cell(row, c)
+	if _scraping:
+		for dc in range(-BRUSH_HALF, BRUSH_HALF + 1):
+			var c: int = col + dc
+			if c < 0 or c >= F_COLS:
+				continue
+			_uncap_cell(row, c)
 
 func _uncap_cell(row: int, col: int) -> void:
 	var idx: int = row * F_COLS + col
@@ -409,6 +528,7 @@ func _flip_side() -> void:
 
 func _finish_side() -> void:
 	_done = true
+	_hide_brush()
 	if _status_lbl:
 		_status_lbl.text = "Frame de-capped!"
 	if _progress_lbl:
