@@ -224,17 +224,12 @@ func _on_start() -> void:
 	# Always start in Spring (day 1)
 	GameData.new_game_mode = 0
 	TimeManager.current_day = 1
-	if PlayerData.character_created:
-		_transition_to_game()
-		return
-	var creator_scene: PackedScene = load("res://scenes/ui/CharacterCreator.tscn") as PackedScene
-	if creator_scene == null:
-		push_error("[MainMenu] CharacterCreator.tscn not found")
-		_transition_to_game()
-		return
-	var creator: Node = creator_scene.instantiate()
-	creator.creator_finished.connect(_transition_to_game)
-	get_tree().root.add_child(creator)
+	# Skip character creation -- set defaults and go straight to gameplay
+	if not PlayerData.character_created:
+		PlayerData.player_name = "Beekeeper"
+		PlayerData.backstory_tag = "newcomer"
+		PlayerData.character_created = true
+	_transition_to_game()
 
 func _on_continue() -> void:
 	var sm := get_tree().root.get_node_or_null("SaveManager")

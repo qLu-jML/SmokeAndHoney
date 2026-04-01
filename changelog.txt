@@ -1,3 +1,8 @@
+[2026-03-31 CDT] TWEAK: Skip character creation on new game
+  Start button now bypasses CharacterCreator and goes straight to home_property.
+  Sets default name "Beekeeper", backstory "newcomer" if no character exists.
+  Files changed: scripts/ui/MainMenu.gd
+
 [2026-03-31 CDT] FIX: Crash on ESC exit from interiors (null viewport)
   Root cause: _exit_supply() (and similar) calls change_scene_to_file() which
   frees the node. The next line get_viewport().set_input_as_handled() then
