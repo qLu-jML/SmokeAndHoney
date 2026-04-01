@@ -1006,3 +1006,22 @@
   Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
 
 [2026-03-31 11:47:14 CDT] DOCS: Testing Guide updated to v2. Rewrote Section 1 (Main Menu) to match new MainMenu.gd layout (logo loading, 4-button layout, dark background). Added new Section 21: ESC/Pause Menu covering music volume slider, mute checkbox, bidirectional sync, Resume/Save/Settings/Quit. Updated Quick Controls reference (ESC key). Added row 21 to Test Results Checklist. 77,000 bytes. Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
+
+[2026-03-31 21:19:09 CDT] DOCS: Testing Guide recreated from scratch as v3.
+  Full code audit of all game scripts, GDD, and DevPlan performed before writing.
+  Comprehensive 66,539-byte HTML guide covering all 21 implemented systems:
+  Main Menu (3-button layout, logo loading), Character Creator, Player Movement,
+  HUD, Pause Menu (exit confirmation, music controls), Time/Calendar, Weather,
+  Hive Management, Forage System, Harvest Loop, Inventory, Economy/Merchants,
+  Quest System, NPC/Dialogue, Save/Load, Music/Audio, Notifications, Scene
+  Transitions, Seasonal Content, Keyboard Controls, and Performance.
+  Includes QR code link to feedback form, test results checklist, and
+  GDD gap analysis. Saved to research/reports/Testing_Guide_2026-03-31.html.
+  Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
+
+[2026-03-31 21:23:45 CDT] DOCS: Testing Guide converted to PDF format.
+  Built 21-page styled PDF (56,249 bytes) from HTML source using reportlab.
+  Amber/honey themed: section circles, colored prerequisite/expected/edge-case
+  boxes, controls reference table with alternating rows, test results checklist.
+  Saved to research/reports/Testing_Guide_2026-03-31.pdf alongside HTML version.
+  Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.

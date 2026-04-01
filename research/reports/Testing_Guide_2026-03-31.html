@@ -1,1436 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Smoke & Honey -- Playtester QA Guide</title>
-  <style>
-    :root {
-      --amber-light: #E8A020;
-      --amber-mid:   #C87010;
-      --honey-pale:  #F4CC6E;
-      --wax-white:   #FDF6E3;
-      --ink:         #2C1A0A;
-      --muted:       #7A5C3A;
-      --section-bg:  #FFF8EC;
-      --border:      #D4A050;
-      --warn-bg:     #FFF3CD;
-      --warn-border: #E8B030;
-      --pass-bg:     #EAF4EA;
-      --pass-border: #5A9E5A;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Georgia', serif;
-      background: var(--wax-white);
-      color: var(--ink);
-      line-height: 1.7;
-      padding: 2rem;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-    h1 {
-      font-size: 2.2rem;
-      color: var(--amber-mid);
-      border-bottom: 3px solid var(--amber-light);
-      padding-bottom: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-    .meta {
-      color: var(--muted);
-      font-size: 0.9rem;
-      margin-bottom: 2rem;
-    }
-    h2 {
-      font-size: 1.4rem;
-      color: var(--amber-mid);
-      margin: 2.5rem 0 0.75rem;
-      padding-left: 0.5rem;
-      border-left: 4px solid var(--amber-light);
-    }
-    h3 {
-      font-size: 1.15rem;
-      color: var(--amber-mid);
-      margin: 1.5rem 0 0.75rem;
-    }
-    h4 {
-      font-size: 1rem;
-      color: var(--ink);
-      margin: 1rem 0 0.5rem;
-      font-weight: 600;
-    }
-    p { margin-bottom: 0.9rem; }
-
-    /* Feedback QR Block */
-    .feedback-qr-block {
-      background: var(--section-bg);
-      border: 2px solid var(--amber-light);
-      border-radius: 8px;
-      padding: 1.5rem 2rem;
-      margin-bottom: 2rem;
-    }
-    .feedback-qr-block h2 {
-      margin-top: 0;
-      border: none;
-      padding-left: 0;
-    }
-    .qr-placeholder {
-      background: white;
-      border: 2px dashed var(--border);
-      padding: 2rem;
-      margin: 1.5rem 0;
-      text-align: center;
-      color: var(--muted);
-      font-style: italic;
-      border-radius: 6px;
-      max-width: 300px;
-    }
-    .feedback-link {
-      font-weight: 600;
-      color: var(--amber-mid);
-    }
-
-    /* Quick Controls Reference */
-    .controls-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.9rem;
-      margin-bottom: 2rem;
-    }
-    .controls-table th {
-      background: var(--amber-mid);
-      color: white;
-      padding: 0.6rem 1rem;
-      text-align: left;
-      font-weight: 600;
-    }
-    .controls-table td {
-      padding: 0.5rem 1rem;
-      border-bottom: 1px solid var(--border);
-      background: white;
-    }
-    .controls-table tr:nth-child(even) td {
-      background: var(--section-bg);
-    }
-    .key {
-      font-family: 'Courier New', monospace;
-      background: var(--wax-white);
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-weight: 600;
-      color: var(--amber-mid);
-    }
-
-    /* Section Cards */
-    .section-card {
-      background: var(--section-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-    }
-    .section-card h3 {
-      margin-top: 0;
-    }
-    .section-number {
-      display: inline-block;
-      background: var(--amber-mid);
-      color: white;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      text-align: center;
-      line-height: 28px;
-      font-weight: bold;
-      margin-right: 0.5rem;
-      font-size: 0.9rem;
-    }
-
-    /* Prerequisite Box */
-    .prerequisite {
-      background: #FEF9E7;
-      border-left: 4px solid var(--honey-pale);
-      padding: 1rem;
-      margin: 1rem 0;
-      border-radius: 0 4px 4px 0;
-    }
-    .prerequisite strong {
-      display: block;
-      color: var(--amber-mid);
-      margin-bottom: 0.5rem;
-    }
-
-    /* Step List */
-    .step-list {
-      margin: 1rem 0 1rem 1.5rem;
-    }
-    .step-list li {
-      margin-bottom: 0.7rem;
-      line-height: 1.6;
-    }
-    .step-list strong {
-      color: var(--amber-mid);
-    }
-
-    /* Expected Results Box */
-    .expected-results {
-      background: var(--pass-bg);
-      border-left: 4px solid var(--pass-border);
-      padding: 1rem 1.2rem;
-      margin: 1rem 0;
-      border-radius: 0 4px 4px 0;
-    }
-    .expected-results strong {
-      color: #2E6E2E;
-      display: block;
-      margin-bottom: 0.5rem;
-    }
-
-    /* Edge Cases / Warning Box */
-    .edge-cases {
-      background: var(--warn-bg);
-      border-left: 4px solid var(--warn-border);
-      padding: 1rem 1.2rem;
-      margin: 1rem 0;
-      border-radius: 0 4px 4px 0;
-    }
-    .edge-cases strong {
-      color: #7A5500;
-      display: block;
-      margin-bottom: 0.5rem;
-    }
-    .edge-cases ul {
-      margin: 0.5rem 0 0 1.2rem;
-    }
-    .edge-cases li {
-      margin-bottom: 0.4rem;
-    }
-
-    /* Results Checklist Table */
-    .results-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.9rem;
-      margin: 1.5rem 0;
-    }
-    .results-table th {
-      background: var(--amber-mid);
-      color: white;
-      padding: 0.6rem 1rem;
-      text-align: left;
-      font-weight: 600;
-    }
-    .results-table td {
-      padding: 0.6rem 1rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .results-table tr:nth-child(even) td {
-      background: var(--section-bg);
-    }
-    .checkbox {
-      display: inline-block;
-      width: 24px;
-      height: 24px;
-      border: 2px solid var(--amber-mid);
-      border-radius: 3px;
-      text-align: center;
-      line-height: 20px;
-      cursor: pointer;
-      user-select: none;
-    }
-    .checkbox:hover {
-      background: var(--honey-pale);
-    }
-
-    /* Footer */
-    .footer {
-      text-align: center;
-      color: var(--muted);
-      font-size: 0.85rem;
-      margin-top: 3rem;
-      padding-top: 2rem;
-      border-top: 1px solid var(--border);
-    }
-
-    /* Utility classes */
-    .note {
-      font-size: 0.95rem;
-      color: var(--muted);
-      font-style: italic;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smoke &amp; Honey -- Playtester QA Guide v3</title>
+    <style>
+        :root {
+            --amber-light: #E8A020; --amber-mid: #C87010; --honey-pale: #F4CC6E;
+            --wax-white: #FDF6E3; --ink: #2C1A0A; --muted: #7A5C3A;
+            --section-bg: #FFF8EC; --border: #D4A050; --green-ok: #2D5016;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Georgia', serif; background-color: var(--wax-white); color: var(--ink); line-height: 1.7; padding: 40px 20px; }
+        .container { max-width: 960px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 40px; border-bottom: 3px solid var(--amber-mid); padding-bottom: 30px; }
+        h1 { font-size: 2.4em; color: var(--amber-mid); margin-bottom: 10px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+        h2 { font-size: 1.5em; color: var(--amber-light); margin-top: 40px; margin-bottom: 20px; }
+        .subtitle { font-size: 1.3em; color: var(--muted); font-style: italic; margin-bottom: 8px; }
+        .date { font-size: 0.95em; color: var(--muted); }
+        .feedback-block { background-color: var(--section-bg); border: 3px solid var(--amber-light); border-left: 8px solid var(--amber-mid); border-radius: 8px; padding: 30px; margin-bottom: 40px; text-align: center; }
+        .feedback-block h3 { color: var(--amber-mid); margin-bottom: 15px; font-size: 1.2em; }
+        .feedback-block p { color: var(--ink); margin-bottom: 12px; font-size: 0.95em; }
+        .controls-table { width: 100%; border-collapse: collapse; margin: 30px 0; background-color: var(--wax-white); border: 2px solid var(--border); }
+        .controls-table th { background-color: var(--amber-mid); color: var(--wax-white); padding: 15px; text-align: left; font-weight: bold; border-bottom: 2px solid var(--amber-light); }
+        .controls-table td { padding: 12px 15px; border-bottom: 1px solid var(--border); }
+        .controls-table tr:nth-child(even) { background-color: #FFFAF5; }
+        .controls-table tr:hover { background-color: #FFF5E6; }
+        .controls-table td:first-child { font-weight: bold; color: var(--amber-mid); min-width: 150px; }
+        .section-card { background-color: var(--section-bg); border: 2px solid var(--border); border-left: 8px solid var(--amber-mid); border-radius: 6px; margin-bottom: 30px; padding: 25px; position: relative; }
+        .section-number { position: absolute; top: -15px; left: 20px; background-color: var(--amber-mid); color: var(--wax-white); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1em; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .section-title { color: var(--amber-mid); font-size: 1.3em; margin-top: 5px; margin-bottom: 12px; }
+        .section-desc { color: var(--muted); font-size: 0.95em; margin-bottom: 15px; font-style: italic; }
+        .prerequisites-box { background-color: #F0E8DC; border-left: 4px solid var(--amber-light); padding: 15px; margin-bottom: 20px; border-radius: 4px; }
+        .prerequisites-box strong { color: var(--amber-mid); display: block; margin-bottom: 8px; }
+        .prerequisites-box p { margin: 0; font-size: 0.95em; }
+        .steps-list { margin-bottom: 25px; }
+        .steps-list h4 { color: var(--amber-mid); margin-bottom: 12px; font-size: 1.05em; }
+        .steps-list ol { margin-left: 25px; }
+        .steps-list li { margin-bottom: 10px; line-height: 1.6; font-size: 0.95em; }
+        .steps-list li strong { color: var(--amber-mid); }
+        .nested-list { margin-left: 25px; margin-top: 8px; margin-bottom: 8px; }
+        .nested-list li { margin-bottom: 6px; font-size: 0.92em; }
+        .expected-results { background-color: #E8F5E8; border-left: 4px solid var(--green-ok); padding: 15px; margin-bottom: 15px; border-radius: 4px; }
+        .expected-results strong { color: var(--green-ok); display: block; margin-bottom: 8px; }
+        .expected-results p { margin: 0; font-size: 0.95em; color: var(--ink); }
+        .edge-cases { background-color: #FFF4E6; border-left: 4px solid var(--amber-light); padding: 15px; margin-bottom: 0; border-radius: 4px; }
+        .edge-cases strong { color: var(--amber-mid); display: block; margin-bottom: 8px; }
+        .edge-cases p { margin: 0; font-size: 0.95em; color: var(--ink); }
+        .results-table { width: 100%; border-collapse: collapse; margin: 30px 0; background-color: var(--wax-white); border: 2px solid var(--border); }
+        .results-table th { background-color: var(--amber-mid); color: var(--wax-white); padding: 12px; text-align: left; font-weight: bold; border-bottom: 2px solid var(--amber-light); }
+        .results-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 0.92em; }
+        .results-table tr:nth-child(even) { background-color: #FFFAF5; }
+        .results-table .pass { color: var(--green-ok); font-weight: bold; }
+        .results-table .fail { color: #C41E3A; font-weight: bold; }
+        footer { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 2px solid var(--border); color: var(--muted); font-size: 0.9em; }
+        code { background-color: #F0E8DC; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; color: var(--amber-mid); }
+    </style>
 </head>
 <body>
-
-<h1>Smoke & Honey — Playtester QA Guide</h1>
-<div class="meta">
-  <strong>Date:</strong> March 31, 2026<br>
-  <strong>Version:</strong> v2 (Updated)<br>
-  <strong>Build Target:</strong> Godot 4.6
-</div>
-
-<!-- FEEDBACK FORM QR CODE SECTION -->
-<div class="feedback-qr-block">
-  <h2 style="margin-top:0">Playtester Feedback</h2>
-  <p>After testing, please scan the QR code or visit the link below to submit your feedback:</p>
-  <div class="qr-placeholder">[QR CODE HERE — add image src when form URL is ready]</div>
-  <p><strong class="feedback-link">Feedback Form:</strong> <a href="FEEDBACK_FORM_URL_HERE" target="_blank">FEEDBACK_FORM_URL_HERE</a></p>
-</div>
-
-<!-- QUICK CONTROLS REFERENCE -->
-<h2>Quick Controls Reference</h2>
-<table class="controls-table">
-  <thead>
-    <tr>
-      <th>Action</th>
-      <th>Key(s)</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Movement</td>
-      <td><span class="key">W</span> <span class="key">A</span> <span class="key">S</span> <span class="key">D</span></td>
-      <td>Move in four cardinal directions (8-way facing)</td>
-    </tr>
-    <tr>
-      <td>Run</td>
-      <td><span class="key">Shift</span> + <span class="key">WASD</span></td>
-      <td>Faster movement</td>
-    </tr>
-    <tr>
-      <td>Interact</td>
-      <td><span class="key">E</span></td>
-      <td>Perform context action (pick up, activate, build)</td>
-    </tr>
-    <tr>
-      <td>Hotbar Scroll</td>
-      <td>Mouse Wheel</td>
-      <td>Cycle through hotbar slots</td>
-    </tr>
-    <tr>
-      <td>Hotbar Select</td>
-      <td><span class="key">1</span>–<span class="key">9</span></td>
-      <td>Direct hotbar slot selection</td>
-    </tr>
-    <tr>
-      <td>Till Mode</td>
-      <td><span class="key">T</span></td>
-      <td>Toggle tilling mode (shows label above player)</td>
-    </tr>
-    <tr>
-      <td>Plant Mode</td>
-      <td><span class="key">F</span></td>
-      <td>Toggle planting mode</td>
-    </tr>
-    <tr>
-      <td>Rotate Boxes</td>
-      <td><span class="key">R</span></td>
-      <td>Rotate placed boxes/structures</td>
-    </tr>
-    <tr>
-      <td>Sleep / Advance Day</td>
-      <td><span class="key">Z</span></td>
-      <td>Sleep to save and advance to next day</td>
-    </tr>
-    <tr>
-      <td>Info Panel</td>
-      <td><span class="key">Tab</span></td>
-      <td>Toggle detailed HUD info panel overlay</td>
-    </tr>
-    <tr>
-      <td>Map Overlay</td>
-      <td><span class="key">M</span></td>
-      <td>Open map with POI markers</td>
-    </tr>
-    <tr>
-      <td>Dev Mode</td>
-      <td><span class="key">G</span></td>
-      <td>Toggle developer panel and debug info</td>
-    </tr>
-    <tr>
-      <td>Pause Menu</td>
-      <td><span class="key">Esc</span> or <span class="key">P</span></td>
-      <td>Open pause/settings menu (gameplay); Quit (main menu)</td>
-    </tr>
-    <tr>
-      <td>Mark Frame Harvest</td>
-      <td><span class="key">H</span></td>
-      <td>During inspection: mark/unmark frame for harvest</td>
-    </tr>
-    <tr>
-      <td>Mark Super Harvest</td>
-      <td><span class="key">Shift</span> + <span class="key">H</span></td>
-      <td>During inspection: mark/unmark entire super</td>
-    </tr>
-  </tbody>
-</table>
-
----
-
-<!-- TEST SECTIONS BEGIN -->
-
-<div class="section-card">
-  <h3><span class="section-number">1</span>Main Menu & Start Modes</h3>
-  <p><strong>What it is:</strong> The newly rewritten title screen and game mode selection. The menu features a centered logo, four main action buttons, music playback, and fade-in animation. Players choose between starting in Spring (Day 1) or Fall (Day 113, with 2 filled supers), continuing an existing save, or quitting.</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    Launch the game from Godot or executable (project.godot MainMenu scene). Start on a clean save (no existing save file) to test disabled Continue button.
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li>Launch game — verify <strong>MainMenu scene (res://scenes/ui/MainMenu.tscn) loads</strong></li>
-    <li>Verify dark warm background with subtle center glow displays (no hex dot pattern)</li>
-    <li>Verify <strong>game logo (game_logo.png) appears prominently centered</strong> in upper portion (160x80 viewport pixels)</li>
-    <li>Verify logo loads dynamically via <strong>Image.load_from_file()</strong> (not from Godot import cache)</li>
-    <li>Verify <strong>four buttons are vertically centered</strong> below logo:
-      <ul style="margin-left: 2rem; margin-top: 0.5rem;">
-        <li><span class="key">Start in Spring</span> (green accent) — Day 1, Quickening, standard new game</li>
-        <li><span class="key">Start in Fall | 2 Full Supers</span> (orange accent) — Day 113, Full-Earth, A-grade colony</li>
-        <li><span class="key">Continue</span> (amber) — should be greyed/disabled if no save file exists</li>
-        <li><span class="key">Quit</span> (muted color)</li>
-      </ul>
-    </li>
-    <li>Verify <strong>thin amber decorative dividers</strong> above and below button group</li>
-    <li>Verify <strong>version line at bottom</strong>: "v0.1 dev -- Cedar Bend, Iowa"</li>
-    <li>Verify <strong>fade-in animation plays on load</strong> (0.8 seconds)</li>
-    <li>Verify <strong>main theme music plays</strong> via MusicManager.play_title_theme() (mainTheme.mp3)</li>
-    <li>Press <strong>ESC key — verify game quits cleanly</strong> from main menu</li>
-    <li>Click <strong>"Start in Spring"</strong> — character creator should load, verify Day 1, Quickening season</li>
-    <li>Sleep (Z key) to return to menu, click <strong>"Start in Fall | 2 Full Supers"</strong></li>
-    <li>Confirm character — verify spawn on home property, <strong>Day 113, Full-Earth season, A-grade colony with 2 filled/capped supers</strong></li>
-    <li>Create another save, then sleep to return to menu</li>
-    <li>Verify <strong>"Continue" button is now active (not greyed)</strong> and loads the most recent save (correct day/inventory/money)</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    Logo displays correctly, all four buttons visible and properly spaced, music plays without stutter. Spring/Fall start modes create correct initial states. Continue button is greyed when no save exists, active when save exists. ESC key quits cleanly. Fade-in animation smooth. Version text displays correctly.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Verify logo file path is correct and image loads without file-not-found errors</li>
-      <li>Check image loading via Image.load_from_file() works and doesn't crash on missing file</li>
-      <li>Verify Continue button enable/disable state matches save file existence</li>
-      <li>Test rapid button clicks — ensure no duplicate scene loads</li>
-      <li>Verify music transitions smoothly (no stutter at fade-in end)</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">2</span>Character Creator</h3>
-  <p><strong>What it is:</strong> Pre-game customization screen where players set name, pronouns, and backstory. Data persists through save/load.</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    Complete main menu (New Game selected, not Continue).
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li><strong>Name input:</strong> Type a name using keyboard (e.g., "Alex", "Jordan") — verify text appears and is stored</li>
-    <li><strong>Pronouns:</strong> Press <span class="key">A</span> / <span class="key">D</span> to cycle through options (She/Her, He/Him, They/Them) — verify selection changes</li>
-    <li><strong>Backstory:</strong> Press <span class="key">A</span> / <span class="key">D</span> to cycle through backstory options — verify text updates</li>
-    <li>Verify all fields display current selections clearly</li>
-    <li>Press <span class="key">E</span> to confirm and start game</li>
-    <li>After gameplay, sleep (Z key) to save, quit to menu, then Continue</li>
-    <li>Verify <strong>PlayerData persists:</strong> name, pronouns, and backstory are unchanged</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    Character creator accepts input, cycles through options smoothly, and stores all data in PlayerData. Loading a save restores the exact same character.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test with special characters in name (numbers, hyphens, spaces)</li>
-      <li>Verify backstory text doesn't truncate on screen</li>
-      <li>Confirm E key doesn't get stuck if pressed multiple times rapidly</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">3</span>Player Movement & Controls</h3>
-  <p><strong>What it is:</strong> Core player locomotion and input handling. Includes 4-directional movement, running, interactions, hotbar switching, and mode toggles.</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    In-game on home property (any season/day). Player should be able to move freely.
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li><strong>WASD movement:</strong> Press each key individually — verify player moves in correct direction (W=up, A=left, S=down, D=right) at normal speed</li>
-    <li><strong>8-way facing:</strong> Hold W+D (diagonal) — verify player faces NE direction and moves diagonally</li>
-    <li><strong>Running:</strong> Hold <span class="key">Shift</span> + <span class="key">W</span> — verify player moves faster than normal</li>
-    <li><strong>Interact (E key):</strong> Stand near a chest or hive and press <span class="key">E</span> — verify interaction occurs (chest opens, etc.)</li>
-    <li><strong>Hotbar scroll:</strong> Hold an item in hotbar, use mouse wheel up/down — verify selection cycles through slots</li>
-    <li><strong>Hotbar direct select:</strong> Press <span class="key">1</span>, <span class="key">2</span>, <span class="key">3</span>, etc. — verify hotbar slot changes</li>
-    <li><strong>Till mode:</strong> Press <span class="key">T</span> — verify label appears above player (e.g., "[Till Mode]"), press again to toggle off</li>
-    <li><strong>Plant mode:</strong> Press <span class="key">F</span> — verify label appears, press again to toggle off</li>
-    <li><strong>Rotate:</strong> With a placeable item selected, press <span class="key">R</span> — verify rotation indicator or behavior (if applicable)</li>
-    <li><strong>Sleep:</strong> Press <span class="key">Z</span> — verify day advances, game saves, and player wakes next morning</li>
-    <li><strong>Info panel:</strong> Press <span class="key">Tab</span> — verify detailed info overlay appears, press again to hide</li>
-    <li><strong>Map:</strong> Press <span class="key">M</span> — verify map overlay opens with POI markers</li>
-    <li><strong>Dev mode:</strong> Press <span class="key">G</span> — verify dev panel appears at bottom (if enabled), press again to hide</li>
-    <li><strong>Pause menu:</strong> Press <span class="key">Esc</span> or <span class="key">P</span> — verify pause overlay opens, press again to resume</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    All keys respond immediately and accurately. Movement is smooth and responsive. Mode toggles (till, plant, dev) clearly indicate active state. No input lag or double-firing.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test key mashing (rapid presses) — ensure no input queue/buffer issues</li>
-      <li>Test moving off-screen edge — verify scene doesn't scroll or crash</li>
-      <li>Test interaction while moving (press E while holding WASD) — should prioritize interaction</li>
-      <li>Verify hotbar number keys (1-9) don't conflict with other UI</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">4</span>HUD (Heads-Up Display)</h3>
-  <p><strong>What it is:</strong> The persistent on-screen information display, including time, resources, stats, and status indicators.</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    In-game on home property. Be awake (not in a menu).
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li><strong>Top bar:</strong> Verify visible at top of screen with season icon, month name (e.g., "March"), day number, and time of day</li>
-    <li><strong>Weather label:</strong> Check displays current weather (e.g., "Clear", "Rainy", "Cold"). Change weather via Dev Mode (G) and verify label updates</li>
-    <li><strong>Money display:</strong> Note starting money amount, make a purchase or sale, verify money updates in HUD</li>
-    <li><strong>Energy bar:</strong> Perform actions (chop tree, inspect hive) — verify bar drains with each action, then refills on sleep (Z)</li>
-    <li><strong>Level + XP bar:</strong> Perform XP-granting actions (complete quest, harvest) — verify bar fills gradually, level increases on full bar</li>
-    <li><strong>Community Standing:</strong> Verify label shows current standing (starts at "Stranger"), interact with NPCs to change standing and confirm label updates</li>
-    <li><strong>Hotbar:</strong> Select various items using number keys (1-9) — verify hotbar highlights correct slot and shows item count</li>
-    <li><strong>Active item label:</strong> Verify currently selected item name displays (e.g., "[Hive Stand]")</li>
-    <li><strong>SMOKED indicator:</strong> Use smoker on hive, verify orange "[SMOKED]" label appears in HUD (disappears after inspection)</li>
-    <li><strong>Tab info panel:</strong> Press <span class="key">Tab</span> — verify detailed stats panel expands, showing full resource/time/standing info, press again to collapse</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    All HUD elements present and updating correctly in real-time. Indicators change immediately upon action. Tab overlay provides detailed info without lag.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test with very long player names — verify HUD text doesn't overflow or clip</li>
-      <li>Test extreme values (e.g., $999999 money, Level 99) — ensure no display glitches</li>
-      <li>Verify Tab overlay doesn't block critical game elements</li>
-      <li>Check SMOKED indicator disappears immediately after inspection closes</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">5</span>Time & Calendar System</h3>
-  <p><strong>What it is:</strong> In-game day/season progression and calendar transitions. Includes day advance on sleep and seasonal music/banner changes.</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    In-game on home property. Enough energy to sleep (Z key).
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li>Note current day number in HUD</li>
-    <li>Sleep (press <span class="key">Z</span>) — verify day increments by 1</li>
-    <li>Sleep multiple times (5+ days) — verify days increment correctly, no skipping</li>
-    <li>Advance to end of season (e.g., Day 30 in Spring) — sleep to transition</li>
-    <li>Verify <strong>season transition banner appears</strong> (color-themed, fades in/holds/fades out) and season changes in HUD</li>
-    <li>Verify <strong>seasonal music changes</strong> to match new season</li>
-    <li>Enable Dev Mode (<span class="key">G</span>) and use <strong>"Advance Day" button</strong> — verify single day skips</li>
-    <li>Use <strong>"Advance Month" button</strong> — verify entire month skips (no lag/freeze)</li>
-    <li>Sleep to save and quit; verify on reload that current day/season persists correctly</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    Days increment smoothly on sleep. Seasons transition at correct boundaries with banner fanfare and music change. Dev buttons work reliably. Calendar persists through save/load.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test season transition on edge days (Day 29/30) — ensure no off-by-one errors</li>
-      <li>Watch for season banner getting stuck on screen</li>
-      <li>Verify music crossfade doesn't create silence gaps</li>
-      <li>Test Advance Month near season boundary — ensure clean transition</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">6</span>Weather System</h3>
-  <p><strong>What it is:</strong> Dynamic weather states (Clear, Cloudy, Rainy, Cold) that affect gameplay, particularly hive inspection.</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    In-game with a hive that is ready for inspection (colony installed, past 7-day lockout). Dev Mode enabled (G) to control weather.
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li>Observe current weather in HUD and Dev panel</li>
-    <li>Use Dev Mode to set weather to <strong>"Rainy"</strong></li>
-    <li>Attempt to inspect hive (select hive tool or E near hive) — verify <strong>toast appears:</strong> "Too wet to open hives -- wait for dry weather!"</li>
-    <li>Verify inspection does NOT proceed, hive remains closed</li>
-    <li>Change weather to <strong>"Cold"</strong> via Dev Mode</li>
-    <li>Attempt to inspect — verify <strong>toast appears:</strong> "Too cold to inspect -- bees are clustered!"</li>
-    <li>Verify inspection blocked, hive closed</li>
-    <li>Change weather to <strong>"Clear"</strong> or <strong>"Cloudy"</strong></li>
-    <li>Attempt to inspect — verify <strong>inspection proceeds normally</strong>, no toast warning</li>
-    <li>Sleep to save, quit to menu, continue game — verify weather state persists</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    Rainy/Cold weather blocks inspection with appropriate toast messages. Clear/Cloudy weather allows normal inspection. Weather persists through save/load.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test rapid weather changes (Dev Mode) — ensure toast doesn't stack</li>
-      <li>Verify toast message disappears after 2-3 seconds (not permanent)</li>
-      <li>Check that other activities (harvesting, moving, trading) are not blocked by Rainy/Cold</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">7</span>Hive Building (Step-by-Step)</h3>
-  <p><strong>What it is:</strong> The complete process of constructing a hive from raw components (stand, body, frames, lid) and installing a package of bees.</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    Start in Spring mode. Home property visible. Storage chest contains: Hive Stand, Deep Body, Frames (10 required), Lid, Package Bees.
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li><strong>Open chest:</strong> Stand near storage chest and press <span class="key">E</span> — verify chest opens, shows inventory</li>
-    <li><strong>Take Hive Stand:</strong> Select Hive Stand from chest, add to hotbar</li>
-    <li><strong>Place stand:</strong> Stand on open ground, select Hive Stand in hotbar, press <span class="key">E</span> — verify Hive Stand placed, grid overlay shows valid placement</li>
-    <li><strong>Take Deep Body:</strong> Return to chest, take Deep Body to hotbar</li>
-    <li><strong>Place body:</strong> Select Deep Body, stand on/near stand, press <span class="key">E</span> — verify Deep Body stacks on stand</li>
-    <li><strong>Take Frames:</strong> Return to chest, take Frames to hotbar</li>
-    <li><strong>Load frames:</strong> Stand at hive, select Frames, press <span class="key">E</span> repeatedly — each press adds one frame (count in HUD/info panel). Continue until <strong>10 frames loaded</strong></li>
-    <li><strong>Take Lid:</strong> Return to chest, take Lid to hotbar</li>
-    <li><strong>Place lid:</strong> Select Lid, stand at hive, press <span class="key">E</span> — verify hive structure now complete (model updates, hive now shows "Unlocked" state)</li>
-    <li><strong>Take Package Bees:</strong> Return to chest, take Package Bees to hotbar</li>
-    <li><strong>Install bees:</strong> Select Package Bees, stand at hive, press <span class="key">E</span> — verify package installed, hive switches to "Establishing..." state, <strong>7-day lockout begins</strong></li>
-    <li><strong>Verify lockout:</strong> Attempt to inspect hive (press <span class="key">E</span> near hive) — verify message shows "Establishing... Xd" (X = days remaining)</li>
-    <li>Sleep (Z) 7 times — each day, remaining count decrements. After 7 days, verify count is 0 and hive can be inspected normally</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    Each building step succeeds in correct sequence. Grid overlay validates placement. Hive structure updates visually. Package install triggers 7-day lockout with countdown. On day 8, lockout ends and inspection is possible.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test placing stand on invalid ground (water, tree) — should show "invalid placement" and not place</li>
-      <li>Test loading more than 10 frames — should reject or cap at 10</li>
-      <li>Test building without all components (e.g., missing frames) — lid should not place on incomplete hive</li>
-      <li>Test moving/rotating hive after partial build — should either lock parts together or prevent movement</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">8</span>Hive Management Panel</h3>
-  <p><strong>What it is:</strong> In-game UI for managing hive structure: adding super boxes, queen excluders, and removing supers.</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    Have a complete, inspectable hive with colony installed (past 7-day lockout). Must NOT be in Rainy/Cold weather.
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li><strong>Open panel (no item):</strong> Stand near hive, deselect all hotbar items (click empty slot or press unused number key), press <span class="key">E</span> — verify Hive Management panel opens</li>
-    <li><strong>Open panel (hive tool):</strong> Select a hive inspection tool (if available), press <span class="key">E</span> — verify same panel opens</li>
-    <li>Verify panel shows current hive state (e.g., "Deep Body: 1", "Supers: 0", "Queen Excluder: No")</li>
-    <li><strong>Add super:</strong> From panel (or select Super Box in hotbar first), choose "Add Super" — verify Super Box added, hive model updates visually</li>
-    <li><strong>Add queen excluder:</strong> Choose "Add Queen Excluder" from panel — verify item added, panel updates</li>
-    <li><strong>Add another super:</strong> Choose "Add Super" again — verify second super stacks on hive</li>
-    <li><strong>Remove super:</strong> Choose "Remove Super" from panel — verify top super is removed, hive model updates</li>
-    <li><strong>Winter warning:</strong> If in Fall season, remove a super that has < 60 lbs honey stores — verify warning toast appears: "Warning: Hive may not have sufficient winter stores!"</li>
-    <li>Close panel (<span class="key">ESC</span>) — verify it closes and player can move/interact freely</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    Panel opens and closes cleanly. Adding/removing supers updates hive visually and in stats. Winter warning triggers appropriately in Fall. No crashes or state inconsistencies.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test removing all supers — hive should stay functional</li>
-      <li>Test adding 5+ supers — verify no visual glitching or slowdown</li>
-      <li>Test opening panel while moving — panel should take priority and stop movement input</li>
-      <li>Test clicking outside panel bounds — should close panel</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">9</span>Hive Inspection</h3>
-  <p><strong>What it is:</strong> The primary gameplay loop. Opens an overlay to view individual frames, check bee health, and mark frames for harvest. Includes sting mechanics and bee suit/smoker reductions.</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    Hive with colony installed and past 7-day lockout. Clear or Cloudy weather (not Rainy or Cold). Player has energy > 0. Optional: Bee suit in inventory, smoker in hotbar.
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li><strong>Select hive tool:</strong> Equip hive tool (or no item) in hotbar</li>
-    <li><strong>Open inspection:</strong> Stand near hive, press <span class="key">E</span> — verify InspectionOverlay opens (costs energy, verify energy bar decreases by appropriate amount)</li>
-    <li><strong>Navigate frames:</strong> Press left/right arrow keys — verify you move between frames (frame 1, 2, 3, etc.)</li>
-    <li><strong>View super:</strong> If hive has multiple supers, press up/down arrows — verify you navigate between supers</li>
-    <li><strong>Frame stats:</strong> Verify stats panel on right updates as frames are viewed (shows bee count, pollen, honey, capped brood, etc.). Stats should accumulate/progress as you move</li>
-    <li><strong>Mark frame:</strong> While viewing a frame, press <span class="key">H</span> — verify frame is marked for harvest (indicator appears: checkmark, highlight, or label)</li>
-    <li><strong>Unmark frame:</strong> Press <span class="key">H</span> again on marked frame — verify it's unmarked</li>
-    <li><strong>Mark super:</strong> Press <span class="key">Shift</span> + <span class="key">H</span> — verify entire super is marked (all frames in super show harvest indicator)</li>
-    <li><strong>Sting roll (no protection):</strong> Close inspection and open it again. Repeat 5 times. Count how many times you get stung (toast: "Ouch! You got stung! (-X energy)"). Average should be ~25% (1-2 stings per 5 inspections)</li>
-    <li><strong>Equip bee suit:</strong> Add bee suit to inventory (from chest or purchase from shop)</li>
-    <li><strong>Sting roll (with suit):</strong> Open inspection 5 times while wearing bee suit. Verify stings are much rarer (expected ~10% instead of 25%)</li>
-    <li><strong>Smoker protection:</strong> Take smoker to hotbar, stand near hive, press <span class="key">E</span> with smoker selected — verify puff animation/toast, "[SMOKED]" label appears. Open inspection immediately — verify stings very rare (expected <5%)</li>
-    <li><strong>Daily quest:</strong> Open inspection for the first time that in-game day — verify "daily_inspection" quest completes (notification/reward)</li>
-    <li><strong>Close inspection:</strong> Press <span class="key">ESC</span> — verify overlay closes, player can move again</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    Inspection opens and closes smoothly. Frame navigation works. Stats display correctly. Marking/unmarking works reliably. Sting chances match expected percentages (25% base, x0.3 with suit, x0.2 with smoke). Daily quest fires once per day. No crashes or stat display errors.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test opening inspection with 0 energy — should either block or warn before opening</li>
-      <li>Test sting chance with BOTH suit and smoker — should stack multiplicatively (25% * 0.3 * 0.2 = 1.5%)</li>
-      <li>Test marking frames, then leaving hive and returning — marked frames should persist</li>
-      <li>Test rapid ESC presses — panel should close cleanly on first press</li>
-      <li>Test with hive that has 3+ supers — verify navigation is smooth, no index errors</li>
-      <li>Test smoker effect — it should reset after inspection (SMOKED indicator disappears), requiring re-puff if inspecting again</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">10</span>Smoker & Bee Suit</h3>
-  <p><strong>What it is:</strong> Equipment items that reduce sting chance during inspection. Smoker must be used before each inspection; bee suit is passive/persistent.</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    Have or purchase from Feed & Supply: Smoker ($25), Bee Suit ($45). Have a hive ready for inspection.
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li><strong>Obtain smoker:</strong> Buy from Feed & Supply or take from chest — verify it appears in inventory</li>
-    <li><strong>Equip smoker:</strong> Add smoker to hotbar (number key 1-9)</li>
-    <li><strong>Use smoker:</strong> Stand near hive, select smoker, press <span class="key">E</span> — verify puff animation/sound, toast appears (e.g., "Bees calmed!"), "[SMOKED]" label appears in HUD</li>
-    <li><strong>Check HUD:</strong> Verify orange "[SMOKED]" indicator visible in HUD</li>
-    <li><strong>Inspect with smoke:</strong> Open hive inspection immediately (within same frame) — verify sting chance greatly reduced</li>
-    <li><strong>Close inspection:</strong> After inspection closes, verify "[SMOKED]" indicator disappears from HUD</li>
-    <li><strong>Re-inspect without re-smoking:</strong> Open inspection again — verify smoker effect is gone (stings return to normal 25% chance)</li>
-    <li><strong>Obtain bee suit:</strong> Buy from Feed & Supply or take from chest</li>
-    <li><strong>Equip bee suit:</strong> Bee suit should be automatically equipped when in inventory (or select from menu) — verify it appears as worn item in inventory/status</li>
-    <li><strong>Inspect with suit:</strong> Open hive inspection while wearing suit, no smoker — verify sting chance reduced (expected ~10%)</li>
-    <li><strong>Inspect with suit + smoke:</strong> Use smoker, then inspect while wearing suit — verify sting chance very low (expected ~1-2%)</li>
-    <li><strong>Remove suit:</strong> Drop suit from inventory or unequip — verify sting chance returns to ~25% on next inspection</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    Smoker provides temporary protection (one inspection per use). Bee suit provides persistent protection while equipped. Both stack multiplicatively. HUD clearly indicates SMOKED status, which clears after inspection. Equipment purchases deduct money correctly.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test using smoker multiple times in a row — verify no duplicate SMOKED status</li>
-      <li>Test opening inspection then using smoker (should be too late) — verify protection doesn't apply retroactively</li>
-      <li>Test bee suit in other activities (tree chopping, harvesting) — should not affect those (sting mechanics only apply to inspection)</li>
-      <li>Test dropping bee suit during inspection — suit protection should persist for that inspection, not carry to next</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">11</span>Harvest Yard (Full Pipeline)</h3>
-  <p><strong>What it is:</strong> End-game honey production facility with 5 stations: super pallet, scraping, extractor, and bottling. Converts marked frames into bottled honey and beeswax.</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    Hive with at least one super that has capped honey. Frames in that super marked for harvest (H key during inspection). Location: East of home property (~x=480, y=350). Clear weather or safe to work outside.
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li><strong>Travel to Harvest Yard:</strong> Exit home property east — verify you enter Harvest Yard area and see 5 station structures</li>
-    <li><strong>Super pallet station:</strong> Select full super from hotbar (take from hive management), walk to Super Pallet, press <span class="key">E</span> — verify super deposits on pallet, inventory updates</li>
-    <li><strong>Scraping station:</strong> Approach scraping station, press <span class="key">E</span> — verify scraping minigame opens (24x14 hex grid)</li>
-    <li><strong>Scrape Side A:</strong> Click+drag mouse over cells (3-cell brush) to uncap them. Uncap ~70% of cells — verify progress bar fills</li>
-    <li><strong>Side A complete:</strong> When enough cells uncapped, verify frame flips automatically to Side B</li>
-    <li><strong>Scrape Side B:</strong> Repeat uncapping on back side. When complete, verify frame moves to "Scraped Frame Pallet"</li>
-    <li><strong>Scraped pallet:</strong> Approach scraped pallet, press <span class="key">E</span> — verify scraped frames can be collected (added to inventory)</li>
-    <li><strong>Extractor station:</strong> With scraped frame, press <span class="key">E</span> at extractor — verify extractor minigame opens (vertical speed gauge)</li>
-    <li><strong>Extractor effort:</strong> Press <span class="key">E</span> repeatedly to keep speed gauge above 60% (red threshold). Sustain for ~20 seconds — gauge should show green (progress), red (falling behind)</li>
-    <li><strong>Extractor complete:</strong> When timer reaches 0, verify frame processing complete. Beeswax should accumulate in inventory (~0.735 lbs/frame)</li>
-    <li><strong>Honey bucket:</strong> Approach bottling table/honey bucket, press <span class="key">E</span> — verify honey gate toggles, honey starts flowing into jar</li>
-    <li><strong>Fill jar:</strong> Watch jar fill visually (should take ~10 seconds at 0.6/sec flow rate). When full, verify auto-stops filling</li>
-    <li><strong>Stack jars:</strong> Continue collecting honey — up to 40 jars should stack visibly on table</li>
-    <li><strong>Collect jars:</strong> Press <span class="key">E</span> to collect — verify jars added to inventory</li>
-    <li><strong>Return to home:</strong> Travel back west — verify all collected honey and beeswax persist in inventory</li>
-    <li><strong>Winter warning (Fall):</strong> In Fall season, if removing a super with < 60 lbs stores, verify warning toast appears during step 2</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    All 5 stations function smoothly in sequence. Scraping minigame is playable and gives visual feedback. Extractor requires sustained effort. Bottling visual effect is smooth. Final inventory shows honey jars + beeswax. No crashes or soft-locks.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test scraping with very fast clicking — ensure grid doesn't glitch or allow uncapping outside grid</li>
-      <li>Test extractor with minimum effort — gauge should drop into red zone, progress slow</li>
-      <li>Test leaving extractor mid-minigame (ESC) — should either cancel or auto-complete partial work</li>
-      <li>Test collecting from honey bucket when empty — should show "empty" message or not allow collection</li>
-      <li>Test with unmarked frames (didn't mark with H) — should either show warning or not appear in harvest yard</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">12</span>Saturday Market (Cedar Bend)</h3>
-  <p><strong>What it is:</strong> Weekly trading post where player sells honey jars to NPC Frank. Available only on Saturdays, non-Winter. Price scales with Community Standing.</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    Have honey jars in inventory. Advance game to a Saturday (use Dev Mode to confirm day of week or sleep until Saturday). Season must NOT be Winter (Cold). Travel to Cedar Bend (east exit from home property).
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li><strong>Check day:</strong> Open info panel (Tab) or use Dev Mode (G) to confirm it's Saturday and not Winter</li>
-    <li><strong>Travel to Cedar Bend:</strong> Exit home property east, then continue east to Cedar Bend</li>
-    <li><strong>Market overlay:</strong> Verify market overlay is visible (Frank NPC present, market stalls visible)</li>
-    <li><strong>Approach Frank:</strong> Walk near Frank, press <span class="key">E</span> — verify Sell Screen opens</li>
-    <li><strong>Verify greeting:</strong> Screen should show: "Hey [player_name], I'll pay $X/jar!" with your character name from character creator</li>
-    <li><strong>Verify price:</strong> Check displayed price matches your Community Standing multiplier:
-      <ul style="margin-left: 2rem; margin-top: 0.5rem;">
-        <li>Stranger (1.0x): $10/jar</li>
-        <li>Neighbor (1.05x): $10.50/jar</li>
-        <li>Known (1.10x): $11/jar</li>
-        <li>Trusted (1.15x): $11.50/jar</li>
-        <li>Respected (1.20x): $12/jar</li>
-      </ul>
-    </li>
-    <li><strong>Sell jars:</strong> Choose "Sell all" or set quantity — verify jars removed from inventory, money added to HUD</li>
-    <li><strong>Community Standing:</strong> Verify Community Standing increases by +3 after transaction</li>
-    <li><strong>Daily quest:</strong> Verify "daily_market" quest completes (reward notification)</li>
-    <li><strong>Non-Saturday test:</strong> Advance to a weekday (sleep using Dev Mode), return to Cedar Bend — verify market overlay is NOT visible, Frank absent</li>
-    <li><strong>Winter test:</strong> Advance to Winter season, return to Cedar Bend on Saturday — verify market overlay is NOT visible</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    Market only appears on Saturdays outside Winter. Frank greets player by name. Price scales correctly with Standing. Sales complete cleanly. Quest fires once per day. Standing increases post-sale. No crashes or display errors.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test selling with 0 jars — screen should handle gracefully (show "no items" or be greyed out)</li>
-      <li>Test selling on late Friday, advancing to Saturday at dawn — verify market appears correctly</li>
-      <li>Test with extremely high jar count (100+) — verify quantity math is correct, no overflow</li>
-      <li>Test Community Standing display after reaching "Respected" — ensure it doesn't overflow or show glitches</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">13</span>Feed & Supply Shop</h3>
-  <p><strong>What it is:</strong> In-game shop in Cedar Bend where player buys tools and supplies (smoker, bee suit, seeds, etc.).</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    Travel to Cedar Bend, enter the shop building. Have money in inventory.
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li><strong>Enter shop:</strong> Walk to shop building in Cedar Bend, press <span class="key">E</span> at door — verify shop screen opens with item list</li>
-    <li><strong>Browse items:</strong> Press up/down arrow keys — verify item list scrolls, each item shows name, price, and description</li>
-    <li><strong>View items:</strong> Verify these items are available:
-      <ul style="margin-left: 2rem; margin-top: 0.5rem;">
-        <li>Smoker ($25)</li>
-        <li>Bee Suit ($45)</li>
-        <li>Package Bees (variable price)</li>
-        <li>Seeds (variable price)</li>
-        <li>Axe ($15)</li>
-        <li>Hammer ($10)</li>
-      </ul>
-    </li>
-    <li><strong>Purchase smoker:</strong> Scroll to Smoker, press <span class="key">E</span> — verify money deducted ($25), smoker added to inventory</li>
-    <li><strong>Purchase bee suit:</strong> Scroll to Bee Suit, press <span class="key">E</span> — verify money deducted ($45), suit added to inventory</li>
-    <li><strong>Insufficient funds:</strong> Spend all money, then try to buy expensive item (e.g., Package Bees) — verify toast shows "Insufficient funds" and purchase fails</li>
-    <li><strong>Community Standing:</strong> Each purchase should grant +1 Community Standing — verify standing increases in HUD</li>
-    <li><strong>Close shop:</strong> Press <span class="key">ESC</span> — verify shop closes, player can move freely</li>
-    <li><strong>Purchased items:</strong> Verify all purchased items now in inventory and usable</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    Shop opens/closes smoothly. Items list correctly. Purchases deduct money immediately. Insufficient funds is handled gracefully. Community Standing increases per purchase. All items appear in inventory after purchase.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test purchasing with exactly the item's cost (no extra funds) — should succeed</li>
-      <li>Test rapid button mashing (press E multiple times on same item) — should purchase once per press (no double-charge)</li>
-      <li>Test buying out-of-stock items (if stock limit exists) — should show "out of stock"</li>
-      <li>Test item descriptions with very long text — ensure no text overflow on screen</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">14</span>Tree Chopping Minigame</h3>
-  <p><strong>What it is:</strong> Mini-game to fell trees and gather logs. Requires axe and uses space bar + timing mechanics.</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    Purchase axe from Feed & Supply ($15) or obtain from chest. Travel to County Road zone (from Cedar Bend, continue east or check map). Have at least 15 energy.
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li><strong>Navigate to tree:</strong> Walk around County Road and locate a standing tree</li>
-    <li><strong>Interact without axe:</strong> Without axe selected, walk to tree, verify hint shows "[E] Chop (Need Axe!)" or similar</li>
-    <li><strong>Equip axe:</strong> Select axe in hotbar</li>
-    <li><strong>Interact with axe:</strong> Stand near tree, press <span class="key">E</span> — verify Chopping minigame overlay opens</li>
-    <li><strong>Minigame UI:</strong> Verify power meter is visible (oscillating bar), shows green sweet spot, yellow OK zone, red miss zone</li>
-    <li><strong>Swing axe:</strong> Press <span class="key">Space</span> to swing — verify power meter position registers (hit sweet spot = good, yellow = OK, red = miss)</li>
-    <li><strong>7 swings required:</strong> Continue swinging. On successful hits, tree shows damage/cracks. Meter speed increases with each swing. Required hits: 7 total</li>
-    <li><strong>Sweet spot moves:</strong> Verify sweet spot moves position slightly after each swing (increasing difficulty)</li>
-    <li><strong>Tree fells:</strong> After 7 hits, verify tree falls, stump remains, logs appear in inventory (3-5 logs based on accuracy)</li>
-    <li><strong>Energy cost:</strong> Verify energy decreased by 15</li>
-    <li><strong>XP reward:</strong> Verify +15 XP awarded (check XP bar)</li>
-    <li><strong>Tree respawn:</strong> Sleep for 21 in-game days — verify stump regrows into full tree, ready to chop again</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    Minigame opens cleanly. Meter mechanics are responsive and fair. 7 hits fell tree. Logs awarded based on accuracy (min 3, max 5). Energy/XP deducted/awarded correctly. Trees respawn after 21 days. No crashes or soft-locks.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test failing hits (red zone) — tree should require more total swings to fell (not instant fail, but penalty)</li>
-      <li>Test quitting minigame mid-swing (ESC) — should cancel, refund energy, no logs awarded</li>
-      <li>Test chopping with low energy (< 15 remaining) — should either block or warn before opening</li>
-      <li>Test rapid spacebar mashing — meter should not skip/glitch, only respond to actual presses</li>
-      <li>Test with multiple trees on screen — chopping one should not affect others</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">15</span>Workbench Crafting</h3>
-  <p><strong>What it is:</strong> Crafting station where player converts logs to lumber and crafts hive components (frames, super boxes, deep bodies, etc.).</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    Have hammer in inventory (buy from Feed & Supply for $10 or take from chest). Have logs from tree chopping. Location: Home property workbench (~x=520, y=-20 area).
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li><strong>Navigate to workbench:</strong> From home property, locate workbench structure (north side, near tree line)</li>
-    <li><strong>Open workbench:</strong> Stand near workbench, press <span class="key">E</span> — verify Workbench UI opens</li>
-    <li><strong>Resource display:</strong> Verify resource section shows: logs available, lumber available, "[Hammer OK]" or "[No Hammer!]" status</li>
-    <li><strong>Convert logs:</strong> With logs in inventory and hammer equipped, press <span class="key">C</span> — verify "3 logs -> 1 lumber" conversion happens, resource display updates</li>
-    <li><strong>Browse recipes:</strong> Press up/down arrows to browse available recipes (Frames, Super Box, Deep Body, Hive Stand, Lid)</li>
-    <li><strong>Recipe details:</strong> Each recipe shows: name, required lumber, output (e.g., "Frames (10-pack): 3 lumber required")</li>
-    <li><strong>Craft frames:</strong> Select Frames (requires 3 lumber), verify you have lumber, press <span class="key">Enter</span> — verify 10-pack of frames added to inventory, lumber deducted</li>
-    <li><strong>Craft super box:</strong> Select Super Box (requires 4 lumber), press <span class="key">Enter</span> — verify super box added, lumber deducted</li>
-    <li><strong>Craft without hammer:</strong> Drop hammer from inventory, try crafting — verify craft fails with message "Cannot craft without hammer!"</li>
-    <li><strong>No lumber:</strong> Spend all lumber, try crafting — verify appropriate message appears (e.g., "Not enough lumber")</li>
-    <li><strong>Close workbench:</strong> Press <span class="key">ESC</span> — verify UI closes, player can move freely</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    Workbench UI opens/closes smoothly. Log-to-lumber conversion works (3:1 ratio). All recipes available and functional. Crafting deducts resources correctly. Hammer requirement enforced. No crashes or item duplication.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test conversion with 1 log — should show "need 3 logs" or similar, not convert partial</li>
-      <li>Test crafting with 0 inventory space — should warn or drop crafted items at workbench</li>
-      <li>Test rapid Enter presses — should craft once per press (no double-crafting)</li>
-      <li>Test recipe list with many recipes — verify scrolling is smooth, no index errors</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">16</span>Quest System</h3>
-  <p><strong>What it is:</strong> Task-based rewards system. Daily quests reset each day; story quests are one-time. Each quest completion grants XP and money.</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    In-game on home property. Access NPCs (Uncle Bob on property), hive ready for inspection, honey for trading.
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li><strong>bob_intro quest:</strong> Locate Uncle Bob NPC on home property. Interact with him (press <span class="key">E</span>) — verify quest triggers and immediately completes, grants +25 XP</li>
-    <li><strong>daily_inspection quest:</strong> Sleep to ensure it's a new day (Day counter increments). Open hive inspection for the first time that day — verify quest completes, grants +10 XP, +$5</li>
-    <li><strong>Re-inspect same day:</strong> Open same hive again (no new day) — verify daily_inspection quest does NOT trigger again (already completed today)</li>
-    <li><strong>Sleep (new day):</strong> Press <span class="key">Z</span> to advance to next day — verify daily_inspection quest resets (available for completion again)</li>
-    <li><strong>daily_harvest quest:</strong> Complete one full super harvest at Harvest Yard (deposit super, scrape, extract, bottle) — verify quest completes on bottling final jar, grants +15 XP, +$10</li>
-    <li><strong>daily_market quest:</strong> On Saturday (non-Winter), sell honey to Frank at Cedar Bend market — verify quest completes on sale, grants +20 XP</li>
-    <li><strong>Verify XP bar:</strong> After each quest, verify XP bar in HUD increases by appropriate amount. When bar fills, verify level increases and bar resets</li>
-    <li><strong>Quest tracking:</strong> Check if quest status is visible somewhere (HUD, info panel, or quest log) — track completion status</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    All quests trigger at correct moments. Daily quests reset on new day. One-time quests (bob_intro) don't repeat. XP/money rewards apply correctly. Quest completion visibly updates level/XP bar.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test completing quests out of expected order (e.g., market before inspection) — should still work</li>
-      <li>Test with very high XP (near level cap) — ensure level increases work at extreme values</li>
-      <li>Test completing multiple quests same day — XP should stack</li>
-      <li>Test quest reset edge case: complete daily_inspection at 23:59 game time, sleep at 00:01 — should still be new day and quest available</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">17</span>Save & Load System</h3>
-  <p><strong>What it is:</strong> Game state persistence. Sleeping saves progress; loading restores exact game state (inventory, day, money, hive status).</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    In-game after character creation. Play for a session (do various actions: move items, earn money, advance days, build/modify hive).
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li><strong>Baseline:</strong> Note current values in HUD/info: day, season, money, inventory count, energy level</li>
-    <li><strong>Take actions:</strong> Spend 20 minutes playing: move items around, buy/sell items, harvest, inspect hive, advance multiple days</li>
-    <li><strong>Check state:</strong> Before sleeping, take a screenshot/note of: money, day, season, inventory items, hive modifications (supers, queen excluder)</li>
-    <li><strong>Sleep to save:</strong> Press <span class="key">Z</span> to sleep — verify day advances, game saves (no explicit save screen needed, but confirm progression)</li>
-    <li><strong>Quit to menu:</strong> Press <span class="key">Esc</span>, select Quit or exit to main menu</li>
-    <li><strong>Load via Continue:</strong> On main menu, click "Continue" button — verify game loads</li>
-    <li><strong>Verify all state:</strong> Check that all noted values match exactly:
-      <ul style="margin-left: 2rem; margin-top: 0.5rem;">
-        <li>Day, season, time match</li>
-        <li>Money matches</li>
-        <li>Inventory items match (same items, same quantities)</li>
-        <li>Hive structure matches (same supers, queen excluder, colony status)</li>
-        <li>Character name/pronouns from PlayerData match</li>
-      </ul>
-    </li>
-    <li><strong>Multiple saves:</strong> Play session 1, save, quit. Start new game (Spring mode), play session 2, save, quit. Load session 1 Continue — verify correct save loads (not session 2 data)</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    All game state persists perfectly through save/load cycle. No data loss or corruption. Multiple saves don't interfere. PlayerData (character info) persists. Hive state persists without drift.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test inventory overflow — ensure extra items don't get lost on save</li>
-      <li>Test very high money amount (e.g., $999999) — ensure display doesn't overflow, value persists</li>
-      <li>Test loading while in a minigame/overlay (ESC then quit) — ensure state saves cleanly</li>
-      <li>Test multiple quit/load cycles (5+) — data should remain stable</li>
-      <li>Test loading save made in different zone (Cedar Bend) — ensure correct zone loads, player position correct</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">18</span>Zone Transitions / Navigation</h3>
-  <p><strong>What it is:</strong> Moving between game areas (home property, Cedar Bend, County Road, Harvest Yard). Includes zone loading, NPC/object placement, and map navigation.</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    In-game on home property. Map accessible (M key). Multiple zones available (Cedar Bend, County Road, Harvest Yard).
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li><strong>Home to Cedar Bend:</strong> Walk to east edge of home property — verify zone exit trigger, Cedar Bend loads, no black screens</li>
-    <li><strong>Player position:</strong> Verify player spawns on west side of Cedar Bend (near exit back to home)</li>
-    <li><strong>Visible elements:</strong> Verify Frank NPC present, shop building visible, market stalls visible (if Saturday/non-Winter)</li>
-    <li><strong>Cedar Bend to Home:</strong> Walk to west edge of Cedar Bend — verify transition back to home property, player spawns on east side</li>
-    <li><strong>Cedar Bend to County Road:</strong> From Cedar Bend, walk east — verify County Road loads, different terrain/trees visible</li>
-    <li><strong>County Road to Cedar Bend:</strong> Walk west from County Road — verify transition back, correct positions</li>
-    <li><strong>Map overlay (M):</strong> Press <span class="key">M</span> to open map — verify shows all zones, POI markers (Harvest Yard, Workbench, Cedar Bend, etc.)</li>
-    <li><strong>No crashes:</strong> Rapidly transition between zones 10+ times — verify no crashes, slowdowns, or duplicate objects</li>
-    <li><strong>NPC persistence:</strong> Transition zones multiple times, verify NPCs appear/disappear correctly (Frank only in Cedar Bend, Uncle Bob in home, etc.)</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    Zone transitions are smooth and fast. No black screens or loading stalls. NPCs appear in correct zones. Player spawn position is logical. Map shows all areas. No memory leaks or duplicate spawns.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test transitioning while in a minigame/overlay — should cancel overlay, then transition</li>
-      <li>Test transitioning with heavy inventory — ensure no slowdown</li>
-      <li>Test colliding with zone boundary while in dialogue — should wait for dialogue to end, then transition</li>
-      <li>Test very rapid zone transitions (mashing directional keys at boundary) — should handle single transition, not double/stutter</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">19</span>Dev Mode (G key)</h3>
-  <p><strong>What it is:</strong> Developer debugging panel. Visible only when enabled (G key). Shows real-time stats, day/season controls, and inspection full-disclosure.</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    In-game on home property. Hive available for inspection (optional, to test inspection dev features).
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li><strong>Activate Dev Mode:</strong> Press <span class="key">G</span> — verify dev panel appears at bottom of screen, clearly labeled "DEV MODE"</li>
-    <li><strong>Panel contents:</strong> Verify panel shows:
-      <ul style="margin-left: 2rem; margin-top: 0.5rem;">
-        <li>Current day number</li>
-        <li>Current season name</li>
-        <li>Hive count (number of hives on property)</li>
-        <li>Nectar/pollen levels (if tracked)</li>
-        <li>Hive grade (A/B/C/etc.)</li>
-        <li>Last random roll (for debugging sting/event RNG)</li>
-      </ul>
-    </li>
-    <li><strong>Advance Day button:</strong> Click or press button — verify single in-game day skips, day counter increments by 1 only</li>
-    <li><strong>Advance Month button:</strong> Click or press button — verify entire month skips (30+ days), no lag/freeze</li>
-    <li><strong>Deactivate Dev Mode:</strong> Press <span class="key">G</span> again — verify panel disappears</li>
-    <li><strong>Inspection + Dev Mode:</strong> Open hive inspection while Dev Mode active — verify full hive stats visible immediately (not progressive discovery), showing:
-      <ul style="margin-left: 2rem; margin-top: 0.5rem;">
-        <li>Frame-by-frame breakdown (all frames at once)</li>
-        <li>Super totals</li>
-        <li>Mite counts</li>
-        <li>Honey stores (lbs)</li>
-      </ul>
-    </li>
-    <li><strong>Dev buttons in inspection:</strong> Verify "Advance Day" and "Advance Month" buttons are accessible inside inspection overlay</li>
-    <li><strong>Close inspection:</strong> ESC closes inspection, dev panel remains visible</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    Dev panel toggles cleanly. All stats display correctly. Advance Day/Month buttons work reliably (no double-advance). Inspection discloses full stats with dev panel active. No crashes or display glitches.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test pressing G very rapidly (toggle on/off 5+ times) — panel should stay responsive, no lag</li>
-      <li>Test Advance Month near season boundary (Day 27 -> Month advance should land in new season cleanly)</li>
-      <li>Test panel visibility when at screen edge (very far north/south) — ensure panel text is readable, not cut off</li>
-      <li>Test with very large day numbers (Day 500+) — ensure display doesn't overflow or glitch</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">20</span>Music System</h3>
-  <p><strong>What it is:</strong> Dynamic background music that changes by location and season. Includes title theme, seasonal themes, and smooth transitions.</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    Game audio working (speakers/headphones on, volume up). Launch from main menu.
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li><strong>Title screen music:</strong> On main menu, verify <strong>main theme music plays</strong> (mainTheme.mp3 or similar). Loop should be smooth, no stutters</li>
-    <li><strong>Season transition:</strong> Create new game in Spring. After character creator, verify game loads with <strong>Spring seasonal music</strong></li>
-    <li><strong>Season change:</strong> Advance to end of Spring (Day 30+) and sleep to trigger season transition. Verify <strong>seasonal music changes</strong> to Summer theme</li>
-    <li><strong>All seasons:</strong> Cycle through all 4 seasons (use Dev Mode to skip months), verify music changes appropriately for each:
-      <ul style="margin-left: 2rem; margin-top: 0.5rem;">
-        <li>Spring: spring_theme.mp3 (or equivalent)</li>
-        <li>Summer: summer_theme.mp3</li>
-        <li>Fall/Full-Earth: fall_theme.mp3</li>
-        <li>Winter/Cold: winter_theme.mp3</li>
-      </ul>
-    </li>
-    <li><strong>Zone music:</strong> Travel to different zones (Cedar Bend, County Road) — verify music remains seasonal (no separate zone music if not implemented, or verify if location-specific themes exist)</li>
-    <li><strong>Music crossfade:</strong> When season changes, verify music fades out smoothly and new theme fades in (no hard cut, no silence gap, no overlap)</li>
-    <li><strong>No errors:</strong> Play for 30+ minutes across multiple seasons — verify no audio errors, looping glitches, or file-not-found messages in console</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    All themes play correctly. Season transitions trigger music change immediately. Crossfade is smooth. No audio errors or missed files. Loops are seamless. Music enhances immersion without distraction.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test season transition at midnight — music should change at moment of transition</li>
-      <li>Test loading save mid-season — music should match current season (not revert to title theme)</li>
-      <li>Test rapid zone transitions — music should not stutter or restart unexpectedly</li>
-      <li>Test with audio device disconnected/reconnected during play — game should handle gracefully</li>
-    </ul>
-  </div>
-</div>
-
-<div class="section-card">
-  <h3><span class="section-number">21</span>ESC / Pause Menu</h3>
-  <p><strong>What it is:</strong> In-game pause menu accessed via ESC or P key. Displays game status (season, day, year, money, energy, level), allows resuming, saving, adjusting audio, and quitting. Features music volume and mute controls directly on the main panel.</p>
-
-  <div class="prerequisite">
-    <strong>Prerequisites:</strong>
-    In-game, actively playing (not on main menu). Game is not already paused.
-  </div>
-
-  <h4>Test Steps:</h4>
-  <ol class="step-list">
-    <li><strong>Open with ESC:</strong> During gameplay, press <span class="key">Esc</span> — verify pause menu opens and game tree pauses (get_tree().paused = true)</li>
-    <li><strong>Open with P:</strong> From gameplay, press <span class="key">P</span> — verify pause menu opens (alternative to ESC)</li>
-    <li>Verify <strong>"PAUSED" title bar</strong> appears at top of panel</li>
-    <li>Verify <strong>status line 1 displays</strong>: Season - Day X - Year Y (e.g., "Spring - Day 5 - Year 1")</li>
-    <li>Verify <strong>status line 2 displays</strong>: $money | E:energy% | level title (e.g., "$2000 | E:75% | Homesteader")</li>
-    <li>Verify <strong>five buttons visible</strong>:
-      <ul style="margin-left: 2rem; margin-top: 0.5rem;">
-        <li><strong>Resume</strong> — closes menu, unpauses game</li>
-        <li><strong>Save</strong> — calls SaveManager.save_game()</li>
-        <li><strong>Settings</strong> — opens Audio Settings sub-panel</li>
-        <li><strong>Quit Game</strong> — returns to main menu</li>
-      </ul>
-    </li>
-    <li>Verify <strong>music volume slider</strong> visible directly on main panel (0-100%, labeled "Music Volume")</li>
-    <li>Verify <strong>Mute Music checkbox</strong> visible directly on main panel</li>
-    <li>Verify <strong>[ESC] to close hint</strong> text at bottom of panel</li>
-    <li><strong>Test music slider:</strong> Drag slider from 0% to 50% — verify music volume decreases in real-time</li>
-    <li>Drag slider to 100% — verify music returns to full volume</li>
-    <li><strong>Test mute checkbox:</strong> Check "Mute Music" — verify music stops immediately</li>
-    <li>Uncheck "Mute Music" — verify music resumes at previous volume level</li>
-    <li><strong>Test auto-unmute:</strong> With music muted, drag slider above 0% — verify mute checkbox auto-unchecks</li>
-    <li>Click <strong>Settings button</strong> — verify sub-panel opens showing Music/SFX/Master sliders and Mute checkbox</li>
-    <li><strong>Test bidirectional sync:</strong> In Settings, drag Music slider to 30% — close Settings, verify main panel slider also shows 30%</li>
-    <li>On main panel, check Mute checkbox — open Settings, verify Mute checkbox is also checked</li>
-    <li>Verify <strong>slide-in animation</strong> when pause menu opens (smooth entry from top)</li>
-    <li>Click <strong>Resume</strong> — verify pause menu closes, game unpauses and resumes normally</li>
-    <li>Open pause menu again, click <strong>Save</strong> — verify SaveManager.save_game() is called and game saves</li>
-    <li>Click <strong>Quit Game</strong> — verify return to main menu</li>
-    <li>On main menu, press <span class="key">Esc</span> — verify <strong>ESC quits to desktop</strong> (not opens pause menu)</li>
-  </ol>
-
-  <div class="expected-results">
-    <strong>Expected Results:</strong>
-    Pause menu opens immediately on ESC or P. Status displays correctly. Resume button unpauses. Music slider adjusts volume in real-time. Mute checkbox stops/resumes music. Settings sub-panel syncs bidirectionally. Save button saves game. Quit returns to menu cleanly. Animation smooth. ESC on main menu quits game.
-  </div>
-
-  <div class="edge-cases">
-    <strong>Known Edge Cases / Things to Watch:</strong>
-    <ul>
-      <li>Test rapid ESC presses — ensure pause menu doesn't open multiple times or flicker</li>
-      <li>Test opening pause menu then immediately pressing ESC again — should close immediately</li>
-      <li>Test dragging slider to 0% then clicking mute checkbox — verify state is consistent</li>
-      <li>Test Settings sub-panel with changes, then close without clicking a close button — verify changes persist</li>
-      <li>Test pause menu during cutscenes or dialogue — verify pause works correctly if tree is not already paused</li>
-      <li>Test loading a save game while pause menu is open — should close menu and load game</li>
-      <li>Verify status text updates if game time/resources change in pause menu (unlikely but test for edge cases)</li>
-    </ul>
-  </div>
-</div>
-
----
-
-<!-- TEST RESULTS CHECKLIST -->
-<h2>Test Results Checklist</h2>
-<p class="note">Use the table below to track which systems have passed or failed testing. Mark "Pass" or "Fail" for each system, and add notes about any issues encountered.</p>
-
-<table class="results-table">
-  <thead>
-    <tr>
-      <th>System</th>
-      <th style="width: 80px;">Pass</th>
-      <th style="width: 80px;">Fail</th>
-      <th>Notes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>1. Main Menu & Start Modes</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>2. Character Creator</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>3. Player Movement & Controls</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>4. HUD (Heads-Up Display)</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>5. Time & Calendar System</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>6. Weather System</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>7. Hive Building (Step-by-Step)</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>8. Hive Management Panel</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>9. Hive Inspection</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>10. Smoker & Bee Suit</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>11. Harvest Yard (Full Pipeline)</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>12. Saturday Market (Cedar Bend)</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>13. Feed & Supply Shop</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>14. Tree Chopping Minigame</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>15. Workbench Crafting</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>16. Quest System</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>17. Save & Load System</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>18. Zone Transitions / Navigation</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>19. Dev Mode (G key)</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>20. Music System</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>21. ESC / Pause Menu</td>
-      <td><div class="checkbox"></div></td>
-      <td><div class="checkbox"></div></td>
-      <td></td>
-    </tr>
-  </tbody>
-</table>
-
-<div class="footer">
-  <p><strong>Smoke & Honey Playtester QA Guide</strong></p>
-  <p>Version 2 (Updated) | March 31, 2026 | Godot 4.6</p>
-  <p>For questions or clarifications, please submit feedback via the form above.</p>
-</div>
-
+    <div class="container">
+        <header>
+            <h1>Smoke &amp; Honey -- Playtester QA Guide v3</h1>
+            <p class="subtitle">A Cedar Bend Story -- Godot 4.6</p>
+            <p class="date">March 31, 2026</p>
+        </header>
+
+        <div class="feedback-block">
+            <h3>Playtester Feedback</h3>
+            <p>Your feedback is essential to making Smoke &amp; Honey the best it can be. Found a bug? Have a suggestion? Please let us know!</p>
+            <p><strong>QR Code Placeholder:</strong> [Scan to open feedback form]</p>
+            <p style="margin-top: 15px; font-size: 0.85em;">Or email: feedback@smokeandhoney.dev</p>
+        </div>
+
+        <h2>Quick Controls Reference</h2>
+        <table class="controls-table">
+            <thead><tr><th>Input</th><th>Action</th><th>Context</th></tr></thead>
+            <tbody>
+                <tr><td>W / A / S / D</td><td>Move in cardinal directions</td><td>Gameplay</td></tr>
+                <tr><td>Shift (hold)</td><td>Run / Sprint</td><td>Gameplay</td></tr>
+                <tr><td>E</td><td>Interact / Perform action</td><td>Gameplay (context-sensitive)</td></tr>
+                <tr><td>R</td><td>Rotate structures</td><td>Gameplay</td></tr>
+                <tr><td>Z</td><td>Sleep / Advance day</td><td>Gameplay</td></tr>
+                <tr><td>T</td><td>Toggle Till mode</td><td>Gameplay</td></tr>
+                <tr><td>F</td><td>Toggle Plant mode / Flip frame side</td><td>Gameplay / Inspection</td></tr>
+                <tr><td>0</td><td>Exit current mode</td><td>Gameplay</td></tr>
+                <tr><td>1-9</td><td>Select hotbar slot</td><td>Gameplay</td></tr>
+                <tr><td>Mouse Wheel</td><td>Cycle hotbar slots</td><td>Gameplay</td></tr>
+                <tr><td>Tab</td><td>Toggle info panel</td><td>HUD</td></tr>
+                <tr><td>M</td><td>Toggle map overlay</td><td>Gameplay</td></tr>
+                <tr><td>G</td><td>Toggle dev mode</td><td>Global</td></tr>
+                <tr><td>P or ESC</td><td>Open/close pause menu</td><td>Gameplay</td></tr>
+                <tr><td>ESC</td><td>Quit</td><td>Main Menu</td></tr>
+                <tr><td>A / D</td><td>Navigate frames left/right</td><td>Inspection</td></tr>
+                <tr><td>H</td><td>Mark frame for harvest</td><td>Inspection</td></tr>
+                <tr><td>Shift + H</td><td>Mark entire super for harvest</td><td>Inspection</td></tr>
+                <tr><td>Space</td><td>Swing axe</td><td>Chopping minigame</td></tr>
+                <tr><td>Mouse drag</td><td>Scrape honeycomb cells</td><td>Scraping minigame</td></tr>
+            </tbody>
+        </table>
+
+        <div class="section-card"><div class="section-number">1</div><h3 class="section-title">Main Menu</h3><p class="section-desc">Title screen and game entry point. Boots from MainMenu.tscn with dark warm background and centered UI elements.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>Launch the game executable. No save file should exist initially.</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Launch game</strong> -- Verify dark warm background with subtle glow appears. Logo (80x80px) should be centered in upper portion showing beehive silhouette and "Smoke &amp; Honey" text.</li><li><strong>Verify buttons</strong> -- Three buttons appear centered below logo: Start (green), Continue (amber), Quit (grey). Buttons properly spaced with no overlap.</li><li><strong>Decorative elements</strong> -- Amber dividers appear above button group and below. Divider separates Continue from Quit.</li><li><strong>Version text</strong> -- "v0.1 dev -- Cedar Bend, Iowa" visible at bottom in grey text.</li><li><strong>Music playback</strong> -- mainTheme.mp3 plays in background, loops seamlessly with warm inviting tone.</li><li><strong>Continue button state</strong> -- Without save file, Continue button greyed out (disabled), cannot click. Visual feedback clear.</li><li><strong>Fade-in animation</strong> -- All UI elements fade in smoothly over 0.8 seconds on menu load. Not jarring.</li><li><strong>Click Start</strong> -- Verify character creator opens with fade transition.</li><li><strong>Return to menu</strong> -- From character creator, press ESC. Menu returns without state loss.</li><li><strong>Click Quit</strong> -- Game exits cleanly to desktop, no crash messages.</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>Logo loads cleanly. Three buttons readable, properly spaced. Version text visible. Music plays continuously. Continue disabled without save. Fade-in smooth. Start transitions to character creator. Quit exits successfully.</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>If logo PNG fails, fallback text "Smoke &amp; Honey" appears. If music missing, game starts without audio errors. Button hover states highlight clearly.</p></div></div>
+
+        <div class="section-card"><div class="section-number">2</div><h3 class="section-title">Character Creator</h3><p class="section-desc">Name and backstory selection screen on first new game. Centered panel (260x130) with multi-step progression.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>Click Start button on main menu with no existing character.</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Panel appears</strong> -- Character creator panel fades in centered on screen (approximately 260x130 pixels).</li><li><strong>Name field active</strong> -- Name field accepts text input. Cursor visible blinking in field.</li><li><strong>Type valid name</strong> -- Type name (e.g., "Sarah Chen"). Maximum 18 characters enforced.</li><li><strong>Validate minimum</strong> -- With less than 2 characters, press E/Enter. Error message appears for 3 seconds: "Your name must be at least 2 characters!"</li><li><strong>Enter valid name</strong> -- Type valid name with 2+ characters (e.g., "Jo").</li><li><strong>Advance to backstory</strong> -- Press Tab or S. Name field no longer accepts input, next section highlights.</li><li><strong>Cycle backstories</strong> -- Press A and D to cycle three options: Newcomer (no experience), Hobbyist (some home experience), Farmer (multi-season farming).</li><li><strong>Description updates</strong> -- Description text updates for each backstory showing flavor and gameplay context.</li><li><strong>Return to name</strong> -- Press W. Name still present. Section focuses on name field again.</li><li><strong>Return to backstory then confirm</strong> -- Press Tab/S to backstory, Tab/S again to Confirm. Press E/Enter to confirm.</li><li><strong>Confirm transitions</strong> -- Game transitions to home property with fade effect. Character stored in PlayerData.</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>Name persists between sections. Backstory cycles through three options. Confirmation triggers game start with fade. PlayerData stores character_name, backstory_tag, character_created=true. Default pronouns set to they/them. Home property loads without errors.</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>Backspace deletes characters one at a time. Maximum 18 characters enforced silently. Empty/single character triggers validation error. Rapid Tab/S presses don't skip sections. ESC from creator returns to main menu and resets creator state.</p></div></div>
+
+        <div class="section-card"><div class="section-number">3</div><h3 class="section-title">Player Movement &amp; Controls</h3><p class="section-desc">Character movement mechanics, hotbar interaction, mode switching, and context-sensitive actions.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>Complete character creator and enter gameplay on home property.</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>8-directional movement</strong> -- Press WASD individually and combined (W+D for diagonal). Smooth movement in all 8 directions (120 px/sec speed).</li><li><strong>Run mode</strong> -- Hold Shift while moving. Speed increases to ~210 px/sec (1.75x).</li><li><strong>Hotbar cycling</strong> -- Scroll mouse wheel up/down. Hotbar cycles through 10 slots. Active slot highlighted with colored border.</li><li><strong>Direct slot selection</strong> -- Press number keys 1-9. Each key selects corresponding slot. Highlight changes immediately.</li><li><strong>Till mode toggle</strong> -- Press T. "Till" label appears above player. Press T again, label disappears.</li><li><strong>Plant mode toggle</strong> -- Press F. "Plant" label appears. Press F again, disappears.</li><li><strong>Reset to normal</strong> -- With mode active, press 0. Mode resets to Normal, both labels gone.</li><li><strong>Interact with chest</strong> -- Walk near storage chest, press E. Chest inventory opens in grid overlay.</li><li><strong>Rotate structure</strong> -- Place hive stand (later section), press R near it. Structure rotates 90 degrees visually.</li><li><strong>Sleep advance day</strong> -- Press Z. Sleep/day advance triggers. Day counter increments by 1.</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>Smooth 8-directional movement with consistent speed. Run speed properly increased with Shift. Hotbar cycling/selection works correctly. Mode labels appear/disappear on toggle with no latency. All mode toggles instant. Interaction priority: harvest yard > merchant > hive > NPC > flower > item. Z key triggers day advance.</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>No movement when pause menu open. Heavy items show floating sprite above player. No movement during minigames/cutscenes. Double mode key press doesn't double-toggle. Diagonal movement same speed as cardinal.</p></div></div>
+
+        <div class="section-card"><div class="section-number">4</div><h3 class="section-title">HUD (Heads-Up Display)</h3><p class="section-desc">On-screen game information display showing energy, hotbar, weather, and status information in real-time.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>In gameplay on home property or any location.</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Energy bar location</strong> -- Honey energy bar visible upper-left corner with golden fill and honeycomb texture overlay.</li><li><strong>Energy visual feedback</strong> -- Bar shows drip/honeycomb pattern. As energy decreases, bar shrinks right to left proportionally.</li><li><strong>Energy color coding</strong> -- Monitor bar color during gameplay: Gold >45%, Amber 20-45%, Dark red <20%.</li><li><strong>Hotbar display</strong> -- Hotbar at bottom center with 10 visible slots. Each shows item icon clearly plus stack count (e.g., "5x").</li><li><strong>Active item label</strong> -- Name of selected item appears below hotbar (e.g., "Hive Tool", "Empty" for no item).</li><li><strong>Weather label</strong> -- Weather condition displayed on HUD (e.g., "Sunny", "Rainy"). Updates when weather changes on new day.</li><li><strong>Info panel toggle</strong> -- Press Tab. Panel appears showing: season, month, day, time, weather, money, honey stores, level, XP.</li><li><strong>Close panel</strong> -- Press Tab again. Panel closes, HUD returns to normal.</li><li><strong>Smoke indicator</strong> -- Use smoker on hive, then inspect. "SMOKED" orange label appears on HUD.</li><li><strong>Standing tier</strong> -- Standing tier displayed on HUD (Stranger/Neighbor/Known/Trusted/Respected). Updates as standing increases.</li><li><strong>Season banner</strong> -- Use dev mode to reach season boundary. Banner fades in (0.5s), holds (2.5s), fades out (0.8s). Correct seasonal colors.</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>All HUD elements update in real-time. Energy drains on actions (inspect=-10, chop=-15), refills after sleep. Tab panel shows accurate values. Season banner displays with smooth fade and correct colors (green/Spring, gold/Summer, orange/Fall, blue/Winter). Smoke indicator appears when smoker active, disappears on inspection close.</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>Dev panel (G key) shows additional hive stats and day/month buttons. Hotbar hidden during specific minigames only. Energy bar clamped 0-100%. Tab panel doesn't persist when opening other overlays.</p></div></div>
+
+        <div class="section-card"><div class="section-number">5</div><h3 class="section-title">Time &amp; Calendar</h3><p class="section-desc">8-month calendar system with 28 days per month (224 total days per year). Seasonal progression and time advancement.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>In gameplay with character created past character creator.</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Check current time</strong> -- Press Tab. Note current day, month name, season displayed.</li><li><strong>Advance single day</strong> -- Press Z to sleep. Day increments by 1. Time resets to 6:00 AM.</li><li><strong>Advance multiple days</strong> -- Press Z multiple times. Day counter updates accurately each press.</li><li><strong>Month boundary</strong> -- Advance until day 28. Press Z once more. Month changes to next, day resets to 1.</li><li><strong>Month names cycle</strong> -- Verify 8 month names in order: Quickening, Greening, Wide-Clover, High-Sun, Full-Earth, Reaping, Deepcold, Kindlemonth.</li><li><strong>Season changes</strong> -- Verify seasons: Spring (months 0-1), Summer (2-3), Fall (4-5), Winter (6-7).</li><li><strong>Season transition banner</strong> -- When advancing from season to next, banner appears with fade animation and correct season name/color.</li><li><strong>Dev mode day skip</strong> -- Press G, click "Advance Day" multiple times. Single day increments with each click.</li><li><strong>Dev mode month skip</strong> -- Click "Advance Month". Entire month skips, day resets to 1, month name updates.</li><li><strong>Year rollover</strong> -- Advance to day 224. Press Z once more. Year increments, day resets to 1.</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>Calendar progresses linearly with no gaps. Month boundaries at day 28. Season transitions fire signals updating music, weather probabilities, forage rates. Time progresses with hour increments visible. Dev mode buttons provide immediate feedback.</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>Year rollover after day 224 resets without errors. Month boundary updates all dependent systems. Time 6:00 AM to ~10:00 PM daily, resets on sleep.</p></div></div>
+
+        <div class="section-card"><div class="section-number">6</div><h3 class="section-title">Weather System</h3><p class="section-desc">8-state weather affecting gameplay, visuals, and foraging. Iowa-based seasonal probabilities.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>In gameplay. Multiple days of progression for weather variation.</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Check weather display</strong> -- Press Tab. Current weather shown (e.g., "Sunny", "Rainy").</li><li><strong>Weather progression</strong> -- Advance several days (press Z). Weather changes day to day, not identical every day.</li><li><strong>Rainy restrictions</strong> -- On Rainy day, try to inspect hive. Toast appears: "Too wet to open hives -- wait for dry weather!"</li><li><strong>Cold restrictions</strong> -- On Cold day, try to inspect. Toast: "Too cold to inspect -- bees are clustered!"</li><li><strong>Dry day inspection</strong> -- On Sunny or Overcast day, inspection works normally without restrictions.</li><li><strong>Visual tints</strong> -- Observe CanvasModulate color changes. Rainy has blue tint, sunny has warm tint.</li><li><strong>Save persistence</strong> -- Note current weather. Sleep (saves). Quit and reload. Weather state persists.</li><li><strong>Temperature range</strong> -- Check dev panel for temperature. Verify seasonal ranges: Winter (12-32F), Spring (40-65F), Summer (70-86F), Fall (50-70F).</li><li><strong>Forage multipliers</strong> -- Verify forage affected by weather: Sunny 1.0x, Rainy 0.0x, Windy 0.4x, Cold 0.0x, Drought 0.3x.</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>Weather rolls daily using season-appropriate probabilities. Temperatures accurate per NOAA Des Moines data. Rainy/Cold days prevent hive inspection with correct messages. Visual tints change smoothly. Weather persists after save/load. Forage multipliers correctly reduce/eliminate nectar collection.</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>Weather affects sting multiplier during inspections. Rare weather (HeatWave, Drought, Foggy) appear less frequently. Cold shows frost/snow effects. Rainy shows rain particles or wetness effect.</p></div></div>
+
+        <div class="section-card"><div class="section-number">7</div><h3 class="section-title">Hive Building</h3><p class="section-desc">Build complete Langstroth hive from component parts. Step-by-step assembly with validation.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>Starting inventory/chest contains: Hive Stands, Deep Bodies, Frames, Lids, Package Bees.</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Open chest</strong> -- Walk to storage chest, press E. Inventory overlay shows available items.</li><li><strong>Take hive stand</strong> -- Move Hive Stand to hotbar. Close chest.</li><li><strong>Place stand</strong> -- Select Hive Stand, face open ground, press E. Stand placed on grid, snaps to position.</li><li><strong>Grid overlay</strong> -- When stand selected, blue/amber grid overlay appears showing valid placement locations.</li><li><strong>Add deep body</strong> -- Select Deep Body, press E on stand. Body snaps on top, hive visually grows taller.</li><li><strong>Add frames</strong> -- Select Frames, press E repeatedly on body. Frames added one at a time. Progress notification: "2/10 frames loaded", etc.</li><li><strong>Complete frames</strong> -- After 10 frames, notification shows "10/10 frames loaded". Hive ready for next component.</li><li><strong>Add lid</strong> -- Select Lid, press E on hive. Lid closes hive visually, structure complete (no longer open-topped).</li><li><strong>Install bees</strong> -- Select Package Bees, press E on hive. Bee swarm cloud visual appears above hive.</li><li><strong>New colony lockout</strong> -- Try to inspect hive immediately (select Hive Tool, press E). Toast: "Establishing... 7d" (7-day lockout).</li><li><strong>Advance past lockout</strong> -- Use dev mode to advance 7 days. Try inspect again. Opens normally without lockout.</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>Each component snaps to hive in correct order without manual positioning. Hive visually grows with each component. Grid overlay shows valid placement. Frames count 1-10 accurately. Lid closes hive. Package Bees creates swarm animation. New colonies have 7-day lockout preventing inspection.</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>Without deep body, frames show error: "Place deep body first!" Without 10 frames, error: "10 frames loaded -- select Lid". Cannot place stand on occupied tiles. Each component consumed from inventory on placement.</p></div></div>
+
+        <div class="section-card"><div class="section-number">8</div><h3 class="section-title">Hive Management Panel</h3><p class="section-desc">Add and remove supers and queen excluders on established hives. Advanced structure management.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>Built hive with installed colony past 7-day lockout. Have Super Boxes and Queen Excluders in inventory.</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Deselect items</strong> -- Press 0 to deselect or select Hive Tool.</li><li><strong>Open management</strong> -- Stand near hive with colony, press E. Hive Management panel opens showing current structure.</li><li><strong>View structure</strong> -- Panel shows visual hive stack: Stand -> Deep Body -> (Supers) -> Lid.</li><li><strong>Add super</strong> -- Ensure Super Box in inventory. In panel find "Add Super" button, click. Super added visually, hive height increases.</li><li><strong>Add queen excluder</strong> -- Ensure Queen Excluder in inventory. Find insert option, click. Excluder placed (thin separator in hive visualization).</li><li><strong>Remove super</strong> -- In panel select super to remove. Removal succeeds, super returned to inventory.</li><li><strong>Winter warning</strong> -- Advance to Fall. Build honey stores high then remove to force <60 lbs. Toast: "colony only has X lbs honey -- 60 lbs needed for winter!"</li><li><strong>Close panel</strong> -- Press ESC. Panel closes, return to gameplay.</li><li><strong>Multiple supers</strong> -- Add two or more supers. Verify all display correctly stacked. Maximum super limit enforced (3-5 typical).</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>Super boxes visually appear on hive stack when added. Hive height updates. Queen excluder tracked in simulation affecting colony behavior. Items consumed on add, returned on remove. Winter reserve warnings prevent resource loss.</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>Maximum super count enforced. Removing super with honey returns as ITEM_FULL_SUPER (if honey present) not ITEM_SUPER_BOX. Cannot add super without deep body. Queen excluder position in stack matters.</p></div></div>
+
+        <div class="section-card"><div class="section-number">9</div><h3 class="section-title">Hive Inspection</h3><p class="section-desc">Frame-by-frame colony examination with detailed statistics and queen-finding minigame. Core gameplay loop.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>Hive Tool in hotbar. Hive with colony past 7-day lockout. NOT Rainy or Cold weather.</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Select Hive Tool</strong> -- Click hotbar slot with tool or press corresponding number.</li><li><strong>Open inspection</strong> -- Press E near hive. InspectionOverlay opens showing honeycomb grid and colony details. Energy cost -10 deducted.</li><li><strong>Navigate frames</strong> -- Press A repeatedly, navigate left. Press D, navigate right. All 10 deep body frames accessible.</li><li><strong>Flip frame side</strong> -- Press F. Frame flips to reverse side (A becomes B). Press F again, flips back.</li><li><strong>Honeycomb grid</strong> -- Grid displays cells: Deep frames (70x50), Super frames (70x35). Cells color coded: brood (gold), honey (amber), pollen (orange), empty (white).</li><li><strong>Stats panel building</strong> -- As frames viewed, stats panel builds showing: population count, brood pattern, honey stores (lbs), comb condition, mite load.</li><li><strong>Knowledge tier affects accuracy</strong> -- Level 1 shows estimates, Level 5 shows exact numbers. (Dev mode forces Level 5 display.)</li><li><strong>Mark frame harvest</strong> -- On frame with capped honey, press H. Gold harvest overlay appears, marking for later extraction.</li><li><strong>Mark entire super</strong> -- Press Shift+H. All super frames marked for harvest (all show gold overlay).</li><li><strong>Queen Finder minigame</strong> -- Look for queen bee on honeycomb. Click her. 80% of time success (+15 XP). 20% of time not visible. On success, she highlights and award displays.</li><li><strong>Close inspection</strong> -- Press ESC. Overlay closes, return to gameplay. Harvest marks persist, visible on hive exterior.</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>Inspection overlay displays accurate colony state based on hive simulation. Stats accuracy depends on knowledge tier progression. Frame navigation smooth with A/D controls. Flip changes frame side instantly. Harvest marking applies gold overlay and persists. Queen Finder provides skill-based minigame with occasional queen visibility.</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>Sting check on close: 25% base chance x weather mult x 0.3 (suit) x 0.2 (smoker). Energy penalty: -10 no suit, -5 with suit. Toast: "Ouch! You got stung! (-X energy)". Fermentation warning if marking <60% capped. Queen difficulty scales with level (Easy L1, Hard L5).</p></div></div>
+
+        <div class="section-card"><div class="section-number">10</div><h3 class="section-title">Smoker &amp; Bee Suit</h3><p class="section-desc">Protective equipment reducing sting risk during inspections. Equipment-based risk mitigation.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>Access Feed &amp; Supply in Cedar Bend ($70 minimum). Purchase equipment there.</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Buy smoker</strong> -- Visit Feed &amp; Supply. Navigate to Smoker ($25). Press E to purchase. Money deducted, Smoker added to inventory.</li><li><strong>Buy bee suit</strong> -- In shop, navigate to Bee Suit ($45). Press E. Money deducted, Bee Suit added to inventory.</li><li><strong>Equip bee suit</strong> -- Suit is passive. Simply having it in inventory provides protection (no separate equip needed).</li><li><strong>Select smoker</strong> -- Add Smoker to hotbar, select it.</li><li><strong>Use smoker</strong> -- Stand near hive, press E with smoker selected. Visible puff of smoke appears, hive shows smoke cloud, "_smoker_active" flag set.</li><li><strong>SMOKED indicator</strong> -- "SMOKED" orange label appears on HUD indicating current hive is smoked.</li><li><strong>Inspect smoked hive</strong> -- Open inspection immediately on that hive. Sting chance dramatically reduced compared to unsmoked.</li><li><strong>Smoker resets on close</strong> -- Close inspection. Smoker effect resets (SMOKED indicator disappears). Smoker must be re-used before next inspection.</li><li><strong>Test without equipment</strong> -- Remove both smoker and suit. Inspect hive. Note higher sting frequency, -10 energy penalty.</li><li><strong>Test suit only</strong> -- Remove smoker, keep suit. Inspect. Sting chance reduced but not as much. Energy penalty -5.</li><li><strong>Test smoker only</strong> -- Remove suit, have smoker. Use smoker, inspect. Sting chance significantly reduced. Energy penalty -10.</li><li><strong>Test both</strong> -- Have both equipped. Use smoker, inspect. Sting chance minimized. Energy penalty -5.</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>Smoker gives visual puff effect on use. Bee suit provides passive protection when in inventory. Sting reduction: smoker=80% (x0.2), suit=70% (x0.3). Both stack multiplicatively (combined x0.06, ~94% reduction). SMOKED indicator persists until inspection closes.</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>Smoker resets after each inspection close, must be re-applied. Suit never wears out. Single smoker application lasts entire inspection. Weather affects sting rates independently (Cold/Rainy prevent inspection).</p></div></div>
+
+        <div class="section-card"><div class="section-number">11</div><h3 class="section-title">Harvest Yard (Full Pipeline)</h3><p class="section-desc">5-station outdoor honey processing system converting raw honeycomb to bottled honey jars. Complete extraction workflow.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>Hive with capped honey super. Frames marked for harvest during inspection. Harvest Yard on home property.</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Locate harvest yard</strong> -- Walk east on home property (approximately 480, 350). Five stations visible: Super Pallet, Scraping Station, Honey Extractor, Bottling Table, Beeswax Collection.</li><li><strong>Remove full super</strong> -- Open Hive Management on hive. Remove super with honey (becomes ITEM_FULL_SUPER in inventory).</li><li><strong>Deposit super</strong> -- Walk to Super Pallet station, press E. Super deposited and removed from inventory.</li><li><strong>Scraping minigame</strong> -- Walk to Scraping Station, press E. Scraping minigame opens showing honeycomb grid on Side A: Click-drag mouse across cells (3-cell brush width). Scrape wax cappings until ~95% uncapped. Frame auto-flips to Side B. Repeat scraping. Both sides complete, frame moves to scraped pallet. Dev mode: brush size doubles.</li><li><strong>Extractor minigame</strong> -- Walk to Honey Extractor, press E. Speed gauge shown: Tap E rapidly to keep above 40% threshold (red line). Speed decays 0.65/sec, each E tap adds 0.22. Progress fills at 0.10/sec above threshold. Green gauge=progress, red=too slow. ~10 seconds sustained effort to complete. Beeswax accumulated (~0.735 lbs/frame) added to inventory.</li><li><strong>Bottling minigame</strong> -- Walk to Bottling Table, press E. Bottling minigame opens showing jar: Press E to toggle honey gate. When open, honey fills jar at 0.6 lbs/sec. Auto-stops when jar full (1 lb). Completed jar placed, new jar appears. Can bottle up to 40 jars/session. Press ESC to finish early; unused jars returned.</li><li><strong>Verify output</strong> -- After bottling completes, verify honey_jar items in inventory with correct count. Each jar worth $10 base.</li><li><strong>Full pipeline run</strong> -- Complete entire pipeline: deposit super -> scrape -> extract -> bottle -> collect jars. Verify no items lost between stations.</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>Beeswax accumulated ~0.735 lbs/frame. Full pipeline seamless: deposit -> scrape -> extract -> bottle -> jars in inventory. Each minigame has clear success/failure states. No items lost. Extracted honey shows visually in jars.</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>ESC cancels minigame mid-progress, returns partial progress to inventory. Winter reserve warning in Fall if colony honey <60 lbs before removal. Scraping: 95% success normally, drops to 80% at >90% completion. Side auto-flips without user action.</p></div></div>
+
+        <div class="section-card"><div class="section-number">12</div><h3 class="section-title">Saturday Market (Cedar Bend)</h3><p class="section-desc">Weekly honey sales with Frank on Saturdays. Community standing-based price multipliers and market system.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>Saturday in-game day. Non-Winter season. Honey jars in inventory. Access to Cedar Bend.</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Identify Saturday</strong> -- Open info panel (Tab). Note current day. Saturday every 7 days (days 7, 14, 21, 28). Advance if needed using dev mode.</li><li><strong>Check not Winter</strong> -- Verify season is NOT Winter (months 6-7). Market only Spring through Fall.</li><li><strong>Travel to Cedar Bend</strong> -- Exit home property, navigate to Cedar Bend. Market overlay appears showing stalls and Frank NPC.</li><li><strong>Check Winter absence</strong> -- Advance to Winter using dev mode. Market overlay no longer appears. Frank absent.</li><li><strong>Advance back to non-Winter</strong> -- Return to Fall/Spring. Market reappears when visiting Cedar Bend.</li><li><strong>Walk to Frank</strong> -- Locate Frank at market stall, press E. Sell Screen overlay opens.</li><li><strong>Check greeting</strong> -- Greeting displays: "Hey [character_name], I'll pay $X/jar!" using actual character name.</li><li><strong>Price reflects standing</strong> -- Verify price per jar reflects standing multiplier: Stranger (0-99) $10 (1.0x), Neighbor (100-249) $10.50 (1.05x), Known (250-499) $11 (1.10x), Trusted (500-749) $11.50 (1.15x), Respected (750+) $12 (1.20x).</li><li><strong>Sell jars</strong> -- Select number to sell. Money updates in HUD, inventory jars decrement.</li><li><strong>Standing increases</strong> -- Verify standing increases (+3 per transaction). Check standings panel.</li><li><strong>Quest completion</strong> -- Verify daily_market quest completes on first sale (+20 XP reward).</li><li><strong>Multiple visits same day</strong> -- Visit Frank again same Saturday. Quest already completed (no duplicate XP). Can still sell more jars.</li><li><strong>Next Saturday</strong> -- Advance to next Saturday. daily_market quest available again, completes on first sale.</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>Market appears only Saturday during non-Winter. Frank greets by name with accurate pricing. Standing multipliers apply: Stranger $10, Neighbor $10.50, Known $11, Trusted $11.50, Respected $12. Standing increases +3/transaction. daily_market quest completes first sale/day (+20 XP).</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>Market only Saturday + non-Winter. Frank absent in Winter. Selling same day as previous shows "Already completed" if per-day. Price rounds to nearest cent. Cannot sell 0 jars (error).</p></div></div>
+
+        <div class="section-card"><div class="section-number">13</div><h3 class="section-title">Feed &amp; Supply Shop</h3><p class="section-desc">General store in Cedar Bend for purchasing equipment, supplies, and tools. Shop interface and transaction system.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>In Cedar Bend. Have money ($50+ recommended).</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Locate shop</strong> -- Walk to Feed &amp; Supply building, press E at door. Shop interior loads with shop UI overlay.</li><li><strong>Browse items</strong> -- Use arrow keys (UP/DOWN or A/D) to navigate catalogue. Items listed with prices.</li><li><strong>Available items</strong> -- Smoker ($25), Bee Suit ($45), Package Bees ($75), Seeds ($5), Axe ($15), Hammer ($10), Hive Stand ($20), Deep Body ($30), Super Box ($20), Queen Excluder ($8).</li><li><strong>Purchase item</strong> -- Select item (e.g., Smoker $25). Press E/Enter to purchase. Money deducted, item added to inventory.</li><li><strong>Purchase multiple</strong> -- Buy several items. Each transaction deducts correct amount, adds item.</li><li><strong>Insufficient funds</strong> -- Try expensive item without enough money. Error: "Not enough money! You need $X more."</li><li><strong>Standing increases</strong> -- Verify standing increases (+1 per purchase) after each transaction.</li><li><strong>Tool stacking</strong> -- Purchase multiple axes/hammers. Verify tool items stack to 1 or increment correctly.</li><li><strong>Close shop</strong> -- Press ESC. Shop closes, return to Cedar Bend.</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>All items available with correct prices. Money deducted accurately on purchase. Items added to inventory immediately. Standing increases +1/purchase. Error messages clear for insufficient funds. Shop closes cleanly on ESC.</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>Cannot purchase beyond inventory capacity (error/warning). Tool items may stack to 1 or separate behavior. Rapid purchases don't cause double-charge or duplication. Shop interface fresh on re-enter.</p></div></div>
+
+        <div class="section-card"><div class="section-number">14</div><h3 class="section-title">Tree Chopping</h3><p class="section-desc">Harvest logs from trees on County Road using axe. Timing-based minigame with resource gathering.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>Axe in inventory ($15 from Feed &amp; Supply). Travel to County Road. 20+ energy available.</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Travel to County Road</strong> -- Exit home property, navigate to County Road. 8 harvestable trees present: 2 oak, 2 ash, 1 maple, 1 walnut, 1 elm, 1 hickory.</li><li><strong>Locate tree</strong> -- Walk near tree. Hint appears: "[E] Chop" (with axe) or "[Need Axe]" (without).</li><li><strong>Attempt without axe</strong> -- Remove axe from inventory, walk near tree. Hint changes to "[Need Axe]". Press E, action fails, toast appears.</li><li><strong>With axe equipped</strong> -- Ensure axe in inventory. Press E near tree. Chopping minigame overlay opens.</li><li><strong>Chopping mechanics</strong> -- Minigame shows speed meter moving back-forth with green sweet spot zone. Press Space when meter hits green. Perfect hit (center green)=1 progress. OK zone=0.5 progress. Miss (red)=0 progress with penalty pause.</li><li><strong>Meter difficulty ramps</strong> -- After each successful hit, meter speed increases by 0.15 (difficulty ramps).</li><li><strong>Complete tree</strong> -- Maintain 7 successful hits. Tree falls and disappears from map.</li><li><strong>Harvest logs</strong> -- After tree falls, 3-5 logs earned (quantity based on hit quality). Logs appear in inventory.</li><li><strong>Energy penalty</strong> -- Verify -15 energy deducted for completing chop. Energy bar decreases.</li><li><strong>XP reward</strong> -- Verify +15 XP awarded for successful tree chop.</li><li><strong>Tree stump remains</strong> -- Chopped tree shows as stump on map (visual placeholder).</li><li><strong>Tree regrowth</strong> -- Use dev mode to advance 21 days. Return to County Road. Tree regrows, ready to chop again.</li><li><strong>Cancel mid-chop</strong> -- Start chopping, press ESC. Minigame closes, no logs rewarded. Energy still consumed.</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>Chopping minigame difficulty increases with each successful hit. Perfect hits net full progress, misses penalized. Trees fall after 7 successful hits. 3-5 logs harvested based on performance. Energy penalty -15, XP reward +15. Trees regrow after 21 days. All 8 trees on County Road harvestable and regrow independently.</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>ESC cancels mid-chop without reward. Cannot chop without axe. Insufficient energy should prevent chopping initiation. Multiple misses penalized with short pause. Meter speed increase consistent per hit.</p></div></div>
+
+        <div class="section-card"><div class="section-number">15</div><h3 class="section-title">Workbench Crafting</h3><p class="section-desc">Convert logs to lumber and craft hive components. Resource crafting system on home property.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>Hammer in inventory ($10 from Feed &amp; Supply). Logs available from tree chopping. Workbench on home property (~520, -20).</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Locate workbench</strong> -- Walk to workbench on home property (northeast area). Press E to open workbench UI.</li><li><strong>Verify interface</strong> -- UI displays: Resource inventory (logs/lumber counts). Current recipes list. "[Hammer OK]" or "[No Hammer!]" status.</li><li><strong>Convert logs to lumber</strong> -- Verify "Convert Logs -> Lumber" available. Press C key. 3 logs converted to 1 lumber (3:1 ratio). Counts update.</li><li><strong>Browse recipes</strong> -- Use UP/DOWN arrows to scroll recipes. Available: Frames 10-pack (3 lumber), Super Box (4), Deep Body (5), Hive Stand (2), Lid (2).</li><li><strong>Craft item</strong> -- Select recipe (e.g., Frames), press Enter. Verify: Lumber cost deducted. Item added to inventory. Count increments.</li><li><strong>Craft without hammer</strong> -- Remove hammer from inventory. Recipes greyed out, "[No Hammer!]" status. Press Enter, craft fails: "[Hammer needed for crafting!]"</li><li><strong>With hammer again</strong> -- Add hammer back. Recipes selectable, "[Hammer OK]" status.</li><li><strong>Insufficient lumber</strong> -- Try craft without enough lumber. Error: "Insufficient lumber! Need X more."</li><li><strong>Insufficient logs</strong> -- Try convert with <3 logs. Error: "Need at least 3 logs!"</li><li><strong>Close workbench</strong> -- Press ESC. UI closes.</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>Each recipe has accurate lumber cost. Crafting is free alternative to buying. Log-to-lumber conversion 3:1 with minimum 3 logs. Items successfully crafted appear in inventory. Hammer requirement properly enforced.</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>No hammer=greyed recipes. Insufficient lumber shows feedback. Rapid crafting doesn't cause double-crafting. Items consumed/output correctly. Workbench doesn't persist state across close/reopen.</p></div></div>
+
+        <div class="section-card"><div class="section-number">16</div><h3 class="section-title">Quest System</h3><p class="section-desc">4 built-in quests with XP and money rewards. Daily quest tracking and completion system.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>In gameplay with character created. Progress through early gameplay for different quest types.</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Bob intro quest</strong> -- Locate Uncle Bob on home property. Talk to him (press E). bob_intro quest activates and completes immediately. Toast: "Quest Completed: Uncle Bob's Story (XP +25)". XP +25 awarded.</li><li><strong>Bob intro one-time</strong> -- Talk to Bob again same or different day. Quest doesn't repeat. No additional XP. Quest stays completed.</li><li><strong>Daily inspection quest</strong> -- Inspect hive using Hive Tool. daily_inspection quest completes during/after inspection. Toast: "Quest Completed: Daily Inspection (XP +10, Money +$5)". XP +10 and $5 awarded.</li><li><strong>Daily harvest quest</strong> -- Complete full honey extraction pipeline (deposit -> scrape -> extract -> bottle jars). daily_harvest quest completes. Toast: "Quest Completed: Daily Harvest (XP +15, Money +$10)". XP +15 and $10 awarded.</li><li><strong>Daily market quest</strong> -- On Saturday non-Winter, travel to Cedar Bend. Sell honey jars to Frank. daily_market quest completes. Toast: "Quest Completed: Market Day (XP +20)". XP +20 awarded.</li><li><strong>Quest reset on sleep</strong> -- After completing daily quest, sleep (press Z). Advance to next day. Daily quests reset, become active again.</li><li><strong>Redo daily quest</strong> -- On new day after reset, perform same action (e.g., inspect again). Quest completes with same rewards.</li><li><strong>Multiple daily quests same day</strong> -- Complete all three daily quests on same day (inspection, harvest, market). Each awards independently with no duplication.</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>Quest completion triggers notification toast. XP and money rewards apply immediately. Daily quests auto-reset on day_advanced signal. Bob intro only completable once (not daily). Quest states: INACTIVE -> ACTIVE -> COMPLETED. Total potential daily XP: 45 (10+15+20).</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>Completing harvest without market same day doesn't count as market quest. Market quest only Saturday. Bob quest persists completed after save/load. Daily quest reset happens at midnight (day transition).</p></div></div>
+
+        <div class="section-card"><div class="section-number">17</div><h3 class="section-title">Save &amp; Load</h3><p class="section-desc">Persistent game state storage and recovery across sessions. Save file integrity verification.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>Play through several in-game days with meaningful progress. Build hives, craft items, advance time.</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Note current state</strong> -- Before saving, note: Money amount, Energy level, Current day/month/season, Weather, Inventory items/counts, Hive state, Character name/backstory, Quest progress, Standing tier.</li><li><strong>Trigger save - sleep</strong> -- Press Z to sleep. Game saves (brief indication or no error messages).</li><li><strong>Trigger save - pause</strong> -- Press ESC, open pause menu. Click "Save" button. "Game saved!" confirmation appears.</li><li><strong>Quit game</strong> -- From pause menu, click "Exit" or ESC from main menu. Close application completely.</li><li><strong>Relaunch game</strong> -- Restart application. Main menu loads.</li><li><strong>Click Continue</strong> -- Press "Continue" button on main menu. Game loads save file, transitions to home property.</li><li><strong>Verify all state persisted</strong> -- Compare current state to noted values. Verify ALL matches: Money amount identical, Energy level identical, Day/month/season matches, Weather matches, Inventory items/counts match, Hive colonies/supers unchanged, Character name/backstory correct, Quest completion state correct, Standing tier unchanged.</li><li><strong>Check save file</strong> -- Verify save file at user://smoke_and_honey_save.json exists and readable.</li><li><strong>Save file schema</strong> -- Verify save file contains JSON structure with schema version 1. Binary cell grid data base64-encoded.</li><li><strong>Multiple saves</strong> -- Play further, make changes, sleep again. Create second save. Reload first save, verify old state restored (second save changes absent).</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>Save file at user://smoke_and_honey_save.json with schema version 1. All autoloads (TimeManager, GameData, PlayerData, QuestManager, WeatherManager) properly restored. Binary cell grid data base64-encoded. Complete game state persists: inventory, money, time, weather, hive state, character data, quest progress.</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>Corrupted save file shows error, defaults to new game. Save during different scenes (Cedar Bend vs home) works seamlessly. Multiple simultaneous save attempts prevented (save lock). Load handles missing optional fields gracefully.</p></div></div>
+
+        <div class="section-card"><div class="section-number">18</div><h3 class="section-title">Zone Transitions</h3><p class="section-desc">Scene changes between game locations. Seamless navigation between home property, Cedar Bend, and County Road.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>In gameplay at home property.</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Exit home property</strong> -- Walk to edge/boundary of home property. Zone transition triggers automatically.</li><li><strong>Loading screen</strong> -- Loading screen appears briefly (fade-in, spinner, fade-out). Loading fast (<1 second).</li><li><strong>Arrive at destination</strong> -- New scene loads (e.g., Cedar Bend). Player appears at appropriate entrance location.</li><li><strong>Walk back</strong> -- Walk to edge of Cedar Bend. Trigger zone transition back to home. Home loads with player at exit point.</li><li><strong>Multiple transitions</strong> -- Make several round trips (home -> Cedar Bend -> home -> County Road -> home). Each transition seamless, no crashes or black screens.</li><li><strong>Inventory persistence</strong> -- Carry specific items, transition between zones. Verify all inventory items present after transition.</li><li><strong>Game state persistence</strong> -- Note current time, day, money, energy. Transition to new zone. Verify all state values remain unchanged.</li><li><strong>Map overlay</strong> -- Press M to show map. Current location highlighted. Map shows registered POIs (house, hive yard, harvest yard, workbench, Cedar Bend stalls, County Road).</li><li><strong>POI locations</strong> -- Verify map accurately shows: Home Property (House, Hive Yard, Garden, Workbench, Harvest Yard, Storage Chest), Cedar Bend (Market Stalls, Feed &amp; Supply), County Road (8 Tree locations).</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>Smooth transitions with loading screen. No crashes or black screens. Player position appropriate at destination. Inventory and game state fully persist across transitions. Map overlay shows current location and POIs accurately.</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>NPC positions correct per scene (Frank in Cedar Bend, Bob at home). Music fades/crossfades to location's music. Minigames/overlays open in wrong scene close and cancel without breaking state.</p></div></div>
+
+        <div class="section-card"><div class="section-number">19</div><h3 class="section-title">Hive Simulation (Background)</h3><p class="section-desc">Colony biology simulation driving hive gameplay. Brood patterns, population dynamics, honey storage, and disease.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>At least one hive with installed colony past 7-day lockout. Play for multiple in-game weeks.</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Initial state</strong> -- Inspect fresh colony (past lockout). Note population, brood pattern (initial small pattern center frames), honey stores.</li><li><strong>Advance days</strong> -- Use dev mode to advance 7 days. Reinspect same hive. Verify: Population increases. Brood pattern expands outward from center. Honey stores increase (if nectar flow).</li><li><strong>Brood pattern shape</strong> -- Verify brood follows 3D ellipsoid pattern: Queen lays center frames first. Pattern expands dome-shaped (center-out). Comb filling shows foundation -> drawn -> honey progression.</li><li><strong>Seasonal population</strong> -- Advance through seasons. Verify: Spring population grows ~12k to ~30k. Summer peaks ~40k-50k. Fall declines as brood production slows. Winter minimal ~8k-12k.</li><li><strong>Honey flow seasons</strong> -- Verify honey stores: Increase Spring/Summer (nectar flow). Plateau Fall (reduced). Slowly consumed Winter (cluster living).</li><li><strong>Super fill visuals</strong> -- Observe hive overworld sprites. Super color progression: Grey (empty), Pale yellow (partial), Gold (moderate), Amber (mostly full), Deep amber (full/capped).</li><li><strong>Mite load progression</strong> -- Advance several weeks into Fall. Inspect. Varroa mite load increases over time (visible speckling in brood). Check dev panel for exact count.</li><li><strong>Forage status</strong> -- Verify forage status changes by season/weather: Abundant (Spring/Summer good), Adequate (Fall), Stressed (Winter/cold), Dearth (very poor).</li><li><strong>Dev mode full stats</strong> -- Press G, open dev panel. Verify immediate full hive statistics (exact values, not estimates). Knowledge tier irrelevant in dev mode.</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>Colony population follows realistic seasonal curve. Brood pattern expands dome-shaped from center. Honey stores increase during nectar flow, consumed during dearth. Mite load increases progressively. Super fill color accurately represents contents. Forage status reflects season/weather.</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>Season factor (0.05-1.0) drives foraging rates. Package bees: 7-day lockout, 4-6 day laying delay. Maximum population limited by space. Heavy mite load visibly damages brood pattern. Dev mode exposes all hidden simulation values.</p></div></div>
+
+        <div class="section-card"><div class="section-number">20</div><h3 class="section-title">Music System</h3><p class="section-desc">Seasonal background music with smooth crossfading. 8 tracks cycling through months.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>Game running with audio system functional. Speakers/headphones connected.</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Main menu music</strong> -- Launch game. mainTheme.mp3 plays on main menu, loops seamlessly.</li><li><strong>Music on game start</strong> -- Click "Start". Music transitions from main theme to current season's track smoothly (crossfade, not abrupt).</li><li><strong>Season tracks</strong> -- Verify 8 tracks: Quickening_Track (Month 0), Greening_Track (Month 1), WideClover_Track (Month 2), HighSun_Track (Month 3), FullEarth_Track (Month 4), Reaping_Track (Month 5), Deepcold_Track (Month 6), Kindlemonth_Track (Month 7).</li><li><strong>Month crossfade</strong> -- Use dev mode to advance to next month boundary. Music crossfades to new track (~2 second fade). No abrupt silence or double-playing.</li><li><strong>Pause menu music</strong> -- Open pause menu (ESC). Music continues playing (not paused). Game paused but music not.</li><li><strong>Volume slider</strong> -- In pause menu, locate Music volume slider. Slider ranges 0-100%. Adjust and hear volume change in real-time.</li><li><strong>Mute music</strong> -- In pause menu, check "Mute Music". Music stops immediately.</li><li><strong>Unmute music</strong> -- Uncheck "Mute Music". Music resumes playing from current position.</li><li><strong>Music across zones</strong> -- Travel from home property to Cedar Bend (zone transition). Music continues (may crossfade if different track, or stay same if shared).</li><li><strong>Music audio bus</strong> -- Verify music routed to "Music" audio bus (verifiable in dev console or settings). Separate from SFX bus.</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>Two AudioStreamPlayers for seamless crossfade. Volume at -6dB default. Routed to "Music" audio bus. Tracks loop on finish without gaps. Music continues during pause (process_mode=ALWAYS). Volume control responds instantly. Mute toggles on/off.</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>Music continues across scene transitions. No double-playing or glitches on rapid month advances. Mute toggles cleanly without clicking. Volume slider logarithmic dB conversion (0%=-80dB, 100%=0dB).</p></div></div>
+
+        <div class="section-card"><div class="section-number">21</div><h3 class="section-title">ESC / Pause Menu</h3><p class="section-desc">In-game pause overlay with settings and music controls. Main gameplay pause interface.</p><div class="prerequisites-box"><strong>Prerequisites:</strong><p>In gameplay (not main menu). Any location (home property, Cedar Bend, County Road).</p></div><div class="steps-list"><h4>Test Steps:</h4><ol><li><strong>Open pause menu</strong> -- Press ESC or P key. Pause menu appears with slide-in animation.</li><li><strong>Game pauses</strong> -- Verify game state frozen: No movement, no time progression, no animations (except menu).</li><li><strong>Status display</strong> -- Pause menu shows: Season name, Day count, Year count, Money amount, Energy percentage, Level/standing tier.</li><li><strong>Main buttons</strong> -- Four buttons appear: "Resume" (unpause), "Save" (save game), "Settings" (audio/graphics), "Exit" (quit with confirmation).</li><li><strong>Click Resume</strong> -- Clicks "Resume". Menu closes, game unpauses, time/animations resume.</li><li><strong>Click Save</strong> -- Reopen menu, click "Save". "Game saved!" confirmation appears. Game remains paused.</li><li><strong>Music volume slider</strong> -- In pause menu, locate "Music Volume" slider. Adjustable. Verify music volume changes in real-time.</li><li><strong>SFX volume slider</strong> -- Locate "SFX Volume" slider. Adjust it.</li><li><strong>Master volume slider</strong> -- Locate "Master Volume" slider. Adjust to 50%. Music volume reduced to half.</li><li><strong>Mute Music</strong> -- Check "Mute Music". Music stops. Uncheck, music resumes.</li><li><strong>Mute auto-uncheck on slider</strong> -- Check Mute Music. Drag Music Volume slider >0%. Mute auto-unchecks, music resumes.</li><li><strong>Open Settings</strong> -- Click "Settings". Audio Settings panel opens showing: Music/SFX/Master sliders, Mute checkboxes.</li><li><strong>Adjust settings</strong> -- In settings panel, adjust sliders. Verify sync with main panel (bidirectional).</li><li><strong>Return from settings</strong> -- Press ESC from settings. Return to main pause menu (no double-close).</li><li><strong>Click Exit</strong> -- Click "Exit". Confirmation dialog appears: "Save before exiting?" with "Cancel", "Save &amp; Exit", "Exit Without Saving".</li><li><strong>Cancel exit</strong> -- Click "Cancel". Return to pause menu (no quit).</li><li><strong>Save &amp; Exit</strong> -- Click "Save &amp; Exit". Game saves, quits to main menu. Verify save file written.</li><li><strong>Exit Without Saving</strong> -- On next play, open pause -> Exit -> "Exit Without Saving". Quit immediately without saving.</li><li><strong>Rapid ESC presses</strong> -- Press ESC multiple times rapidly. Menu appears once, doesn't break or duplicate.</li><li><strong>ESC closes menu</strong> -- From open pause menu, press ESC. Menu closes, game unpauses (same as Resume).</li><li><strong>Menu z-index</strong> -- Verify pause menu appears above gameplay but below error dialogs. "[ESC] to close" hint visible at bottom.</li></ol></div><div class="expected-results"><strong>Expected Results:</strong><p>Pause menu appears with slide-in animation. Game state completely frozen. Status shows accurate character/game data. All buttons functional. Resume unpauses, Save triggers write, Settings opens sub-panel, Exit shows confirmation. Settings sliders bidirectionally synced. Music controls responsive. Confirmation prevents accidental quit.</p></div><div class="edge-cases"><strong>Edge Cases:</strong><p>Rapid ESC presses don't break state. Menu at layer 30 (above most overlays). May not appear during cutscenes/certain minigames. Save button may be disabled if recently saved (prevent spam). Volume conversion logarithmic dB (-80dB to 0dB).</p></div></div>
+
+        <h2 style="margin-top: 60px;">Test Results Checklist</h2>
+        <table class="results-table">
+            <thead><tr><th>#</th><th>System</th><th>Pass</th><th>Fail</th><th>Notes</th></tr></thead>
+            <tbody>
+                <tr><td>1</td><td>Main Menu</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>2</td><td>Character Creator</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>3</td><td>Player Movement &amp; Controls</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>4</td><td>HUD (Heads-Up Display)</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>5</td><td>Time &amp; Calendar</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>6</td><td>Weather System</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>7</td><td>Hive Building</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>8</td><td>Hive Management Panel</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>9</td><td>Hive Inspection</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>10</td><td>Smoker &amp; Bee Suit</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>11</td><td>Harvest Yard (Full Pipeline)</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>12</td><td>Saturday Market (Cedar Bend)</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>13</td><td>Feed &amp; Supply Shop</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>14</td><td>Tree Chopping</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>15</td><td>Workbench Crafting</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>16</td><td>Quest System</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>17</td><td>Save &amp; Load</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>18</td><td>Zone Transitions</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>19</td><td>Hive Simulation (Background)</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>20</td><td>Music System</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+                <tr><td>21</td><td>ESC / Pause Menu</td><td class="pass">[ ]</td><td class="fail">[ ]</td><td></td></tr>
+            </tbody>
+        </table>
+
+        <footer>
+            <p>Smoke &amp; Honey -- Playtester QA Guide v3 (2026-03-31) | Cedar Bend, Iowa | Godot 4.6</p>
+            <p style="margin-top: 20px; font-size: 0.85em;">For feedback and bug reports, please fill out the feedback form above or email feedback@smokeandhoney.dev</p>
+        </footer>
+    </div>
 </body>
 </html>
