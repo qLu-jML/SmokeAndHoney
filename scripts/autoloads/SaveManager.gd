@@ -569,6 +569,9 @@ func _apply_player(pd: Dictionary, player: Node) -> void:
 			# Each slot is JSON null (-> null) or a {item, count} Dictionary.
 			player.inventory[i] = raw[i]
 		player.update_hud_inventory()
+		# Keep GameData in sync so inventory survives future scene changes
+		if player.has_method("sync_inventory_to_gamedata"):
+			player.sync_inventory_to_gamedata()
 
 
 func _apply_flowers(flowers_data: Array, world: Node) -> void:

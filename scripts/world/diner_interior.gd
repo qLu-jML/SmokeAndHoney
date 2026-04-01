@@ -193,7 +193,8 @@ func _input(event: InputEvent) -> void:
 	match event.keycode:
 		KEY_E:
 			_try_interact_rose()
-		KEY_BACKSPACE:
+		KEY_ESCAPE, KEY_BACKSPACE:
+			get_viewport().set_input_as_handled()
 			_exit_diner()
 
 func _try_interact_rose() -> void:

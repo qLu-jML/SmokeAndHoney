@@ -57,14 +57,22 @@ func get_max_stack(item_name: String) -> int:
 func _ready():
 	inventory.resize(INVENTORY_SIZE)
 	inventory.fill(null)
-	# Starting inventory: essentials + honey-house tools in hand from the start
-	add_item(GameData.ITEM_HIVE_TOOL,      1)
-	add_item(GameData.ITEM_GLOVES,         1)
-	add_item(GameData.ITEM_QUEEN_EXCLUDER, 1)
-	add_item(GameData.ITEM_SUPER_BOX,      5)
-	add_item(GameData.ITEM_COMB_SCRAPER,   1)   # de-capping tool
-	add_item(GameData.ITEM_BUCKET_GRIP,    1)   # required to carry honey bucket
-	add_item(GameData.ITEM_JAR,           40)   # 2 stacks of 20 empty bottles
+	# Restore inventory from GameData if a previous player synced it (scene change).
+	# Otherwise use starting defaults (brand-new game).
+	if GameData.player_inventory_valid and GameData.player_inventory.size() > 0:
+		for i in range(mini(GameData.player_inventory.size(), INVENTORY_SIZE)):
+			inventory[i] = GameData.player_inventory[i]
+	else:
+		# Starting inventory: essentials + honey-house tools in hand from the start
+		add_item(GameData.ITEM_HIVE_TOOL,      1)
+		add_item(GameData.ITEM_GLOVES,         1)
+		add_item(GameData.ITEM_QUEEN_EXCLUDER, 1)
+		add_item(GameData.ITEM_SUPER_BOX,      5)
+		add_item(GameData.ITEM_COMB_SCRAPER,   1)   # de-capping tool
+		add_item(GameData.ITEM_BUCKET_GRIP,    1)   # required to carry honey bucket
+		add_item(GameData.ITEM_JAR,           40)   # 2 stacks of 20 empty bottles
+		# First sync so future scene changes preserve this inventory
+		sync_inventory_to_gamedata()
 	# Deferred: stock the storage chest with remaining items after scene loads
 	call_deferred("_stock_starting_chest")
 	add_to_group("player")
@@ -243,6 +251,7 @@ func add_item(item_name: String, amount: int) -> int:
 					break
 	# Single HUD refresh after all slots are updated.
 	update_hud_inventory()
+	sync_inventory_to_gamedata()
 	return amount
 
 func consume_item(item_name: String, amount: int) -> bool:
@@ -264,6 +273,7 @@ func consume_item(item_name: String, amount: int) -> bool:
 				amount -= inventory[i]["count"]
 				inventory[i] = null
 	update_hud_inventory()
+	sync_inventory_to_gamedata()
 	return true
 
 func get_item_count(item_name: String) -> int:
@@ -275,6 +285,11 @@ func count_item(item_name: String) -> int:
 		if slot != null and slot["item"] == item_name:
 			total += slot["count"]
 	return total
+
+## Copy the current inventory array into GameData so it persists across scenes.
+func sync_inventory_to_gamedata() -> void:
+	GameData.player_inventory = inventory.duplicate(true)
+	GameData.player_inventory_valid = true
 
 # -- Movement ------------------------------------------------------------------
 

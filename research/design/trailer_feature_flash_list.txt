@@ -1,0 +1,105 @@
+SMOKE & HONEY -- RAPID FEATURE FLASH LIST
+==========================================
+For Kickstarter trailer ending (~5 seconds, accelerating speed)
+Each line = one flash on screen
+
+Frame-by-Frame Hive Inspections
+Find the Queen Minigame
+70x50 Honeycomb Cell Grid
+15 Distinct Cell States
+Smoker Mechanics
+Sting Risk System
+Protective Bee Suits
+Colony Population Tracking
+Nurse & Forager Cohorts
+Queen Laying Patterns
+Queen Grading System
+Queen Marking Colors
+Varroa Mite Management
+American Foulbrood Detection
+Brood Pattern Assessment
+Hive Health Scoring
+Three Hive Types
+Deep Boxes & Honey Supers
+Queen Excluders
+Swarm Prevention
+Swarm Capture
+Hive Splitting
+Package Bee Ordering
+Three Bee Species
+Italian, Carniolan & Buckfast
+Uncapping Minigame
+Honey Extraction Minigame
+Bottling Minigame
+Three-Tier Equipment Progression
+Moisture Content Grading
+Premium & Standard Honey
+Varietal Honey Tracking
+Super Carry Mechanic
+Harvest Yard Processing
+Beeswax Collection
+Propolis Scraping
+Pollen Harvesting
+Creamed Honey
+Infused Honey Recipes
+Beeswax Candle Crafting
+Candle Molding Minigame
+Lip Balm & Face Cream
+Propolis Tinctures
+Farmhouse Mead Brewing
+Traditional Mead
+Fruit Melomel
+Passive Fermentation Queue
+Gift Set Packaging
+Dynamic Weather System
+Eight Weather States
+Rain Blocks Inspections
+Wind Reduces Foraging
+Cold Snaps Threaten Brood
+Heat Waves & Drought
+Day/Night Cycle
+Eight Named Seasons
+Seasonal Forage Calendar
+Dandelions to Goldenrod
+Linden Tree Honey
+Wildflower Meadows
+Forage Garden Planting
+Fruit Tree Orchards
+Four-Year Tree Maturation
+Nectar Flow Peaks & Dearths
+Sell at the Saturday Market
+Community Standing System
+Five Reputation Tiers
+Standing Unlocks New Prices
+NPC Quest Chains
+Uncle Bob's Mentorship
+Honey House Restoration
+Silas the Carpenter
+Dr. Harwick's Diagnostics
+Frank at the Market
+Rose at the Diner
+Cedar Valley Beekeepers Club
+Six Explorable Locations
+Cedar Bend Town
+Timber Creek Apiary
+River Bottom Wildflowers
+Energy Management
+Diner Meals Restore Energy
+Weekly Task Planning
+Knowledge Log Discovery
+Five Observation Tiers
+Learn by Looking
+Progressive Detail Unlocks
+Tree Chopping Rhythm Game
+Equipment Repair & Upkeep
+Shed Workbench Crafting
+Seasonal Events
+Honey Competition
+Fall Harvest Market
+Winter Crafting Fair
+Multi-Year Progression
+Queen Rearing & Genetics
+Grafting Minigame
+Nucleus Colony Sales
+Rural Iowa Setting
+Original Seasonal Soundtrack

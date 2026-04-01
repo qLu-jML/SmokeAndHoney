@@ -1,3 +1,62 @@
+[2026-03-31 CDT] FIX: Crash on ESC exit from interiors (null viewport)
+  Root cause: _exit_supply() (and similar) calls change_scene_to_file() which
+  frees the node. The next line get_viewport().set_input_as_handled() then
+  crashes because the node is no longer in the tree (viewport is null).
+  Fix: Swap the call order -- call set_input_as_handled() BEFORE the exit
+  function in all 6 affected interiors.
+  Files changed: feed_supply_interior.gd, diner_interior.gd, generic_interior.gd,
+    honey_house.gd, house_interior.gd, post_office_interior.gd
+
+[2026-03-31 CDT] FIX: Main menu logo not rendering
+  Root cause: Sprite2D (a Node2D) renders below Control nodes in the same
+  CanvasLayer. The background ColorRect (a Control) covered the logo.
+  Fix: Switched logo from Sprite2D to TextureRect (a Control) with
+  EXPAND_IGNORE_SIZE and STRETCH_KEEP_ASPECT_CENTERED for correct sizing.
+  Also added Image.load_from_file() fallback using globalize_path().
+  Files changed: MainMenu.gd
+
+[2026-03-31 CDT] FIX: Sell honey screen shows 0 jars -- inventory lost on scene change
+  Root cause: player inventory only existed on the player Node instance. When
+  changing scenes (e.g. entering Feed & Supply), the old player was freed and a
+  new one was created with default starting items -- losing all gameplay items.
+  SaveManager.apply_to_scene() only ran on home_property, not interiors.
+  Fix: Added persistent inventory mirror in GameData autoload.
+  - GameData.player_inventory / player_inventory_valid: stores inventory across scenes
+  - player._ready(): restores from GameData if valid, else uses starting defaults
+  - player.add_item() / consume_item(): sync to GameData after every change
+  - SaveManager._apply_player(): syncs to GameData after restoring from save file
+  - MainMenu._reset_common_state(): clears GameData inventory on new game start
+  Files changed: GameData.gd, player.gd, SaveManager.gd, MainMenu.gd
+
+[2026-03-31 CDT] FEAT: Hierarchical ESC key behavior
+  ESC now backs out of whatever screen you're in layer by layer:
+    1. If a UI overlay is open (shop, dialogue, map, inspection, etc.) -> close it
+    2. If inside a building with no overlay -> exit the building
+    3. If on the overworld with nothing open -> open the pause menu
+  Changes:
+  - HUD._input: removed KEY_ESCAPE (was conflicting by always toggling pause).
+    P key still toggles pause directly. ESC goes through the hierarchy.
+  - PauseMenu._unhandled_key_input: unchanged -- only fires when no other handler
+    consumed the ESC event, which is exactly the "overworld, nothing open" case.
+  - map_overlay: added set_input_as_handled() after ESC close.
+  - post_office_interior: added set_input_as_handled() after ESC close counter,
+    added KEY_ESCAPE as exit key when no counter is open.
+  - feed_supply_interior: added KEY_ESCAPE as exit key (alongside BACKSPACE).
+  - diner_interior: added KEY_ESCAPE as exit key (alongside BACKSPACE).
+  - house_interior: added KEY_ESCAPE to trigger exit.
+  - honey_house: added KEY_ESCAPE to trigger_exit in _unhandled_key_input.
+  - generic_interior: added _input() with KEY_ESCAPE to trigger exit.
+
+[2026-03-31 CDT] FEAT: Main menu overhaul + pause menu exit + character creator cleanup
+  1. MAIN MENU - simplified to Start / Continue / Quit (removed Spring/Fall choice).
+     Start always begins in Spring. Logo now uses Sprite2D instead of TextureRect
+     to avoid expand/stretch issues in CanvasLayer. Tries load() then Image.load().
+  2. PAUSE MENU - "Quit Game" replaced with "Exit" which shows a confirmation dialog:
+     "Save before exiting?" with Save & Exit / Exit Without Saving / Cancel buttons.
+     New _exit_confirm panel built in _build_exit_confirm().
+  3. CHARACTER CREATOR - Removed pronouns section. 3 focus sections instead of 4
+     (name/backstory/confirm). Panel height 130. Defaults to they/them.
+
 [2026-03-31 CDT] FIX + FEAT: All NPC shop/menu UIs redesigned + Godot error fixes
   1. FEED SUPPLY SHOP (feed_supply_interior.gd) -- complete UI rewrite:
      - Carl Tanner's shop now uses the same black-bg/gold-border button system as shop_screen.gd.
@@ -914,3 +973,36 @@
   (3) Settings sub-panel: Also received a Mute Music checkbox (synced with main panel).
       Panel height expanded from 90 to 105. Main panel height expanded from 130 to 156.
   All files ASCII-verified. Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
+
+[2026-03-31 11:26:24 CDT] UI: MainMenu.gd completely rewritten for clean visual layout.
+  Problems fixed:
+    - Logo was not loading (load() needed import cache; added Image.load_from_file()
+      fallback to bypass Godot's import pipeline, same pattern as player spritesheet)
+    - Hex dot pattern looked like chunky squares at 6x window scale -- removed entirely
+    - Vignette rectangles were harsh dark blocks -- replaced with subtle warm center glow
+    - Button panel was too low and cramped -- buttons now vertically centered below logo
+    - Panel border/double-border styling was overly heavy -- simplified to clean buttons
+  New layout (320x180 viewport):
+    - Dark warm background with subtle center glow and thin amber decorative lines
+    - 80x80 game logo centered in upper half of screen
+    - 4 buttons centered below: Start in Spring (green accent), Start in Fall (orange),
+      Continue (amber, greyed if no save), Quit (muted)
+    - Thin decorative dividers above/below button group and between new-game/continue
+    - Version line at bottom: v0.1 dev -- Cedar Bend, Iowa
+    - 1-second fade-in animation on load
+  All functionality preserved: Spring/Fall start modes, character creator flow,
+  continue/save detection, MusicManager title theme, ESC to quit.
+  ASCII verified. Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
+
+[2026-03-31 11:33:29 CDT] UI: MainMenu.gd v3 -- fixed logo loading + button layout.
+  Logo fix: Now uses Image.load_from_file() as PRIMARY method (same proven pattern
+  as player spritesheet loading). Tries PNG then JPG. Falls back to load() as last
+  resort. Logo displayed at 160x80 viewport pixels (960x480 at 6x) with
+  EXPAND_FIT_WIDTH_PROPORTIONAL + STRETCH_KEEP_ASPECT_CENTERED.
+  Button fix: Reduced font_size from 7 to 6, BTN_H from 14 to 12, added
+  set_content_margin_all(1) to all StyleBoxFlat overrides so Godot does not
+  expand buttons beyond their assigned size. custom_minimum_size set explicitly.
+  Removed corner radius. Thinned borders. Cleaner visual hierarchy.
+  Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
+
+[2026-03-31 11:47:14 CDT] DOCS: Testing Guide updated to v2. Rewrote Section 1 (Main Menu) to match new MainMenu.gd layout (logo loading, 4-button layout, dark background). Added new Section 21: ESC/Pause Menu covering music volume slider, mute checkbox, bidirectional sync, Resume/Save/Settings/Quit. Updated Quick Controls reference (ESC key). Added row 21 to Test Results Checklist. 77,000 bytes. Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.

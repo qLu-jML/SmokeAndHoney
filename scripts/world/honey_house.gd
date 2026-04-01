@@ -483,6 +483,10 @@ func _get_station_prompt(station: Station) -> String:
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed):
 		return
+	if event.keycode == KEY_ESCAPE and not event.echo:
+		get_viewport().set_input_as_handled()
+		_trigger_exit()
+		return
 	if event.keycode == KEY_E:
 		if event.echo and _spinner_spinning:
 			# Repeated E presses during spinning

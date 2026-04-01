@@ -138,6 +138,14 @@ var coffee_until_hour: float = -1.0
 # XP buff from seasonal special: until what game-day does the 5% XP bonus apply?
 var xp_buff_until_day: int = -1
 
+# -- Persistent Player Inventory -----------------------------------------------
+# Mirrors the player node's inventory array so it survives scene changes.
+# Each entry is null or {"item": String, "count": int}.
+# Written by player.sync_inventory_to_gamedata() on every add/consume.
+# Read by player._ready() to restore inventory when entering a new scene.
+var player_inventory: Array = []
+var player_inventory_valid: bool = false   # true once a player has synced at least once
+
 # -- Harvested Super Data ------------------------------------------------------
 # When a honey super is removed from a hive, its frame cell data is stored here
 # so the honey house / harvest yard can recreate the exact cell distribution the

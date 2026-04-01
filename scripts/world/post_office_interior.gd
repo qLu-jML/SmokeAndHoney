@@ -64,7 +64,9 @@ func _input(event: InputEvent) -> void:
 			KEY_ESCAPE, KEY_X:
 				if _counter_open:
 					_close_counter()
-			KEY_BACKSPACE:
+					get_viewport().set_input_as_handled()
+			KEY_ESCAPE, KEY_BACKSPACE:
+				get_viewport().set_input_as_handled()
 				_exit_post_office()
 
 func _try_interact_june() -> void:

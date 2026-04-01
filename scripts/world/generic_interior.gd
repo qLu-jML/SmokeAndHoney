@@ -77,6 +77,14 @@ func _door_world_rect() -> Rect2:
 func _feet_rect(player_gpos: Vector2) -> Rect2:
 	return Rect2(player_gpos + Vector2(-7.0, 6.0), Vector2(14.0, 10.0))
 
+func _input(event: InputEvent) -> void:
+	if _transitioning:
+		return
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_ESCAPE:
+			get_viewport().set_input_as_handled()
+			_trigger()
+
 func _process(_delta: float) -> void:
 	if _transitioning:
 		return

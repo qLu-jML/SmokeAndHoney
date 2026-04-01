@@ -128,7 +128,10 @@ func _input(event: InputEvent) -> void:
 		return
 	if event.keycode == KEY_E and _is_player_near_bed():
 		_do_sleep()
-		get_viewport().set_input_as_handled()   # stop player _perform_action
+		get_viewport().set_input_as_handled()
+	elif event.keycode == KEY_ESCAPE:
+		get_viewport().set_input_as_handled()
+		_trigger()
 
 func _do_sleep() -> void:
 	if _summary_overlay and is_instance_valid(_summary_overlay):

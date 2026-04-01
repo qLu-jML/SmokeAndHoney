@@ -19,13 +19,13 @@ extends CanvasLayer
 const VP_W    := 320
 const VP_H    := 180
 const PANEL_W := 160
-const PANEL_H := 130
+const PANEL_H := 156
 const PANEL_X := (VP_W - PANEL_W) / 2
 const PANEL_Y := (VP_H - PANEL_H) / 2
 
 # Settings sub-panel
 const SETTINGS_W := 150
-const SETTINGS_H := 90
+const SETTINGS_H := 105
 
 # -- Colors (GDD warm palette) ------------------------------------------------
 const C_DIM      := Color(0.00, 0.00, 0.00, 0.68)
@@ -45,6 +45,12 @@ var _music_slider: HSlider = null
 var _sfx_slider: HSlider = null
 var _music_pct_label: Label = null
 var _sfx_pct_label: Label = null
+var _mute_checkbox: CheckBox = null
+var _main_music_slider: HSlider = null
+var _main_music_pct: Label = null
+var _main_mute_checkbox: CheckBox = null
+var _exit_confirm: Control = null
+var _exit_confirm_open: bool = false
 
 # -- Audio bus indices (cached) ------------------------------------------------
 var _music_bus_idx: int = -1
@@ -59,12 +65,15 @@ func _ready() -> void:
 	_ensure_audio_buses()
 	_build_ui()
 	_build_settings_panel()
+	_build_exit_confirm()
 	visible = false
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_P or event.keycode == KEY_ESCAPE:
-			if _settings_open:
+			if _exit_confirm_open:
+				_close_exit_confirm()
+			elif _settings_open:
 				_close_settings()
 			elif _open:
 				_close()
@@ -222,12 +231,51 @@ func _build_ui() -> void:
 		["Resume",     "_on_resume"],
 		["Save",       "_on_save"],
 		["Settings",   "_on_settings"],
-		["Quit Game",  "_on_quit"],
+		["Exit",       "_on_exit"],
 	]:
 		var btn := _make_button(btn_data[0], Vector2(20, btn_y), Vector2(PANEL_W - 40, 14))
 		btn.pressed.connect(Callable(self, btn_data[1]))
 		_panel.add_child(btn)
 		btn_y += 16
+
+	# -- Music controls (directly on main panel) -------------------
+	btn_y += 4
+	var music_div := ColorRect.new()
+	music_div.color = Color(0.47, 0.28, 0.05, 0.60)
+	music_div.size = Vector2(PANEL_W - 20, 1)
+	music_div.position = Vector2(10, btn_y)
+	_panel.add_child(music_div)
+	btn_y += 5
+
+	# Music volume row
+	var mvol_label := _lbl("Music", 6, Vector2(10, btn_y), Vector2(32, 10), C_TEXT)
+	_panel.add_child(mvol_label)
+
+	_main_music_slider = _make_slider(Vector2(42, btn_y), Vector2(74, 10))
+	_main_music_slider.value = _db_to_percent(_get_bus_volume_db("Music"))
+	_main_music_slider.value_changed.connect(_on_main_music_changed)
+	_panel.add_child(_main_music_slider)
+
+	_main_music_pct = _lbl(str(int(_main_music_slider.value)) + "%", 6,
+		Vector2(118, btn_y), Vector2(30, 10), C_MUTED)
+	_panel.add_child(_main_music_pct)
+	btn_y += 14
+
+	# Mute checkbox row
+	_main_mute_checkbox = CheckBox.new()
+	_main_mute_checkbox.text = "Mute Music"
+	_main_mute_checkbox.position = Vector2(10, btn_y)
+	_main_mute_checkbox.size = Vector2(PANEL_W - 20, 12)
+	_main_mute_checkbox.add_theme_font_size_override("font_size", 6)
+	_main_mute_checkbox.add_theme_color_override("font_color", C_TEXT)
+	_main_mute_checkbox.add_theme_color_override("font_hover_color", C_TITLE)
+	_main_mute_checkbox.focus_mode = Control.FOCUS_NONE
+	# Check current mute state
+	var music_idx: int = AudioServer.get_bus_index("Music")
+	if music_idx != -1:
+		_main_mute_checkbox.button_pressed = AudioServer.is_bus_mute(music_idx)
+	_main_mute_checkbox.toggled.connect(_on_mute_toggled)
+	_panel.add_child(_main_mute_checkbox)
 
 	# Close hint
 	var close_hint := _lbl("[ESC] to close", 5,
@@ -327,6 +375,21 @@ func _build_settings_panel() -> void:
 	master_pct.name = "MasterPctLabel"
 	_settings_panel.add_child(master_pct)
 
+	# -- Mute checkbox ---------------------------------------------
+	_mute_checkbox = CheckBox.new()
+	_mute_checkbox.text = "Mute Music"
+	_mute_checkbox.position = Vector2(10, 68)
+	_mute_checkbox.size = Vector2(SETTINGS_W - 20, 12)
+	_mute_checkbox.add_theme_font_size_override("font_size", 6)
+	_mute_checkbox.add_theme_color_override("font_color", C_TEXT)
+	_mute_checkbox.add_theme_color_override("font_hover_color", C_TITLE)
+	_mute_checkbox.focus_mode = Control.FOCUS_NONE
+	var settings_music_idx: int = AudioServer.get_bus_index("Music")
+	if settings_music_idx != -1:
+		_mute_checkbox.button_pressed = AudioServer.is_bus_mute(settings_music_idx)
+	_mute_checkbox.toggled.connect(_on_settings_mute_toggled)
+	_settings_panel.add_child(_mute_checkbox)
+
 	# -- Back button -----------------------------------------------
 	var back_btn := _make_button("Back", Vector2(45, SETTINGS_H - 20), Vector2(60, 14))
 	back_btn.pressed.connect(_close_settings)
@@ -389,15 +452,58 @@ func _db_to_percent(db: float) -> float:
 
 # -- Slider callbacks ----------------------------------------------------------
 
+func _on_main_music_changed(value: float) -> void:
+	_set_bus_volume_db("Music", _percent_to_db(value))
+	if _main_music_pct:
+		_main_music_pct.text = str(int(value)) + "%"
+	# Sync the settings sub-panel slider if it exists
+	if _music_slider:
+		_music_slider.set_value_no_signal(value)
+	if _music_pct_label:
+		_music_pct_label.text = str(int(value)) + "%"
+	# Un-mute if user drags slider above 0
+	if value > 0.0 and _main_mute_checkbox and _main_mute_checkbox.button_pressed:
+		_main_mute_checkbox.set_pressed_no_signal(false)
+		if _mute_checkbox:
+			_mute_checkbox.set_pressed_no_signal(false)
+
+func _on_mute_toggled(muted: bool) -> void:
+	var idx: int = AudioServer.get_bus_index("Music")
+	if idx == -1:
+		return
+	AudioServer.set_bus_mute(idx, muted)
+	# Sync the settings sub-panel checkbox if it exists
+	if _mute_checkbox and _mute_checkbox != _main_mute_checkbox:
+		_mute_checkbox.set_pressed_no_signal(muted)
+
 func _on_music_volume_changed(value: float) -> void:
 	_set_bus_volume_db("Music", _percent_to_db(value))
 	if _music_pct_label:
 		_music_pct_label.text = str(int(value)) + "%"
+	# Sync the main panel slider
+	if _main_music_slider:
+		_main_music_slider.set_value_no_signal(value)
+	if _main_music_pct:
+		_main_music_pct.text = str(int(value)) + "%"
+	# Un-mute if slider moved above 0
+	if value > 0.0 and _main_mute_checkbox and _main_mute_checkbox.button_pressed:
+		_main_mute_checkbox.set_pressed_no_signal(false)
+		if _mute_checkbox:
+			_mute_checkbox.set_pressed_no_signal(false)
 
 func _on_sfx_volume_changed(value: float) -> void:
 	_set_bus_volume_db("SFX", _percent_to_db(value))
 	if _sfx_pct_label:
 		_sfx_pct_label.text = str(int(value)) + "%"
+
+func _on_settings_mute_toggled(muted: bool) -> void:
+	var idx: int = AudioServer.get_bus_index("Music")
+	if idx == -1:
+		return
+	AudioServer.set_bus_mute(idx, muted)
+	# Sync the main panel checkbox
+	if _main_mute_checkbox:
+		_main_mute_checkbox.set_pressed_no_signal(muted)
 
 func _on_master_volume_changed(value: float) -> void:
 	_set_bus_volume_db("Master", _percent_to_db(value))
@@ -445,6 +551,7 @@ func _open_menu() -> void:
 	visible = true
 	get_tree().paused = true
 	_refresh_status()
+	_sync_main_music_controls()
 	# Slide in from above
 	_panel.visible = true
 	_settings_panel.visible = false
@@ -454,6 +561,16 @@ func _open_menu() -> void:
 	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tw.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_property(_panel, "position:y", float(PANEL_Y), 0.18)
+
+func _sync_main_music_controls() -> void:
+	var vol_pct: float = _db_to_percent(_get_bus_volume_db("Music"))
+	if _main_music_slider:
+		_main_music_slider.set_value_no_signal(vol_pct)
+	if _main_music_pct:
+		_main_music_pct.text = str(int(vol_pct)) + "%"
+	var idx: int = AudioServer.get_bus_index("Music")
+	if idx != -1 and _main_mute_checkbox:
+		_main_mute_checkbox.set_pressed_no_signal(AudioServer.is_bus_mute(idx))
 
 func _close() -> void:
 	_open = false
@@ -518,9 +635,87 @@ func _on_save() -> void:
 	else:
 		print("[PauseMenu] SaveManager not found -- save skipped")
 
-func _on_quit() -> void:
+func _on_exit() -> void:
+	# Show save-before-exit confirmation
+	_exit_confirm_open = true
+	_panel.visible = false
+	_exit_confirm.visible = true
+
+func _on_save_and_exit() -> void:
+	var sm: Node = get_tree().root.get_node_or_null("SaveManager")
+	if sm and sm.has_method("save_game"):
+		sm.save_game()
 	get_tree().paused = false
 	get_tree().quit()
+
+func _on_exit_no_save() -> void:
+	get_tree().paused = false
+	get_tree().quit()
+
+func _close_exit_confirm() -> void:
+	_exit_confirm_open = false
+	_exit_confirm.visible = false
+	_panel.visible = true
+
+# -- Exit confirmation panel ---------------------------------------------------
+
+func _build_exit_confirm() -> void:
+	var ew := 140
+	var eh := 60
+	_exit_confirm = Control.new()
+	_exit_confirm.name = "ExitConfirm"
+	_exit_confirm.size = Vector2(ew, eh)
+	_exit_confirm.position = Vector2((VP_W - ew) / 2.0, (VP_H - eh) / 2.0)
+	_exit_confirm.mouse_filter = Control.MOUSE_FILTER_STOP
+	_exit_confirm.visible = false
+	add_child(_exit_confirm)
+
+	# Background
+	var bg := ColorRect.new()
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.color = C_PANEL
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_exit_confirm.add_child(bg)
+
+	# Border
+	var brd_sty := StyleBoxFlat.new()
+	brd_sty.bg_color = Color(0, 0, 0, 0)
+	brd_sty.draw_center = false
+	brd_sty.border_color = C_BORDER
+	brd_sty.set_border_width_all(1)
+	var brd := Panel.new()
+	brd.set_anchors_preset(Control.PRESET_FULL_RECT)
+	brd.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	brd.add_theme_stylebox_override("panel", brd_sty)
+	_exit_confirm.add_child(brd)
+
+	# Title
+	var title := _lbl("Save before exiting?", 7,
+		Vector2(0, 6), Vector2(ew, 10), C_TITLE)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_exit_confirm.add_child(title)
+
+	# Divider
+	var div := ColorRect.new()
+	div.color = C_BORDER
+	div.size = Vector2(ew - 8, 1)
+	div.position = Vector2(4, 18)
+	_exit_confirm.add_child(div)
+
+	# Buttons
+	var bw := 110
+	var bx: float = (ew - bw) / 2.0
+	var save_exit_btn := _make_button("Save & Exit", Vector2(bx, 22), Vector2(bw, 12))
+	save_exit_btn.pressed.connect(_on_save_and_exit)
+	_exit_confirm.add_child(save_exit_btn)
+
+	var exit_btn := _make_button("Exit Without Saving", Vector2(bx, 36), Vector2(bw, 12))
+	exit_btn.pressed.connect(_on_exit_no_save)
+	_exit_confirm.add_child(exit_btn)
+
+	var cancel_btn := _make_button("Cancel", Vector2(bx, 50), Vector2(bw, 12))
+	cancel_btn.pressed.connect(_close_exit_confirm)
+	_exit_confirm.add_child(cancel_btn)
 
 # -- Helper --------------------------------------------------------------------
 

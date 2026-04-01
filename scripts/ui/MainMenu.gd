@@ -2,47 +2,40 @@
 # -----------------------------------------------------------------------------
 # Startup / title screen for Smoke & Honey.
 #
-# Layout (320x180 viewport):
-#   - Full-screen dark amber background with hex dot pattern
-#   - Game logo (assets/ui/logo/game_logo.png) centered in upper half
-#   - Button panel below logo:
-#       [Start in Spring]             -- new game, day 1 (Quickening)
-#       [Start in Fall | 2 Full Supers] -- new game, day 113 (Full-Earth)
-#       [Continue]                    -- load save (disabled if no save)
-#       [Quit]
-#   - Version line at bottom
-#   - Main theme music plays on entry; seasonal music resumes on game start
+# Layout (320x180 viewport, 6x scaled to 1920x1080):
+#   - Dark background with subtle warm center glow
+#   - Game logo centered via Sprite2D (avoids TextureRect sizing issues)
+#   - Buttons: Start, Continue, Quit
+#   - Version label at the very bottom
+#   - Main theme music plays on entry
 # -----------------------------------------------------------------------------
 extends Node
 
-# -- Layout --------------------------------------------------------------------
-const VP_W     := 320
-const VP_H     := 180
-const PANEL_W  := 196
-const PANEL_H  := 104
-const PANEL_X  : int = (VP_W - PANEL_W) / 2
-const LOGO_H   := 64    # logo display height (it is square, so width = 64 too)
-const LOGO_Y   : int = 6
+# -- Viewport ------------------------------------------------------------------
+const VP_W := 320
+const VP_H := 180
+
+# -- Button sizing (viewport pixels) ------------------------------------------
+const BTN_W := 130
+const BTN_H := 12
+const BTN_SPACE := 3   # gap between buttons
 
 # -- Colors --------------------------------------------------------------------
-const C_BG       := Color(0.06, 0.04, 0.02, 1.0)
-const C_PANEL    := Color(0.10, 0.07, 0.03, 0.97)
-const C_BORDER   := Color(0.80, 0.53, 0.10, 1.0)
-const C_BORDER_D := Color(0.47, 0.28, 0.05, 1.0)
+const C_BG       := Color(0.05, 0.03, 0.01, 1.0)
 const C_TITLE    := Color(0.95, 0.78, 0.32, 1.0)
 const C_SUBTITLE := Color(0.70, 0.62, 0.45, 1.0)
 const C_TEXT     := Color(0.88, 0.83, 0.68, 1.0)
 const C_MUTED    := Color(0.45, 0.40, 0.30, 1.0)
 const C_HONEY    := Color(0.87, 0.60, 0.10, 1.0)
 const C_SPRING   := Color(0.45, 0.75, 0.30, 1.0)
-const C_FALL     := Color(0.85, 0.45, 0.10, 1.0)
 
-# -- Nodes ---------------------------------------------------------------------
-var _root:         Control    = null
-var _canvas:       CanvasLayer = null
-var _continue_btn: Button     = null
+# -- State ---------------------------------------------------------------------
+var _canvas: CanvasLayer = null
+var _continue_btn: Button = null
 
-# -- Lifecycle -----------------------------------------------------------------
+# =============================================================================
+# Lifecycle
+# =============================================================================
 
 func _ready() -> void:
 	_canvas = CanvasLayer.new()
@@ -51,19 +44,21 @@ func _ready() -> void:
 
 	_build_background()
 	_build_logo()
-	_build_panel()
+	_build_buttons()
+	_build_version()
 	_animate_intro()
 
-	# Start the main title theme
 	if MusicManager:
 		MusicManager.play_title_theme()
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ESCAPE:
-			_quit()
+			get_tree().quit()
 
-# -- Background ----------------------------------------------------------------
+# =============================================================================
+# Background
+# =============================================================================
 
 func _build_background() -> void:
 	var bg := ColorRect.new()
@@ -72,168 +67,147 @@ func _build_background() -> void:
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_canvas.add_child(bg)
 
-	# Subtle hex dot grid
-	var hex_color := Color(0.18, 0.12, 0.04, 0.45)
-	for row in range(12):
-		for col in range(22):
-			var x: int = col * 16 + (8 if row % 2 == 1 else 0)
-			var y: int = row * 14
-			var dot := ColorRect.new()
-			dot.color = hex_color
-			dot.size  = Vector2(4, 4)
-			dot.position = Vector2(x, y)
-			dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			_canvas.add_child(dot)
+	# Warm glow behind logo area
+	var glow := ColorRect.new()
+	glow.color = Color(0.10, 0.06, 0.02, 0.30)
+	var gw := 200
+	var gh := 90
+	glow.size = Vector2(gw, gh)
+	glow.position = Vector2((VP_W - gw) / 2.0, 2)
+	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_canvas.add_child(glow)
 
-	# Vignette edges
-	for side in ["left", "right", "top", "bottom"]:
-		var vign := ColorRect.new()
-		vign.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		match side:
-			"left":   vign.size = Vector2(40, VP_H);  vign.position = Vector2(0, 0);          vign.color = Color(0, 0, 0, 0.4)
-			"right":  vign.size = Vector2(40, VP_H);  vign.position = Vector2(VP_W - 40, 0);  vign.color = Color(0, 0, 0, 0.4)
-			"top":    vign.size = Vector2(VP_W, 30);  vign.position = Vector2(0, 0);          vign.color = Color(0, 0, 0, 0.35)
-			"bottom": vign.size = Vector2(VP_W, 30);  vign.position = Vector2(0, VP_H - 30);  vign.color = Color(0, 0, 0, 0.35)
-		_canvas.add_child(vign)
-
-# -- Logo ----------------------------------------------------------------------
+# =============================================================================
+# Logo -- TextureRect (Control) so it renders in the same layer as other Controls
+# =============================================================================
 
 func _build_logo() -> void:
-	var logo_path := "res://assets/ui/logo/game_logo.png"
-	if ResourceLoader.exists(logo_path):
-		var logo := TextureRect.new()
-		logo.texture = load(logo_path)
-		logo.size = Vector2(LOGO_H, LOGO_H)
-		# Center horizontally; LOGO_Y from top
-		logo.position = Vector2((VP_W - LOGO_H) / 2.0, float(LOGO_Y))
-		logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		logo.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_canvas.add_child(logo)
+	var logo_tex: Texture2D = null
+
+	# Try load() first (uses imported .ctex if available)
+	var res: Resource = load("res://assets/ui/logo/game_logo.png")
+	if res is Texture2D:
+		logo_tex = res as Texture2D
+		print("[MainMenu] Logo loaded via load()")
+
+	# Fallback: load raw image bytes from disk
+	if logo_tex == null:
+		var abs_path: String = ProjectSettings.globalize_path("res://assets/ui/logo/game_logo.png")
+		var img: Image = Image.load_from_file(abs_path)
+		if img == null or img.get_width() == 0:
+			abs_path = ProjectSettings.globalize_path("res://assets/ui/logo/game_logo.jpg")
+			img = Image.load_from_file(abs_path)
+		if img != null and img.get_width() > 0:
+			logo_tex = ImageTexture.create_from_image(img)
+			print("[MainMenu] Logo loaded via Image.load_from_file()")
+
+	if logo_tex != null:
+		var target_w := 80
+		var target_h := 80
+		var logo_rect := TextureRect.new()
+		logo_rect.texture = logo_tex
+		logo_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		logo_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		logo_rect.size = Vector2(target_w, target_h)
+		logo_rect.position = Vector2((VP_W - target_w) / 2.0, 4)
+		logo_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_canvas.add_child(logo_rect)
+		print("[MainMenu] Logo displayed as TextureRect %dx%d" % [target_w, target_h])
 	else:
-		# Fallback: text logo if PNG not found
+		push_warning("[MainMenu] Logo not found -- text fallback")
 		var title := _lbl("Smoke & Honey", 14,
-			Vector2(0.0, float(LOGO_Y) + 16.0), Vector2(float(VP_W), 20.0), C_TITLE)
+			Vector2(0, 20), Vector2(VP_W, 24), C_TITLE)
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_canvas.add_child(title)
 		var sub := _lbl("A Cedar Bend Story", 7,
-			Vector2(0.0, float(LOGO_Y) + 38.0), Vector2(float(VP_W), 12.0), C_SUBTITLE)
+			Vector2(0, 48), Vector2(VP_W, 12), C_SUBTITLE)
 		sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_canvas.add_child(sub)
 
-# -- Panel ---------------------------------------------------------------------
+# =============================================================================
+# Buttons
+# =============================================================================
 
-func _build_panel() -> void:
-	# Panel sits just below the logo
-	var panel_y: int = LOGO_Y + LOGO_H + 4
-	_root = Control.new()
-	_root.name = "MainMenuPanel"
-	_root.size = Vector2(PANEL_W, PANEL_H)
-	_root.position = Vector2(PANEL_X, panel_y)
-	_root.mouse_filter = Control.MOUSE_FILTER_STOP
-	_canvas.add_child(_root)
+func _build_buttons() -> void:
+	var cx: float = (VP_W - BTN_W) / 2.0
+	# Start buttons below logo area
+	var y := 92
 
-	# Background
-	var bg := ColorRect.new()
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.color = C_PANEL
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_root.add_child(bg)
+	# Thin amber divider above buttons
+	var div1 := ColorRect.new()
+	div1.color = Color(0.80, 0.53, 0.10, 0.20)
+	div1.size = Vector2(BTN_W, 1)
+	div1.position = Vector2(cx, y - 3)
+	div1.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_canvas.add_child(div1)
 
-	# Outer border
-	var osty := StyleBoxFlat.new()
-	osty.bg_color = Color(0, 0, 0, 0); osty.draw_center = false
-	osty.border_color = C_BORDER; osty.set_border_width_all(2)
-	var obrd := Panel.new()
-	obrd.set_anchors_preset(Control.PRESET_FULL_RECT)
-	obrd.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	obrd.add_theme_stylebox_override("panel", osty)
-	_root.add_child(obrd)
+	# -- Start -- (_make_btn adds to _canvas internally via wrapper)
+	var btn_start := _make_btn("Start", Vector2(cx, y), C_SPRING)
+	btn_start.pressed.connect(_on_start)
+	y += BTN_H + BTN_SPACE
 
-	# Inner border
-	var isty := StyleBoxFlat.new()
-	isty.bg_color = Color(0, 0, 0, 0); isty.draw_center = false
-	isty.border_color = C_BORDER_D; isty.set_border_width_all(1)
-	var ibrd := Panel.new()
-	ibrd.position = Vector2(3, 3)
-	ibrd.size = Vector2(PANEL_W - 6, PANEL_H - 6)
-	ibrd.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ibrd.add_theme_stylebox_override("panel", isty)
-	_root.add_child(ibrd)
-
-	# Divider line under panel top
-	var div := ColorRect.new()
-	div.color    = Color(0.47, 0.28, 0.05, 0.60)
-	div.size     = Vector2(PANEL_W - 20, 1)
-	div.position = Vector2(10, 8)
-	_root.add_child(div)
-
-	# -- Buttons -------------------------------------------------------
+	# -- Continue --
 	var has_save := _check_save_exists()
-	var btn_y    := 14
-
-	# "Start in Spring" -- standard day-1 new game
-	var btn_spring := _make_button("> Start in Spring", Vector2(16, btn_y), Vector2(PANEL_W - 32, 17), C_SPRING)
-	btn_spring.pressed.connect(_on_start_spring)
-	_root.add_child(btn_spring)
-	btn_y += 21
-
-	# "Start in Fall | 2 Full Supers" -- fall day-113 new game
-	var btn_fall := _make_button("> Start in Fall  |  2 Full Supers", Vector2(16, btn_y), Vector2(PANEL_W - 32, 17), C_FALL)
-	btn_fall.pressed.connect(_on_start_fall)
-	_root.add_child(btn_fall)
-	btn_y += 21
-
-	# Divider
-	var div2 := ColorRect.new()
-	div2.color    = Color(0.47, 0.28, 0.05, 0.45)
-	div2.size     = Vector2(PANEL_W - 40, 1)
-	div2.position = Vector2(20, btn_y)
-	_root.add_child(div2)
-	btn_y += 6
-
-	# Continue
-	_continue_btn = _make_button("> Continue", Vector2(16, btn_y), Vector2(PANEL_W - 32, 17), C_HONEY)
+	_continue_btn = _make_btn("Continue", Vector2(cx, y), C_HONEY)
 	_continue_btn.pressed.connect(_on_continue)
 	if not has_save:
 		_continue_btn.disabled = true
-		_continue_btn.modulate = Color(1.0, 1.0, 1.0, 0.40)
-	_root.add_child(_continue_btn)
-	btn_y += 21
+		_continue_btn.get_parent().modulate = Color(1, 1, 1, 0.30)
+	y += BTN_H + BTN_SPACE
 
-	# Quit
-	var btn_quit := _make_button("> Quit", Vector2(16, btn_y), Vector2(PANEL_W - 32, 17), C_MUTED)
-	btn_quit.pressed.connect(_on_quit)
-	_root.add_child(btn_quit)
+	# Small divider
+	var div2 := ColorRect.new()
+	div2.color = Color(0.47, 0.28, 0.05, 0.30)
+	div2.size = Vector2(BTN_W - 30, 1)
+	div2.position = Vector2(cx + 15, y)
+	div2.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_canvas.add_child(div2)
+	y += 4
 
-	# Version line
-	var ver := _lbl("v0.1 dev  *  Cedar Bend, Iowa", 5,
-		Vector2(0, PANEL_H - 9), Vector2(PANEL_W, 7), C_MUTED)
+	# -- Quit --
+	var btn_quit := _make_btn("Quit", Vector2(cx, y), C_MUTED)
+	btn_quit.pressed.connect(get_tree().quit)
+
+	# Thin amber divider below buttons
+	y += BTN_H + 3
+	var div3 := ColorRect.new()
+	div3.color = Color(0.80, 0.53, 0.10, 0.20)
+	div3.size = Vector2(BTN_W, 1)
+	div3.position = Vector2(cx, y)
+	div3.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_canvas.add_child(div3)
+
+# =============================================================================
+# Version line
+# =============================================================================
+
+func _build_version() -> void:
+	var ver := _lbl("v0.1 dev -- Cedar Bend, Iowa", 4,
+		Vector2(0, VP_H - 8), Vector2(VP_W, 6), C_MUTED)
 	ver.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_root.add_child(ver)
+	_canvas.add_child(ver)
 
-# -- Animation -----------------------------------------------------------------
+# =============================================================================
+# Intro fade
+# =============================================================================
 
 func _animate_intro() -> void:
 	var overlay := ColorRect.new()
 	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	overlay.color = Color(0.0, 0.0, 0.0, 1.0)
+	overlay.color = Color(0, 0, 0, 1)
 	overlay.z_index = 99
 	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_canvas.add_child(overlay)
 
-	_root.position.y = _root.position.y + 30.0
-	_root.modulate.a = 0.0
-
 	var tw := create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(overlay, "modulate:a", 0.0, 0.7)
-	tw.tween_property(_root, "position:y", _root.position.y - 30.0, 0.5).set_delay(0.3)
-	tw.tween_property(_root, "modulate:a", 1.0, 0.5).set_delay(0.3)
+	tw.tween_property(overlay, "modulate:a", 0.0, 0.8)
 	await tw.finished
 	if is_instance_valid(overlay):
 		overlay.queue_free()
 
-# -- Button handlers -----------------------------------------------------------
+# =============================================================================
+# Button handlers
+# =============================================================================
 
 func _reset_common_state() -> void:
 	GameData.money        = 500.0
@@ -241,15 +215,26 @@ func _reset_common_state() -> void:
 	GameData.player_level = 1
 	GameData.xp           = 0
 	GameData.reputation   = 0.0
+	GameData.player_inventory       = []
+	GameData.player_inventory_valid = false
 	TimeManager.current_hour = 6.0
 
-func _on_start_spring() -> void:
+func _on_start() -> void:
 	_reset_common_state()
-	_show_character_creator(0)
-
-func _on_start_fall() -> void:
-	_reset_common_state()
-	_show_character_creator(1)
+	# Always start in Spring (day 1)
+	GameData.new_game_mode = 0
+	TimeManager.current_day = 1
+	if PlayerData.character_created:
+		_transition_to_game()
+		return
+	var creator_scene: PackedScene = load("res://scenes/ui/CharacterCreator.tscn") as PackedScene
+	if creator_scene == null:
+		push_error("[MainMenu] CharacterCreator.tscn not found")
+		_transition_to_game()
+		return
+	var creator: Node = creator_scene.instantiate()
+	creator.creator_finished.connect(_transition_to_game)
+	get_tree().root.add_child(creator)
 
 func _on_continue() -> void:
 	var sm := get_tree().root.get_node_or_null("SaveManager")
@@ -257,44 +242,12 @@ func _on_continue() -> void:
 		sm.load_from_disk()
 	_transition_to_game()
 
-func _on_quit() -> void:
-	_quit()
-
-func _quit() -> void:
-	get_tree().quit()
-
-func _show_character_creator(game_mode: int) -> void:
-	GameData.new_game_mode = game_mode
-	if game_mode == 0:
-		TimeManager.current_day = 1
-	else:
-		# Day 113 = first day of Full-Earth (Fall M1) in the 8-month calendar
-		TimeManager.current_day = 113
-	if PlayerData.character_created:
-		# Skip creator for returning players (shouldn't happen in new game, but safe)
-		_start_game()
-		return
-	var creator_scene: PackedScene = load("res://scenes/ui/CharacterCreator.tscn") as PackedScene
-	if creator_scene == null:
-		push_error("[MainMenu] CharacterCreator.tscn not found -- starting without it.")
-		_start_game()
-		return
-	var creator: Node = creator_scene.instantiate()
-	creator.creator_finished.connect(_start_game)
-	get_tree().root.add_child(creator)
-
-func _start_game() -> void:
-	_transition_to_game()
-
 func _transition_to_game() -> void:
-	# Hand music back to seasonal system
 	if MusicManager:
 		MusicManager.resume_seasonal_music()
-
-	# Fade to black, then load home_property
 	var overlay := ColorRect.new()
 	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	overlay.color = Color(0.0, 0.0, 0.0, 0.0)
+	overlay.color = Color(0, 0, 0, 0)
 	overlay.z_index = 99
 	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_canvas.add_child(overlay)
@@ -303,7 +256,9 @@ func _transition_to_game() -> void:
 	await tw.finished
 	get_tree().change_scene_to_file("res://scenes/home_property.tscn")
 
-# -- Save detection ------------------------------------------------------------
+# =============================================================================
+# Save detection
+# =============================================================================
 
 func _check_save_exists() -> bool:
 	var sm := get_tree().root.get_node_or_null("SaveManager")
@@ -311,37 +266,77 @@ func _check_save_exists() -> bool:
 		return sm.has_save()
 	return FileAccess.file_exists("user://smoke_and_honey_save.json")
 
-# -- Helpers -------------------------------------------------------------------
+# =============================================================================
+# Button factory -- wrapper Control enforces fixed size
+# =============================================================================
 
-func _make_button(label: String, pos: Vector2, sz: Vector2,
-		accent: Color = C_HONEY) -> Button:
+func _make_btn(label: String, pos: Vector2, accent: Color) -> Button:
+	var wrapper := Control.new()
+	wrapper.position = pos
+	wrapper.size = Vector2(BTN_W, BTN_H)
+	wrapper.clip_contents = true
+	_canvas.add_child(wrapper)
+
 	var btn := Button.new()
-	btn.text = label; btn.position = pos; btn.size = sz
+	btn.text = label
+	btn.anchor_left = 0.0
+	btn.anchor_top = 0.0
+	btn.anchor_right = 1.0
+	btn.anchor_bottom = 1.0
+	btn.offset_left = 0
+	btn.offset_top = 0
+	btn.offset_right = 0
+	btn.offset_bottom = 0
+	btn.clip_text = true
 	btn.focus_mode = Control.FOCUS_NONE
-	btn.add_theme_font_size_override("font_size", 7)
-	var border_dim := accent.darkened(0.35)
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(0.12, 0.08, 0.03, 1.0)
-	normal.border_color = border_dim; normal.set_border_width_all(1)
-	var hover := StyleBoxFlat.new()
-	hover.bg_color = Color(0.22, 0.14, 0.05, 1.0)
-	hover.border_color = accent; hover.set_border_width_all(1)
-	var pressed := StyleBoxFlat.new()
-	pressed.bg_color = Color(0.08, 0.05, 0.02, 1.0)
-	pressed.border_color = border_dim; pressed.set_border_width_all(1)
-	btn.add_theme_stylebox_override("normal",  normal)
-	btn.add_theme_stylebox_override("hover",   hover)
-	btn.add_theme_stylebox_override("pressed", pressed)
-	btn.add_theme_stylebox_override("focus",   normal)
-	btn.add_theme_color_override("font_color",          Color(0.90, 0.85, 0.70, 1.0))
-	btn.add_theme_color_override("font_hover_color",    accent.lightened(0.2))
-	btn.add_theme_color_override("font_pressed_color",  Color(0.70, 0.62, 0.50, 1.0))
-	btn.add_theme_color_override("font_disabled_color", Color(0.45, 0.40, 0.30, 1.0))
+	btn.add_theme_font_size_override("font_size", 6)
+	btn.add_theme_constant_override("h_separation", 0)
+
+	var dim := accent.darkened(0.50)
+
+	var sty_n := StyleBoxFlat.new()
+	sty_n.bg_color = Color(0.08, 0.05, 0.02, 0.85)
+	sty_n.border_color = dim
+	sty_n.set_border_width_all(1)
+	sty_n.set_corner_radius_all(0)
+	sty_n.set_content_margin_all(1)
+
+	var sty_h := StyleBoxFlat.new()
+	sty_h.bg_color = Color(0.16, 0.10, 0.03, 0.92)
+	sty_h.border_color = accent
+	sty_h.set_border_width_all(1)
+	sty_h.set_corner_radius_all(0)
+	sty_h.set_content_margin_all(1)
+
+	var sty_p := StyleBoxFlat.new()
+	sty_p.bg_color = Color(0.04, 0.03, 0.01, 0.95)
+	sty_p.border_color = dim
+	sty_p.set_border_width_all(1)
+	sty_p.set_corner_radius_all(0)
+	sty_p.set_content_margin_all(1)
+
+	btn.add_theme_stylebox_override("normal",  sty_n)
+	btn.add_theme_stylebox_override("hover",   sty_h)
+	btn.add_theme_stylebox_override("pressed", sty_p)
+	btn.add_theme_stylebox_override("focus",   sty_n)
+
+	btn.add_theme_color_override("font_color",         C_TEXT)
+	btn.add_theme_color_override("font_hover_color",   accent.lightened(0.30))
+	btn.add_theme_color_override("font_pressed_color", Color(0.65, 0.58, 0.45, 1.0))
+	btn.add_theme_color_override("font_disabled_color", Color(0.38, 0.34, 0.26, 1.0))
+	wrapper.add_child(btn)
 	return btn
+
+# =============================================================================
+# Label helper
+# =============================================================================
 
 func _lbl(text: String, font_size: int, pos: Vector2, sz: Vector2,
 		color: Color = Color.WHITE) -> Label:
-	var l := Label.new(); l.text = text; l.position = pos; l.size = sz
+	var l := Label.new()
+	l.text = text
+	l.position = pos
+	l.size = sz
 	l.add_theme_font_size_override("font_size", font_size)
 	l.add_theme_color_override("font_color", color)
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE

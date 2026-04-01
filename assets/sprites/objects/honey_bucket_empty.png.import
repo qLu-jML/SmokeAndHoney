@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://vuodnbbkowlj"
-path="res://.godot/imported/honey_spinner.png-650173b48e4213aca6c638a18a2cd34f.ctex"
+uid="uid://5k0d87oxkfn"
+path="res://.godot/imported/honey_bucket_empty.png-be328aa61f001b4f794a09eb581b0984.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/objects/honey_spinner.png"
-dest_files=["res://.godot/imported/honey_spinner.png-650173b48e4213aca6c638a18a2cd34f.ctex"]
+source_file="res://assets/sprites/objects/honey_bucket_empty.png"
+dest_files=["res://.godot/imported/honey_bucket_empty.png-be328aa61f001b4f794a09eb581b0984.ctex"]
 
 [params]
 
