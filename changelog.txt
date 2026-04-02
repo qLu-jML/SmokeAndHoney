@@ -1,3 +1,11 @@
+[2026-04-02 CDT] Placeholder item sprites and ITEM_SPRITE_MAP completion
+  Generated 9 placeholder 32x32 RGBA sprites for items missing icons:
+  swarm_trap, scraped_super, barrel_feeder, logs, lumber, axe, hammer,
+  bee_suit, propolis. Each has a colored background with 2-letter label.
+  Added smoker (already had sprite file) + all 9 new items to
+  ITEM_SPRITE_MAP in both hud.gd and chest_storage.gd. All 39 GameData
+  ITEM_ constants now have sprite mappings.
+
 [2026-04-02 CDT] Workbench UI layout cleanup
   Fixed overlapping Craft buttons by zeroing custom_minimum_size before
   Godot's layout engine inflates them, then setting size via set_deferred.

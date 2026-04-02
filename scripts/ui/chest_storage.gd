@@ -175,6 +175,16 @@ func _load_item_textures() -> void:
 		GameData.ITEM_COMB_SCRAPER: "uncapping_knife.png",
 		GameData.ITEM_BUCKET_GRIP: "bucket_grip.png",
 		GameData.ITEM_HONEY_BUCKET: "honey_bucket.png",
+		GameData.ITEM_SMOKER: "smoker.png",
+		GameData.ITEM_SWARM_TRAP: "swarm_trap.png",
+		GameData.ITEM_SCRAPED_SUPER: "scraped_super.png",
+		GameData.ITEM_BARREL_FEEDER: "barrel_feeder.png",
+		GameData.ITEM_LOGS: "logs.png",
+		GameData.ITEM_LUMBER: "lumber.png",
+		GameData.ITEM_AXE: "axe.png",
+		GameData.ITEM_HAMMER: "hammer.png",
+		GameData.ITEM_BEE_SUIT: "bee_suit.png",
+		GameData.ITEM_PROPOLIS: "propolis.png",
 	}
 	for item_id in ITEM_SPRITE_MAP:
 		var p: String = "res://assets/sprites/items/%s" % ITEM_SPRITE_MAP[item_id]

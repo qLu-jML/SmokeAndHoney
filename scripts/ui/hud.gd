@@ -165,20 +165,20 @@ func _exit_tree() -> void:
 		GameData.money_changed.disconnect(_on_money_changed)
 	if GameData.energy_changed.is_connected(_on_energy_changed):
 		GameData.energy_changed.disconnect(_on_energy_changed)
-	if GameData.xp_gained.is_connected(_on_xp_gained):
-		GameData.xp_gained.disconnect(_on_xp_gained)
-	if GameData.day_advanced.is_connected(_on_day_advanced):
-		GameData.day_advanced.disconnect(_on_day_advanced)
-	if GameData.hour_changed.is_connected(_on_hour_changed):
-		GameData.hour_changed.disconnect(_on_hour_changed)
-	if GameData.season_changed.is_connected(_on_season_changed):
-		GameData.season_changed.disconnect(_on_season_changed)
-	if GameData.weather_changed.is_connected(_on_weather_changed):
-		GameData.weather_changed.disconnect(_on_weather_changed)
+	if GameData.xp_gained.is_connected(_on_xp_changed):
+		GameData.xp_gained.disconnect(_on_xp_changed)
+	if TimeManager.day_advanced.is_connected(_on_day_advanced):
+		TimeManager.day_advanced.disconnect(_on_day_advanced)
+	if TimeManager.hour_changed.is_connected(_on_hour_changed):
+		TimeManager.hour_changed.disconnect(_on_hour_changed)
+	if TimeManager.season_changed.is_connected(_on_season_changed):
+		TimeManager.season_changed.disconnect(_on_season_changed)
+	if WeatherManager and WeatherManager.weather_changed.is_connected(_on_weather_changed):
+		WeatherManager.weather_changed.disconnect(_on_weather_changed)
 	if GameData.level_up.is_connected(_on_level_up):
 		GameData.level_up.disconnect(_on_level_up)
-	if GameData.midnight_reached.is_connected(_on_midnight_reached):
-		GameData.midnight_reached.disconnect(_on_midnight_reached)
+	if TimeManager.midnight_reached.is_connected(_on_midnight_reached):
+		TimeManager.midnight_reached.disconnect(_on_midnight_reached)
 	if GameData.dev_labels_toggled.is_connected(_on_dev_toggled):
 		GameData.dev_labels_toggled.disconnect(_on_dev_toggled)
 
@@ -1087,6 +1087,16 @@ func _load_item_textures() -> void:
 		GameData.ITEM_BUCKET_GRIP: "bucket_grip.png",
 		GameData.ITEM_HONEY_BUCKET: "honey_bucket.png",
 		GameData.ITEM_COMB_SCRAPER: "uncapping_knife.png",
+		GameData.ITEM_SMOKER: "smoker.png",
+		GameData.ITEM_SWARM_TRAP: "swarm_trap.png",
+		GameData.ITEM_SCRAPED_SUPER: "scraped_super.png",
+		GameData.ITEM_BARREL_FEEDER: "barrel_feeder.png",
+		GameData.ITEM_LOGS: "logs.png",
+		GameData.ITEM_LUMBER: "lumber.png",
+		GameData.ITEM_AXE: "axe.png",
+		GameData.ITEM_HAMMER: "hammer.png",
+		GameData.ITEM_BEE_SUIT: "bee_suit.png",
+		GameData.ITEM_PROPOLIS: "propolis.png",
 	}
 	for item_id in ITEM_SPRITE_MAP:
 		var p = "res://assets/sprites/items/%s" % ITEM_SPRITE_MAP[item_id]
