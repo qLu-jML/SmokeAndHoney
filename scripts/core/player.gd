@@ -52,8 +52,9 @@ func get_max_stack(item_name: String) -> int:
 		GameData.ITEM_HONEY_BUCKET: return 1    # One full bucket -- it's heavy
 		_:                          return 20
 
-# -- Initialisation ------------------------------------------------------------
+# -- Initialisation & Lifecycle -------------------------------------------------
 
+## Initialize player: inventory, spritesheet, signals, HUD.
 func _ready():
 	inventory.resize(INVENTORY_SIZE)
 	inventory.fill(null)
@@ -82,6 +83,12 @@ func _ready():
 	# Carried item display sprite (setup deferred so node tree is ready)
 	call_deferred("_setup_carry_sprite")
 
+## Disconnect signals on scene tree exit to prevent memory leaks.
+func _exit_tree() -> void:
+	if GameData.dev_labels_toggled.is_connected(_on_dev_labels_toggled):
+		GameData.dev_labels_toggled.disconnect(_on_dev_labels_toggled)
+
+## Load player beekeeper spritesheet from disk at runtime.
 func _load_spritesheet() -> void:
 	var path := "res://assets/sprites/npc/The_Beekeeper/beekeeper_spritesheet.png"
 	var abs_path := ProjectSettings.globalize_path(path)
@@ -95,6 +102,7 @@ func _load_spritesheet() -> void:
 	player_sprite.vframes = 24
 	player_sprite.frame = 0
 
+## Grab window focus and set up the mode label.
 func _grab_window_focus() -> void:
 	get_window().grab_focus()
 
@@ -109,6 +117,7 @@ func _grab_window_focus() -> void:
 	_update_mode_label()
 
 # -- Pre-stock the storage chest with overflow starting items ------------------
+## Stock the storage chest with overflow items (currently none, empty start).
 func _stock_starting_chest() -> void:
 	var chest: Node = get_tree().get_first_node_in_group("chest")
 	if chest == null or not chest.has_method("add_item"):
@@ -118,12 +127,14 @@ func _stock_starting_chest() -> void:
 
 # -- Modes ----------------------------------------------------------------------
 
+## Toggle to a new mode (TILL, PLANT, HIVE) or reset to NORMAL if already active.
 func _set_mode(new_mode: Mode) -> void:
 	current_mode = Mode.NORMAL if current_mode == new_mode else new_mode
 	_update_mode_label()
 	# Grid overlay follows active item, not mode directly
 	_sync_grid_overlay()
 
+## Update the on-screen mode label to reflect current_mode.
 func _update_mode_label() -> void:
 	if not mode_label:
 		return
@@ -147,6 +158,7 @@ func get_active_item_name() -> String:
 	return ""
 
 ## Show the grid overlay when a placeable item is in the active slot.
+## Show grid overlay when a placeable item is in the active slot.
 func _sync_grid_overlay() -> void:
 	if not grid_overlay:
 		grid_overlay = get_node_or_null("../GridOverlay")
@@ -157,6 +169,7 @@ func _sync_grid_overlay() -> void:
 
 # -- HUD Bridge ----------------------------------------------------------------
 
+## Update HUD inventory display and carried item visuals.
 func update_hud_inventory() -> void:
 	if HUD and HUD.has_method("update_player_inventory"):
 		HUD.update_player_inventory(inventory)
@@ -164,6 +177,7 @@ func update_hud_inventory() -> void:
 
 # -- Carried item visual -------------------------------------------------------
 
+## Set up carry sprites for super box and honey bucket visuals.
 func _setup_carry_sprite() -> void:
 	# -- Honey super carry sprite --
 	_carried_super_sprite = Sprite2D.new()
@@ -189,6 +203,7 @@ func _setup_carry_sprite() -> void:
 	_carried_bucket_sprite.visible = false
 	add_child(_carried_bucket_sprite)
 
+## Update visibility and position of carried item sprites based on inventory.
 func _update_carry_visual() -> void:
 	# -- Super box --
 	if is_instance_valid(_carried_super_sprite):
@@ -208,6 +223,8 @@ func _update_carry_visual() -> void:
 
 # -- Inventory -----------------------------------------------------------------
 
+## Add amount of item_name to inventory (fills stacks, then new slots).
+## Returns remaining items that did not fit.
 func add_item(item_name: String, amount: int) -> int:
 	var stack_max := get_max_stack(item_name)
 	# Fill existing stacks first.
@@ -234,6 +251,7 @@ func add_item(item_name: String, amount: int) -> int:
 	sync_inventory_to_gamedata()
 	return amount
 
+## Remove amount of item_name from inventory. Returns true if successful, false if insufficient.
 func consume_item(item_name: String, amount: int) -> bool:
 	var total = 0
 	for i in range(INVENTORY_SIZE):
@@ -259,6 +277,7 @@ func consume_item(item_name: String, amount: int) -> bool:
 func get_item_count(item_name: String) -> int:
 	return count_item(item_name)
 
+## Count total number of item_name in inventory across all slots.
 func count_item(item_name: String) -> int:
 	var total := 0
 	for slot in inventory:
@@ -302,12 +321,14 @@ var _chest_script: GDScript = null
 @onready var tilemap:      TileMap = get_node_or_null("../TileMap")
 @onready var grid_overlay          = get_node_or_null("../GridOverlay")
 
+## Signal handler: resync grid overlay when dev labels toggle.
 func _on_dev_labels_toggled(_visible: bool) -> void:
 	_sync_grid_overlay()
 
 # -- Input ---------------------------------------------------------------------
 
 ## Returns true if a blocking overlay (inspection, shop, pause, etc.) is active.
+## Return true if a blocking overlay (inspection, shop, pause) is open.
 func _is_ui_blocking() -> bool:
 	if get_tree().paused:
 		return true
@@ -369,6 +390,7 @@ func _input(event: InputEvent) -> void:
 
 const INTERACT_RADIUS := 64.0
 
+## Execute action in the direction the player is facing (E key).
 func _perform_action() -> void:
 	# -- 0. Harvest Yard Stations (outdoor processing) -------------------------
 	var harvest_yard: Node = get_tree().get_first_node_in_group("harvest_yard")

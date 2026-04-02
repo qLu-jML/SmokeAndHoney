@@ -3,6 +3,7 @@
 # First-pass scene: walkable trail area with trees, creek, and wildlife sprites.
 extends Node2D
 
+## Initialize Timber Creek scene with weather, season visuals, and exits.
 func _ready() -> void:
 	_setup_weather()
 	TimeManager.current_scene_id = "timber_creek"
@@ -16,11 +17,18 @@ func _ready() -> void:
 	ExitHelper.position_player_from_spawn_side(self)
 	print("Timber Creek scene loaded.")
 
+## Disconnect signals when exiting the scene.
+func _exit_tree() -> void:
+	if TimeManager.day_advanced.is_connected(_on_day_advanced):
+		TimeManager.day_advanced.disconnect(_on_day_advanced)
+
+## Create scene exits connecting to adjacent areas.
 func _setup_exits() -> void:
 	# Bottom edge -> County Road
 	ExitHelper.create_exit(self, "bottom", "res://scenes/world/county_road.tscn",
 		"v County Road")
 
+## Register map markers and scene points of interest.
 func _register_map_markers() -> void:
 	SceneManager.clear_scene_markers()
 	SceneManager.set_scene_bounds(Rect2(-800, -300, 1600, 600))
@@ -34,9 +42,11 @@ func _register_map_markers() -> void:
 	# Exits
 	SceneManager.register_scene_exit("bottom", "County Road")
 
+## Handle day advancement and update seasonal visuals.
 func _on_day_advanced(_day: int) -> void:
 	_apply_seasonal_visuals()
 
+## Apply seasonal color modulation to trees and creek.
 func _apply_seasonal_visuals() -> void:
 	var season: String = TimeManager.current_season_name()
 	var trees: Node2D = get_node_or_null("World/Trees") as Node2D
@@ -54,12 +64,13 @@ func _apply_seasonal_visuals() -> void:
 	if creek:
 		match season:
 			"Spring":
-				creek.modulate = Color(0.80, 0.75, 0.65, 1.0)   # turbid spring runoff
+				creek.modulate = Color(0.80, 0.75, 0.65, 1.0)
 			"Winter":
-				creek.modulate = Color(0.85, 0.90, 1.0, 1.0)    # icy
+				creek.modulate = Color(0.85, 0.90, 1.0, 1.0)
 			_:
 				creek.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
+## Setup weather overlay and particle effects.
 func _setup_weather() -> void:
 	if get_node_or_null("WeatherOverlay") == null:
 		var overlay: CanvasLayer = CanvasLayer.new()

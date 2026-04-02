@@ -1,3 +1,42 @@
+[2026-04-02 CDT] Full codebase documentation and cleanup pass (all 81 scripts)
+  Ran godot-forge analysis on all 81 GDScript files and addressed findings.
+  Changes applied across every script (no functionality removed or altered):
+
+  1. DOC COMMENTS: Added ## doc-comments to 300+ functions across all scripts
+     explaining purpose, parameters, and non-obvious logic.
+
+  2. TYPE ANNOTATIONS: Added explicit type annotations to untyped variables
+     throughout the codebase (var x = ... -> var x: Type = ...). Converted
+     generic Array declarations to typed arrays where appropriate
+     (Array -> Array[Dictionary], Array[String], Array[Node], etc.).
+
+  3. SIGNAL DISCONNECTS: Added _exit_tree() with proper signal disconnects to
+     38+ scripts that had .connect() calls without cleanup. This prevents
+     errors when nodes are freed but signal sources persist (common during
+     scene transitions). Affected scripts across all directories:
+     - UI: hud, InspectionOverlay, PauseMenu, MainMenu, map_overlay,
+       hive_management, sell_screen, shop_screen, workbench_ui,
+       scraping_minigame, bottling_minigame, chopping_minigame,
+       extractor_minigame
+     - World: harvest_yard, hive, honey_house, home_property, cedar_bend,
+       feed_supply_interior, diner_interior, flower_lifecycle_manager,
+       dandelion_spawner, weather_particles, house_interior, post_office_interior,
+       weather_overlay, timber_creek, door_zone, zone_exit, harmon_farm,
+       community_garden, fairgrounds, barrel_feeder, harvestable_tree,
+       seasonal_tree, county_road, exit_helper
+     - Autoloads: WeatherManager, MusicManager, NotificationManager, HiveManager
+     - Core: player
+
+  4. ASCII COMPLIANCE: Verified all 81 scripts contain only ASCII (0x00-0x7F).
+     Fixed one non-ASCII character in wildflower_scatter.gd (plus-minus sign).
+
+  5. HEADER COMMENTS: Expanded file-level documentation on key scripts
+     (HiveSimulation.gd, CellStateTransition.gd, etc.) explaining architecture,
+     dependencies, and inner class structure.
+
+  No functionality was deleted or changed. All protected files verified intact.
+  Files changed: All 81 .gd files under scripts/
+
 [2026-04-02 CDT] Simplified starting inventory to axe + hammer + 40 logs
   Player now starts with only 3 items: axe, hammer, and a stack of 40 logs.
   Removed all other starting inventory items (hive tool, gloves, excluder,

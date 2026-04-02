@@ -62,10 +62,12 @@ const HOUSE_DAYS   := 12   # Days 13-24 post-emergence: house bee/comb builder
 # Winter threshold: below this season_factor, apply winter bee dynamics.
 const WINTER_THRESHOLD := 0.12  # Deepcold (0.08) and Kindlemonth (0.05)
 
-## Advance cohort counts by one day.
-## hive_sim: reference to the HiveSimulation node (fields mutated directly).
-## transition_result: dict from CellStateTransition.process_frame().
-## season_factor: float 0-1 from TimeManager.season_factor().
+## Advance cohort counts by one day: nurses graduate to house bees, house bees
+## to foragers, with seasonal mortality rates. Mutates hive_sim fields directly.
+## Returns dict with final counts: nurse_count, house_count, forager_count, drone_count.
+## hive_sim: HiveSimulation node reference (mutated)
+## transition_result: dict from CellStateTransition with emerged_workers/drones
+## season_factor: float 0-1 from TimeManager (determines winter vs summer dynamics)
 static func process(hive_sim: HiveSimulation,
                     transition_result: Dictionary,
                     season_factor: float) -> Dictionary:

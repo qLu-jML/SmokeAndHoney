@@ -272,7 +272,8 @@ static func process_frame(frame,
 # Helpers
 # ------------------------------------------------------------------------------
 
-## Increment age, clamped to 255 (PackedByteArray ceiling).
+## Increment age by 1 day, clamped to 255 (PackedByteArray ceiling).
+## Returns the new age value.
 static func _inc_age(age: int) -> int:
 	return mini(age + 1, 255)
 

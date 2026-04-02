@@ -1,9 +1,9 @@
 extends Node2D
 
-var current_day = 0
-var is_seeding = false
+var current_day: int = 0
+var is_seeding: bool = false
 
-# Called when the node is added to the scene.
+## Initialize flower: set up stage label and initial appearance.
 func _ready():
 	# Add StageLabel to dev_label group so it only shows in G-mode (developer mode)
 	var stage_label = get_node_or_null("Placeholder/StageLabel")
@@ -12,7 +12,8 @@ func _ready():
 		stage_label.visible = GameData.dev_labels_visible
 	update_appearance()
 
-func update_appearance():
+## Update stage label text to reflect current growth stage and seeding state.
+func update_appearance() -> void:
 	var stage_label = get_node_or_null("Placeholder/StageLabel")
 	if stage_label != null:
 		# Update text content (visibility is controlled by dev_label group / G-key)
@@ -28,13 +29,14 @@ func update_appearance():
 		else:
 			stage_label.text = "Mature"
 
-# Fallback for unconnected advancement
-func advance_day():
+## Advance flower by one day (fallback for unconnected time advancement).
+func advance_day() -> void:
 	current_day += 1
 	update_appearance()
 
-# Global world-driven advancement
-func advance_day_with_global(global_day: int):
+## Advance by one day based on global calendar (224-day year, 56-day seasons).
+## Sets seeding flag during fall (days 113-168 in calendar year).
+func advance_day_with_global(global_day: int) -> void:
 	current_day += 1
 	
 	# GDD calendar: 224-day year, 56-day seasons. Fall = months 4-5 (days 113-168).
@@ -47,6 +49,8 @@ func advance_day_with_global(global_day: int):
 		
 	update_appearance()
 
+## Harvest seeds from flower if seeding (2-4 seeds). Flower is freed on harvest.
+## Returns seed count, or 0 if not seeding.
 func harvest_seeds() -> int:
 	if is_seeding:
 		# Flower shatters on harvest, freeing the dirt block
@@ -55,6 +59,6 @@ func harvest_seeds() -> int:
 		return yield_amount
 	return 0
 
-# Example connection for button pressed signal
-func _on_next_day_button_pressed():
+## Signal handler: advance by one day when button is pressed.
+func _on_next_day_button_pressed() -> void:
 	advance_day()  # Call advance_day when the button is pressed

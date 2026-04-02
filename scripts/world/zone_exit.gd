@@ -7,16 +7,17 @@
 extends Area2D
 
 @export var target_scene: String = ""
-@export var exit_label_text: String = ""   # e.g., "-> Cedar Bend"
-@export var spawn_side: String = "left"    # which side player spawns on in target scene
-@export var energy_cost: float = 0.0       # optional energy deduction
+@export var exit_label_text: String = ""
+@export var spawn_side: String = "left"
+@export var energy_cost: float = 0.0
 ## Color of the debug rectangle drawn in the editor
 @export var debug_color: Color = Color(0.2, 0.6, 1.0, 0.25)
 
 var _transitioning: bool = false
-var _cooldown: bool = true  # ignore collisions briefly after scene load
+var _cooldown: bool = true
 var _label: Label = null
 
+## Initialize the zone exit with collision shapes and signal connections.
 func _ready() -> void:
 	# In-editor: just draw the debug overlay, skip runtime logic
 	if Engine.is_editor_hint():
@@ -31,11 +32,11 @@ func _ready() -> void:
 	# Connect the body_entered signal
 	body_entered.connect(_on_body_entered)
 
+## Enable monitoring after cooldown and create visual hint label.
 func _enable_monitoring() -> void:
 	monitoring = true
 	_cooldown = false
 
-	# Create a visual label hint above the exit
 	if exit_label_text != "":
 		_label = Label.new()
 		_label.text = exit_label_text
@@ -47,8 +48,7 @@ func _enable_monitoring() -> void:
 		_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(_label)
 
-	# Create arrow indicator on the exit edge
-	var arrow := Label.new()
+	var arrow: Label = Label.new()
 	arrow.add_theme_font_size_override("font_size", 8)
 	arrow.add_theme_color_override("font_color", Color(0.92, 0.82, 0.55, 0.7))
 	arrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -68,6 +68,7 @@ func _enable_monitoring() -> void:
 			arrow.text = ">>"
 	add_child(arrow)
 
+## Draw debug rectangle in the editor to visualize exit zones.
 func _draw() -> void:
 	# Only draw the debug rectangle in the editor, never at runtime
 	if not Engine.is_editor_hint():
@@ -79,15 +80,19 @@ func _draw() -> void:
 				var rect_shape: RectangleShape2D = cshape.shape as RectangleShape2D
 				var half: Vector2 = rect_shape.size * 0.5
 				var rect := Rect2(cshape.position - half, rect_shape.size)
-				# Filled rectangle
 				draw_rect(rect, debug_color, true)
-				# Outline
-				var outline_color := Color(debug_color.r, debug_color.g, debug_color.b, 0.8)
+				var outline_color: Color = Color(debug_color.r, debug_color.g, debug_color.b, 0.8)
 				draw_rect(rect, outline_color, false, 1.0)
-	# Draw the label text in the editor too
 	if exit_label_text != "":
 		draw_string(ThemeDB.fallback_font, Vector2(-30, -8), exit_label_text, HORIZONTAL_ALIGNMENT_CENTER, 60, 5, Color(1, 1, 0.7, 0.9))
 
+## Disconnect signals when exiting the scene.
+func _exit_tree() -> void:
+	if not Engine.is_editor_hint():
+		if body_entered.is_connected(_on_body_entered):
+			body_entered.disconnect(_on_body_entered)
+
+## Handle player entering the zone exit and transition to target scene.
 func _on_body_entered(body: Node2D) -> void:
 	if _transitioning:
 		return
@@ -97,14 +102,12 @@ func _on_body_entered(body: Node2D) -> void:
 		print("[ZoneExit] No target scene configured!")
 		return
 
-	# Energy check
 	if energy_cost > 0.0:
 		if not GameData.deduct_energy(energy_cost):
 			print("[ZoneExit] Too tired to travel!")
 			return
 
 	_transitioning = true
-	# Store spawn info so the target scene can position the player
 	TimeManager.set_meta("spawn_side", spawn_side)
 	TimeManager.set_meta("source_scene", owner.scene_file_path if owner else "")
 	TimeManager.next_scene = target_scene

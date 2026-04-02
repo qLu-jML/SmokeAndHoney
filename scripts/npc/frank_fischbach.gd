@@ -67,6 +67,7 @@ var _dialogue_ui:    Node  = null
 
 # -- Lifecycle -----------------------------------------------------------------
 
+## Initialize Frank: set up dialogue UI and add prompt label.
 func _ready() -> void:
 	add_to_group("frank_fischbach")
 	add_to_group("npc")
@@ -84,6 +85,7 @@ func _ready() -> void:
 	_prompt_label.visible = false
 	add_child(_prompt_label)
 
+## Check player distance each frame and show/hide interact prompt.
 func _process(_delta: float) -> void:
 	if _prompt_label == null:
 		return
@@ -96,6 +98,7 @@ func _process(_delta: float) -> void:
 
 # -- Public API ----------------------------------------------------------------
 
+## Trigger dialogue with Frank. Shows dialogue UI or fallback speech bubble.
 func interact() -> void:
 	if _talking:
 		return
@@ -115,6 +118,7 @@ func interact() -> void:
 	else:
 		_show_speech_bubble_fallback(lines[0])
 
+## Show a floating label as fallback when DialogueUI is unavailable.
 func _show_speech_bubble_fallback(text: String) -> void:
 	var bubble := Label.new()
 	bubble.text = "Frank: " + text
@@ -127,7 +131,8 @@ func _show_speech_bubble_fallback(text: String) -> void:
 	add_child(bubble)
 
 	var timer := get_tree().create_timer(4.0)
-	timer.timeout.connect(func():
+	var cleanup_fn := func():
 		bubble.queue_free()
 		_talking = false
-	)
+	timer.timeout.connect(cleanup_fn)
+	# Note: SceneTreeTimer auto-disconnects after firing; no explicit disconnect needed

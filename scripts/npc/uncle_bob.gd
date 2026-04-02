@@ -75,6 +75,7 @@ var _dialogue_ui:    Node  = null   # DialogueUI autoload ref
 
 # -- Lifecycle -----------------------------------------------------------------
 
+## Initialize Uncle Bob: load spritesheet, set up dialogue UI, add prompt label.
 func _ready() -> void:
 	add_to_group("uncle_bob")
 	add_to_group("npc")
@@ -109,6 +110,7 @@ func _ready() -> void:
 	_prompt_label.visible = false
 	add_child(_prompt_label)
 
+## Check player distance each frame and show/hide interact prompt.
 func _process(_delta: float) -> void:
 	if _prompt_label == null:
 		return
@@ -143,6 +145,7 @@ func interact() -> void:
 	else:
 		_show_speech_bubble_fallback(lines[0])
 
+## Show a floating label as fallback when DialogueUI is unavailable.
 func _show_speech_bubble_fallback(text: String) -> void:
 	# Legacy fallback: floating label if DialogueUI is not present
 	var bubble := Label.new()
@@ -156,7 +159,8 @@ func _show_speech_bubble_fallback(text: String) -> void:
 	add_child(bubble)
 
 	var timer := get_tree().create_timer(4.0)
-	timer.timeout.connect(func():
+	var cleanup_fn := func():
 		bubble.queue_free()
 		_talking = false
-	)
+	timer.timeout.connect(cleanup_fn)
+	# Note: SceneTreeTimer auto-disconnects after firing; no explicit disconnect needed

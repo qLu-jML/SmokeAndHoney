@@ -16,21 +16,22 @@ var _haze_overlay: ColorRect = null
 # Transition state
 var _target_color: Color = Color.WHITE
 var _target_alpha: float = 0.0
-var _transition_speed: float = 2.0  # seconds to blend
+var _transition_speed: float = 2.0
 
 const VP_W: int = 320
 const VP_H: int = 180
 
+## Initialize the weather overlay with canvas modulate and haze effects.
 func _ready() -> void:
 	# This layer renders above the game world but below UI
 	layer = 5
 
-	# -- CanvasModulate: tints all sprites/tiles below this layer --------
+	# CanvasModulate: tints all sprites/tiles below this layer
 	_canvas_mod = CanvasModulate.new()
 	_canvas_mod.color = Color.WHITE
 	add_child(_canvas_mod)
 
-	# -- Haze overlay: semi-transparent screen fill for fog/rain ---------
+	# Haze overlay: semi-transparent screen fill for fog/rain
 	_haze_overlay = ColorRect.new()
 	_haze_overlay.size = Vector2(VP_W, VP_H)
 	_haze_overlay.position = Vector2.ZERO
@@ -44,6 +45,12 @@ func _ready() -> void:
 		# Apply current weather immediately
 		_apply_weather_instant(WeatherManager.current_weather)
 
+## Disconnect signal when exiting the scene.
+func _exit_tree() -> void:
+	if WeatherManager and WeatherManager.weather_changed.is_connected(_on_weather_changed):
+		WeatherManager.weather_changed.disconnect(_on_weather_changed)
+
+## Update weather overlay color and haze transitions each frame.
 func _process(delta: float) -> void:
 	# Smoothly blend the canvas modulate color
 	if _canvas_mod:
@@ -55,6 +62,7 @@ func _process(delta: float) -> void:
 		var new_a: float = lerpf(current_a, _target_alpha, delta * _transition_speed)
 		_haze_overlay.color.a = new_a
 
+## Handle weather change by updating target colors and haze overlay.
 func _on_weather_changed(new_weather: String) -> void:
 	var tint_data: Dictionary = WeatherManager.WEATHER_TINTS.get(
 		new_weather, WeatherManager.WEATHER_TINTS["Sunny"])
@@ -79,6 +87,7 @@ func _on_weather_changed(new_weather: String) -> void:
 		_:
 			_haze_overlay.color = Color(0.5, 0.55, 0.65, _haze_overlay.color.a)
 
+## Apply weather effects instantly without transition.
 func _apply_weather_instant(weather: String) -> void:
 	var tint_data: Dictionary = WeatherManager.WEATHER_TINTS.get(
 		weather, WeatherManager.WEATHER_TINTS["Sunny"])

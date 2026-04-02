@@ -11,10 +11,12 @@ const SHEET_ROWS := 24
 
 @onready var _sprite: Sprite2D = get_node_or_null("FrankSprite")
 
+## Initialize merchant: load Frank's spritesheet at runtime.
 func _ready() -> void:
 	add_to_group("merchant")
 	_load_spritesheet()
 
+## Load Frank's spritesheet from disk and set up sprite animation frames.
 func _load_spritesheet() -> void:
 	if not _sprite:
 		return
@@ -30,6 +32,7 @@ func _load_spritesheet() -> void:
 	# South-facing idle = row 0, col 0 -> frame 0
 	_sprite.frame    = 0
 
+## Instantiate and open the shop screen UI.
 func open_shop() -> void:
 	var scene = load("res://scenes/ui/shop_screen.tscn")
 	if scene == null:

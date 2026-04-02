@@ -133,12 +133,11 @@ func get_forage_status_label(world_position: Vector2) -> String:
 	if level >= 0.20: return "Stressed"
 	return "Dearth"
 
-## Legacy: called by old DandelionSpawner. Now a no-op since FlowerLifecycleManager
-## handles all flower spawning and forage contribution.
+## Legacy: called by old DandelionSpawner. Now a no-op (no-operation).
 func set_dandelion_bloom(_outcome: String, _density: float) -> void:
 	pass  # No longer used -- FlowerLifecycleManager manages all flowers
 
-## Legacy: goldenrod end-of-season hook. No-op now.
+## Legacy: goldenrod end-of-season hook. Now a no-op (no-operation).
 func report_goldenrod_end_of_season(_was_good: bool) -> void:
 	pass  # No longer used -- FlowerLifecycleManager manages all flowers
 

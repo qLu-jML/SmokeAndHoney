@@ -27,12 +27,15 @@ const LBS_PER_FULL_SUPER := 4.0    # lbs honey in a full super frame (40 lbs per
 const DEEP_SIZE          := 3500
 const SUPER_SIZE         := 2450
 
-## Returns lbs-per-cell for a given frame (accounts for deep vs super grid size).
+## Return the weight (lbs) of honey per cell in a given frame.
+## Accounts for deep vs super grid size differences.
 static func lbs_per_cell(frame) -> float:
 	var full_lbs: float = frame.lbs_per_full_frame() if frame.has_method("lbs_per_full_frame") else LBS_PER_FULL_DEEP
 	var size: int = frame.grid_size if &"grid_size" in frame else DEEP_SIZE
 	return full_lbs / float(size)
 
+## Deposit nectar_lbs into frames as S_NECTAR cells (both sides of each frame).
+## Returns dict with cells_deposited count. Processes supers first, then brood box.
 static func process(nectar_lbs: float, frames: Array) -> Dictionary:
 	var deposited    := 0
 	# Calculate cells_needed per-frame because deep vs super frames hold different amounts

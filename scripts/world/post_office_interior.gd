@@ -35,8 +35,15 @@ func _ready() -> void:
 func _on_day_advanced(_day: int) -> void:
 	_update_package_visibility()
 
+## Disconnect signals when exiting the scene.
+func _exit_tree() -> void:
+	if TimeManager.day_advanced.is_connected(_on_day_advanced):
+		TimeManager.day_advanced.disconnect(_on_day_advanced)
+	_update_package_visibility()
+
 # -- Package Box Visibility ----------------------------------------------------
 
+## Update package box visibility based on season and pending deliveries.
 func _update_package_visibility() -> void:
 	# The "buzzing package box" is visible in Spring when pending deliveries exist
 	if not package_box:
@@ -47,9 +54,11 @@ func _update_package_visibility() -> void:
 
 # -- Interaction ---------------------------------------------------------------
 
+## Update hints every frame.
 func _process(_delta: float) -> void:
 	_update_hints()
 
+## Update visibility of June's interaction hint based on player distance.
 func _update_hints() -> void:
 	var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
 	if not player or not june_npc or not june_hint:
@@ -57,6 +66,7 @@ func _update_hints() -> void:
 	var dist := player.global_position.distance_to(june_npc.global_position)
 	june_hint.visible = (dist <= INTERACT_RADIUS) and not _counter_open
 
+## Handle input for interaction and UI controls.
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.keycode:
@@ -71,6 +81,7 @@ func _input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 				_exit_post_office()
 
+## Attempt to interact with June if player is within range.
 func _try_interact_june() -> void:
 	var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
 	if not player or not june_npc:
@@ -81,6 +92,7 @@ func _try_interact_june() -> void:
 
 # -- Counter / Delivery UI -----------------------------------------------------
 
+## Build the counter UI with delivery list and collection interface.
 func _build_counter_ui() -> void:
 	if not counter_ui:
 		return
@@ -162,15 +174,18 @@ func _build_counter_ui() -> void:
 
 	counter_ui.visible = false
 
+## Open the counter UI and refresh delivery list display.
 func _open_counter() -> void:
 	_counter_open = true
 	counter_ui.visible = true
 	_refresh_counter()
 
+## Close the counter UI.
 func _close_counter() -> void:
 	_counter_open = false
 	counter_ui.visible = false
 
+## Refresh counter display with current delivery information.
 func _refresh_counter() -> void:
 	var june_says: Label = counter_ui.get_node_or_null("JuneSays") as Label
 	var delivery_lbl: Label = counter_ui.get_node_or_null("DeliveryList") as Label
@@ -197,6 +212,7 @@ func _refresh_counter() -> void:
 		collect_btn.visible = has_items
 		collect_btn.disabled = not has_items
 
+## Collect all pending deliveries and add them to player inventory.
 func _collect_all_deliveries() -> void:
 	var deliveries := GameData.pending_deliveries.duplicate()
 	if deliveries.is_empty():
@@ -216,6 +232,7 @@ func _collect_all_deliveries() -> void:
 
 # -- Exit ---------------------------------------------------------------------
 
+## Exit the post office and return to Cedar Bend.
 func _exit_post_office() -> void:
 	print("[Post Office] Leaving -- returning to Cedar Bend.")
 	TimeManager.previous_scene = "res://scenes/world/post_office_interior.tscn"

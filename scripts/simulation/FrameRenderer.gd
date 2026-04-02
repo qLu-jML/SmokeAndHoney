@@ -90,6 +90,8 @@ var _cached_rows:   int            = 0
 # Cached: if frame.cells has not changed since last call, the same texture
 # is returned without re-blitting.
 # ------------------------------------------------------------------------------
+## Render a HiveFrame to a detailed cell-sprite ImageTexture (1820x1000 px).
+## Uses dirty-flag hash optimization for caching. Side 0 = A, 1 = B.
 func render_frame(frame, side: int = 0) -> ImageTexture:
 	_ensure_atlas()
 	var f_cols: int = frame.grid_cols if frame.has_method("get_cell") else FRAME_COLS
@@ -125,6 +127,8 @@ func render_frame(frame, side: int = 0) -> ImageTexture:
 #
 # Fast colour-coded overview: one pixel per cell.  Suitable for zoom < 50%.
 # ------------------------------------------------------------------------------
+## Render a HiveFrame as a low-detail overview (one pixel per cell, 70x50 px).
+## Fast colour-coded by state. Suitable for minimap view at zoom < 50%.
 func render_lod(frame, side: int = 0) -> ImageTexture:
 	var f_cols: int = frame.grid_cols if frame.has_method("get_cell") else FRAME_COLS
 	var f_rows: int = frame.grid_rows if frame.has_method("get_cell") else FRAME_ROWS
@@ -164,6 +168,8 @@ func render_lod(frame, side: int = 0) -> ImageTexture:
 # This is heavier than LOD but produces a realistic Langstroth frame view
 # when scaled down in the InspectionOverlay's TextureRect.
 # ------------------------------------------------------------------------------
+## Render a HiveFrame in realistic hex-grid honeycomb layout (1833x755 px).
+## Produces visual honeycomb pattern with overlapping rows. Side 0 = A, 1 = B.
 func render_honeycomb(frame, side: int = 0) -> ImageTexture:
 	_ensure_atlas()
 
@@ -253,10 +259,12 @@ func _ensure_atlas() -> void:
 	if _atlas_image.get_format() != Image.FORMAT_RGBA8:
 		_atlas_image.convert(Image.FORMAT_RGBA8)
 
-## Create (or reset) the 1820x1000 canvas and its GPU texture.
+## Create (or reset) the 1820x1000 canvas and its GPU texture for standard frame.
 func _ensure_canvas() -> void:
 	_ensure_canvas_for(FRAME_COLS, FRAME_ROWS)
 
+## Create or resize the frame canvas to match given col/row count.
+## Skips recreation if dimensions match cached values.
 func _ensure_canvas_for(cols: int, rows: int) -> void:
 	if _frame_image != null and _cached_cols == cols and _cached_rows == rows:
 		return
