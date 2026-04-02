@@ -1,5 +1,7 @@
+@tool
 # seasonal_tree.gd -- Node2D tree with seasonal sprites, collision, and forage
 # ---------------------------------------------------------------------------
+# @tool: renders in the Godot editor so you can see and drag trees visually.
 # Drop SeasonalTree.tscn into any world scene under a y_sort_enabled parent.
 # The node position = trunk base. The sprite draws upward from there.
 # Player walks behind the canopy when above the tree, in front when below.
@@ -33,20 +35,37 @@ class_name SeasonalTree
 # -- Exported Configuration --------------------------------------------------
 
 ## Which tree species. Must match filename prefix in trees/ folder.
-@export var tree_type: String = "willow"
+@export var tree_type: String = "willow":
+	set(value):
+		tree_type = value
+		# Rebuild visuals when changed in editor Inspector
+		if is_inside_tree():
+			_rebuild()
 
 ## If true, the sprite flips horizontally for visual variety.
-@export var flip: bool = false
+@export var flip: bool = false:
+	set(value):
+		flip = value
+		if _sprite:
+			_sprite.flip_h = flip
 
 ## Optional: day-of-year range when bloom texture replaces spring texture.
 @export var bloom_start: int = 0
 @export var bloom_end: int = 0
 
 ## Width of the trunk collision box in pixels.
-@export var trunk_collision_width: float = 16.0
+@export var trunk_collision_width: float = 16.0:
+	set(value):
+		trunk_collision_width = value
+		if is_inside_tree():
+			_rebuild_collision()
 
 ## Height of the trunk collision box in pixels.
-@export var trunk_collision_height: float = 12.0
+@export var trunk_collision_height: float = 12.0:
+	set(value):
+		trunk_collision_height = value
+		if is_inside_tree():
+			_rebuild_collision()
 
 # -- Forage Configuration ---------------------------------------------------
 # These are set automatically from TREE_FORAGE_DATA based on tree_type,
@@ -142,8 +161,33 @@ func _ready() -> void:
 	# Apply species-specific forage defaults if tree_type is known
 	_apply_forage_defaults()
 
-	# Register in "trees" group so ForageManager can find us
-	add_to_group("trees")
+	# Runtime-only: register in trees group and connect signals
+	if not Engine.is_editor_hint():
+		add_to_group("trees")
+
+	# Build sprite and collision (works in both editor and runtime)
+	_rebuild()
+
+	# Runtime-only: connect to TimeManager for season changes
+	if not Engine.is_editor_hint():
+		if TimeManager:
+			TimeManager.season_changed.connect(_on_season_changed)
+			TimeManager.day_advanced.connect(_on_day_advanced)
+			_apply_season(TimeManager.current_season_name())
+
+
+## Full rebuild: clears old children, recreates sprite + collision + textures.
+## Called on _ready and whenever tree_type changes in the Inspector.
+func _rebuild() -> void:
+	# Remove old sprite and collision if they exist
+	if _sprite and is_instance_valid(_sprite):
+		_sprite.queue_free()
+		_sprite = null
+	if _body and is_instance_valid(_body):
+		_body.queue_free()
+		_body = null
+	_textures.clear()
+	_bloom_texture = null
 
 	# Create the sprite child
 	_sprite = Sprite2D.new()
@@ -164,18 +208,27 @@ func _ready() -> void:
 	_body.add_child(col_shape)
 	add_child(_body)
 
-	# Load textures and apply initial season
+	# Load textures and apply initial appearance
 	_load_textures()
-	if TimeManager:
-		TimeManager.season_changed.connect(_on_season_changed)
-		TimeManager.day_advanced.connect(_on_day_advanced)
-		_apply_season(TimeManager.current_season_name())
+
+	# In the editor, show the spring texture as the default preview
+	if Engine.is_editor_hint():
+		if _textures.has("Spring"):
+			_sprite.texture = _textures["Spring"]
+		_update_sprite_offset()
+
+
+## Rebuild just the collision shape when dimensions change in Inspector.
+func _rebuild_collision() -> void:
+	if _body and is_instance_valid(_body):
+		var col: CollisionShape2D = _body.get_node_or_null("CollisionShape2D")
+		if col and col.shape is RectangleShape2D:
+			col.shape.size = Vector2(trunk_collision_width, trunk_collision_height)
+			col.position = Vector2(0.0, -trunk_collision_height * 0.5)
 
 
 ## Apply default forage values based on tree species.
 func _apply_forage_defaults() -> void:
-	# Only apply defaults if the exports still match the class defaults
-	# (i.e., user hasn't customized them in the Inspector)
 	if TREE_FORAGE_DATA.has(tree_type):
 		var data: Dictionary = TREE_FORAGE_DATA[tree_type]
 		nectar_nu = data["nectar"]
@@ -192,7 +245,7 @@ func _load_textures() -> void:
 		var path: String = TREE_PATH + tree_type + "_" + seasons[i] + ".png"
 		if ResourceLoader.exists(path):
 			_textures[season_keys[i]] = load(path)
-		else:
+		elif not Engine.is_editor_hint():
 			push_warning("SeasonalTree: missing texture %s" % path)
 
 	var bloom_path: String = TREE_PATH + tree_type + "_bloom.png"
@@ -206,7 +259,7 @@ func _apply_season(season_name: String) -> void:
 	if not _sprite:
 		return
 	if _bloom_texture and bloom_start > 0 and bloom_end > 0:
-		if TimeManager:
+		if not Engine.is_editor_hint() and TimeManager:
 			var day: int = TimeManager.current_day
 			if day >= bloom_start and day <= bloom_end:
 				_sprite.texture = _bloom_texture
@@ -237,6 +290,8 @@ func get_forage_contribution(month_index: int) -> Dictionary:
 
 ## Whether this tree is currently producing forage.
 func is_in_bloom() -> bool:
+	if Engine.is_editor_hint():
+		return false
 	if not TimeManager:
 		return false
 	var month: int = TimeManager.current_month_index()
@@ -258,6 +313,8 @@ func _on_day_advanced(_new_day: int) -> void:
 
 ## Disconnect TimeManager signals when leaving the scene tree.
 func _exit_tree() -> void:
-	if TimeManager:
-		TimeManager.season_changed.disconnect(_on_season_changed)
-		TimeManager.day_advanced.disconnect(_on_day_advanced)
+	if not Engine.is_editor_hint() and TimeManager:
+		if TimeManager.season_changed.is_connected(_on_season_changed):
+			TimeManager.season_changed.disconnect(_on_season_changed)
+		if TimeManager.day_advanced.is_connected(_on_day_advanced):
+			TimeManager.day_advanced.disconnect(_on_day_advanced)

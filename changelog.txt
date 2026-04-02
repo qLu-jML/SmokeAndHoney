@@ -1,3 +1,20 @@
+[2026-04-02 CDT] Add @tool to world scripts so objects render in editor
+  Made 6 scripts @tool so their sprites, collision, and labels are visible
+  in the Godot editor for drag-and-drop layout:
+  - seasonal_tree.gd: shows spring texture, collision shape, rebuilds on
+    tree_type change in Inspector
+  - harvest_yard.gd: shows pallet sprites, extractor, bucket, station
+    collision boxes and labels
+  - chest.gd: shows chest sprite, interaction area, and storage label
+  - nap_bench.gd: shows bench sprite, collision body
+  - barrel_feeder.gd: shows feeder sprite
+  - workbench_world.gd (NEW): @tool script for workbench table visuals,
+    attached to Workbench node in home_property.tscn
+  All game logic (groups, signals, _process, _input) guarded behind
+  Engine.is_editor_hint() checks so they only run at runtime.
+  home_property.gd _init_workbench simplified to just set up interaction
+  hint since visuals are now handled by workbench_world.gd.
+
 [2026-04-02 CDT] Move trees, workbench, harvest yard from script to scene editor
   Converted all 10 farmstead trees from _spawn_trees() in home_property.gd
   to SeasonalTree instance nodes in home_property.tscn. Each tree is now

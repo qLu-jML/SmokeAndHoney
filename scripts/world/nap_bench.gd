@@ -1,3 +1,4 @@
+@tool
 # nap_bench.gd -- Outdoor bench that lets the player take a nap.
 # Restores 50% max energy and advances time by 2 hours.
 # Does NOT advance to the next day or trigger a save (unlike sleeping in bed).
@@ -97,6 +98,8 @@ func _is_player_near() -> bool:
 
 ## Update prompt visibility each frame.
 func _process(_delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
 	if _napping:
 		return
 	if _prompt_label:
@@ -106,6 +109,8 @@ func _process(_delta: float) -> void:
 
 ## Handle input to trigger nap on E key press.
 func _input(event: InputEvent) -> void:
+	if Engine.is_editor_hint():
+		return
 	if _napping:
 		return
 	if not (event is InputEventKey and event.pressed and not event.echo):

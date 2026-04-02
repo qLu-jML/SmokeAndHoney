@@ -1,3 +1,4 @@
+@tool
 # harvest_yard.gd -- Outdoor Level 1 honey harvest processing yard.
 # Manages 5 interactive stations on the home property:
 #   1. Super Pallet       -- place full supers, break into frames
@@ -107,17 +108,21 @@ const BUCKET_EMPTY_PATH := "res://assets/sprites/objects/honey_bucket_empty.png"
 # =========================================================================
 ## Initialize harvest yard with all station visuals and overlays.
 func _ready() -> void:
-	add_to_group("harvest_yard")
+	if not Engine.is_editor_hint():
+		add_to_group("harvest_yard")
 	_create_station_visuals()
 	_create_bucket_visual()
 	_create_pallet_sprites()
 	_create_super_box_sprites()
 	_create_extractor_sprite()
 	_create_bucket_sprite()
-	print("[HarvestYard] Outdoor harvest yard ready.")
+	if not Engine.is_editor_hint():
+		print("[HarvestYard] Outdoor harvest yard ready.")
 
 ## Disconnect all signals when node exits the tree.
 func _exit_tree() -> void:
+	if Engine.is_editor_hint():
+		return
 	if _scraping_overlay:
 		if _scraping_overlay.scraping_complete.is_connected(_on_scraping_complete):
 			_scraping_overlay.scraping_complete.disconnect(_on_scraping_complete)
@@ -139,6 +144,10 @@ func _exit_tree() -> void:
 # =========================================================================
 ## Redraw all station visuals and overlays.
 func _draw() -> void:
+	if Engine.is_editor_hint():
+		# In editor: just draw station outlines so you can see layout
+		_draw_station_box(Station.BOTTLING, Color(0.60, 0.42, 0.25, 1.0))
+		return
 	# Sprite2D nodes handle extractor, bucket, and super boxes -- just update state.
 	_update_bucket_visual()
 	_update_super_visuals()
@@ -1115,6 +1124,8 @@ func _try_give_beeswax() -> void:
 var _prompt_label: Label = null
 
 func _process(_delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
 	if _minigame_active:
 		if _prompt_label:
 			_prompt_label.visible = false

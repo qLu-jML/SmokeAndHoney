@@ -26,6 +26,7 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/buildings/honey_house.png" id="honey_house_tex"]
 [ext_resource type="PackedScene" uid="uid://c5seasonal_tree" path="res://scenes/world/seasonal_tree.tscn" id="seasonal_tree_scene"]
 [ext_resource type="Script" uid="uid://d3faqcbm42k6a" path="res://scripts/world/harvest_yard.gd" id="harvest_yard_script"]
+[ext_resource type="Script" path="res://scripts/world/workbench_world.gd" id="workbench_world_script"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_tq2pu"]
 texture = ExtResource("4_hxvsk")
@@ -2740,3 +2741,4 @@ script = ExtResource("harvest_yard_script")
 
 [node name="Workbench" type="Node2D" parent="World"]
 position = Vector2(520, -20)
+script = ExtResource("workbench_world_script")

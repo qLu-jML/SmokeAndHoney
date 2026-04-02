@@ -1,3 +1,4 @@
+@tool
 # chest.gd -- Placeable world storage chest (10 col x 5 row = 50 slots)
 # Placed by the player from inventory. Stores items in a persistent
 # 50-slot grid. Interaction (E key) opens the ChestStorage overlay.
@@ -16,13 +17,15 @@ var _prompt_label: Label
 
 ## Initialize the chest: sprite, interaction area, and prompt label.
 func _ready() -> void:
-	add_to_group("chest")
+	if not Engine.is_editor_hint():
+		add_to_group("chest")
 	z_index = 0
 	y_sort_enabled = true
 
-	# Initialise empty storage
-	storage.resize(CHEST_SLOTS)
-	storage.fill(null)
+	# Initialise empty storage (runtime only)
+	if not Engine.is_editor_hint():
+		storage.resize(CHEST_SLOTS)
+		storage.fill(null)
 
 	# Sprite (loaded at runtime to bypass import pipeline)
 	_sprite = Sprite2D.new()
@@ -55,11 +58,13 @@ func _ready() -> void:
 	_prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_prompt_label.custom_minimum_size = Vector2(60, 10)
 	_prompt_label.position = Vector2(-30, -24)
-	_prompt_label.visible = false
+	_prompt_label.visible = Engine.is_editor_hint()
 	add_child(_prompt_label)
 
 ## Update prompt visibility based on player proximity each frame.
 func _process(_delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
 	var players: Array = get_tree().get_nodes_in_group("player")
 	if players.size() > 0:
 		var d: float = (players[0] as Node2D).global_position.distance_to(global_position)

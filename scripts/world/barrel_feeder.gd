@@ -1,3 +1,4 @@
+@tool
 # barrel_feeder.gd -- Placeable sugar syrup barrel feeder
 # --------------------------------------------------------------------------
 # Place near hives to supply 100 NU per day for 10 days.
@@ -23,7 +24,8 @@ const PROMPT_RADIUS: float = 64.0
 
 ## Initialize the barrel feeder: sprite, prompt, and day-advance connection.
 func _ready() -> void:
-	add_to_group("barrel_feeder")
+	if not Engine.is_editor_hint():
+		add_to_group("barrel_feeder")
 	z_index = 1
 
 	# Visual sprite
@@ -54,9 +56,10 @@ func _ready() -> void:
 	_prompt_label.visible = false
 	add_child(_prompt_label)
 
-	# Connect day advance
-	if TimeManager.has_signal("day_advanced"):
-		TimeManager.day_advanced.connect(_on_day_advanced)
+	# Connect day advance (runtime only)
+	if not Engine.is_editor_hint():
+		if TimeManager.has_signal("day_advanced"):
+			TimeManager.day_advanced.connect(_on_day_advanced)
 
 	_update_prompt_text()
 
@@ -106,6 +109,8 @@ func _update_prompt_text() -> void:
 
 ## Update prompt visibility each frame based on player proximity.
 func _process(_delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
 	if not _prompt_label:
 		return
 	# Show prompt when player is nearby
@@ -150,5 +155,8 @@ func apply_save_data(data: Dictionary) -> void:
 
 ## Disconnect TimeManager signals when leaving the scene tree.
 func _exit_tree() -> void:
+	if Engine.is_editor_hint():
+		return
 	if TimeManager and TimeManager.has_signal("day_advanced"):
-		TimeManager.day_advanced.disconnect(_on_day_advanced)
+		if TimeManager.day_advanced.is_connected(_on_day_advanced):
+			TimeManager.day_advanced.disconnect(_on_day_advanced)

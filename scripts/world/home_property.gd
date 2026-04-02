@@ -280,51 +280,25 @@ func _save_exterior_state() -> void:
 
 ## Find the editor-placed Workbench node and build its visual children.
 ## The Workbench Node2D is placed in the .tscn so you can drag it in the editor.
+## Find the editor-placed Workbench node and set up interaction hint.
+## Visuals (table ColorRects) are handled by workbench_world.gd @tool script.
 func _init_workbench() -> void:
 	_workbench_node = get_node_or_null("World/Workbench") as Node2D
 	if _workbench_node == null:
 		push_warning("[HomeProperty] Workbench node not found in scene!")
 		return
 
-	# Only build visuals once (skip if returning from interior and already built)
-	if _workbench_node.get_child_count() > 0:
-		# Re-grab the hint label reference
-		_workbench_hint = _workbench_node.get_node_or_null("WorkbenchHint") as Label
-		return
-
-	# Visual: small brown table
-	var table := ColorRect.new()
-	table.color = Color(0.50, 0.35, 0.18, 1.0)
-	table.size = Vector2(28, 16)
-	table.position = Vector2(-14, -8)
-	_workbench_node.add_child(table)
-
-	# Table top (lighter)
-	var top := ColorRect.new()
-	top.color = Color(0.62, 0.48, 0.28, 1.0)
-	top.size = Vector2(24, 12)
-	top.position = Vector2(-12, -6)
-	_workbench_node.add_child(top)
-
-	# Interaction hint
-	_workbench_hint = Label.new()
-	_workbench_hint.name = "WorkbenchHint"
-	_workbench_hint.text = "[E] Workbench"
-	_workbench_hint.add_theme_font_size_override("font_size", 5)
-	_workbench_hint.add_theme_color_override("font_color", Color(0.95, 0.88, 0.55))
-	_workbench_hint.position = Vector2(-20, -22)
-	_workbench_hint.visible = false
-	_workbench_node.add_child(_workbench_hint)
-
-	# Dev label
-	var dev_lbl := Label.new()
-	dev_lbl.text = "Workbench"
-	dev_lbl.add_theme_font_size_override("font_size", 4)
-	dev_lbl.add_theme_color_override("font_color", Color(0.7, 0.7, 0.5, 0.6))
-	dev_lbl.position = Vector2(-16, 10)
-	dev_lbl.visible = GameData.dev_labels_visible
-	dev_lbl.add_to_group("dev_label")
-	_workbench_node.add_child(dev_lbl)
+	# Grab or create the interaction hint label
+	_workbench_hint = _workbench_node.get_node_or_null("WorkbenchHint") as Label
+	if _workbench_hint == null:
+		_workbench_hint = Label.new()
+		_workbench_hint.name = "WorkbenchHint"
+		_workbench_hint.text = "[E] Workbench"
+		_workbench_hint.add_theme_font_size_override("font_size", 5)
+		_workbench_hint.add_theme_color_override("font_color", Color(0.95, 0.88, 0.55))
+		_workbench_hint.position = Vector2(-20, -22)
+		_workbench_hint.visible = false
+		_workbench_node.add_child(_workbench_hint)
 
 	# Register as POI using the editor-placed position
 	if get_node_or_null("/root/SceneManager"):
