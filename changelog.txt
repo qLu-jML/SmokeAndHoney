@@ -1,3 +1,11 @@
+[2026-04-02 CDT] Workbench UI layout cleanup
+  Fixed overlapping Craft buttons by zeroing custom_minimum_size before
+  Godot's layout engine inflates them, then setting size via set_deferred.
+  Widened panel (304x178), increased row height (22px), spread columns out,
+  centered title and convert button, added divider line between convert
+  section and recipe table, added subtle alternating row backgrounds.
+  Columns: Recipe / Cost / Makes / Craft now properly spaced with no overlap.
+
 [2026-04-02 CDT] Full codebase documentation and cleanup pass (all 81 scripts)
   Ran godot-forge analysis on all 81 GDScript files and addressed findings.
   Changes applied across every script (no functionality removed or altered):

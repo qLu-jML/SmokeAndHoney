@@ -11,15 +11,15 @@ const LOGS_PER_LUMBER := 1
 const LUMBER_CONVERT_ENERGY := 5.0
 
 # - Layout (320x180 viewport) -----------------------------------------------
-const PANEL_X := 16
-const PANEL_Y := 2
-const PANEL_W := 288
-const PANEL_H := 176
-const ROW_H := 20
+const PANEL_X := 8
+const PANEL_Y := 1
+const PANEL_W := 304
+const PANEL_H := 178
+const ROW_H := 22
 const RECIPE_START_Y := 62
-const LEFT_COL_X := 24
-const BTN_W := 40
-const BTN_H := 14
+const LEFT_COL_X := 16
+const BTN_W := 36
+const BTN_H := 12
 
 # - Node refs ----------------------------------------------------------------
 var _bg: ColorRect = null
@@ -62,67 +62,79 @@ func _build_ui() -> void:
 	_panel.size = Vector2(PANEL_W, PANEL_H)
 	add_child(_panel)
 
-	# Title
+	# Title - centered in panel
 	_title_label = Label.new()
 	_title_label.text = "-- Shed Workbench --"
 	_title_label.add_theme_font_size_override("font_size", 8)
 	_title_label.add_theme_color_override("font_color", Color(0.95, 0.88, 0.60))
-	_title_label.position = Vector2(PANEL_X + 85, PANEL_Y + 4)
+	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_title_label.position = Vector2(PANEL_X, PANEL_Y + 2)
+	_title_label.size = Vector2(PANEL_W, 12)
 	add_child(_title_label)
 
 	# Close button (top-right X)
 	_close_btn = Button.new()
 	_close_btn.text = "X"
-	_close_btn.position = Vector2(PANEL_X + PANEL_W - 16, PANEL_Y + 4)
-	_close_btn.size = Vector2(12, 12)
+	_close_btn.custom_minimum_size = Vector2.ZERO
 	_style_button(_close_btn, Color(0.70, 0.30, 0.25), 5)
 	_close_btn.pressed.connect(_on_close_pressed)
 	add_child(_close_btn)
-	_close_btn.set_deferred("size", Vector2(12, 12))
+	_close_btn.position = Vector2(PANEL_X + PANEL_W - 14, PANEL_Y + 2)
+	_close_btn.set_deferred("size", Vector2(12, 10))
 
 	# - Resource display row --
 	_logs_label = Label.new()
 	_logs_label.add_theme_font_size_override("font_size", 6)
 	_logs_label.add_theme_color_override("font_color", Color(0.80, 0.70, 0.50))
-	_logs_label.position = Vector2(LEFT_COL_X, PANEL_Y + 18)
+	_logs_label.position = Vector2(LEFT_COL_X, PANEL_Y + 16)
 	add_child(_logs_label)
 
 	_lumber_label = Label.new()
 	_lumber_label.add_theme_font_size_override("font_size", 6)
 	_lumber_label.add_theme_color_override("font_color", Color(0.80, 0.70, 0.50))
-	_lumber_label.position = Vector2(LEFT_COL_X + 80, PANEL_Y + 18)
+	_lumber_label.position = Vector2(LEFT_COL_X + 80, PANEL_Y + 16)
 	add_child(_lumber_label)
 
-	# - Convert Logs button --
+	# - Convert Logs button (centered, reasonable width) --
+	var convert_w: int = 160
+	var convert_x: int = PANEL_X + (PANEL_W - convert_w) / 2
 	_convert_btn = Button.new()
 	_convert_btn.text = "Convert Logs -> Lumber (5 nrg)"
-	_convert_btn.position = Vector2(LEFT_COL_X, PANEL_Y + 32)
-	_convert_btn.size = Vector2(120, 14)
+	_convert_btn.custom_minimum_size = Vector2.ZERO
 	_style_button(_convert_btn, Color(0.30, 0.45, 0.25), 5)
 	_convert_btn.pressed.connect(_try_convert_logs)
 	add_child(_convert_btn)
-	_convert_btn.set_deferred("size", Vector2(120, 14))
+	_convert_btn.position = Vector2(convert_x, PANEL_Y + 30)
+	_convert_btn.set_deferred("size", Vector2(convert_w, 12))
+
+	# Divider line below convert button
+	var divider: ColorRect = ColorRect.new()
+	divider.color = Color(0.50, 0.38, 0.20, 0.5)
+	divider.position = Vector2(LEFT_COL_X, PANEL_Y + 46)
+	divider.size = Vector2(PANEL_W - LEFT_COL_X * 2 + PANEL_X, 1)
+	add_child(divider)
 
 	# - Column headers --
+	var hdr_y: int = RECIPE_START_Y - 12
 	var hdr_recipe: Label = Label.new()
 	hdr_recipe.text = "Recipe"
 	hdr_recipe.add_theme_font_size_override("font_size", 5)
-	hdr_recipe.add_theme_color_override("font_color", Color(0.70, 0.65, 0.50))
-	hdr_recipe.position = Vector2(LEFT_COL_X, RECIPE_START_Y - 9)
+	hdr_recipe.add_theme_color_override("font_color", Color(0.65, 0.58, 0.42))
+	hdr_recipe.position = Vector2(LEFT_COL_X + 4, hdr_y)
 	add_child(hdr_recipe)
 
 	var hdr_cost: Label = Label.new()
 	hdr_cost.text = "Cost"
 	hdr_cost.add_theme_font_size_override("font_size", 5)
-	hdr_cost.add_theme_color_override("font_color", Color(0.70, 0.65, 0.50))
-	hdr_cost.position = Vector2(LEFT_COL_X + 100, RECIPE_START_Y - 9)
+	hdr_cost.add_theme_color_override("font_color", Color(0.65, 0.58, 0.42))
+	hdr_cost.position = Vector2(LEFT_COL_X + 110, hdr_y)
 	add_child(hdr_cost)
 
 	var hdr_makes: Label = Label.new()
 	hdr_makes.text = "Makes"
 	hdr_makes.add_theme_font_size_override("font_size", 5)
-	hdr_makes.add_theme_color_override("font_color", Color(0.70, 0.65, 0.50))
-	hdr_makes.position = Vector2(LEFT_COL_X + 155, RECIPE_START_Y - 9)
+	hdr_makes.add_theme_color_override("font_color", Color(0.65, 0.58, 0.42))
+	hdr_makes.position = Vector2(LEFT_COL_X + 170, hdr_y)
 	add_child(hdr_makes)
 
 	# - Recipe rows with Craft buttons --
@@ -132,12 +144,20 @@ func _build_ui() -> void:
 		var r: Dictionary = recipes[i]
 		var y_pos: float = RECIPE_START_Y + i * ROW_H
 
+		# Subtle alternating row background for readability
+		if i % 2 == 0:
+			var row_bg: ColorRect = ColorRect.new()
+			row_bg.color = Color(1.0, 1.0, 1.0, 0.03)
+			row_bg.position = Vector2(LEFT_COL_X, y_pos)
+			row_bg.size = Vector2(PANEL_W - LEFT_COL_X * 2 + PANEL_X, ROW_H)
+			add_child(row_bg)
+
 		# Recipe name
 		var name_lbl: Label = Label.new()
 		name_lbl.text = r["label"]
 		name_lbl.add_theme_font_size_override("font_size", 6)
 		name_lbl.add_theme_color_override("font_color", Color(0.90, 0.85, 0.65))
-		name_lbl.position = Vector2(LEFT_COL_X + 4, y_pos + 2)
+		name_lbl.position = Vector2(LEFT_COL_X + 4, y_pos + 5)
 		add_child(name_lbl)
 
 		# Cost display
@@ -145,7 +165,7 @@ func _build_ui() -> void:
 		cost_lbl.text = "%d lbr, %d nrg" % [r["lumber_cost"], int(r["energy_cost"])]
 		cost_lbl.add_theme_font_size_override("font_size", 5)
 		cost_lbl.add_theme_color_override("font_color", Color(0.75, 0.65, 0.45))
-		cost_lbl.position = Vector2(LEFT_COL_X + 100, y_pos + 3)
+		cost_lbl.position = Vector2(LEFT_COL_X + 110, y_pos + 6)
 		add_child(cost_lbl)
 
 		# Makes display
@@ -153,26 +173,28 @@ func _build_ui() -> void:
 		makes_lbl.text = "x%d" % r["result_count"]
 		makes_lbl.add_theme_font_size_override("font_size", 5)
 		makes_lbl.add_theme_color_override("font_color", Color(0.75, 0.65, 0.45))
-		makes_lbl.position = Vector2(LEFT_COL_X + 158, y_pos + 3)
+		makes_lbl.position = Vector2(LEFT_COL_X + 174, y_pos + 6)
 		add_child(makes_lbl)
 
-		# Craft button - force size after add_child so Godot
-		# cannot expand it beyond our intended dimensions.
+		# Craft button - use custom_minimum_size of ZERO so Godot
+		# cannot inflate the button beyond our intended dimensions.
 		var craft_btn := Button.new()
 		craft_btn.text = "Craft"
-		craft_btn.position = Vector2(LEFT_COL_X + 190, y_pos)
-		craft_btn.size = Vector2(BTN_W, BTN_H)
+		craft_btn.custom_minimum_size = Vector2.ZERO
 		_style_button(craft_btn, Color(0.35, 0.35, 0.20), 5)
 		craft_btn.pressed.connect(_try_craft.bind(i))
 		add_child(craft_btn)
+		# Position and size AFTER add_child so tree is ready
+		craft_btn.position = Vector2(LEFT_COL_X + 210, y_pos + 3)
 		craft_btn.set_deferred("size", Vector2(BTN_W, BTN_H))
+		craft_btn.set_deferred("custom_minimum_size", Vector2(BTN_W, BTN_H))
 
 		_recipe_buttons.append({"btn": craft_btn, "name_lbl": name_lbl, "cost_lbl": cost_lbl})
 
 	# - Feedback label (bottom) --
 	_feedback_label = Label.new()
 	_feedback_label.text = ""
-	_feedback_label.add_theme_font_size_override("font_size", 6)
+	_feedback_label.add_theme_font_size_override("font_size", 5)
 	_feedback_label.add_theme_color_override("font_color", Color(0.40, 0.90, 0.40))
 	_feedback_label.position = Vector2(LEFT_COL_X, PANEL_Y + PANEL_H - 16)
 	add_child(_feedback_label)
@@ -221,8 +243,8 @@ func _style_button(btn: Button, bg_color: Color, font_size: int) -> void:
 	btn.add_theme_color_override("font_hover_color", Color(1.0, 0.95, 0.75))
 	btn.add_theme_color_override("font_disabled_color", Color(0.60, 0.55, 0.45))
 	btn.clip_text = true
-	# Lock the size so the layout engine cannot expand the button
-	btn.custom_minimum_size = btn.size
+	btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 
 # =========================================================================
 # DISPLAY UPDATES
