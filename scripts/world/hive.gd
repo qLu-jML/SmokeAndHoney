@@ -33,6 +33,14 @@ var _tex_excluder: Texture2D = null
 var _tex_lid:      Texture2D = null
 var _tex_stand:      Texture2D = null
 var _tex_deep_empty: Texture2D = null
+# New draft sprites (open-top boxes showing interior cavity)
+var _tex_deep_draft:  Texture2D = null   # 48x60 deep body with open hole (legacy, unused now)
+var _tex_bottom_deep: Texture2D = null   # 48x60 bottom deep (has hive entrance)
+var _tex_top_mid_deep: Texture2D = null  # 48x60 top/middle deep (no entrance)
+var _tex_super_draft: Texture2D = null   # 48x41 super with open hole
+var _tex_super_full:  Texture2D = null   # 48x28 full/closed super
+# Frame overlay textures (44x20 each, sit inside the cavity of draft sprites)
+var _tex_frames: Array = []  # Index 0 = one_frame, 1 = two_frames, ... 9 = ten_frames
 # Fallback legacy sprite (has .import file so preload works)
 var _tex_legacy:   Texture2D = preload("res://assets/sprites/hive/overworld_hive.png")
 
@@ -78,6 +86,8 @@ const SUPER_TINT_CAPPED   = Color(1.00, 0.75, 0.20)  # deep amber -- fully cappe
 
 # Track which sprite indices in the stack are super sprites (for per-super tinting)
 var _super_sprite_indices: Array = []  # [[sprite_child_index, super_data_index], ...]
+# Track which sprite children are frame overlay sprites for supers (for tick updates)
+var _super_overlay_children: Array = []  # [[overlay_child_index, super_data_index], ...]
 
 # -- Winter reserve warning tints --------------------------------------------
 
@@ -118,6 +128,22 @@ func _ready() -> void:
 		_tex_lid      = _load_runtime_tex("res://assets/sprites/hive/hive_lid.png")
 		_tex_stand      = _load_runtime_tex("res://assets/sprites/hive/hive_stand.png")
 		_tex_deep_empty = _load_runtime_tex("res://assets/sprites/hive/hive_deep_empty.png")
+		# New draft sprites
+		_tex_deep_draft  = _load_runtime_tex("res://assets/sprites/hive/deep_empty_draft.png")
+		_tex_bottom_deep = _load_runtime_tex("res://assets/sprites/hive/bottom_deep_empty_draft.png")
+		_tex_top_mid_deep = _load_runtime_tex("res://assets/sprites/hive/top_and_middle_deep_empty_draft.png")
+		_tex_super_draft = _load_runtime_tex("res://assets/sprites/hive/super_empty_draft.png")
+		_tex_super_full  = _load_runtime_tex("res://assets/sprites/hive/super_full_draft.png")
+		# Frame overlay textures (1-10 frames)
+		var frame_names: Array = [
+			"one_frame", "two_frames", "three_frames", "four_frames",
+			"five_frames", "sixFrames", "seven_frames", "eight_frames",
+			"nine_frames", "ten_frames"
+		]
+		_tex_frames.clear()
+		for fname in frame_names:
+			var ftex: Texture2D = _load_runtime_tex("res://assets/sprites/hive/%s.png" % fname)
+			_tex_frames.append(ftex)
 
 	# Create the modular sprite stack container
 	_sprite_stack = Node2D.new()
@@ -329,6 +355,7 @@ func _on_ticked() -> void:
 	update_label()
 	_update_health_tint()
 	_update_super_fill_tint()
+	_update_super_frame_overlays()
 	_update_swarm_cloud()
 
 # -- Build Methods -------------------------------------------------------------
@@ -373,6 +400,9 @@ func try_add_deep() -> bool:
 		print("[Hive] try_add_deep FAILED: simulation is null")
 		return false
 	var before: int = simulation.deep_count()
+	if before >= 3:
+		print("[Hive] try_add_deep FAILED: already at max 3 deeps")
+		return false
 	if not simulation.add_deep():
 		print("[Hive] try_add_deep FAILED: simulation.add_deep() returned false (deeps=%d)" % before)
 		return false
@@ -514,6 +544,30 @@ func get_honey_stores() -> float:
 
 # -- Modular Sprite Stacking --------------------------------------------------
 
+## Get the frame overlay texture for a super based on its honey fill level.
+## Returns the appropriate N-frame overlay (1-10) or null if empty.
+## super_data_idx is the index into the snapshot's super_visuals array.
+func _get_super_frame_overlay(super_data_idx: int) -> Texture2D:
+	if not simulation or _tex_frames.is_empty():
+		return null
+	var snap: Dictionary = simulation.last_snapshot
+	if snap.is_empty():
+		return null
+	var super_data: Array = snap.get("super_visuals", [])
+	if super_data_idx >= super_data.size():
+		return null
+	var sd: Dictionary = super_data[super_data_idx]
+	var fill: float = sd.get("fill_pct", 0.0)
+	# Map fill percentage to frame count (1-10)
+	# 0% fill = no overlay, 10% = 1 frame, 20% = 2, ... 100% = 10
+	if fill < 0.05:
+		return null
+	var frame_n: int = clampi(int(ceil(fill * 10.0)), 1, 10)
+	var idx: int = frame_n - 1
+	if idx < _tex_frames.size():
+		return _tex_frames[idx]
+	return null
+
 ## Rebuilds the visual sprite stack from current hive configuration.
 ## Called whenever boxes change (add deep, add super, remove super, etc.)
 func _rebuild_sprite_stack() -> void:
@@ -536,56 +590,107 @@ func _rebuild_sprite_stack() -> void:
 	const _GAP_PX := 1  # 1px gap between stacked components
 	# Track which layer indices are super sprites (for honey fill tinting)
 	_super_sprite_indices = []
+	_super_overlay_children = []
 	var super_data_idx: int = 0  # index into snapshot super_visuals array
 
+	# Each layer entry is [texture, frame_overlay_tex_or_null, is_draft_sprite].
+	# Draft sprites (48px wide) get scaled to 0.5 to match 24px stack components.
+	# Frame overlays (44x20) are positioned inside the draft sprite cavity.
+
+	# Helper: pick the correct deep texture based on position in the stack.
+	# The bottom-most deep always uses bottom_deep (has hive entrance);
+	# any deep above it uses top_and_middle_deep (no entrance).
+	# deep_idx is 0-based from bottom of the deep section.
+
 	if build_state == BuildState.STAND_PLACED:
-		layers.append(_tex_stand)
+		layers.append([_tex_stand, null, false])
 
 	elif build_state == BuildState.BODY_ADDED:
-		layers.append(_tex_stand)
-		layers.append(_tex_base)
-		layers.append(_tex_deep_empty)
+		layers.append([_tex_stand, null, false])
+		layers.append([_tex_base, null, true])
+		# Empty deep body -- no frames yet (always bottom deep during build)
+		var deep_tex: Texture2D = _tex_bottom_deep if _tex_bottom_deep != null else _tex_deep_draft
+		if deep_tex != null:
+			layers.append([deep_tex, null, true])
+		else:
+			layers.append([_tex_deep_empty, null, false])
 
 	elif build_state == BuildState.FRAMES_PARTIAL:
-		layers.append(_tex_stand)
-		layers.append(_tex_base)
-		layers.append(_tex_deep)
+		layers.append([_tex_stand, null, false])
+		layers.append([_tex_base, null, true])
+		# Deep body with partial frames -- show frame overlay (always bottom deep during build)
+		var deep_tex: Texture2D = _tex_bottom_deep if _tex_bottom_deep != null else _tex_deep_draft
+		if deep_tex != null and frame_count > 0 and frame_count <= _tex_frames.size():
+			var frame_tex: Texture2D = _tex_frames[frame_count - 1]
+			layers.append([deep_tex, frame_tex, true])
+		elif deep_tex != null:
+			layers.append([deep_tex, null, true])
+		else:
+			layers.append([_tex_deep, null, false])
 
 	else:
 		# COMPLETE: full Langstroth stack
-		layers.append(_tex_stand)
-		layers.append(_tex_base)
+		layers.append([_tex_stand, null, false])
+		layers.append([_tex_base, null, true])
 
 		if simulation:
 			var deep_n: int = 0
 			var super_n: int = 0
 			for i in range(simulation.boxes.size()):
 				if not simulation.boxes[i].is_super:
-					layers.append(_tex_deep)
+					# Bottom deep (idx 0) uses bottom_deep sprite (hive entrance);
+					# all upper deeps (idx 1, 2) use top_and_middle sprite.
+					var dtex: Texture2D = null
+					if deep_n == 0:
+						dtex = _tex_bottom_deep if _tex_bottom_deep != null else _tex_deep_draft
+					else:
+						dtex = _tex_top_mid_deep if _tex_top_mid_deep != null else _tex_deep_draft
+					# Complete deeps always have 10 frames
+					if dtex != null and _tex_frames.size() >= 10:
+						layers.append([dtex, _tex_frames[9], true])
+					elif dtex != null:
+						layers.append([dtex, null, true])
+					else:
+						layers.append([_tex_deep, null, false])
 					deep_n += 1
 
 			if simulation.has_excluder:
-				layers.append(_tex_excluder)
+				layers.append([_tex_excluder, null, false])
 
 			for i in range(simulation.boxes.size()):
 				if simulation.boxes[i].is_super:
 					# Record that this layer index maps to this super's data index
 					_super_sprite_indices.append([layers.size(), super_data_idx])
-					layers.append(_tex_super)
+					# Supers use the empty draft sprite with frame overlay
+					# showing how many frames have honey (based on fill_pct from snapshot)
+					if _tex_super_draft != null:
+						# Determine frame overlay from snapshot super_visuals fill data
+						var frame_overlay: Texture2D = _get_super_frame_overlay(super_data_idx)
+						layers.append([_tex_super_draft, frame_overlay, true])
+					elif _tex_super_full != null:
+						layers.append([_tex_super_full, null, true])
+					else:
+						layers.append([_tex_super, null, false])
 					super_n += 1
 					super_data_idx += 1
 			print("[Hive] Sprite stack: %d deeps, %d supers, %d total boxes" % [deep_n, super_n, simulation.boxes.size()])
 		else:
-			layers.append(_tex_deep)
+			var dtex: Texture2D = _tex_bottom_deep if _tex_bottom_deep != null else _tex_deep_draft
+			if dtex != null and _tex_frames.size() >= 10:
+				layers.append([dtex, _tex_frames[9], true])
+			elif dtex != null:
+				layers.append([dtex, null, true])
+			else:
+				layers.append([_tex_deep, null, false])
 
-		# Lid on top -- no gap, sits flush to cover the box below
-		layers.append(_tex_lid)
+		# Lid on top
+		layers.append([_tex_lid, null, true])
 
 	# -- Filter out nulls --------------------------------------------------
 	var valid: Array = []
-	for tex in layers:
-		if tex != null:
-			valid.append(tex)
+	for entry in layers:
+		if entry[0] != null:
+			valid.append(entry)
 	layers = valid
 
 	if layers.is_empty():
@@ -594,49 +699,104 @@ func _rebuild_sprite_stack() -> void:
 		return
 
 	# -- Stack sprites from bottom up -------------------------------------
-	# Each box sprite has an open interior top (frame bars visible from above)
-	# and a solid body wall at the bottom. When stacking, the piece above must
-	# overlap enough to cover the open frame-tops of the piece below.
+	# New sprites: base (54x26), lid (54x26), deep bodies (48x60),
+	# supers (48x41 empty / 48x28 full), stand (24x12), excluder (24x3).
+	# All draft sprites (is_draft=true) are scaled to 0.5 to produce ~24-27px
+	# wide display sizes. Old sprites (24px) use scale 1.0.
 	#
-	# Sprite anatomy (from pixel analysis):
-	#   Deep  (24x18): rows 0-10 open interior (11px), rows 11-17 solid wall (7px)
-	#   Super (24x14): rows 0-7  open interior (8px),  rows 8-13  solid wall (6px)
-	#   Lid   (28x13): rows 0-8  metal top (9px),      rows 9-12  wooden rim (4px)
-	#
-	# The overlap INTO a piece below = that piece's open-top height, so the
-	# solid bottom of the upper piece lands right at the box wall of the lower.
-	# "open_top" is how many pixels of open interior the piece has at its top.
-	#
-	# Stand, base, excluder have no open top -- pieces sit flush on them.
+	# Overlaps (in DISPLAY pixels after scaling):
+	#   Deep bodies (48x60 * 0.5 = 24x30): open cavity ~22px native * 0.5 = 11px
+	#   Super empty (48x41 * 0.5 = 24x20.5): open cavity ~16px * 0.5 = 8px
+	#   Super full (48x28 * 0.5 = 24x14): ~16px * 0.5 = 8px
+	#   Base (54x26 * 0.5 = 27x13): no open top, sit flush
+	#   Lid (54x26 * 0.5 = 27x13): no open top
+	#   Stand, excluder: no open top, sit flush
+	const DRAFT_SCALE := 0.5  # Scale draft sprites to match ~24px stack width
 
 	var y_cursor: float = 0.0
 	var z_order: int = 0
+	# Maps layer index -> child index in _sprite_stack (for super tinting)
+	var layer_to_child: Dictionary = {}
+	var child_idx: int = 0
 
 	for i in range(layers.size()):
-		var tex: Texture2D = layers[i]
-		var tex_h: float = float(tex.get_height())
-		var tex_w: float = float(tex.get_width())
+		var tex: Texture2D = layers[i][0]
+		var overlay_tex: Texture2D = layers[i][1] if layers[i][1] != null else null
+		var is_draft: bool = layers[i][2]
+		var scale_factor: float = DRAFT_SCALE if is_draft else 1.0
+		var tex_h: float = float(tex.get_height()) * scale_factor
+		var tex_w: float = float(tex.get_width()) * scale_factor
 
 		if i == 0:
 			y_cursor = -tex_h
 		else:
 			# Overlap is determined by the open-top of the piece BELOW
-			var prev_tex: Texture2D = layers[i - 1]
-			var overlap: int = 0
+			var prev_tex: Texture2D = layers[i - 1][0]
+			var overlap: float = 0.0
 			if prev_tex == _tex_deep or prev_tex == _tex_deep_empty:
-				overlap = 11   # deep has 11px open top (rows 0-10)
+				overlap = 11.0   # old deep: 11px open top
+			elif prev_tex == _tex_deep_draft or prev_tex == _tex_bottom_deep or prev_tex == _tex_top_mid_deep:
+				# Draft deep at 0.5 scale: open cavity ~22px * 0.5 = 11px
+				overlap = 11.0
 			elif prev_tex == _tex_super:
-				overlap = 8    # super has 8px open top (rows 0-7)
-			# stand, base, excluder = 0 overlap (sit flush)
-			y_cursor -= (tex_h - float(overlap))
+				overlap = 8.0    # old super: 8px open top
+			elif prev_tex == _tex_super_draft:
+				# Draft super at 0.5 scale: open cavity ~16px * 0.5 = 8px
+				overlap = 8.0
+			elif prev_tex == _tex_super_full:
+				# Full super draft at 0.5 scale: similar to old super
+				overlap = 8.0
+			# stand, base, lid, excluder = 0 overlap (sit flush)
+			y_cursor -= (tex_h - overlap)
 
 		var spr := Sprite2D.new()
 		spr.texture = tex
 		spr.centered = false
+		if is_draft:
+			spr.scale = Vector2(DRAFT_SCALE, DRAFT_SCALE)
 		spr.position = Vector2(-tex_w / 2.0, y_cursor)
 		spr.z_index = z_order
 		_sprite_stack.add_child(spr)
-		z_order += 1
+		layer_to_child[i] = child_idx
+		child_idx += 1
+
+		# Add frame overlay sprite if present (sits inside the draft cavity)
+		# For supers, always create an overlay sprite so we can update it on tick.
+		var is_super_layer: bool = (tex == _tex_super_draft or tex == _tex_super_full)
+		if (overlay_tex != null or is_super_layer) and is_draft:
+			var ov_spr := Sprite2D.new()
+			ov_spr.centered = false
+			ov_spr.scale = Vector2(DRAFT_SCALE, DRAFT_SCALE)
+			if overlay_tex != null:
+				ov_spr.texture = overlay_tex
+				ov_spr.visible = true
+			else:
+				ov_spr.visible = false
+			# Frame overlays (44x20) are centered in the cavity of draft sprites (48px wide)
+			# At 0.5 scale: overlay = 22x10, draft = 24px wide -> 1px offset from left
+			# Use 44px as reference width for overlay centering
+			var ov_ref_w: float = 44.0 * DRAFT_SCALE
+			var ov_x: float = -tex_w / 2.0 + (tex_w - ov_ref_w) / 2.0
+			# Position near top of the draft sprite (the cavity opening)
+			var ov_y: float = y_cursor + 1.0 * DRAFT_SCALE  # slight offset from top edge
+			ov_spr.position = Vector2(ov_x, ov_y)
+			ov_spr.z_index = z_order + 1
+			_sprite_stack.add_child(ov_spr)
+			# Track super overlay children for tick-based fill updates
+			if is_super_layer:
+				_super_overlay_children.append([child_idx, _super_overlay_children.size()])
+			child_idx += 1
+
+		z_order += 2  # leave room for overlay z-index
+
+	# Remap _super_sprite_indices from layer indices to actual child indices
+	var remapped: Array = []
+	for pair in _super_sprite_indices:
+		var layer_idx: int = int(pair[0])
+		var data_idx: int = int(pair[1])
+		if layer_to_child.has(layer_idx):
+			remapped.append([layer_to_child[layer_idx], data_idx])
+	_super_sprite_indices = remapped
 
 	var total_height: int = int(abs(y_cursor))
 
@@ -758,6 +918,43 @@ func _update_super_fill_tint() -> void:
 
 		spr.modulate = tint
 
+# -- Super Frame Overlay Updates -----------------------------------------------
+## Update super frame overlay textures on each tick based on honey fill level.
+## This avoids a full sprite stack rebuild when supers gradually fill with honey.
+func _update_super_frame_overlays() -> void:
+	if not simulation or build_state != BuildState.COMPLETE:
+		return
+	if _super_overlay_children.is_empty():
+		return
+	var snap: Dictionary = simulation.last_snapshot
+	if snap.is_empty():
+		return
+	var super_data: Array = snap.get("super_visuals", [])
+	if super_data.is_empty():
+		return
+
+	var stack_children: Array = _sprite_stack.get_children()
+	for pair in _super_overlay_children:
+		var ov_child_idx: int = int(pair[0])
+		var data_idx: int = int(pair[1])
+		if ov_child_idx >= stack_children.size() or data_idx >= super_data.size():
+			continue
+		var ov_spr: Sprite2D = stack_children[ov_child_idx] as Sprite2D
+		if ov_spr == null:
+			continue
+		var sd: Dictionary = super_data[data_idx]
+		var fill: float = sd.get("fill_pct", 0.0)
+		if fill < 0.05:
+			ov_spr.visible = false
+			continue
+		var frame_n: int = clampi(int(ceil(fill * 10.0)), 1, 10)
+		var idx: int = frame_n - 1
+		if idx < _tex_frames.size() and _tex_frames[idx] != null:
+			ov_spr.texture = _tex_frames[idx]
+			ov_spr.visible = true
+		else:
+			ov_spr.visible = false
+
 # -- Bee Swarm Cloud -----------------------------------------------------------
 
 ## Create the swarm cloud node if it does not exist yet.
@@ -816,18 +1013,18 @@ func _update_prompt_text() -> void:
 			if held_item == GameData.ITEM_GLOVES:
 				_prompt_label.text = "[E] Hive Management"
 			elif held_item == GameData.ITEM_DEEP_BOX or held_item == GameData.ITEM_DEEP_BODY:
-				if simulation and simulation.deep_count() < 2:
-					_prompt_label.text = "[E] Add Second Deep"
+				if simulation and simulation.deep_count() < 3:
+					_prompt_label.text = "[E] Add Deep Body"
 				else:
-					_prompt_label.text = "Max Deeps (2)"
+					_prompt_label.text = "Max Deeps (3)"
 			elif held_item == GameData.ITEM_SUPER_BOX:
-				if simulation and simulation.super_count() < 10:
+				if simulation and simulation.super_count() < 5:
 					if simulation.has_excluder:
 						_prompt_label.text = "[E] Add Honey Super"
 					else:
 						_prompt_label.text = "[E] Add Super (no excluder!)"
 				else:
-					_prompt_label.text = "Max Supers (10)"
+					_prompt_label.text = "Max Supers (5)"
 			elif held_item == GameData.ITEM_QUEEN_EXCLUDER:
 				if simulation and not simulation.has_excluder:
 					_prompt_label.text = "[E] Place Excluder"

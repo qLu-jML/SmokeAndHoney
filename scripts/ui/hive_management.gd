@@ -237,7 +237,7 @@ func _refresh() -> void:
 	if excl_val != null:
 		has_excl = bool(excl_val)
 
-	_info_lbl.text = "Deeps: %d/2   Supers: %d/10   Excluder: %s" % [
+	_info_lbl.text = "Deeps: %d/3   Supers: %d/5   Excluder: %s" % [
 		deeps, supers, "Yes" if has_excl else "No"
 	]
 
@@ -247,20 +247,20 @@ func _refresh() -> void:
 	var already_carrying: bool = _player_has_item(GameData.ITEM_FULL_SUPER)
 
 	# Add Deep
-	if deeps >= 2:
-		_set_btn(_btn_add_deep, "Add Deep Body  [max 2/2]", true)
+	if deeps >= 3:
+		_set_btn(_btn_add_deep, "Add Deep Body  [max 3/3]", true)
 	elif not has_deep_item:
 		_set_btn(_btn_add_deep, "Add Deep Body  [need item]", true)
 	else:
 		_set_btn(_btn_add_deep, "Add Deep Body", false)
 
 	# Add Super
-	if supers >= 10:
-		_set_btn(_btn_add_super, "Add Honey Super  [max 10/10]", true)
+	if supers >= 5:
+		_set_btn(_btn_add_super, "Add Honey Super  [max 5/5]", true)
 	elif not has_super_item:
 		_set_btn(_btn_add_super, "Add Honey Super  [need item]", true)
 	else:
-		_set_btn(_btn_add_super, "Add Honey Super  (%d/10)" % supers, false)
+		_set_btn(_btn_add_super, "Add Honey Super  (%d/5)" % supers, false)
 
 	# Remove Super - smart: checks honey content to show correct action
 	if already_carrying:

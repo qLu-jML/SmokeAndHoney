@@ -1,3 +1,46 @@
+[2026-04-02 CDT] New hive sprites, 1-3 deep stacking, super frame overlays, limit changes
+  Hive sprite overhaul using Nathan's new art assets:
+  - New bottom_deep_empty_draft.png (48x60) for the bottom deep box (has hive
+    entrance); top_and_middle_deep_empty_draft.png (48x60) for upper deeps
+  - New hive_base.png (54x26) and hive_lid.png (54x26) replace old 24px sprites
+  - New super_empty_draft.png (48x41) used for all supers with frame overlays
+  - Frame overlay sprites (one_frame through ten_frames, 44x20 each) now show
+    inside super cavities based on honey fill percentage from simulation snapshot
+  - Overlays update each tick without full sprite stack rebuild
+  Deep box stacking (1-3 deeps):
+  - HiveSimulation.add_deep() limit raised from 2 to 3
+  - Bottom deep always uses bottom_deep sprite (shows hive entrance)
+  - Upper deeps (positions 2-3) use top_and_middle sprite (no entrance)
+  - hive.gd stacking logic picks correct sprite based on deep_idx
+  Super limit reduced to 5:
+  - HiveSimulation.add_super() limit lowered from 10 to 5
+  - Hive management UI updated: "Deeps: N/3  Supers: N/5"
+  - Prompt text updated for new max values
+  All sprites scaled at 0.5 (DRAFT_SCALE) to match ~24-27px display width.
+  Overlap math updated for new bottom_deep/top_mid_deep textures.
+
+[2026-04-02 CDT] Clean up stale pallet sprite and fix starting inventory
+  - Removed old pallet_super.png.jpg and its .import/.ctex from project root
+    (leftover from sprite replacement, was ghosting in the scene editor)
+  - Fixed starting inventory not applying: player.gd _ready() fired before
+    home_property.gd could set GameData.player_inventory_valid, so the player
+    always used its own fallback (axe, hammer, 40 logs). Updated the fallback
+    in player.gd directly to: axe, gloves, hammer, hive tool, 5 full supers.
+    home_property.gd dev bypass kept in sync as a secondary path.
+
+[2026-04-02 CDT] Fix county road tree sprites -- use full trees, not tileset fragments
+  The cainos_trees asset pack contains both standalone full-tree sprites and
+  tileset fragment pieces (canopy corners, trunk sections). 16 of 30 trees
+  on the county road were using fragment sprites instead of complete trees:
+  - Maple (5 trees) and Pine (5 trees) were using cainos_tree_01 (43x52
+    canopy blob with no trunk)
+  - Elm (3 trees) and Hickory (3 trees) were using cainos_tree_07 (76x128
+    partial trunk/canopy fragment)
+  Reassigned to proper standalone sprites:
+  - Maple, Elm -> cainos_tree_14 (92x123, full broadleaf tree)
+  - Pine, Hickory -> cainos_tree_11 (55x106, full narrower-profile tree)
+  Oak (tree_13), Walnut (tree_12), and Ash (tree_06) were already correct.
+
 [2026-04-02 CDT] Full scene conversion: all dynamic objects to editor nodes
   Converted all remaining dynamically-created objects across every scene to
   editor-placed .tscn nodes so they are visible and draggable in the Godot

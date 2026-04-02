@@ -1598,9 +1598,9 @@ func super_count() -> int:
 	return n
 
 ## Add a second (or third) deep brood body on top of existing deeps.
-## Returns true if added, false if max deeps reached (limit 2).
+## Returns true if added, false if max deeps reached (limit 3).
 func add_deep() -> bool:
-	if deep_count() >= 2:
+	if deep_count() >= 3:
 		return false
 	# Insert after the last deep box, before any supers
 	var insert_idx := 0
@@ -1635,9 +1635,9 @@ func rotate_deep_bodies() -> bool:
 	return true
 
 ## Add a honey super on top of the stack (above excluder/deeps).
-## Returns true if added, false if max supers reached (limit 10).
+## Returns true if added, false if max supers reached (limit 5).
 func add_super() -> bool:
-	if super_count() >= 10:
+	if super_count() >= 5:
 		return false
 	boxes.append(HiveBox.new(true))
 	return true
