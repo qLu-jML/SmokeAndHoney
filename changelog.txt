@@ -1,3 +1,38 @@
+[2026-04-02 CDT] Spread trees and flowers across full property, scale PU/NU
+  Trees expanded from 10 to 44 across the full grass area (~2900x1800 px):
+  - 34 new SeasonalTree instances placed as editor-draggable scene nodes
+  - Species mix: willow, silver_maple, wild_plum, apple, cherry, pear,
+    basswood_linden, cottonwood, sycamore, elm_dead
+  - All trees avoid dirt paths (y 50-186), buildings, and gameplay zones
+  Per-tree PU/NU values divided by 4 (TREE_FORAGE_DATA in seasonal_tree.gd)
+  so aggregate forage stays the same despite 4x more trees.
+  FlowerLifecycleManager expanded to cover full property:
+  - GRASS_SIZE: 1600x900 -> 2960x1824 (from GRASS_ORIGIN -752,-416)
+  - NU_SCALE: 250 -> 940 (3.76x to match area increase)
+  - Flowers now dynamically grow/spread across all grass, not just yard
+  - No-spawn mask still blocks paths and buildings automatically
+  Forage balance verified: B-rank season supports 1-2 hives (same as before).
+
+[2026-04-02 CDT] Hive stacking rewrite, walk-behind z-ordering, inventory fix
+  Sprite stacking rewrite:
+  - Removed hive_base from sprite stack (bottom_deep includes entrance)
+  - Stand (24x12) on ground at y=0, first box offset 4px forward so
+    the stand landing board peeks out below the box front face
+  - All boxes/supers/lid stack flush (no overlap, no gap) from bottom up
+  - No overhanging: all 48px-wide boxes align; 54px lid overhangs naturally
+  Walk-behind z-ordering:
+  - Stand sprite at z_index=0 (ground level, participates in y-sort)
+  - All box/lid/frame-overlay sprites at z_index=5 (absolute) so they
+    render above the player when walking behind (north of) the hive
+  - StaticBody2D collision covers only the stand footprint (28x16 at
+    ground level) so the player is blocked from overlapping the stand
+    but can walk behind the boxes
+  - Area2D interaction zone still covers full hive height for click detection
+  Starting inventory fix:
+  - Player starts with 5 empty super boxes (ITEM_SUPER_BOX) in inventory,
+    not 5 full supers (ITEM_FULL_SUPER) -- no longer spawns carrying a super
+  - Updated both player.gd fallback and home_property.gd dev inventory
+
 [2026-04-02 CDT] New hive sprites, 1-3 deep stacking, super frame overlays, limit changes
   Hive sprite overhaul using Nathan's new art assets:
   - New bottom_deep_empty_draft.png (48x60) for the bottom deep box (has hive

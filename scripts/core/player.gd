@@ -64,10 +64,12 @@ func _ready():
 		for i in range(mini(GameData.player_inventory.size(), INVENTORY_SIZE)):
 			inventory[i] = GameData.player_inventory[i]
 	else:
-		# Starting inventory: basic tools + wood to get started
-		add_item(GameData.ITEM_AXE,    1)
-		add_item(GameData.ITEM_HAMMER, 1)
-		add_item(GameData.ITEM_LOGS,  40)
+		# Starting inventory: essential tools + honey supers for harvest testing
+		add_item(GameData.ITEM_AXE,        1)
+		add_item(GameData.ITEM_GLOVES,     1)
+		add_item(GameData.ITEM_HAMMER,     1)
+		add_item(GameData.ITEM_HIVE_TOOL,  1)
+		add_item(GameData.ITEM_SUPER_BOX, 5)
 		# First sync so future scene changes preserve this inventory
 		sync_inventory_to_gamedata()
 	# Deferred: stock the storage chest with remaining items after scene loads

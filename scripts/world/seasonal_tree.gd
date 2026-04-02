@@ -10,17 +10,17 @@
 # during its bloom window (forage_month_start..forage_month_end). Trees add
 # themselves to the "trees" group so ForageManager can query all instances.
 #
-# GDD S14 tree NU values (total NU, split into nectar + pollen):
-#   Willow:        8 NU -- pollen-heavy (nectar 2, pollen 6)
-#   Silver Maple:  6 NU -- pollen-heavy (nectar 1, pollen 5)
-#   Wild Plum:     5 NU -- balanced    (nectar 2, pollen 3)
-#   Apple Tree:    7 NU -- balanced    (nectar 3, pollen 4)
-#   Cherry Tree:   7 NU -- balanced    (nectar 3, pollen 4)
-#   Pear Tree:     7 NU -- balanced    (nectar 3, pollen 4)
-#   Linden:       18 NU -- nectar-heavy (nectar 14, pollen 4)
-#   Cottonwood:    3 NU -- pollen-only (nectar 0, pollen 3)
-#   Sycamore:      2 NU -- pollen-only (nectar 0, pollen 2)
-#   Elm (dead):    0 NU -- no forage
+# GDD S14 tree NU values (per tree, scaled for ~40 trees across property):
+#   Willow:        10.0 NU -- pollen-heavy (nectar 3.75, pollen 6.25)
+#   Silver Maple:   7.0 NU -- pollen-heavy (nectar 2.0, pollen 5.0)
+#   Wild Plum:      5.5 NU -- balanced    (nectar 3.0, pollen 2.5)
+#   Apple Tree:     8.75 NU -- balanced   (nectar 5.0, pollen 3.75)
+#   Cherry Tree:    8.25 NU -- balanced   (nectar 4.5, pollen 3.75)
+#   Pear Tree:      8.25 NU -- balanced   (nectar 4.5, pollen 3.75)
+#   Linden:        18.75 NU -- nectar-heavy (nectar 15.0, pollen 3.75)
+#   Cottonwood:     3.0 NU -- pollen-only (nectar 0, pollen 3.0)
+#   Sycamore:       2.0 NU -- pollen-only (nectar 0, pollen 2.0)
+#   Elm (dead):     0 NU -- no forage
 #
 # Collision: small StaticBody2D at the trunk base blocks player movement.
 #
@@ -89,49 +89,52 @@ class_name SeasonalTree
 # GDD S14 values. Keys match tree_type strings.
 # Months: 0=Quickening, 1=Greening, 2=Wide-Clover, 3=High-Sun,
 #         4=Full-Earth, 5=Reaping, 6=Deepcold, 7=Kindlemonth
+## Forage values per tree, scaled for ~40 trees across the full property.
+## Original values (designed for 10 trees) divided by 4 so the aggregate
+## forage pool stays the same now that trees cover the whole grass area.
 const TREE_FORAGE_DATA: Dictionary = {
 	# Willow: earliest spring bloomer, catkins loaded with pollen, light nectar.
 	# A mature willow is a lifeline for overwintered colonies.
 	"willow": {
-		"nectar": 15.0, "pollen": 25.0,
+		"nectar": 3.75, "pollen": 6.25,
 		"month_start": 0, "month_end": 0,
 	},
 	# Silver maple: very early spring, heavy pollen from catkins, minimal nectar.
 	"silver_maple": {
-		"nectar": 8.0, "pollen": 20.0,
+		"nectar": 2.0, "pollen": 5.0,
 		"month_start": 0, "month_end": 0,
 	},
 	# Wild plum: early bloomer, good nectar + pollen, spans Quickening-Greening.
 	"wild_plum": {
-		"nectar": 12.0, "pollen": 10.0,
+		"nectar": 3.0, "pollen": 2.5,
 		"month_start": 0, "month_end": 1,
 	},
 	# Fruit trees: classic spring nectar sources. Bloom in Greening only.
 	"apple_tree": {
-		"nectar": 20.0, "pollen": 15.0,
+		"nectar": 5.0, "pollen": 3.75,
 		"month_start": 1, "month_end": 1,
 	},
 	"cherry_tree": {
-		"nectar": 18.0, "pollen": 15.0,
+		"nectar": 4.5, "pollen": 3.75,
 		"month_start": 1, "month_end": 1,
 	},
 	"pear_tree": {
-		"nectar": 18.0, "pollen": 15.0,
+		"nectar": 4.5, "pollen": 3.75,
 		"month_start": 1, "month_end": 1,
 	},
 	# Basswood/linden: the PREMIUM summer nectar tree. Legendary honey yield.
 	"basswood_linden": {
-		"nectar": 60.0, "pollen": 15.0,
+		"nectar": 15.0, "pollen": 3.75,
 		"month_start": 2, "month_end": 3,
 	},
 	# Cottonwood: wind-pollinated, no nectar, moderate pollen and propolis resin.
 	"cottonwood": {
-		"nectar": 0.0, "pollen": 12.0,
+		"nectar": 0.0, "pollen": 3.0,
 		"month_start": 0, "month_end": 1,
 	},
 	# Sycamore: minor pollen only, mainly shade/structure.
 	"sycamore": {
-		"nectar": 0.0, "pollen": 8.0,
+		"nectar": 0.0, "pollen": 2.0,
 		"month_start": 0, "month_end": 1,
 	},
 	# Dead elm: no forage contribution.

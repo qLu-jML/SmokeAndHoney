@@ -1,0 +1,3 @@
+okay, check the hive folder for assets, I have a new deep hive body and a new super (they are the empty_draft pngs). For the "filling up" I make files that are one_frame, two_frames etc. that fits over the "hole" in the empty super/hive bodies to show how many frames are in the box, because as you know, when you scrape frames, the scraped frames get put in the super on the right hand pallet, this will allow us to show that super "filling up" Change the Hive sprites to the new ones and enter in the logic for using the frame sprites
+
+I also changed the hive base and the hive lid, so make sure it all works in game with the new sprites

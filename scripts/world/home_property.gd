@@ -31,11 +31,11 @@ func _ready() -> void:
 		GameData.player_inventory = []
 		GameData.player_inventory.resize(10)
 		GameData.player_inventory.fill(null)
-		GameData.player_inventory[0] = {"item": GameData.ITEM_HIVE_TOOL, "count": 1}
+		GameData.player_inventory[0] = {"item": GameData.ITEM_AXE, "count": 1}
 		GameData.player_inventory[1] = {"item": GameData.ITEM_GLOVES, "count": 1}
-		GameData.player_inventory[2] = {"item": GameData.ITEM_AXE, "count": 1}
-		GameData.player_inventory[3] = {"item": GameData.ITEM_HAMMER, "count": 1}
-		GameData.player_inventory[4] = {"item": GameData.ITEM_SMOKER, "count": 1}
+		GameData.player_inventory[2] = {"item": GameData.ITEM_HAMMER, "count": 1}
+		GameData.player_inventory[3] = {"item": GameData.ITEM_HIVE_TOOL, "count": 1}
+		GameData.player_inventory[4] = {"item": GameData.ITEM_SUPER_BOX, "count": 5}
 		GameData.player_inventory_valid = true
 		TimeManager.current_hour = 6.0
 		GameData.new_game_mode = 0

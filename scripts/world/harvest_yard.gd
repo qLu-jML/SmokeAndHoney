@@ -82,10 +82,14 @@ const PALLET_TEXTURE_PATH := "res://assets/sprites/objects/pallet_super.png"
 # Super pallet holds up to 4 full supers shown as individual sprites in 2x2 grid.
 # Each sprite uses hive_super.png at 2x scale (24x14 -> 48x28 px).
 var _pallet_super_sprites: Array = []           # Array of 4 Sprite2D for super pallet slots
-var _scraped_box_sprite: Sprite2D = null        # On scraped pallet (fills as scraped)
+var _scraped_box_sprite: Sprite2D = null        # On scraped pallet (empty draft super)
+var _scraped_frame_overlay: Sprite2D = null    # Frame overlay on scraped box (shows fill)
 const SUPER_BOX_TEXTURE_PATH := "res://assets/sprites/hive/hive_super.png"
+const SCRAPED_BOX_TEXTURE_PATH := "res://assets/sprites/hive/super_empty_draft.png"
 const SUPER_BOX_SCALE_PALLET := 2.0            # 24x14 -> 48x28 (4 fit in 2x2 grid on 96x64)
 const SUPER_BOX_SCALE_SCRAPED := 2.0           # 24x14 -> 48x28 (same size as pallet supers)
+# Frame overlay textures for scraped pallet (loaded at runtime)
+var _scraped_frame_textures: Array = []        # Index 0 = one_frame ... 9 = ten_frames
 # 2x2 slot offsets relative to pallet top-left corner (pixel coords).
 # Sprite2D is centered, so each offset is the top-left of the slot.
 const SUPER_SLOT_OFFSETS: Array = [
@@ -310,16 +314,45 @@ func _create_super_box_sprites() -> void:
 		add_child(sp)
 		_pallet_super_sprites.append(sp)
 
-	# Scraped pallet: empty super box placed here, fills as frames are scraped
+	# Scraped pallet: empty draft super placed here, fills as frames are scraped
 	var sc_size: Vector2 = STATION_SIZE[Station.SCRAPED_PALLET]
 	_scraped_box_sprite = Sprite2D.new()
 	_scraped_box_sprite.name = "ScrapedBoxSprite"
-	if tex != null:
-		_scraped_box_sprite.texture = tex
-	_scraped_box_sprite.scale = Vector2(SUPER_BOX_SCALE_SCRAPED, SUPER_BOX_SCALE_SCRAPED)
+	# Load new draft super sprite (48x41 at native size)
+	var draft_abs: String = ProjectSettings.globalize_path(SCRAPED_BOX_TEXTURE_PATH)
+	var draft_img: Image = Image.load_from_file(draft_abs)
+	if draft_img != null:
+		_scraped_box_sprite.texture = ImageTexture.create_from_image(draft_img)
+	elif tex != null:
+		_scraped_box_sprite.texture = tex  # fallback to old super
+	# No scaling needed -- draft sprite is already 48x41 (appropriate size for pallet)
 	_scraped_box_sprite.position = STATION_POS[Station.SCRAPED_PALLET] + sc_size * 0.5
 	_scraped_box_sprite.visible = false
 	add_child(_scraped_box_sprite)
+
+	# Frame overlay sprite (sits inside the draft super cavity, shows fill progress)
+	_scraped_frame_overlay = Sprite2D.new()
+	_scraped_frame_overlay.name = "ScrapedFrameOverlay"
+	_scraped_frame_overlay.position = STATION_POS[Station.SCRAPED_PALLET] + sc_size * 0.5
+	_scraped_frame_overlay.visible = false
+	_scraped_frame_overlay.z_index = 1  # above the box sprite
+	add_child(_scraped_frame_overlay)
+
+	# Load frame overlay textures (one_frame through ten_frames)
+	var frame_names: Array = [
+		"one_frame", "two_frames", "three_frames", "four_frames",
+		"five_frames", "sixFrames", "seven_frames", "eight_frames",
+		"nine_frames", "ten_frames"
+	]
+	_scraped_frame_textures.clear()
+	for fname in frame_names:
+		var fpath: String = "res://assets/sprites/hive/%s.png" % fname
+		var f_abs: String = ProjectSettings.globalize_path(fpath)
+		var f_img: Image = Image.load_from_file(f_abs)
+		if f_img != null:
+			_scraped_frame_textures.append(ImageTexture.create_from_image(f_img))
+		else:
+			_scraped_frame_textures.append(null)
 
 ## Update super box sprite visibility and tint based on pipeline state.
 ## Super pallet shows one sprite per queued super (up to 4).
@@ -353,17 +386,20 @@ func _update_super_visuals() -> void:
 
 	# -- Scraped pallet: show when empty super box is placed --
 	_scraped_box_sprite.visible = _super_box_on_scraped
+	if _scraped_frame_overlay != null:
+		_scraped_frame_overlay.visible = _super_box_on_scraped and _frames_scraped > 0
 	if _super_box_on_scraped:
-		if GameData.dev_labels_visible:
-			# Dev mode: warms to honey-orange as frames fill in
-			var fill: float = clampf(float(_frames_scraped) / 10.0, 0.0, 1.0)
-			_scraped_box_sprite.modulate = Color(
-				lerpf(0.65, 1.0, fill),
-				lerpf(0.50, 0.85, fill),
-				lerpf(0.30, 0.45, fill),
-				1.0)
-		else:
-			_scraped_box_sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)  # always white
+		_scraped_box_sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		# Update frame overlay to show current fill level
+		if _scraped_frame_overlay != null and _frames_scraped > 0:
+			var frame_idx: int = clampi(_frames_scraped - 1, 0, _scraped_frame_textures.size() - 1)
+			if frame_idx < _scraped_frame_textures.size() and _scraped_frame_textures[frame_idx] != null:
+				_scraped_frame_overlay.texture = _scraped_frame_textures[frame_idx]
+				_scraped_frame_overlay.visible = true
+			else:
+				_scraped_frame_overlay.visible = false
+		elif _scraped_frame_overlay != null:
+			_scraped_frame_overlay.visible = false
 
 # =========================================================================
 # EXTRACTOR SPRITE -- Leonardo art replaces the placeholder circle

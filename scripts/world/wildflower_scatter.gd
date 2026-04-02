@@ -11,12 +11,9 @@
 extends Node2D
 
 # -- Cluster definitions -----------------------------------------------------
-# Each entry defines a cluster of flowers to scatter organically.
-# center: approximate center position in world space
-# type: forage type key (used for metadata + texture lookup)
-# count: number of individual flower sprites to scatter
-# radius: scatter radius in pixels around the center
-# metadata: forage metadata for game systems
+# DEPRECATED: This script is no longer attached to any scene node.
+# FlowerLifecycleManager handles all dynamic flower spawning/lifecycle.
+# Kept for reference only.
 const CLUSTER_DEFS: Array = [
 	# -- Clover clusters (scattered across lawn) --------------------------
 	{

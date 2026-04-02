@@ -570,152 +570,136 @@ func _get_super_frame_overlay(super_data_idx: int) -> Texture2D:
 
 ## Rebuilds the visual sprite stack from current hive configuration.
 ## Called whenever boxes change (add deep, add super, remove super, etc.)
+##
+## STACKING MODEL (Nathan's sprite art, front-facing view):
+##   1. Stand (24x12) sits on the ground at the node origin (y=0 = ground).
+##   2. First box (bottom_deep) centered on stand, offset 4 display-px
+##      forward (toward camera = down = +y) so the stand lip peeks out.
+##   3. Additional boxes/supers/lid stack FLUSH on top: bottom of upper
+##      sprite aligns with top of lower sprite. No overlap, no gap.
+##   4. Stand renders at the player's z-level; all boxes/lid/overlays
+##      render ABOVE the player (z_index = 5) for walk-behind illusion.
+##
+## Draft sprites (48px wide) are scaled 0.5 -> 24px display width.
+## Lid (54px) and base textures are also scaled 0.5 -> 27px display.
+## Stand (24px) and excluder (24px) use scale 1.0.
 func _rebuild_sprite_stack() -> void:
-	# Clear existing stack sprites immediately (not queue_free) so rebuilds
-	# within the same frame do not accumulate stale children.
-	var children := _sprite_stack.get_children()
-	for child in children:
+	# Clear existing stack sprites
+	var old_children := _sprite_stack.get_children()
+	for child in old_children:
 		_sprite_stack.remove_child(child)
 		child.free()
 
-	# Always hide legacy sprite -- we use modular stack for all states now
 	_legacy_sprite.visible = false
 	_sprite_stack.visible = true
 
-	# -- Build component list BOTTOM to TOP (stand first, lid last) --------
-	# Each entry is just [texture]. We stack them with a fixed gap between
-	# each piece (GAP_PX) so you can see each component.
-	# The lid sits flush on top, fully covering the box below.
-	var layers: Array = []
-	const _GAP_PX := 1  # 1px gap between stacked components
-	# Track which layer indices are super sprites (for honey fill tinting)
 	_super_sprite_indices = []
 	_super_overlay_children = []
-	var super_data_idx: int = 0  # index into snapshot super_visuals array
 
-	# Each layer entry is [texture, frame_overlay_tex_or_null, is_draft_sprite].
-	# Draft sprites (48px wide) get scaled to 0.5 to match 24px stack components.
-	# Frame overlays (44x20) are positioned inside the draft sprite cavity.
+	const DRAFT_SCALE := 0.5
+	# Boxes render above the player for walk-behind depth illusion.
+	# Stand stays at z=0 (same level as player, participates in y-sort).
+	const Z_GROUND := 0
+	const Z_BOXES  := 5
 
-	# Helper: pick the correct deep texture based on position in the stack.
-	# The bottom-most deep always uses bottom_deep (has hive entrance);
-	# any deep above it uses top_and_middle_deep (no entrance).
-	# deep_idx is 0-based from bottom of the deep section.
+	# Forward offset: how far the first box extends past the stand front (px)
+	const BOX_FRONT_OFFSET := 4.0
+
+	# -- Collect layers: [texture, overlay_tex_or_null, is_draft, is_above_player]
+	var layers: Array = []
+	var super_data_idx: int = 0
 
 	if build_state == BuildState.STAND_PLACED:
-		layers.append([_tex_stand, null, false])
+		layers.append([_tex_stand, null, false, false])
 
 	elif build_state == BuildState.BODY_ADDED:
-		layers.append([_tex_stand, null, false])
-		layers.append([_tex_base, null, true])
-		# Empty deep body -- no frames yet (always bottom deep during build)
+		layers.append([_tex_stand, null, false, false])
 		var deep_tex: Texture2D = _tex_bottom_deep if _tex_bottom_deep != null else _tex_deep_draft
 		if deep_tex != null:
-			layers.append([deep_tex, null, true])
+			layers.append([deep_tex, null, true, true])
 		else:
-			layers.append([_tex_deep_empty, null, false])
+			layers.append([_tex_deep_empty, null, false, true])
 
 	elif build_state == BuildState.FRAMES_PARTIAL:
-		layers.append([_tex_stand, null, false])
-		layers.append([_tex_base, null, true])
-		# Deep body with partial frames -- show frame overlay (always bottom deep during build)
+		layers.append([_tex_stand, null, false, false])
 		var deep_tex: Texture2D = _tex_bottom_deep if _tex_bottom_deep != null else _tex_deep_draft
 		if deep_tex != null and frame_count > 0 and frame_count <= _tex_frames.size():
-			var frame_tex: Texture2D = _tex_frames[frame_count - 1]
-			layers.append([deep_tex, frame_tex, true])
+			layers.append([deep_tex, _tex_frames[frame_count - 1], true, true])
 		elif deep_tex != null:
-			layers.append([deep_tex, null, true])
+			layers.append([deep_tex, null, true, true])
 		else:
-			layers.append([_tex_deep, null, false])
+			layers.append([_tex_deep, null, false, true])
 
 	else:
-		# COMPLETE: full Langstroth stack
-		layers.append([_tex_stand, null, false])
-		layers.append([_tex_base, null, true])
+		# COMPLETE hive
+		layers.append([_tex_stand, null, false, false])
 
 		if simulation:
 			var deep_n: int = 0
-			var super_n: int = 0
 			for i in range(simulation.boxes.size()):
 				if not simulation.boxes[i].is_super:
-					# Bottom deep (idx 0) uses bottom_deep sprite (hive entrance);
-					# all upper deeps (idx 1, 2) use top_and_middle sprite.
 					var dtex: Texture2D = null
 					if deep_n == 0:
 						dtex = _tex_bottom_deep if _tex_bottom_deep != null else _tex_deep_draft
 					else:
 						dtex = _tex_top_mid_deep if _tex_top_mid_deep != null else _tex_deep_draft
-					# Complete deeps always have 10 frames
 					if dtex != null and _tex_frames.size() >= 10:
-						layers.append([dtex, _tex_frames[9], true])
+						layers.append([dtex, _tex_frames[9], true, true])
 					elif dtex != null:
-						layers.append([dtex, null, true])
+						layers.append([dtex, null, true, true])
 					else:
-						layers.append([_tex_deep, null, false])
+						layers.append([_tex_deep, null, false, true])
 					deep_n += 1
 
 			if simulation.has_excluder:
-				layers.append([_tex_excluder, null, false])
+				layers.append([_tex_excluder, null, false, true])
 
+			var super_n: int = 0
 			for i in range(simulation.boxes.size()):
 				if simulation.boxes[i].is_super:
-					# Record that this layer index maps to this super's data index
 					_super_sprite_indices.append([layers.size(), super_data_idx])
-					# Supers use the empty draft sprite with frame overlay
-					# showing how many frames have honey (based on fill_pct from snapshot)
 					if _tex_super_draft != null:
-						# Determine frame overlay from snapshot super_visuals fill data
 						var frame_overlay: Texture2D = _get_super_frame_overlay(super_data_idx)
-						layers.append([_tex_super_draft, frame_overlay, true])
+						layers.append([_tex_super_draft, frame_overlay, true, true])
 					elif _tex_super_full != null:
-						layers.append([_tex_super_full, null, true])
+						layers.append([_tex_super_full, null, true, true])
 					else:
-						layers.append([_tex_super, null, false])
+						layers.append([_tex_super, null, false, true])
 					super_n += 1
 					super_data_idx += 1
 			print("[Hive] Sprite stack: %d deeps, %d supers, %d total boxes" % [deep_n, super_n, simulation.boxes.size()])
 		else:
 			var dtex: Texture2D = _tex_bottom_deep if _tex_bottom_deep != null else _tex_deep_draft
 			if dtex != null and _tex_frames.size() >= 10:
-				layers.append([dtex, _tex_frames[9], true])
+				layers.append([dtex, _tex_frames[9], true, true])
 			elif dtex != null:
-				layers.append([dtex, null, true])
+				layers.append([dtex, null, true, true])
 			else:
-				layers.append([_tex_deep, null, false])
+				layers.append([_tex_deep, null, false, true])
 
-		# Lid on top
-		layers.append([_tex_lid, null, true])
+		layers.append([_tex_lid, null, true, true])
 
-	# -- Filter out nulls --------------------------------------------------
+	# -- Filter out null textures ------------------------------------------
 	var valid: Array = []
 	for entry in layers:
 		if entry[0] != null:
 			valid.append(entry)
 	layers = valid
-
 	if layers.is_empty():
 		_legacy_sprite.visible = true
 		_sprite_stack.visible = false
 		return
 
-	# -- Stack sprites from bottom up -------------------------------------
-	# New sprites: base (54x26), lid (54x26), deep bodies (48x60),
-	# supers (48x41 empty / 48x28 full), stand (24x12), excluder (24x3).
-	# All draft sprites (is_draft=true) are scaled to 0.5 to produce ~24-27px
-	# wide display sizes. Old sprites (24px) use scale 1.0.
-	#
-	# Overlaps (in DISPLAY pixels after scaling):
-	#   Deep bodies (48x60 * 0.5 = 24x30): open cavity ~22px native * 0.5 = 11px
-	#   Super empty (48x41 * 0.5 = 24x20.5): open cavity ~16px * 0.5 = 8px
-	#   Super full (48x28 * 0.5 = 24x14): ~16px * 0.5 = 8px
-	#   Base (54x26 * 0.5 = 27x13): no open top, sit flush
-	#   Lid (54x26 * 0.5 = 27x13): no open top
-	#   Stand, excluder: no open top, sit flush
-	const DRAFT_SCALE := 0.5  # Scale draft sprites to match ~24px stack width
+	# -- Position sprites from bottom up (flush stacking) ------------------
+	# y = 0 is ground level (bottom of stand). Negative y = upward.
+	# Stand sits at ground: bottom at y=0, top at y=-stand_h.
+	# First box sits on stand with 4px forward offset: its bottom is at
+	# y = -(stand_h - BOX_FRONT_OFFSET). This makes the stand lip peek out
+	# in front of the box (the landing board).
+	# Every subsequent box/lid stacks flush: bottom = previous top.
 
 	var y_cursor: float = 0.0
-	var z_order: int = 0
-	# Maps layer index -> child index in _sprite_stack (for super tinting)
+	var is_first_box: bool = true   # first non-stand layer
 	var layer_to_child: Dictionary = {}
 	var child_idx: int = 0
 
@@ -723,31 +707,23 @@ func _rebuild_sprite_stack() -> void:
 		var tex: Texture2D = layers[i][0]
 		var overlay_tex: Texture2D = layers[i][1] if layers[i][1] != null else null
 		var is_draft: bool = layers[i][2]
+		var is_above: bool = layers[i][3]
 		var scale_factor: float = DRAFT_SCALE if is_draft else 1.0
 		var tex_h: float = float(tex.get_height()) * scale_factor
 		var tex_w: float = float(tex.get_width()) * scale_factor
 
-		if i == 0:
+		if tex == _tex_stand:
+			# Stand: bottom at y=0 (ground), sprite extends upward
 			y_cursor = -tex_h
+		elif is_first_box:
+			# First box on stand: offset forward by BOX_FRONT_OFFSET px.
+			# This makes the stand bottom edge extend past the box by 4px
+			# (landing board visible below the box front face).
+			y_cursor = y_cursor + BOX_FRONT_OFFSET - tex_h
+			is_first_box = false
 		else:
-			# Overlap is determined by the open-top of the piece BELOW
-			var prev_tex: Texture2D = layers[i - 1][0]
-			var overlap: float = 0.0
-			if prev_tex == _tex_deep or prev_tex == _tex_deep_empty:
-				overlap = 11.0   # old deep: 11px open top
-			elif prev_tex == _tex_deep_draft or prev_tex == _tex_bottom_deep or prev_tex == _tex_top_mid_deep:
-				# Draft deep at 0.5 scale: open cavity ~22px * 0.5 = 11px
-				overlap = 11.0
-			elif prev_tex == _tex_super:
-				overlap = 8.0    # old super: 8px open top
-			elif prev_tex == _tex_super_draft:
-				# Draft super at 0.5 scale: open cavity ~16px * 0.5 = 8px
-				overlap = 8.0
-			elif prev_tex == _tex_super_full:
-				# Full super draft at 0.5 scale: similar to old super
-				overlap = 8.0
-			# stand, base, lid, excluder = 0 overlap (sit flush)
-			y_cursor -= (tex_h - overlap)
+			# Flush stack: bottom of this sprite = top of previous
+			y_cursor -= tex_h
 
 		var spr := Sprite2D.new()
 		spr.texture = tex
@@ -755,13 +731,14 @@ func _rebuild_sprite_stack() -> void:
 		if is_draft:
 			spr.scale = Vector2(DRAFT_SCALE, DRAFT_SCALE)
 		spr.position = Vector2(-tex_w / 2.0, y_cursor)
-		spr.z_index = z_order
+		# Boxes/lid/excluder render above the player; stand at ground level
+		spr.z_index = Z_BOXES if is_above else Z_GROUND
+		spr.z_as_relative = false
 		_sprite_stack.add_child(spr)
 		layer_to_child[i] = child_idx
 		child_idx += 1
 
-		# Add frame overlay sprite if present (sits inside the draft cavity)
-		# For supers, always create an overlay sprite so we can update it on tick.
+		# -- Frame overlay sprite (inside the box cavity) ------------------
 		var is_super_layer: bool = (tex == _tex_super_draft or tex == _tex_super_full)
 		if (overlay_tex != null or is_super_layer) and is_draft:
 			var ov_spr := Sprite2D.new()
@@ -772,24 +749,19 @@ func _rebuild_sprite_stack() -> void:
 				ov_spr.visible = true
 			else:
 				ov_spr.visible = false
-			# Frame overlays (44x20) are centered in the cavity of draft sprites (48px wide)
-			# At 0.5 scale: overlay = 22x10, draft = 24px wide -> 1px offset from left
-			# Use 44px as reference width for overlay centering
+			# Center the 44px-wide overlay inside the box sprite
 			var ov_ref_w: float = 44.0 * DRAFT_SCALE
 			var ov_x: float = -tex_w / 2.0 + (tex_w - ov_ref_w) / 2.0
-			# Position near top of the draft sprite (the cavity opening)
-			var ov_y: float = y_cursor + 1.0 * DRAFT_SCALE  # slight offset from top edge
+			var ov_y: float = y_cursor + 1.0 * DRAFT_SCALE
 			ov_spr.position = Vector2(ov_x, ov_y)
-			ov_spr.z_index = z_order + 1
+			ov_spr.z_index = Z_BOXES + 1
+			ov_spr.z_as_relative = false
 			_sprite_stack.add_child(ov_spr)
-			# Track super overlay children for tick-based fill updates
 			if is_super_layer:
 				_super_overlay_children.append([child_idx, _super_overlay_children.size()])
 			child_idx += 1
 
-		z_order += 2  # leave room for overlay z-index
-
-	# Remap _super_sprite_indices from layer indices to actual child indices
+	# Remap _super_sprite_indices from layer indices to child indices
 	var remapped: Array = []
 	for pair in _super_sprite_indices:
 		var layer_idx: int = int(pair[0])
@@ -798,45 +770,51 @@ func _rebuild_sprite_stack() -> void:
 			remapped.append([layer_to_child[layer_idx], data_idx])
 	_super_sprite_indices = remapped
 
-	var total_height: int = int(abs(y_cursor))
+	var top_y: float = y_cursor
+	var total_height: int = int(abs(top_y))
 
-	# Update collision shapes to match new height
-	_update_collision_for_height(total_height)
+	# Update collision shapes
+	_update_collision_for_height(total_height, top_y)
 
-	# Position labels above the hive
+	# Position labels above the stack
 	if stat_label:
-		stat_label.position = Vector2(-16, y_cursor - 8.0)
+		stat_label.position = Vector2(-16, top_y - 8.0)
 	if _prompt_label:
-		_prompt_label.position = Vector2(-40, y_cursor - 12.0)
+		_prompt_label.position = Vector2(-40, top_y - 12.0)
 
-	# Reposition swarm cloud to match new stack extents
-	# entrance_y = near bottom (ground level), top_y = top of lid
+	# Reposition swarm cloud
 	if _swarm_cloud != null:
-		_swarm_cloud.set_hive_extents(-4.0, y_cursor)
+		_swarm_cloud.set_hive_extents(-4.0, top_y)
 
-## Update both Area2D (interaction) and StaticBody2D (physical blocker)
-## collision shapes to match the current sprite stack height.
-func _update_collision_for_height(total_height: int) -> void:
+## Update collision shapes.
+## Area2D (interaction): covers the full visual height for click detection.
+## StaticBody2D (physical blocker): covers only the stand/base footprint
+##   so the player cannot walk through the hive base, but CAN walk behind
+##   (north of) the upper boxes which render on top of the player sprite.
+func _update_collision_for_height(total_height: int, top_y: float) -> void:
 	# -- Area2D: interaction zone covers the full visual height ---------------
 	var area := get_node_or_null("Area2D")
 	if area:
 		var col := area.get_node_or_null("CollisionShape2D")
 		if col and col.shape is RectangleShape2D:
-			col.shape.size = Vector2(24, total_height)
-			col.position = Vector2(0, -float(total_height) / 2.0)
+			col.shape.size = Vector2(28, total_height)
+			col.position = Vector2(0, top_y + float(total_height) / 2.0)
 
 	# -- StaticBody2D: physical blocker covers the bottom portion ------------
 	# In a top-down game the body collision represents the ground footprint.
 	# We size it to the full visual width and roughly half the stack height
-	# so the player cannot walk into the sprite from below (south).
+	# StaticBody2D: only the stand/base footprint blocks the player.
+	# The boxes render above the player (z_index=5) for the walk-behind
+	# illusion, so the player can walk behind (north of) the hive and
+	# appear to be behind the boxes. The stand physically blocks overlap.
 	var body := get_node_or_null("StaticBody2D")
 	if body:
 		var bcol := body.get_node_or_null("CollisionShape2D")
 		if bcol and bcol.shape is RectangleShape2D:
-			# Cover from ground (y=0) up to 60% of the visual height
-			var body_h: float = maxf(float(total_height) * 0.6, 16.0)
-			bcol.shape.size = Vector2(28, body_h)
-			bcol.position = Vector2(0, -body_h / 2.0)
+			# Stand is 24x12 at scale 1.0. Block a footprint slightly
+			# larger than the stand (28x16) centered at ground level.
+			bcol.shape.size = Vector2(28, 16)
+			bcol.position = Vector2(0, -8)
 
 # -- Health Tint ---------------------------------------------------------------
 func _apply_tint_to_stack(tint: Color) -> void:

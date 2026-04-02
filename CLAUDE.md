@@ -89,4 +89,10 @@ This project uses git (GitHub remote: SmokeAndHoney). Commit when:
 - At natural stopping points in multi-step work
 Keep commits atomic and descriptive. Do not commit broken code.
 
-Git commands (add, commit, push, status, log, diff, branch, checkout, merge, pull, stash, fetch, tag) are pre-authorized -- execute them without asking for confirmation. If a stale .git/index.lock file blocks a commit, remove it automatically with `rm -f .git/index.lock` and retry.
+Git commands (add, commit, push, status, log, diff, branch, checkout, merge, pull, stash, fetch, tag) are pre-authorized -- execute them without asking for confirmation.
+
+**Godot lock file handling:** Nathan runs the Godot editor (Windows) alongside Claude sessions. Godot holds .git/HEAD.lock and .git/index.lock while open, which blocks git commits. When a commit fails due to lock files:
+1. Do NOT just delete the lock files -- Godot will recreate them immediately.
+2. Instead, use the safe commit script: `tools/safe_commit.ps1` (PowerShell) or `tools/safe_commit.bat`. These scripts close Godot, remove lock files, commit, then reopen Godot on the project.
+3. From the Claude sandbox, run: `powershell -ExecutionPolicy Bypass -File tools/safe_commit.ps1 "commit message"` -- this will only work if the sandbox can reach Nathan's Windows processes. If it cannot (permission denied on lock files), tell Nathan to run the script manually from his terminal or close Godot briefly.
+4. If neither approach works, save all file changes (they persist on disk) and ask Nathan to commit manually or close Godot so the commit can proceed.

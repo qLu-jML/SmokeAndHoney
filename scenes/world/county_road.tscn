@@ -2140,7 +2140,7 @@ position = Vector2(-829, -841)
 script = ExtResource("7_htree")
 tree_id = "cr_maple_03"
 tree_label = "Maple"
-tree_texture = ExtResource("tex_cainos_01")
+tree_texture = ExtResource("tex_cainos_14")
 
 [node name="Tree_Oak_04" type="Node2D" parent="Trees"]
 position = Vector2(1018, -186)
@@ -2168,21 +2168,21 @@ position = Vector2(898, -643)
 script = ExtResource("7_htree")
 tree_id = "cr_pine_07"
 tree_label = "Pine"
-tree_texture = ExtResource("tex_cainos_01")
+tree_texture = ExtResource("tex_cainos_11")
 
 [node name="Tree_Elm_08" type="Node2D" parent="Trees"]
 position = Vector2(-498, -131)
 script = ExtResource("7_htree")
 tree_id = "cr_elm_08"
 tree_label = "Elm"
-tree_texture = ExtResource("tex_cainos_07")
+tree_texture = ExtResource("tex_cainos_14")
 
 [node name="Tree_Pine_09" type="Node2D" parent="Trees"]
 position = Vector2(-1374, -724)
 script = ExtResource("7_htree")
 tree_id = "cr_pine_09"
 tree_label = "Pine"
-tree_texture = ExtResource("tex_cainos_01")
+tree_texture = ExtResource("tex_cainos_11")
 
 [node name="Tree_Ash_10" type="Node2D" parent="Trees"]
 position = Vector2(-7, -481)
@@ -2196,42 +2196,42 @@ position = Vector2(-519, -361)
 script = ExtResource("7_htree")
 tree_id = "cr_maple_11"
 tree_label = "Maple"
-tree_texture = ExtResource("tex_cainos_01")
+tree_texture = ExtResource("tex_cainos_14")
 
 [node name="Tree_Maple_12" type="Node2D" parent="Trees"]
 position = Vector2(-1021, -272)
 script = ExtResource("7_htree")
 tree_id = "cr_maple_12"
 tree_label = "Maple"
-tree_texture = ExtResource("tex_cainos_01")
+tree_texture = ExtResource("tex_cainos_14")
 
 [node name="Tree_Elm_13" type="Node2D" parent="Trees"]
 position = Vector2(70, -346)
 script = ExtResource("7_htree")
 tree_id = "cr_elm_13"
 tree_label = "Elm"
-tree_texture = ExtResource("tex_cainos_07")
+tree_texture = ExtResource("tex_cainos_14")
 
 [node name="Tree_Maple_14" type="Node2D" parent="Trees"]
 position = Vector2(-1223, -110)
 script = ExtResource("7_htree")
 tree_id = "cr_maple_14"
 tree_label = "Maple"
-tree_texture = ExtResource("tex_cainos_01")
+tree_texture = ExtResource("tex_cainos_14")
 
 [node name="Tree_Elm_15" type="Node2D" parent="Trees"]
 position = Vector2(150, -889)
 script = ExtResource("7_htree")
 tree_id = "cr_elm_15"
 tree_label = "Elm"
-tree_texture = ExtResource("tex_cainos_07")
+tree_texture = ExtResource("tex_cainos_14")
 
 [node name="Tree_Hickory_16" type="Node2D" parent="Trees"]
 position = Vector2(1174, 216)
 script = ExtResource("7_htree")
 tree_id = "cr_hickory_16"
 tree_label = "Hickory"
-tree_texture = ExtResource("tex_cainos_07")
+tree_texture = ExtResource("tex_cainos_11")
 
 [node name="Tree_Walnut_17" type="Node2D" parent="Trees"]
 position = Vector2(-1116, -957)
@@ -2252,21 +2252,21 @@ position = Vector2(-262, -122)
 script = ExtResource("7_htree")
 tree_id = "cr_hickory_19"
 tree_label = "Hickory"
-tree_texture = ExtResource("tex_cainos_07")
+tree_texture = ExtResource("tex_cainos_11")
 
 [node name="Tree_Hickory_20" type="Node2D" parent="Trees"]
 position = Vector2(-734, -292)
 script = ExtResource("7_htree")
 tree_id = "cr_hickory_20"
 tree_label = "Hickory"
-tree_texture = ExtResource("tex_cainos_07")
+tree_texture = ExtResource("tex_cainos_11")
 
 [node name="Tree_Maple_21" type="Node2D" parent="Trees"]
 position = Vector2(-542, -504)
 script = ExtResource("7_htree")
 tree_id = "cr_maple_21"
 tree_label = "Maple"
-tree_texture = ExtResource("tex_cainos_01")
+tree_texture = ExtResource("tex_cainos_14")
 
 [node name="Tree_Walnut_22" type="Node2D" parent="Trees"]
 position = Vector2(1095, -700)
@@ -2280,7 +2280,7 @@ position = Vector2(-731, -104)
 script = ExtResource("7_htree")
 tree_id = "cr_pine_23"
 tree_label = "Pine"
-tree_texture = ExtResource("tex_cainos_01")
+tree_texture = ExtResource("tex_cainos_11")
 
 [node name="Tree_Walnut_24" type="Node2D" parent="Trees"]
 position = Vector2(-295, 90)
@@ -2301,7 +2301,7 @@ position = Vector2(-1269, -404)
 script = ExtResource("7_htree")
 tree_id = "cr_pine_26"
 tree_label = "Pine"
-tree_texture = ExtResource("tex_cainos_01")
+tree_texture = ExtResource("tex_cainos_11")
 
 [node name="Tree_Walnut_27" type="Node2D" parent="Trees"]
 position = Vector2(-304, -915)
@@ -2322,7 +2322,7 @@ position = Vector2(1284, -28)
 script = ExtResource("7_htree")
 tree_id = "cr_pine_29"
 tree_label = "Pine"
-tree_texture = ExtResource("tex_cainos_01")
+tree_texture = ExtResource("tex_cainos_11")
 
 [node name="Tree_Ash_30" type="Node2D" parent="Trees"]
 position = Vector2(1233, -111)

@@ -51,7 +51,8 @@ const PHASE_NAMES := ["seed", "sprout", "growing", "mature", "withered"]
 # Calibrated so B-rank wildflowers alone produce ~35-43 NU at peak summer,
 # supporting 1-2 hives (20 NU/week demand per hive). Player-planted gardens
 # and trees push toward the GDD's 80-100 NU "fully developed" target.
-const NU_SCALE := 250
+# Scaled up from 250 to 940 to match the expanded grass area (~3.76x bigger).
+const NU_SCALE := 940
 
 # Withered phase duration range (days)
 const WITHER_MIN_DAYS := 4
@@ -162,9 +163,11 @@ const FLOWER_TYPES := {
 }
 
 # -- Grass Zone / Tile Grid ---------------------------------------------------
+# Covers the full home property grass area (~-750,-410 to ~2190,1400).
+# Expanded from 1600x900 to cover all grass tiles on the map.
 const TILE_SIZE     := 16
-const GRASS_ORIGIN  := Vector2(-14, -26)
-const GRASS_SIZE    := Vector2(1600, 900)
+const GRASS_ORIGIN  := Vector2(-752, -416)
+const GRASS_SIZE    := Vector2(2960, 1824)
 var _grid_cols: int
 var _grid_rows: int
 var _total_tiles: int

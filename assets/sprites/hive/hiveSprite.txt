@@ -1,0 +1,3 @@
+Okay so I changed the size of the super here: "C:\Users\ntbde\OneDrive\Documents\GitHub\SmokeAndHoney\assets\sprites\hive\super_empty_draft.png"
+
+Please look at the real world ratio difference between a super and a deep body, and then tell me how big I need to make the canvas for the deep body at the correct ratio/canvas size
