@@ -1,5 +1,5 @@
-# chopping_minigame.gd -- Tree chopping minigame overlay.
-# Player times axe swings by clicking when a moving power marker hits
+# chopping_minigame.gd - Tree chopping minigame overlay.
+# Player times axe swings by pressing space when a moving power marker hits
 # the green "sweet spot" zone on a swing meter. Good timing = deeper cut.
 # Requires 6-8 good hits to fell a tree, yielding 3-5 logs.
 # Follows the same CanvasLayer pattern as scraping_minigame.gd.
@@ -60,10 +60,12 @@ const METER_H := 14
 # =========================================================================
 # LIFECYCLE
 # =========================================================================
+## Initialize the chopping minigame UI.
 func _ready() -> void:
 	_build_ui()
 	_randomize_sweet_spot()
 
+## Build all UI elements for the chopping minigame.
 func _build_ui() -> void:
 	# Semi-transparent background
 	_bg = ColorRect.new()
@@ -87,7 +89,7 @@ func _build_ui() -> void:
 	add_child(_trunk_rect)
 
 	# Bark ring (slightly darker border)
-	var bark := ColorRect.new()
+	var bark: ColorRect = ColorRect.new()
 	bark.color = Color(0.30, 0.20, 0.10, 1.0)
 	bark.position = Vector2(TRUNK_X - 3, TRUNK_Y - 3)
 	bark.size = Vector2(TRUNK_W + 6, TRUNK_H + 6)
@@ -147,6 +149,7 @@ func _build_ui() -> void:
 
 	_update_sweet_spot_visuals()
 
+## Randomize the sweet spot position for the next swing.
 func _randomize_sweet_spot() -> void:
 	# Place sweet spot randomly but not too close to edges
 	_sweet_center = randf_range(0.2, 0.8)
@@ -154,6 +157,7 @@ func _randomize_sweet_spot() -> void:
 	_meter_dir = 1.0
 	_update_sweet_spot_visuals()
 
+## Update the visual position of the sweet spot and OK zones.
 func _update_sweet_spot_visuals() -> void:
 	if not _sweet_rect:
 		return
@@ -176,6 +180,7 @@ func _update_sweet_spot_visuals() -> void:
 # =========================================================================
 # FRAME UPDATE
 # =========================================================================
+## Update meter oscillation and indicator position.
 func _process(delta: float) -> void:
 	if _is_complete:
 		return
@@ -206,6 +211,7 @@ func _process(delta: float) -> void:
 # =========================================================================
 # INPUT
 # =========================================================================
+## Handle input events: SPACE to swing, ESC to cancel.
 func _input(event: InputEvent) -> void:
 	if _is_complete:
 		return
@@ -225,6 +231,7 @@ func _input(event: InputEvent) -> void:
 # =========================================================================
 # SWING LOGIC
 # =========================================================================
+## Process a swing and determine its quality based on meter position.
 func _do_swing() -> void:
 	_waiting_for_swing = false
 	_total_swings += 1
@@ -275,9 +282,10 @@ func _do_swing() -> void:
 		# Move sweet spot for next swing
 		_randomize_sweet_spot()
 
+## Add a visual cut mark on the trunk.
 func _add_cut_mark(color: Color) -> void:
 	# Add a visual notch on the trunk to show progress
-	var mark := ColorRect.new()
+	var mark: ColorRect = ColorRect.new()
 	var mark_y: float = TRUNK_Y + 8.0 + _good_hits * 10.0
 	if mark_y > TRUNK_Y + TRUNK_H - 8:
 		mark_y = TRUNK_Y + TRUNK_H - 8
@@ -287,6 +295,7 @@ func _add_cut_mark(color: Color) -> void:
 	add_child(mark)
 	_cut_marks.append(mark)
 
+## Complete the tree chopping and emit completion signal.
 func _fell_tree() -> void:
 	_is_complete = true
 	_instruction_label.text = "Timber!"

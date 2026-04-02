@@ -13,9 +13,9 @@ signal dev_labels_toggled(visible: bool)
 # When true, debug/dev labels (hive stats, flower stages, bed names) are shown.
 var dev_labels_visible: bool = false
 
-# Global G-key handler -- uses _input so it fires BEFORE any scene's
-# _unhandled_key_input / _unhandled_input, letting dev mode toggle from
-# any screen (inspection overlay, shop, chest, pause menu, etc.).
+## Global G-key handler -- uses _input so it fires BEFORE any scene's
+## _unhandled_key_input / _unhandled_input, letting dev mode toggle from
+## any screen (inspection overlay, shop, chest, pause menu, etc.).
 func _input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
@@ -23,6 +23,7 @@ func _input(event: InputEvent) -> void:
 		toggle_dev_labels()
 		get_viewport().set_input_as_handled()
 
+## Toggles developer label visibility and notifies all dev_label group nodes.
 func toggle_dev_labels() -> void:
 	dev_labels_visible = not dev_labels_visible
 	dev_labels_toggled.emit(dev_labels_visible)
@@ -57,15 +58,18 @@ const STANDING_THRESHOLDS: Array = [0, 100, 250, 500, 750]
 const STANDING_NAMES: Array = ["Stranger", "Neighbor", "Known", "Trusted", "Respected"]
 const STANDING_PRICE_MULTS: Array = [1.0, 1.05, 1.10, 1.15, 1.20]
 
+## Returns the current community standing tier (0-4) based on reputation.
 func get_standing_tier() -> int:
 	for i in range(STANDING_THRESHOLDS.size() - 1, -1, -1):
 		if reputation >= STANDING_THRESHOLDS[i]:
 			return i
 	return 0
 
+## Returns the human-readable name of the current community standing tier.
 func get_standing_name() -> String:
 	return STANDING_NAMES[get_standing_tier()]
 
+## Returns the price multiplier for the current community standing tier.
 func get_standing_price_mult() -> float:
 	return STANDING_PRICE_MULTS[get_standing_tier()]
 
@@ -220,7 +224,7 @@ const WORKBENCH_RECIPES: Array = [
 # Dict of { tree_id: regrow_day } -- the game-day when a chopped tree grows back
 var chopped_trees: Dictionary = {}
 
-# Days until a chopped tree regrows (roughly 3 in-game weeks)
+## Days until a chopped tree regrows (roughly 3 in-game weeks)
 const TREE_REGROW_DAYS := 21
 
 ## Mark a tree as chopped. It will regrow after TREE_REGROW_DAYS.
@@ -256,6 +260,7 @@ func add_money(amount: float) -> void:
 	money += amount
 	money_changed.emit(money)
 
+## Logs an expense to the expense_log array and maintains a bounded log size.
 func _log_expense(category: String, amount: float, description: String) -> void:
 	expense_log.append({
 		"category": category,
@@ -294,6 +299,7 @@ func add_xp(amount: int) -> void:
 	xp_gained.emit(amount, xp)
 	_check_level_up()
 
+## Checks if current XP exceeds the next level threshold and handles level up.
 func _check_level_up() -> void:
 	if player_level >= 5:
 		return

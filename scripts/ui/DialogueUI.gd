@@ -1,10 +1,9 @@
 # DialogueUI.gd
-# -----------------------------------------------------------------------------
 # Reusable NPC dialogue/speech system for Smoke & Honey.
 #
 # Supports two display modes:
-#   MODE_BUBBLE  -- floating speech bubble anchored above the NPC (world-space)
-#   MODE_BOX     -- full bottom dialogue panel (screen-space CanvasLayer)
+#   MODE_BUBBLE - floating speech bubble anchored above the NPC (world-space)
+#   MODE_BOX - full bottom dialogue panel (screen-space CanvasLayer)
 #
 # Usage:
 #   # Speech bubble (world-space, auto-dismiss):
@@ -13,17 +12,17 @@
 #   # Dialogue box (screen-space, player must advance):
 #   DialogueUI.show_dialogue("Uncle Bob", lines_array, portrait_key)
 #   await DialogueUI.dialogue_finished
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 extends CanvasLayer
-# NOTE: Do NOT add class_name here -- this script is an autoload singleton
+# NOTE: Do NOT add class_name here - this script is an autoload singleton
 # named "DialogueUI" in project.godot. Adding class_name would conflict
 # with the autoload name and cause a parse error in Godot 4.x.
 
-# -- Modes ---------------------------------------------------------------------
+# - Modes ---------------------------------------------------------------------
 const MODE_BUBBLE := "bubble"
 const MODE_BOX    := "box"
 
-# -- Layout (screen-space dialogue box, 320x180 viewport) ---------------------
+# - Layout (screen-space dialogue box, 320x180 viewport) ---------------------
 const VP_W       := 320
 const VP_H       := 180
 const BOX_H      := 50        # height of the bottom dialogue panel
@@ -35,7 +34,7 @@ const TEXT_X     := BOX_X + PORTRAIT_S + 6
 const TEXT_W     := BOX_W - PORTRAIT_S - 10
 const TEXT_H     := BOX_H - 10
 
-# -- Colors --------------------------------------------------------------------
+# - Colors --------------------------------------------------------------------
 const C_BG       := Color(0.09, 0.07, 0.04, 0.97)
 const C_BORDER   := Color(0.80, 0.53, 0.10, 1.0)
 const C_BORDER_D := Color(0.47, 0.28, 0.05, 1.0)
@@ -47,11 +46,11 @@ const C_BUBBLE_BG:= Color(0.96, 0.93, 0.85, 0.97)
 const C_BUBBLE_BD:= Color(0.60, 0.40, 0.08, 1.0)
 const C_BUBBLE_TX:= Color(0.22, 0.14, 0.05, 1.0)
 
-# -- Signals -------------------------------------------------------------------
+# - Signals -------------------------------------------------------------------
 signal dialogue_finished
 signal dialogue_advanced(line_index: int)
 
-# -- State ---------------------------------------------------------------------
+# - State ---------------------------------------------------------------------
 var _mode: String = ""
 var _open: bool = false
 
@@ -68,11 +67,13 @@ var _portrait_rect: ColorRect = null
 # Bubble tracking (multiple simultaneous bubbles allowed)
 var _bubbles: Array = []
 
-# -- Lifecycle -----------------------------------------------------------------
+# - Lifecycle -----------------------------------------------------------------
 
+## Initialize the dialogue UI layer.
 func _ready() -> void:
 	layer = 40   # above HUD, below notifications
 
+## Handle keyboard input for advancing dialogue.
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not _open or _mode != MODE_BOX:
 		return
@@ -84,16 +85,16 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				_advance_line()
 			get_viewport().set_input_as_handled()
 
-# -- Public: Speech Bubble (world-space) ---------------------------------------
+# - Public: Speech Bubble (world-space) ---------------------------------------
 
 ## Show a floating speech bubble above `npc_node`.
 ## The bubble tracks the NPC's screen position each frame.
 ## Auto-dismisses after `duration` seconds.
 func show_bubble(npc_node: Node2D, text: String, duration: float = 4.0) -> void:
-	var bubble := _build_bubble(text)
+	var bubble: Control = _build_bubble(text)
 	add_child(bubble)
 
-	var entry := { "bubble": bubble, "npc": npc_node, "done": false }
+	var entry: Dictionary = { "bubble": bubble, "npc": npc_node, "done": false }
 	_bubbles.append(entry)
 	_update_bubble_pos(entry)
 
@@ -118,13 +119,13 @@ func _update_bubble_pos(entry: Dictionary) -> void:
 	if not is_instance_valid(npc) or not is_instance_valid(bubble):
 		return
 	# Convert NPC world position to screen coords
-	var cam := get_viewport().get_camera_2d()
+	var cam: Camera2D = get_viewport().get_camera_2d()
 	var screen_pos: Vector2
 	if cam:
 		screen_pos = npc.get_global_transform().origin - cam.get_global_transform().origin
 		screen_pos += Vector2(VP_W / 2.0, VP_H / 2.0)
 		# Apply camera zoom
-		var zoom := cam.zoom
+		var zoom: Vector2 = cam.zoom
 		screen_pos = (npc.global_position - cam.global_position) * zoom + Vector2(VP_W / 2.0, VP_H / 2.0)
 	else:
 		screen_pos = npc.global_position
@@ -137,7 +138,7 @@ func _update_bubble_pos(entry: Dictionary) -> void:
 	)
 
 func _build_bubble(text: String) -> Control:
-	var bw := 100
+	var bw: int = 100
 	var bh := 28
 
 	var root := Control.new()
@@ -191,11 +192,11 @@ func _remove_bubble(entry: Dictionary) -> void:
 	if is_instance_valid(b):
 		b.queue_free()
 
-# -- Public: Dialogue Box (screen-space) ---------------------------------------
+# - Public: Dialogue Box (screen-space) ---------------------------------------
 
 ## Show a multi-line screen-space dialogue box.
 ## @param speaker_name  Displayed name (e.g. "Uncle Bob").
-## @param lines         Array[String] -- lines to cycle through.
+## @param lines         Array[String] - lines to cycle through.
 ## @param portrait_key  Optional key for portrait lookup (future use).
 func show_dialogue(speaker_name: String, lines: Array,
 		portrait_key: String = "") -> void:
@@ -217,7 +218,7 @@ func close() -> void:
 func is_open() -> bool:
 	return _open
 
-# -- Box Builder ---------------------------------------------------------------
+# - Box Builder ---------------------------------------------------------------
 
 func _build_box(portrait_key: String) -> void:
 	_box_root = Control.new()
@@ -339,7 +340,7 @@ func _build_box(portrait_key: String) -> void:
 
 	# Slide up from below
 	_box_root.position.y = float(VP_H)
-	var tw := create_tween()
+	var tw: Tween = create_tween()
 	tw.set_trans(Tween.TRANS_QUART)
 	tw.set_ease(Tween.EASE_OUT)
 	tw.tween_property(_box_root, "position:y", float(BOX_Y), 0.20)
@@ -364,7 +365,7 @@ func _close_box() -> void:
 	_open = false
 	_mode = ""
 	if is_instance_valid(_box_root):
-		var tw := create_tween()
+		var tw: Tween = create_tween()
 		tw.tween_property(_box_root, "position:y", float(VP_H), 0.15)
 		await tw.finished
 		_box_root.queue_free()

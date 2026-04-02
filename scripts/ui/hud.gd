@@ -1,5 +1,5 @@
 # hud.gd - Smoke & Honey In-Game HUD
-# Attached to the "UI" CanvasLayer in each gameplay scene.
+# Registered as an autoload singleton so it persists across all scenes.
 # Builds its own child nodes in _ready(). Legacy scene-placed nodes are hidden.
 extends CanvasLayer
 
@@ -122,8 +122,11 @@ const C_DANGER: Color = Color(0.90, 0.35, 0.25, 1.0)
 # Lifecycle
 # =============================================================================
 
+## Initializes the HUD UI and connects to GameData signals.
 func _ready() -> void:
 	print("HUD _ready() starting")
+	# Render above minigame overlays (default layer 1) so toolbar stays visible
+	layer = 10
 	_load_season_textures()
 	_load_item_textures()
 	_build_top_bar()
@@ -154,6 +157,30 @@ func _ready() -> void:
 	_refresh_all()
 	_hide_legacy_nodes()
 	print("HUD _ready() completed successfully")
+
+## Updates frame-per-frame animations and state.
+## Disconnects all signals when the node is removed from the scene tree.
+func _exit_tree() -> void:
+	if GameData.money_changed.is_connected(_on_money_changed):
+		GameData.money_changed.disconnect(_on_money_changed)
+	if GameData.energy_changed.is_connected(_on_energy_changed):
+		GameData.energy_changed.disconnect(_on_energy_changed)
+	if GameData.xp_gained.is_connected(_on_xp_gained):
+		GameData.xp_gained.disconnect(_on_xp_gained)
+	if GameData.day_advanced.is_connected(_on_day_advanced):
+		GameData.day_advanced.disconnect(_on_day_advanced)
+	if GameData.hour_changed.is_connected(_on_hour_changed):
+		GameData.hour_changed.disconnect(_on_hour_changed)
+	if GameData.season_changed.is_connected(_on_season_changed):
+		GameData.season_changed.disconnect(_on_season_changed)
+	if GameData.weather_changed.is_connected(_on_weather_changed):
+		GameData.weather_changed.disconnect(_on_weather_changed)
+	if GameData.level_up.is_connected(_on_level_up):
+		GameData.level_up.disconnect(_on_level_up)
+	if GameData.midnight_reached.is_connected(_on_midnight_reached):
+		GameData.midnight_reached.disconnect(_on_midnight_reached)
+	if GameData.dev_labels_toggled.is_connected(_on_dev_toggled):
+		GameData.dev_labels_toggled.disconnect(_on_dev_toggled)
 
 func _process(_delta: float) -> void:
 	# Poll for standing and smoker status updates (called every frame)
@@ -865,6 +892,7 @@ func _dev_month_finish() -> void:
 			"Dev: +28 days -> Day %d (%s)" % [end_day, end_month])
 
 
+## Refreshes visibility when dev mode is toggled.
 func _on_dev_toggled(panel_visible: bool) -> void:
 	if _dev_panel:
 		_dev_panel.visible = panel_visible
@@ -1080,37 +1108,45 @@ func _hide_legacy_nodes() -> void:
 # Signal handlers
 # =============================================================================
 
+## Updates time display when hour changes.
 func _on_hour_changed(_h: float) -> void:
 	_refresh_time()
 	_refresh_info_panel()
 
+## Updates day/season display when day advances.
 func _on_day_advanced(_d: int) -> void:
 	_refresh_date()
 	_refresh_info_panel()
 
+## Handles midnight event.
 func _on_midnight_reached() -> void:
 	if GameData.dev_labels_visible:
 		_on_dev_advance_day()
 	else:
 		_show_daily_summary()
 
+## Updates season display when season changes.
 func _on_season_changed(s: String) -> void:
 	_refresh_season_icon()
 	_show_season_banner(s)
 
+## Updates money display when GameData money changes.
 func _on_money_changed(_a: float) -> void:
 	_refresh_money()
 	_refresh_info_panel()
 
+## Updates energy bar when GameData energy changes.
 func _on_energy_changed(_a: float) -> void:
 	_refresh_energy()
 
 func _on_xp_changed(_a: int, _t: int) -> void:
 	_refresh_xp()
 
+## Shows level-up notification.
 func _on_level_up(l: int) -> void:
 	_refresh_level(l)
 
+## Updates weather display when weather changes.
 func _on_weather_changed(_w: String) -> void:
 	_refresh_weather()
 	_refresh_info_panel()
@@ -1334,8 +1370,9 @@ func _input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
 	match event.keycode:
-		KEY_P:
+		KEY_P, KEY_ESCAPE:
 			_toggle_pause()
+			get_viewport().set_input_as_handled()
 		KEY_Z:
 			_on_next_day_button_pressed()
 		KEY_TAB:

@@ -14,6 +14,7 @@ extends Area2D
 @export var debug_color: Color = Color(0.2, 0.6, 1.0, 0.25)
 
 var _transitioning: bool = false
+var _cooldown: bool = true  # ignore collisions briefly after scene load
 var _label: Label = null
 
 func _ready() -> void:
@@ -22,8 +23,17 @@ func _ready() -> void:
 		queue_redraw()
 		return
 
+	# Disable collision for a short time so the player doesn't
+	# immediately re-trigger this exit when spawning near it
+	monitoring = false
+	get_tree().create_timer(0.5).timeout.connect(_enable_monitoring)
+
 	# Connect the body_entered signal
 	body_entered.connect(_on_body_entered)
+
+func _enable_monitoring() -> void:
+	monitoring = true
+	_cooldown = false
 
 	# Create a visual label hint above the exit
 	if exit_label_text != "":
@@ -59,9 +69,9 @@ func _ready() -> void:
 	add_child(arrow)
 
 func _draw() -> void:
-	# Draw a colored rectangle matching the collision shape so the zone
-	# is visible in the Godot 2D editor.  Works at both editor-time and
-	# runtime (runtime draw is behind sprites so barely noticeable).
+	# Only draw the debug rectangle in the editor, never at runtime
+	if not Engine.is_editor_hint():
+		return
 	for child in get_children():
 		if child is CollisionShape2D:
 			var cshape: CollisionShape2D = child as CollisionShape2D
@@ -94,7 +104,8 @@ func _on_body_entered(body: Node2D) -> void:
 			return
 
 	_transitioning = true
-	# Store spawn side so the target scene can position the player
+	# Store spawn info so the target scene can position the player
 	TimeManager.set_meta("spawn_side", spawn_side)
+	TimeManager.set_meta("source_scene", owner.scene_file_path if owner else "")
 	TimeManager.next_scene = target_scene
 	get_tree().change_scene_to_file("res://scenes/loading/loading_screen.tscn")

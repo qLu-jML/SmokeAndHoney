@@ -4,17 +4,18 @@
 #   Spring: buzzing package box present (bee packages pending delivery).
 extends Node2D
 
-const INTERACT_RADIUS := 54.0
+const INTERACT_RADIUS: float = 54.0
 
-@onready var june_npc:    Node2D = $World/NPCs/JunePostmaster
+@onready var june_npc: Node2D = $World/NPCs/JunePostmaster
 @onready var package_box: Node2D = $World/Props/PackageBox
-@onready var counter_ui:  CanvasLayer = $CounterUI
-@onready var june_hint:   Label = $World/NPCs/JunePostmaster/InteractHint
+@onready var counter_ui: CanvasLayer = $CounterUI
+@onready var june_hint: Label = $World/NPCs/JunePostmaster/InteractHint
 
 var _counter_open: bool = false
 
 # -- Lifecycle -----------------------------------------------------------------
 
+## Initialize the post office: scene info, counter UI, and signal connections.
 func _ready() -> void:
 	TimeManager.current_scene_id = "post_office_interior"
 	if get_node_or_null("/root/SceneManager"):
@@ -30,6 +31,7 @@ func _ready() -> void:
 	TimeManager.day_advanced.connect(_on_day_advanced)
 	print("Cedar Bend Post Office interior loaded.")
 
+## Handle day advancement to update package visibility.
 func _on_day_advanced(_day: int) -> void:
 	_update_package_visibility()
 

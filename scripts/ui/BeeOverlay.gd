@@ -1,13 +1,13 @@
 # BeeOverlay.gd
 # -----------------------------------------------------------------------------
-# Queen Finder Phase 2 -- Animated bee overlay for the InspectionOverlay.
+# Queen Finder Phase 2 - Animated bee overlay for the InspectionOverlay.
 #
 # Manages a pool of BeeEntity objects (lightweight dictionaries) representing
 # worker bees, queen, and attendant bees walking on a honeycomb frame.
 # Renders them as sprites composited onto an RGBA canvas via Image.blend_rect().
 #
 # The player finds the queen by clicking her among the workers.
-# No pathfinding -- bees use direct linear movement with soft repulsion.
+# No pathfinding - bees use direct linear movement with soft repulsion.
 #
 # USAGE (from InspectionOverlay.gd):
 #   var overlay := BeeOverlay.new()
@@ -22,13 +22,13 @@
 extends RefCounted
 class_name BeeOverlay
 
-# -- Difficulty Enum ----------------------------------------------------------
+# - Difficulty Enum ----------------------------------------------------------
 enum DiffRank { EASY = 0, MEDIUM = 1, HARD = 2 }
 
-# -- Bee State Enum -----------------------------------------------------------
+# - Bee State Enum -----------------------------------------------------------
 enum BeeState { WALKING = 0, IDLE = 1, TURNING = 2 }
 
-# -- Density Model Constants (GDD S8.4) --------------------------------------
+# - Density Model Constants (GDD S8.4) --------------------------------------
 const NURSE_TO_VISIBLE_RATIO := 100
 const DIFFICULTY_MULT: Array = [0.33, 0.67, 1.0]  # Easy, Medium, Hard
 const JITTER_MIN := -3
@@ -36,14 +36,14 @@ const JITTER_MAX := 3
 const MIN_VISIBLE := 8
 const MAX_VISIBLE := 120
 
-# -- Spacing Constants (GDD S8.7) per difficulty rank -------------------------
+# - Spacing Constants (GDD S8.7) per difficulty rank -------------------------
 const MIN_BEE_DIST: Array = [28.0, 17.0, 12.0]     # Easy, Medium, Hard
 const CLUSTER_SPREAD: Array = [0.28, 0.20, 0.16]    # Gaussian std dev fraction
 
-# -- Queen Spawn (GDD S2.2) --------------------------------------------------
+# - Queen Spawn (GDD S2.2) --------------------------------------------------
 const QUEEN_SPAWN_CHANCE := 0.80
 
-# -- Movement Constants (GDD S8.6) -------------------------------------------
+# - Movement Constants (GDD S8.6) -------------------------------------------
 const WORKER_SPEED_MIN := 28.0
 const WORKER_SPEED_MAX := 36.0
 const QUEEN_SPEED_MIN  := 14.0
@@ -57,23 +57,23 @@ const QUEEN_IDLE_MIN  := 1.5
 const QUEEN_IDLE_MAX  := 4.0
 const TURN_DURATION   := 0.15
 
-# -- Attendant Constants (GDD S8.5) ------------------------------------------
+# - Attendant Constants (GDD S8.5) ------------------------------------------
 const ATTENDANT_RADIUS := 18.0   # px orbit distance from queen
 const ATTENDANT_DRIFT  := 0.08   # rad/sec angular drift
 const ATTENDANT_FOLLOW := 3.0    # lerp weight for following queen
 const ATTENDANT_DIFF_MULT: Array = [1.5, 1.0, 0.5]  # Easy, Medium, Hard
 
-# -- Attendant count by queen grade ------------------------------------------
+# - Attendant count by queen grade ------------------------------------------
 const ATTENDANT_BY_GRADE: Dictionary = {
 	"S": 11, "A+": 10, "A": 9, "B": 7, "C": 5, "D": 3, "F": 0
 }
 
-# -- Temperament Density Modifiers (GDD S8.6) --------------------------------
+# - Temperament Density Modifiers (GDD S8.6) --------------------------------
 const TEMP_DENSITY_CALM      := 1.0
 const TEMP_DENSITY_NORMAL    := 1.15
 const TEMP_DENSITY_DEFENSIVE := 1.4
 
-# -- Sprite Constants ---------------------------------------------------------
+# - Sprite Constants ---------------------------------------------------------
 const BEE_CELL_W := 60    # spritesheet cell width
 const BEE_CELL_H := 42    # spritesheet cell height
 const BEE_DIRS   := 8     # E, NE, N, NW, W, SW, S, SE
@@ -81,20 +81,20 @@ const BEE_WALK_FRAMES := 4
 const BEE_IDLE_FRAMES := 3
 const BEE_TOTAL_FRAMES := 7  # 4 walk + 3 idle
 
-# -- Canvas size (matches FrameRenderer honeycomb) ----------------------------
+# - Canvas size (matches FrameRenderer honeycomb) ----------------------------
 const CANVAS_W := 1833
 const CANVAS_H := 755
 
-# -- Click hit radius (GDD S10.1) --------------------------------------------
+# - Click hit radius (GDD S10.1) --------------------------------------------
 const HIT_RADIUS := 18.0
 
-# -- Spatial Hash for soft repulsion ------------------------------------------
+# - Spatial Hash for soft repulsion ------------------------------------------
 const HASH_CELL_SIZE := 20
 
-# -- XP Rewards by difficulty (GDD S10.2) ------------------------------------
+# - XP Rewards by difficulty (GDD S10.2) ------------------------------------
 const XP_BY_RANK: Array = [10, 15, 25]   # Easy, Medium, Hard
 
-# -- Breed spritesheet paths --------------------------------------------------
+# - Breed spritesheet paths --------------------------------------------------
 const BREED_NAMES: Array = ["italian", "buckfast", "carniolan", "caucasian", "russian"]
 const SPRITE_BASE := "res://assets/sprites/bees/"
 
@@ -217,7 +217,7 @@ func populate_frame(frame_idx: int, box: Variant) -> void:
 			var att: Dictionary = _create_attendant(breed_key, queen_bee, ai, num_attendants)
 			_bees.append(att)
 
-	# Apply initial spacing -- nudge bees apart to respect min_dist
+	# Apply initial spacing - nudge bees apart to respect min_dist
 	for _pass in 5:
 		_apply_soft_repulsion(0.016, min_dist)
 
@@ -281,7 +281,7 @@ func hit_test(canvas_pos: Vector2) -> Dictionary:
 					"xp": XP_BY_RANK[_difficulty_rank]
 				}
 			else:
-				# Wrong bee -- mark for flash feedback
+				# Wrong bee - mark for flash feedback
 				bee["flash_timer"] = 0.2
 				return {
 					"hit": true,
@@ -758,7 +758,7 @@ func _draw_bee(bee: Dictionary) -> void:
 	if src_x + BEE_CELL_W > sheet.get_width() or src_y + BEE_CELL_H > sheet.get_height():
 		return
 
-	var src_rect := Rect2i(src_x, src_y, BEE_CELL_W, BEE_CELL_H)
+	var src_rect: Rect2i = Rect2i(src_x, src_y, BEE_CELL_W, BEE_CELL_H)
 
 	# Destination centered on bee position
 	var dst_x: int = int(bee["pos_x"]) - BEE_CELL_W / 2
@@ -820,7 +820,7 @@ func _ensure_sprites_loaded() -> void:
 			var key: String = breed + "_" + role
 			var path: String = SPRITE_BASE + key + "_spritesheet.png"
 			var abs_path: String = ProjectSettings.globalize_path(path)
-			var img := Image.new()
+			var img: Image = Image.new()
 			var err: int = img.load(abs_path)
 			if err != OK:
 				push_warning("BeeOverlay: could not load %s (error %d)" % [abs_path, err])

@@ -41,7 +41,7 @@ func get_max_stack(item_name: String) -> int:
 		GameData.ITEM_HONEY_BULK: return 20
 		GameData.ITEM_FERMENTED_HONEY: return 20
 		GameData.ITEM_CHEST:      return 5
-		GameData.ITEM_LOGS:       return 20
+		GameData.ITEM_LOGS:       return 40
 		GameData.ITEM_LUMBER:     return 20
 		GameData.ITEM_AXE:          return 1
 		GameData.ITEM_HAMMER:       return 1
@@ -63,14 +63,10 @@ func _ready():
 		for i in range(mini(GameData.player_inventory.size(), INVENTORY_SIZE)):
 			inventory[i] = GameData.player_inventory[i]
 	else:
-		# Starting inventory: essentials + honey-house tools in hand from the start
-		add_item(GameData.ITEM_HIVE_TOOL,      1)
-		add_item(GameData.ITEM_GLOVES,         1)
-		add_item(GameData.ITEM_QUEEN_EXCLUDER, 1)
-		add_item(GameData.ITEM_SUPER_BOX,      5)
-		add_item(GameData.ITEM_COMB_SCRAPER,   1)   # de-capping tool
-		add_item(GameData.ITEM_BUCKET_GRIP,    1)   # required to carry honey bucket
-		add_item(GameData.ITEM_JAR,           40)   # 2 stacks of 20 empty bottles
+		# Starting inventory: basic tools + wood to get started
+		add_item(GameData.ITEM_AXE,    1)
+		add_item(GameData.ITEM_HAMMER, 1)
+		add_item(GameData.ITEM_LOGS,  40)
 		# First sync so future scene changes preserve this inventory
 		sync_inventory_to_gamedata()
 	# Deferred: stock the storage chest with remaining items after scene loads
@@ -117,22 +113,8 @@ func _stock_starting_chest() -> void:
 	var chest: Node = get_tree().get_first_node_in_group("chest")
 	if chest == null or not chest.has_method("add_item"):
 		return
-	# All non-essential starting items stored in the chest
-	chest.add_item(GameData.ITEM_HIVE_STAND, 5)
-	chest.add_item(GameData.ITEM_DEEP_BODY, 5)
-	chest.add_item(GameData.ITEM_FRAMES, 50)
-	chest.add_item(GameData.ITEM_LID, 5)
-	chest.add_item(GameData.ITEM_BEEHIVE, 5)
-	chest.add_item(GameData.ITEM_SEEDS, 5)
-	chest.add_item(GameData.ITEM_PACKAGE_BEES, 5)
-	chest.add_item(GameData.ITEM_QUEEN_EXCLUDER, 4)
-	chest.add_item(GameData.ITEM_SUPER_BOX, 5)
-	chest.add_item(GameData.ITEM_DEEP_BOX, 3)
-	chest.add_item(GameData.ITEM_JAR, 20)
-	# COMB_SCRAPER and BUCKET_GRIP already in player inventory -- not doubled here
-	chest.add_item(GameData.ITEM_AXE, 1)
-	chest.add_item(GameData.ITEM_HAMMER, 1)
-	print("[Player] Overflow items stocked in storage chest.")
+	# Chest starts empty -- player crafts and earns everything
+	print("[Player] Storage chest ready (empty start).")
 
 # -- Modes ----------------------------------------------------------------------
 

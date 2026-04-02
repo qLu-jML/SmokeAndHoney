@@ -1,4 +1,4 @@
-# scraping_hex_grid.gd -- Draws the honeycomb hex cell grid for the scraping minigame.
+# scraping_hex_grid.gd - Draws the honeycomb hex cell grid for the scraping minigame.
 # Attach as a child Node2D inside scraping_minigame's CanvasLayer.
 # Position this node at the top-left corner of the frame interior.
 # Set cells[] and call queue_redraw() to update the visual.
@@ -13,16 +13,16 @@ const GRID_ROWS := 14
 # col_step = sqrt(3) * r ~= 6.93 -> rounded to 7 px
 # row_step = 1.5 * r = 6 px
 # Odd columns are shifted DOWN by odd_col_offset to create the honeycomb stagger.
-const HEX_R         := 4.0   # radius: center to vertex
-const COL_STEP      := 7.0   # horizontal gap between column centers
-const ROW_STEP      := 6.0   # vertical gap between row centers
-const ODD_COL_OFFS  := 3.0   # extra downward shift for odd columns
+const HEX_R: float = 4.0   # radius: center to vertex
+const COL_STEP: float = 7.0   # horizontal gap between column centers
+const ROW_STEP: float = 6.0   # vertical gap between row centers
+const ODD_COL_OFFS: float = 3.0   # extra downward shift for odd columns
 
 # Margins to center the hex grid within the 192x112 frame interior
 # 24 cols * 7 = 168 wide; right-edge hex at 165 -> left margin = (192-165)/2 ~= 12
 # 14 rows * 6 = 84 tall + odd offset 3 -> height 91; top margin ~ 10
-const MARGIN_X      := 12.0
-const MARGIN_Y      := 8.0
+const MARGIN_X: float = 12.0
+const MARGIN_Y: float = 8.0
 
 # -- Cell state array ----------------------------------------------------------
 # true = uncapped (bright honey), false = capped (pale wax cap)
@@ -42,6 +42,7 @@ const C_HONEY_HI    : Color = Color(1.00, 0.93, 0.55, 1.0)
 # =========================================================================
 # DRAWING
 # =========================================================================
+## Draw the honeycomb hex grid with cell states (capped or uncapped).
 func _draw() -> void:
 	# Dark wax background fills the full frame interior
 	draw_rect(Rect2(0.0, 0.0, 192.0, 112.0), C_BG)
@@ -49,7 +50,7 @@ func _draw() -> void:
 	if cells.size() < GRID_COLS * GRID_ROWS:
 		return
 
-	var verts := PackedVector2Array()
+	var verts: PackedVector2Array = PackedVector2Array()
 	verts.resize(6)
 
 	for row in range(GRID_ROWS):

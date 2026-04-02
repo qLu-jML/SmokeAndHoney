@@ -88,3 +88,5 @@ This project uses git (GitHub remote: SmokeAndHoney). Commit when:
 - Before and after risky refactors
 - At natural stopping points in multi-step work
 Keep commits atomic and descriptive. Do not commit broken code.
+
+Git commands (add, commit, push, status, log, diff, branch, checkout, merge, pull, stash, fetch, tag) are pre-authorized -- execute them without asking for confirmation. If a stale .git/index.lock file blocks a commit, remove it automatically with `rm -f .git/index.lock` and retry.

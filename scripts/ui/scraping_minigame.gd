@@ -134,6 +134,7 @@ const CURSOR_HOTSPOT := Vector2(16, 60)
 # =========================================================================
 # LIFECYCLE
 # =========================================================================
+## Initializes the scraping minigame UI.
 func _ready() -> void:
 	layer = 20
 	_renderer = FrameRenderer.new()
@@ -550,6 +551,7 @@ func _update_progress() -> void:
 # =========================================================================
 # INPUT
 # =========================================================================
+## Handles keyboard input for controls.
 func _input(event: InputEvent) -> void:
 	if _done:
 		return

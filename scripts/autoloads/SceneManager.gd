@@ -13,27 +13,33 @@ var _map_open: bool = false
 # Each scene populates these in _ready(); map overlay reads them.
 # POI format: { "pos": Vector2, "label": String, "color": Color (optional) }
 # Exit format: { "edge": String, "label": String }
-var _scene_pois: Array = []
-var _scene_exits: Array = []
+var _scene_pois: Array[Dictionary] = []
+var _scene_exits: Array[Dictionary] = []
 var _scene_bounds: Rect2 = Rect2(-350, -120, 700, 240)  # default bounds
 
+## Registers a point of interest in the scene for map display.
 func register_scene_poi(world_pos: Vector2, label: String, color: Color = Color(0.85, 0.72, 0.35, 1.0)) -> void:
 	_scene_pois.append({"pos": world_pos, "label": label, "color": color})
 
+## Registers a scene exit for map display.
 func register_scene_exit(edge: String, label: String) -> void:
 	_scene_exits.append({"edge": edge, "label": label})
 
+## Sets the bounding rectangle for the current scene.
 func set_scene_bounds(bounds: Rect2) -> void:
 	_scene_bounds = bounds
 
+## Clears all POIs, exits, and resets scene bounds to default.
 func clear_scene_markers() -> void:
 	_scene_pois.clear()
 	_scene_exits.clear()
 	_scene_bounds = Rect2(-350, -120, 700, 240)
 
+## Returns all registered points of interest.
 func get_scene_pois() -> Array:
 	return _scene_pois
 
+## Returns all registered scene exits.
 func get_scene_exits() -> Array:
 	return _scene_exits
 
@@ -50,12 +56,14 @@ const ZONE_DISPLAY_TIME := 3.0
 # Current zone name for display
 var current_zone_name: String = "Home Property"
 
+## Initializes the map overlay scene and zone HUD.
 func _ready() -> void:
 	# Pre-load the map overlay scene
 	if ResourceLoader.exists("res://scenes/ui/map_overlay.tscn"):
 		_map_overlay_scene = load("res://scenes/ui/map_overlay.tscn")
 	_build_zone_hud()
 
+## Builds the zone name display HUD element.
 func _build_zone_hud() -> void:
 	# Small label in top-left showing current zone when M is pressed briefly
 	var canvas := CanvasLayer.new()
@@ -81,6 +89,7 @@ func _build_zone_hud() -> void:
 	_zone_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_zone_bg.add_child(_zone_label)
 
+## Handles zone name display fade-out timing.
 func _process(delta: float) -> void:
 	if _zone_visible:
 		_zone_fade_timer -= delta
@@ -89,6 +98,7 @@ func _process(delta: float) -> void:
 			if _zone_bg:
 				_zone_bg.visible = false
 
+## Handles M key input to toggle the map overlay.
 func _input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
@@ -98,12 +108,14 @@ func _input(event: InputEvent) -> void:
 			return
 		_toggle_map()
 
+## Toggles the map overlay open or closed.
 func _toggle_map() -> void:
 	if _map_open:
 		_close_map()
 	else:
 		_open_map()
 
+## Opens the map overlay or shows zone name as fallback.
 func _open_map() -> void:
 	if _map_overlay_instance and is_instance_valid(_map_overlay_instance):
 		_map_overlay_instance.open()
@@ -120,11 +132,13 @@ func _open_map() -> void:
 		# Fallback: just show zone name
 		show_zone_name()
 
+## Closes the map overlay.
 func _close_map() -> void:
 	_map_open = false
 	if _map_overlay_instance and is_instance_valid(_map_overlay_instance):
 		_map_overlay_instance.close()
 
+## Displays the current zone name on screen for a brief time.
 func show_zone_name() -> void:
 	# Flash the current zone name on screen
 	if _zone_label:
@@ -136,12 +150,14 @@ func show_zone_name() -> void:
 
 # -- Scene Transition Helpers ---------------------------------------------------
 
+## Transitions to a new scene via the loading screen.
 func go_to_scene(scene_path: String, from_scene: String = "") -> void:
 	if from_scene != "":
 		TimeManager.previous_scene = from_scene
 	TimeManager.next_scene = scene_path
 	get_tree().change_scene_to_file("res://scenes/loading/loading_screen.tscn")
 
+## Returns to the previous scene (e.g., exiting an interior).
 func go_back() -> void:
 	# Return to the previous scene (e.g., exiting an interior)
 	var target: String = TimeManager.previous_scene

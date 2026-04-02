@@ -19,17 +19,19 @@ var active_quests: Dictionary = {}     # quest_id -> QuestState
 var completed_quests: Dictionary = {}  # quest_id -> true
 var quest_notes: Dictionary = {}       # quest_id -> player note string
 var quest_data: Dictionary = {}        # quest_id -> quest definition dict
-var daily_tasks: Array = []            # daily quests that reset each day
+var daily_tasks: Array[String] = []    # daily quests that reset each day
 var last_daily_reset_day: int = -1     # track when daily quests were last reset
 
 # -- Public API ----------------------------------------------------------------
 
+## Initializes quest definitions and resets daily quests if needed.
 func _ready() -> void:
 	# Initialize quest definitions
 	_init_quest_definitions()
 	# Initialize daily tasks
 	_reset_daily_quests_if_needed()
 
+## Starts a quest and emits the quest_started signal.
 func start_quest(quest_id: String) -> void:
 	if active_quests.has(quest_id) and active_quests[quest_id] == QuestState.ACTIVE:
 		return  # already running
@@ -39,6 +41,7 @@ func start_quest(quest_id: String) -> void:
 	quest_started.emit(quest_id)
 	print("? Quest started: %s" % quest_id)
 
+## Marks a quest as complete and awards XP.
 func complete_quest(quest_id: String, xp_reward: int = 0) -> void:
 	active_quests[quest_id] = QuestState.COMPLETE
 	completed_quests[quest_id] = true   # O(1) insert; duplicate writes are harmless
@@ -47,17 +50,21 @@ func complete_quest(quest_id: String, xp_reward: int = 0) -> void:
 	quest_completed.emit(quest_id, xp_reward)
 	print("? Quest complete: %s (+%d XP)" % [quest_id, xp_reward])
 
+## Marks a quest as failed and emits the quest_failed signal.
 func fail_quest(quest_id: String) -> void:
 	active_quests[quest_id] = QuestState.FAILED
 	quest_failed.emit(quest_id)
 	print("? Quest failed: %s" % quest_id)
 
+## Returns true if the quest is currently active.
 func is_active(quest_id: String) -> bool:
 	return active_quests.get(quest_id, QuestState.INACTIVE) == QuestState.ACTIVE
 
+## Returns true if the quest has been completed.
 func is_complete(quest_id: String) -> bool:
 	return completed_quests.has(quest_id)   # O(1) hash lookup
 
+## Returns a one-line hint string for the HUD displaying active quest.
 func get_active_hint() -> String:
 	# Returns a one-line hint string for the HUD.
 	# Phase 6 will use proper quest definitions with hint text.
@@ -68,6 +75,7 @@ func get_active_hint() -> String:
 			return "Quest: " + quest_id.replace("_", " ").capitalize()
 	return ""
 
+## Advances an objective towards completion and auto-completes quest when done.
 func complete_objective(quest_id: String, obj_key: String, amount: int = 1) -> void:
 	if not active_quests.has(quest_id):
 		return
@@ -86,14 +94,17 @@ func complete_objective(quest_id: String, obj_key: String, amount: int = 1) -> v
 				complete_quest(quest_id, xp)
 			break
 
+## Alias for is_active() for backward compatibility.
 func is_quest_active(quest_id: String) -> bool:
 	return is_active(quest_id)
 
+## Alias for is_complete() for backward compatibility.
 func is_quest_complete(quest_id: String) -> bool:
 	return is_complete(quest_id)
 
 # -- Quest Definitions -------------------------------------------------------
 
+## Initializes all quest data structures and definitions.
 func _init_quest_definitions() -> void:
 	# Intro quest: Meet Uncle Bob
 	quest_data["bob_intro"] = {
@@ -139,12 +150,14 @@ func _init_quest_definitions() -> void:
 		"rewards": {"xp": 20, "money": 0, "items": []}
 	}
 
+## Checks if daily quests need to be reset and calls reset if true.
 func _reset_daily_quests_if_needed() -> void:
 	var current_day: int = TimeManager.current_day if TimeManager else 0
 	if current_day != last_daily_reset_day:
 		_reset_daily_quests()
 		last_daily_reset_day = current_day
 
+## Resets all daily quest progress and auto-starts them.
 func _reset_daily_quests() -> void:
 	# Reset daily quest progress
 	daily_tasks = ["daily_inspection", "daily_harvest", "daily_market"]

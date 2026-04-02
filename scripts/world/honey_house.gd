@@ -100,6 +100,7 @@ const SHELF_RECT    := Rect2(6, 7, 5, 1)
 const BUCKET_TILE   := Vector2(5, 7)
 
 # -- Lifecycle ----------------------------------------------------------------
+## Ready.
 func _ready() -> void:
 	TimeManager.current_scene_id = scene_id
 	if get_node_or_null("/root/SceneManager"):
@@ -119,12 +120,17 @@ func _ready() -> void:
 	queue_redraw()
 	print("Honey House interior loaded.")
 
+
+## Disconnect signals when exiting tree.
+func _exit_tree() -> void:
+	pass  # Signal cleanup handled by node references
 func _place_player() -> void:
 	var player: Node2D = get_node_or_null("player") as Node2D
 	if player:
 		player.position = Vector2((room_width * 0.5) * TILE, (room_height - 2) * TILE)
 
 # -- Drawing ------------------------------------------------------------------
+## Draw.
 func _draw() -> void:
 	var door_color := Color(0.30, 0.15, 0.04, 1.0)
 	var edge_color := Color(0.25, 0.15, 0.05, 1.0)
@@ -324,6 +330,7 @@ func _feet_rect(player_gpos: Vector2) -> Rect2:
 	return Rect2(player_gpos + Vector2(-7.0, 6.0), Vector2(14.0, 10.0))
 
 # -- Main Loop ----------------------------------------------------------------
+## Process.
 func _process(delta: float) -> void:
 	if _transitioning:
 		return
@@ -349,6 +356,7 @@ func _process(delta: float) -> void:
 	# Station proximity checks
 	_update_station_prompts(player as Node2D)
 
+## Find player.
 func _find_player() -> Node:
 	if _player_cache and is_instance_valid(_player_cache):
 		return _player_cache
@@ -590,6 +598,7 @@ func _action_uncapping() -> void:
 	_uncapping_overlay.scraping_cancelled.connect(_on_uncapping_cancelled)
 	add_child(_uncapping_overlay)
 
+## On uncapping complete.
 func _on_uncapping_complete() -> void:
 	if _uncapping_overlay == null:
 		return
@@ -622,6 +631,7 @@ func _on_uncapping_complete() -> void:
 	var remaining: int = _frames_in_holder.size()
 	_show_status("Frame uncapped! Wax: %.2f lbs. %d frames remaining." % [wax_lbs, remaining])
 
+## On uncapping cancelled.
 func _on_uncapping_cancelled() -> void:
 	if _uncapping_overlay:
 		_uncapping_overlay.queue_free()

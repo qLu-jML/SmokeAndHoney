@@ -206,6 +206,7 @@ var _current_year: int = -1
 
 # -- Lifecycle ----------------------------------------------------------------
 
+## Initialize flower manager and connect time signals.
 func _ready() -> void:
 	add_to_group("flower_lifecycle_manager")
 	add_to_group("flowers")
@@ -233,6 +234,12 @@ func _ready() -> void:
 	for type_name in FLOWER_TYPES:
 		flower_grid[type_name] = {}
 
+	# Clear static TileMap flower tiles (layer 3) -- lifecycle manager
+	# handles all flowers dynamically via Sprite2D nodes now.
+	var tilemap: TileMap = get_node_or_null("../TileMap") as TileMap
+	if tilemap:
+		tilemap.clear_layer(3)
+
 	# Build the no-spawn mask from the TileMap path layer
 	_build_no_spawn_mask()
 
@@ -250,11 +257,19 @@ func _ready() -> void:
 	_check_year_change()
 	_update_flowers()
 
+## Disconnect signals when exiting tree.
+func _exit_tree() -> void:
+	if TimeManager.day_advanced.is_connected(_on_day_advanced):
+		TimeManager.day_advanced.disconnect(_on_day_advanced)
+	if TimeManager.season_changed.is_connected(_on_season_changed):
+		TimeManager.season_changed.disconnect(_on_season_changed)
+
 # -- No-Spawn Mask Builder -----------------------------------------------------
 # Scans the TileMap for non-grass tiles (dirt paths, building footprints, etc.)
 # and marks overlapping flower-grid cells as no-spawn zones.
 # Also adds a 1-cell buffer around buildings so flowers don't clip walls.
 
+## Build the no-spawn mask from tilemap layers and buildings.
 func _build_no_spawn_mask() -> void:
 	_no_spawn_tiles.clear()
 	var tilemap: TileMap = get_node_or_null("../TileMap") as TileMap
@@ -296,6 +311,7 @@ func _build_no_spawn_mask() -> void:
 	_total_tiles = (_grid_cols * _grid_rows) - _no_spawn_tiles.size()
 	print("[FlowerLifecycle] No-spawn mask: %d blocked tiles, %d spawnable" % [_no_spawn_tiles.size(), _total_tiles])
 
+## Mark flower grid cells as no-spawn for a tilemap cell.
 func _mark_tilemap_cell_no_spawn(tm_tile: Vector2i, tm_pos: Vector2, tm_tile_size: int, buffer: int) -> void:
 	# Convert a TileMap cell to flower-grid cells and mark as no-spawn
 	# Each 32x32 TileMap cell covers a 2x2 block of 16x16 flower cells
@@ -310,6 +326,7 @@ func _mark_tilemap_cell_no_spawn(tm_tile: Vector2i, tm_pos: Vector2, tm_tile_siz
 		for fx in range(maxi(fx0, 0), mini(fx1 + 1, _grid_cols)):
 			_no_spawn_tiles[Vector2i(fx, fy)] = true
 
+## Can spawn at.
 func _can_spawn_at(tile: Vector2i) -> bool:
 	return not _no_spawn_tiles.has(tile)
 
@@ -323,6 +340,7 @@ func _can_spawn_at(tile: Vector2i) -> bool:
 #   SEED 2-3 days, SPROUT 2-4 days, GROWING 3-6 days, MATURE = remainder
 # This ensures even short-lived dandelions (45 days) feel dynamic.
 
+## Compute phase durations.
 func _compute_phase_durations() -> void:
 	for type_name in FLOWER_TYPES:
 		var def: Dictionary = FLOWER_TYPES[type_name]
@@ -348,16 +366,19 @@ func _compute_phase_durations() -> void:
 
 # -- Signal Handlers ----------------------------------------------------------
 
+## Seaschanged.
 func _on_season_changed(season_name: String) -> void:
 	_check_year_change()
 	_roll_season_ranking(season_name)
 
+## Day advanced.
 func _on_day_advanced(_new_day: int) -> void:
 	_check_year_change()
 	_update_flowers()
 
 # -- Year Management ----------------------------------------------------------
 
+## Check year change.
 func _check_year_change() -> void:
 	var year := TimeManager.current_year()
 	if year != _current_year:
@@ -373,6 +394,7 @@ func _check_year_change() -> void:
 
 # -- Ranking System -----------------------------------------------------------
 
+## Roll seasranking.
 func _roll_season_ranking(season_name: String) -> void:
 	var key := season_name.to_lower()
 	if key in ["quickening", "greening"]:
@@ -400,6 +422,7 @@ func _roll_season_ranking(season_name: String) -> void:
 	print("[Season] Rank for %s: %s (dev default)" % [key, rank])
 	season_ranked.emit(key, rank)
 
+## Current rank.
 func get_current_rank() -> String:
 	var month := TimeManager.current_month_index()
 	var season: String
@@ -415,6 +438,7 @@ func get_current_rank() -> String:
 
 # -- Core Flower Update (called daily) ----------------------------------------
 
+## Update flowers.
 func _update_flowers() -> void:
 	var day_of_year := _get_day_of_year()
 	var abs_day: int = TimeManager.current_day
@@ -586,6 +610,7 @@ func _initial_spawn(type_name: String, params: Dictionary, abs_day: int) -> void
 # If enough days have passed, it advances to the next phase.
 # Withered tiles are removed after their duration expires.
 
+## Advance phases.
 func _advance_phases(type_name: String, abs_day: int) -> void:
 	var grid: Dictionary = flower_grid[type_name]
 	var durations: Dictionary = _phase_durations[type_name]
@@ -618,6 +643,7 @@ func _advance_phases(type_name: String, abs_day: int) -> void:
 
 # -- Force Wither (post-bloom cleanup) ----------------------------------------
 
+## Force wither all.
 func _force_wither_all(type_name: String, abs_day: int) -> void:
 	var grid: Dictionary = flower_grid[type_name]
 	for tile: Vector2i in grid:
@@ -629,6 +655,7 @@ func _force_wither_all(type_name: String, abs_day: int) -> void:
 # -- Daily Spread -------------------------------------------------------------
 # Only MATURE tiles can spread. New tiles start as SEED.
 
+## Spread flowers.
 func _spread_flowers(type_name: String, params: Dictionary, abs_day: int) -> void:
 	var spread_chance: float = params["spread_chance"]
 	var max_coverage:  float = params["max_coverage"]
@@ -682,6 +709,7 @@ func _spread_flowers(type_name: String, params: Dictionary, abs_day: int) -> voi
 
 # -- Sprite Management --------------------------------------------------------
 
+## Update sprites.
 func _update_sprites(type_name: String) -> void:
 	var grid: Dictionary = flower_grid[type_name]
 
@@ -719,7 +747,7 @@ func _update_sprites(type_name: String) -> void:
 			var jy: float = (float((tile_hash >> 8) & 0xFF) / 127.5 - 1.0) * 11.0
 			sprite.position = _tile_to_world(tile) + Vector2(jx, jy)
 			sprite.rotation = (t_rng - 0.5) * 0.45
-			var s := 0.42 + t_rng * 0.16
+			var s := 0.4 + t_rng * 0.15
 			sprite.scale = Vector2(s, s)
 			sprite.flip_h = (tile_hash % 3 == 0)
 			sprite.flip_v = (tile_hash % 7 == 0)
@@ -743,6 +771,7 @@ func _update_sprites(type_name: String) -> void:
 		sprite.queue_free()
 		_active_sprites.erase(key)
 
+## Remove sprite.
 func _remove_sprite(type_name: String, tile: Vector2i) -> void:
 	var sprite_key := _sprite_key(type_name, tile)
 	if _active_sprites.has(sprite_key):
@@ -750,6 +779,7 @@ func _remove_sprite(type_name: String, tile: Vector2i) -> void:
 		sprite.queue_free()
 		_active_sprites.erase(sprite_key)
 
+## Clear all sprites.
 func _clear_all_sprites() -> void:
 	for key in _active_sprites:
 		var sprite: Sprite2D = _active_sprites[key]

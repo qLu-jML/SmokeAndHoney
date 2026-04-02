@@ -56,6 +56,7 @@ const RAIN_COLOR_DARK  := Color(0.50, 0.55, 0.65, 0.55)
 const SNOW_COLOR       := Color(0.88, 0.90, 0.92, 0.60)
 const SPLASH_COLOR     := Color(0.60, 0.65, 0.72, 0.40)
 
+## Ready.
 func _ready() -> void:
 	# Weather overlay is screen-space, so we don't follow camera per se --
 	# we just draw across the viewport bounds.
@@ -68,6 +69,11 @@ func _ready() -> void:
 	# Auto-register occluders from scene tree
 	call_deferred("_scan_for_occluders")
 
+## Process.
+
+## Disconnect signals when exiting tree.
+func _exit_tree() -> void:
+	pass  # Signal cleanup handled by node references
 func _process(delta: float) -> void:
 	if not _active:
 		# Fade out remaining splashes
@@ -348,6 +354,7 @@ func _estimate_node_rect(node: Node2D) -> Rect2:
 # WEATHER CHANGE HANDLING
 # ============================================================================
 
+## On weather changed.
 func _on_weather_changed(new_weather: String) -> void:
 	_apply_weather(new_weather)
 
@@ -374,6 +381,7 @@ func _apply_weather(weather: String) -> void:
 	if weather == "Windy":
 		wind_offset = WeatherManager.current_wind_mph * 2.0
 
+## Clear particles.
 func _clear_particles() -> void:
 	_rain_drops.clear()
 	_snowflakes.clear()

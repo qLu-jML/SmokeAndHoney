@@ -1,7 +1,12 @@
 # HiveSimulation.gd -- Hive colony simulation (non-visual).
-# -----------------------------------------------------------------------------
-# Orchestrates the 10-step simulation pipeline.  Each step is a separate
-# script in scripts/simulation/.  Steps run in order on tick():
+# =============================================================================
+# The core simulation engine for a single beehive colony. This script models
+# real Langstroth hive biology: frames with two sides (A/B), cell-level state
+# tracking, 3D ellipsoid brood nest geometry, queen laying patterns, resource
+# economics (NU/PU discrete units), and adult bee population cohorts.
+#
+# Orchestrates the 10-step simulation pipeline. Each step is a separate
+# script in scripts/simulation/. Steps run in order on tick():
 #
 #   1. CellStateTransition      -- age/transition every cell
 #   2. PopulationCohortManager  -- nurse/forager cohort lifecycle
@@ -14,14 +19,19 @@
 #   9. SnapshotWriter           -- write last_snapshot
 #  10. FrameRenderer            -- on-demand only, NOT called in tick()
 #
-# READS:  TimeManager, ForageManager
-# WRITES: last_snapshot  (read-only dict consumed by hive.gd and FrameRenderer)
-# -----------------------------------------------------------------------------
+# READS:  TimeManager, ForageManager, WeatherManager, HiveManager
+# WRITES: last_snapshot (read-only dict consumed by hive.gd and FrameRenderer)
+#
+# Inner classes:
+#   HiveFrame -- one removable wax frame (two-sided, cell-level data)
+#   HiveBox   -- a hive body containing 10 HiveFrames (deep or super)
+# =============================================================================
 extends Node
 class_name HiveSimulation
 
 # -- Cell State Constants (delegate to CellStateTransition) --------------------
-# Expose as aliases so other scripts can write HiveSimulation.S_CAPPED_HONEY etc.
+# Expose as aliases so other scripts can reference states via HiveSimulation
+# (e.g. HiveSimulation.S_CAPPED_HONEY) without importing CellStateTransition.
 const S_EMPTY_FOUNDATION := CellStateTransition.S_EMPTY_FOUNDATION
 const S_DRAWN_EMPTY      := CellStateTransition.S_DRAWN_EMPTY
 const S_EGG              := CellStateTransition.S_EGG
@@ -166,10 +176,12 @@ class HiveFrame:
 		cell_age_b.resize(grid_size)
 		cell_age_b.fill(0)
 
+	## Return the cell state at grid position (x, y) on the given side.
 	func get_cell(x: int, y: int, side: int = SIDE_A) -> int:
 		var i := y * grid_cols + x
 		return cells[i] if side == SIDE_A else cells_b[i]
 
+	## Set the cell state and age at grid position (x, y) on the given side.
 	func set_cell(x: int, y: int, state: int, age: int = 0, side: int = SIDE_A) -> void:
 		var i := y * grid_cols + x
 		if side == SIDE_A:
@@ -179,18 +191,23 @@ class HiveFrame:
 			cells_b[i]    = state
 			cell_age_b[i] = age
 
+	## Return the max honey weight (lbs) this frame can hold when fully capped.
 	func lbs_per_full_frame() -> float:
 		return LBS_PER_FULL_SUPER if is_super_frame else LBS_PER_FULL_DEEP
 
+	## Count cells in a specific state across both sides of this frame.
 	func count_state(s: int) -> int:
 		return CellStateTransition.count_state(self, s)
 
+	## Count all brood cells (egg + larva + capped brood + capped drone) both sides.
 	func count_brood() -> int:
 		return CellStateTransition.count_brood(self)
 
+	## Count capped honey cells only (S_CAPPED_HONEY) on both sides.
 	func count_honey() -> int:
 		return CellStateTransition.count_honey(self)
 
+	## Count all honey-chain cells (nectar through premium) on both sides.
 	func count_all_honey() -> int:
 		return CellStateTransition.count_all_honey(self)
 
@@ -235,10 +252,12 @@ class HiveFrame:
 
 # ------------------------------------------------------------------------------
 # HiveBox -- a single hive body (deep brood box or shallow super).
+# Contains 10 HiveFrames. Deep boxes hold brood + honey; supers hold honey only
+# (when a queen excluder is installed).
 # ------------------------------------------------------------------------------
 class HiveBox:
-	var frames:   Array
-	var is_super: bool
+	var frames: Array   ## Array[HiveFrame] -- the 10 frames in this box
+	var is_super: bool  ## true = shallow honey super, false = deep brood box
 
 	func _init(p_is_super: bool = false) -> void:
 		is_super = p_is_super
@@ -246,18 +265,21 @@ class HiveBox:
 		for _i in 10:
 			frames.append(HiveFrame.new(p_is_super))
 
+	## Count cells in a specific state across all 10 frames in this box.
 	func count_state(s: int) -> int:
 		var n := 0
 		for f in frames:
 			n += f.count_state(s)
 		return n
 
+	## Count all brood cells across all frames in this box.
 	func count_brood() -> int:
 		var n := 0
 		for f in frames:
 			n += f.count_brood()
 		return n
 
+	## Count capped honey cells across all frames in this box.
 	func count_honey() -> int:
 		var n := 0
 		for f in frames:
@@ -292,7 +314,7 @@ var queen: Dictionary = {
 }
 
 # -- Boxes ---------------------------------------------------------------------
-var boxes: Array   # boxes[0] = brood box, [1+] = supers
+var boxes: Array   ## Array[HiveBox] -- boxes[0] = brood box, [1+] = supers
 
 # -- Adult Bee Population ------------------------------------------------------
 # Nuc starting colony: ~10,000 bees (5-frame nuc transferred to 10-frame hive).
@@ -327,13 +349,17 @@ var last_snapshot: Dictionary = {}
 
 # -- Lifecycle -----------------------------------------------------------------
 
+## Called by Godot when this node enters the scene tree.
+## Creates an empty brood box with bare foundation but does NOT seed brood or
+## register with HiveManager. Registration only happens when a colony is
+## explicitly initialized (init_as_nuc, init_as_package, etc.), ensuring
+## empty hives sitting in the yard don't tick or waste resources.
 func _ready() -> void:
-	# Create empty foundation boxes but do NOT seed brood or register for ticks.
-	# Registration happens only when a colony is initialized (init_as_nuc or
-	# init_as_package), ensuring empty hives don't tick or waste resources.
 	boxes = []
 	boxes.append(HiveBox.new(false))
 
+## Godot lifecycle callback -- unregister from HiveManager on tree exit
+## to prevent stale references and orphaned tick calls.
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_EXIT_TREE:
 		HiveManager.unregister(self)
@@ -357,7 +383,7 @@ func _seed_initial_brood() -> void:
 	# get brood, creating the realistic dome pattern across multiple frames.
 	# Center frames (3,4,5) get the most brood; flank frames (2,6) get less.
 	# --------------------------------------------------------------------------
-	var brood_box = boxes[0]
+	var brood_box: HiveBox = boxes[0]
 
 	# Nuc frame indices (the 5 active frames from the nuc)
 	const NUC_FRAMES := [2, 3, 4, 5, 6]
@@ -373,7 +399,7 @@ func _seed_initial_brood() -> void:
 	# flanking frames (2,6) have smaller patches near their centers.
 	const BROOD_RADIUS := 0.55
 	for fi in NUC_FRAMES:
-		var frame = brood_box.frames[fi]
+		var frame: HiveFrame = brood_box.frames[fi]
 		for side in [HiveFrame.SIDE_A, HiveFrame.SIDE_B]:
 			for y in FRAME_HEIGHT:
 				for x in FRAME_WIDTH:
@@ -411,7 +437,7 @@ func init_as_overwintered(
 	boxes = []
 	boxes.append(HiveBox.new(false))
 
-	var brood_box = boxes[0]
+	var brood_box: HiveBox = boxes[0]
 
 	# -- 4 drawn frames (center: 3, 4, 5, 6) ----------------------------------
 	# These survived winter with wax intact.  Outer 6 frames are bare foundation
@@ -430,7 +456,7 @@ func init_as_overwintered(
 	# cells, which is realistic for early spring restart.
 	const OW_BROOD_RADIUS := 0.30
 	for fi in DRAWN_FRAMES:
-		var frame = brood_box.frames[fi]
+		var frame: HiveFrame = brood_box.frames[fi]
 		for side in [HiveFrame.SIDE_A, HiveFrame.SIDE_B]:
 			for y in FRAME_HEIGHT:
 				for x in FRAME_WIDTH:
@@ -458,7 +484,7 @@ func init_as_overwintered(
 	# This is more realistic than relying on _sync_honey_to_frames() alone.
 	const HONEY_FRAMES := [3, 6]
 	for fi in HONEY_FRAMES:
-		var frame = brood_box.frames[fi]
+		var frame: HiveFrame = brood_box.frames[fi]
 		for side in [HiveFrame.SIDE_A, HiveFrame.SIDE_B]:
 			for y in FRAME_HEIGHT:
 				for x in FRAME_WIDTH:
@@ -483,7 +509,7 @@ func init_as_overwintered(
 	for fi in BB_FRAMES:
 		if bb_placed >= bb_target:
 			break
-		var frame = brood_box.frames[fi]
+		var frame: HiveFrame = brood_box.frames[fi]
 		for side in [HiveFrame.SIDE_A, HiveFrame.SIDE_B]:
 			if bb_placed >= bb_target:
 				break
@@ -704,6 +730,10 @@ func init_as_fall_harvest(p_species: String = "Carniolan",
 
 # -- Daily Tick (called by HiveManager) ----------------------------------------
 
+## Main simulation entry point -- called once per in-game day by HiveManager.
+## Runs the full 10-step pipeline: cell aging, population management, forager
+## collection, nurse feeding, NU allocation (stores/wax/honey), queen laying,
+## mite reproduction, congestion detection, health scoring, and snapshot.
 func tick() -> void:
 	days_elapsed      += 1
 	queen["age_days"] += 1
@@ -748,7 +778,7 @@ func tick() -> void:
 
 	# Process ALL boxes (brood + supers) so honey in supers ages properly.
 	for box_idx in boxes.size():
-		var box = boxes[box_idx]
+		var box: HiveBox = boxes[box_idx]
 		for frame in box.frames:
 			# Side A
 			var result_a: Dictionary = CellStateTransition.process_frame(frame, ctx)
@@ -1012,7 +1042,7 @@ func _draw_super_comb(box_idx: int, _foundation_remaining: int, forage: float) -
 	# Draw center frames first (index 4,5 outward), both sides
 	var candidates: Array = []
 	for fi in range(super_box.frames.size()):
-		var frame = super_box.frames[fi]
+		var frame: HiveFrame = super_box.frames[fi]
 		var frame_dist: float = absf(float(fi) - 4.5) / 5.0
 		for side in [HiveFrame.SIDE_A, HiveFrame.SIDE_B]:
 			var side_cells: PackedByteArray = frame.cells if side == 0 else frame.cells_b
@@ -1035,7 +1065,7 @@ func _draw_super_comb(box_idx: int, _foundation_remaining: int, forage: float) -
 		var fi: int   = int(c[1])
 		var sd: int   = int(c[2])
 		var idx: int  = int(c[3])
-		var frame = super_box.frames[fi]
+		var frame: HiveFrame = super_box.frames[fi]
 		if sd == HiveFrame.SIDE_A:
 			frame.cells[idx] = S_DRAWN_EMPTY
 		else:
@@ -1089,12 +1119,16 @@ func _cell_walled_in(side_cells: PackedByteArray, x: int, y: int) -> bool:
 	return true
 
 # -- Queen Laying Pattern (3D ellipsoid -- center-out) -------------------------
-# The queen lays in a 3D ellipsoid pattern matching how real queens work:
-# she starts at the center of the middle frames and spirals outward, filling
-# cells closest to the 3D center first. This creates the characteristic dome
-# of brood visible when you pull frames -- center frames are full, outer frames
-# have smaller and smaller brood patches.
 
+## Simulate the queen's daily egg-laying using a 3D ellipsoid pattern.
+## The queen starts at the center of the middle frames and fills outward,
+## prioritizing cells closest to the 3D center. This creates the characteristic
+## dome of brood visible when you pull frames -- center frames are full, outer
+## frames have smaller and smaller brood patches.
+## [br][br]
+## s_factor: seasonal modifier from TimeManager (0.0 in winter, 1.0 at peak).
+## Laying rate is further modified by queen grade, species, age, varroa load,
+## and congestion state.
 func _queen_lay(s_factor: float) -> void:
 	var grade_mod: float   = _grade_modifier(queen["grade"])
 	var species_mod: float = _species_seasonal_modifier(queen["species"], s_factor)
@@ -1126,10 +1160,10 @@ func _queen_lay(s_factor: float) -> void:
 	var candidates: Array = []   # [dist, box_idx, frame_idx, side, cell_idx]
 
 	for bi in layable_boxes:
-		var box = boxes[bi]
+		var box: HiveBox = boxes[bi]
 		var frames_in_box: int = box.frames.size()
 		for fi in range(frames_in_box):
-			var frame = box.frames[fi]
+			var frame: HiveFrame = box.frames[fi]
 			var f_width: int = frame.grid_cols
 			var f_height: int = frame.grid_rows
 			for side in [HiveFrame.SIDE_A, HiveFrame.SIDE_B]:
@@ -1177,6 +1211,12 @@ func _queen_lay(s_factor: float) -> void:
 
 # -- Honey Frame Sync ----------------------------------------------------------
 
+## Reconcile honey_stores (float lbs) with actual cell states on frames.
+## Deposits new S_NECTAR cells or removes excess capped honey to keep
+## frame cells aligned with the stores value, WITHOUT wiping the natural
+## nectar -> curing -> capped -> premium progression that CellStateTransition
+## manages each tick. Fills brood box outer frames first, then overflows
+## into supers (mimicking real bee behavior).
 func _sync_honey_to_frames() -> void:
 	# Incremental honey sync -- deposits new nectar cells OR removes excess honey
 	# cells to keep frames roughly in line with honey_stores, WITHOUT wiping the
@@ -1186,7 +1226,7 @@ func _sync_honey_to_frames() -> void:
 	# Priority: ALL drawn-empty cells in the hive are eligible for honey deposit.
 	# Brood box outer honey frames fill first, then inner frame margins, then
 	# super boxes (just like real bees -- fill down, then move up).
-	var brood_box = boxes[0]
+	var brood_box: HiveBox = boxes[0]
 
 	# Count existing honey-chain cells across ALL boxes (brood + supers)
 	var existing_honey_cells := 0
@@ -1295,8 +1335,12 @@ func _remove_honey_from_frame(frame: HiveFrame, to_remove: int) -> int:
 	return to_remove
 
 # -- Zone NU/PU Queries --------------------------------------------------------
+# These functions aggregate nectar/pollen availability from all sources in the
+# current zone: flower lifecycle managers, seasonal trees, and barrel feeders.
+# The result is divided by colony count in tick() to share resources fairly.
 
-## Get total NU available in the zone from FlowerLifecycleManager.
+## Get total Nectar Units (NU) available in the zone this tick.
+## Sources: FlowerLifecycleManager blooms, SeasonalTree forage, barrel feeders.
 func _get_zone_nu() -> int:
 	var managers = get_tree().get_nodes_in_group("flower_lifecycle_manager")
 	var total: int = 0
@@ -1320,7 +1364,8 @@ func _get_zone_nu() -> int:
 	# now provide proper NU through the "trees" group forage system above.
 	return maxi(0, total)
 
-## Get total PU available in the zone from FlowerLifecycleManager.
+## Get total Pollen Units (PU) available in the zone this tick.
+## Sources: FlowerLifecycleManager blooms, SeasonalTree forage.
 func _get_zone_pu() -> int:
 	var managers = get_tree().get_nodes_in_group("flower_lifecycle_manager")
 	var total: int = 0
@@ -1343,10 +1388,10 @@ func _get_zone_pu() -> int:
 ## Each bee bread cell holds up to 3 PU (tracked via cell_age as PU count).
 func _store_bee_bread(pu_to_store: int) -> void:
 	var remaining: int = pu_to_store
-	var brood_box = boxes[0]
+	var brood_box: HiveBox = boxes[0]
 	# First, top up existing bee bread cells that have < 3 PU
 	for fi in range(FRAMES_PER_BOX):
-		var frame = brood_box.frames[fi]
+		var frame: HiveFrame = brood_box.frames[fi]
 		for i in frame.grid_size:
 			if remaining <= 0:
 				return
@@ -1365,7 +1410,7 @@ func _store_bee_bread(pu_to_store: int) -> void:
 		if remaining <= 0:
 			return
 		var fi: int = QUEEN_FRAME_ORDER[order_idx]
-		var frame = brood_box.frames[fi]
+		var frame: HiveFrame = brood_box.frames[fi]
 		for i in frame.grid_size:
 			if remaining <= 0:
 				return
@@ -1387,9 +1432,9 @@ func _store_bee_bread(pu_to_store: int) -> void:
 ## Consume PU from bee bread cells. Empties cells once depleted.
 func _consume_bee_bread(pu_to_consume: int) -> void:
 	var remaining: int = pu_to_consume
-	var brood_box = boxes[0]
+	var brood_box: HiveBox = boxes[0]
 	for fi in range(FRAMES_PER_BOX):
-		var frame = brood_box.frames[fi]
+		var frame: HiveFrame = brood_box.frames[fi]
 		for i in frame.grid_size:
 			if remaining <= 0:
 				return
@@ -1441,9 +1486,9 @@ func _draw_comb_with_nu(_foundation_remaining: int, nu_wax: int) -> void:
 
 	# Collect all foundation cells with 3D distance, sort center-out
 	var candidates: Array = []
-	var brood_box = boxes[0]
+	var brood_box: HiveBox = boxes[0]
 	for fi in range(FRAMES_PER_BOX):
-		var frame = brood_box.frames[fi]
+		var frame: HiveFrame = brood_box.frames[fi]
 		for side in [HiveFrame.SIDE_A, HiveFrame.SIDE_B]:
 			var side_cells: PackedByteArray = frame.cells if side == 0 else frame.cells_b
 			for y in FRAME_HEIGHT:
@@ -1462,7 +1507,7 @@ func _draw_comb_with_nu(_foundation_remaining: int, nu_wax: int) -> void:
 		var fi: int   = int(c[1])
 		var sd: int   = int(c[2])
 		var idx: int  = int(c[3])
-		var frame = brood_box.frames[fi]
+		var frame: HiveFrame = brood_box.frames[fi]
 		if sd == HiveFrame.SIDE_A:
 			frame.cells[idx] = S_DRAWN_EMPTY
 		else:
@@ -1475,19 +1520,24 @@ func _draw_comb_with_nu(_foundation_remaining: int, nu_wax: int) -> void:
 
 
 # -- Overflow honey into supers ------------------------------------------------
+# NOTE: This function is currently DISABLED (not called from tick()).
+# _sync_honey_to_frames() now handles overflow into supers as the single
+# source of truth for cell<->stores alignment. Kept for potential future use
+# or if the sync approach needs to be revisited.
 
-## Once brood box honey frames are full, push excess into super boxes.
+## [DISABLED] Once brood box honey frames are full, push excess into super boxes.
 ## Supers store honey ONLY -- no brood, no bee bread.
+## Was causing double-deposit conflicts with _sync_honey_to_frames().
 func _overflow_honey_to_supers() -> void:
 	if boxes.size() <= 1:
 		return
 	# Check if brood box honey frames have space
-	var brood_box = boxes[0]
+	var brood_box: HiveBox = boxes[0]
 	var brood_honey_capacity: int = 0
 	var brood_honey_current: int = 0
 	for order_idx in range(4, 10):
 		var fi: int = QUEEN_FRAME_ORDER[order_idx]
-		var frame = brood_box.frames[fi]
+		var frame: HiveFrame = brood_box.frames[fi]
 		for i in frame.grid_size:
 			var s: int = int(frame.cells[i])
 			if s == S_DRAWN_EMPTY:
@@ -1702,26 +1752,38 @@ func harvest_honey() -> float:
 
 # -- Direct Disease Management -------------------------------------------------
 
+## Add a disease flag (e.g. "AFB", "EFB", "SHB") if not already present.
 func add_disease(flag: String) -> void:
 	if not disease_flags.has(flag):
 		disease_flags.append(flag)
 
+## Remove a disease flag from this colony.
 func clear_disease(flag: String) -> void:
 	disease_flags.erase(flag)
 
+## Apply a mite treatment that reduces mite_count by the given fraction (0.0-1.0).
 func treat_mites(reduction: float) -> void:
 	mite_count = maxf(0.0, mite_count * (1.0 - reduction))
 
 # -- Helpers -------------------------------------------------------------------
 
+## Return the laying rate multiplier for the given queen grade (S/A/B/C/D).
+## Delegates to QueenBehavior. S = 1.0 (best real queens), lower grades scale down.
 func _grade_modifier(grade: String) -> float:
 	# Validated by Karpathy Phase 4: S-tier = 1.00 baseline (best real queens).
 	# S is the ceiling, lower grades scale down from there.
 	return QueenBehavior.grade_modifier(grade)
 
+## Return the species-specific seasonal laying modifier.
+## e.g. Carniolans shut down hard in winter but ramp aggressively in spring.
 func _species_seasonal_modifier(species: String, s_factor: float) -> float:
 	return QueenBehavior.species_seasonal_modifier(species, s_factor)
 
+## Calculate daily honey consumption (lbs) based on total adult population.
+## In winter, uses a cluster thermogenesis model where larger clusters are
+## more efficient (lower surface:volume ratio), keeping total consumption
+## roughly constant (~0.525 lbs/day) regardless of cluster size.
+## Science: Farrar (1943), Seeley (1995) S7.
 func _daily_consumption() -> float:
 	var total := float(nurse_count + house_count + forager_count + drone_count)
 	# Science fix (HS-2 revised): winter cluster thermogenesis is a FIXED overhead
@@ -1742,6 +1804,9 @@ func _daily_consumption() -> float:
 		return total * 0.000015 * winter_mult
 	return total * 0.000015
 
+## Calculate composite health score (0-100) for this colony.
+## Factors: queen presence/grade, mite load per 100 bees, honey stores,
+## pollen stores, and active disease flags. Used by SnapshotWriter and UI.
 func _calculate_health_score() -> float:
 	var score := 100.0
 	if not queen["present"]:

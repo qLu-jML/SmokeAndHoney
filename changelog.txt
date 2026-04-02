@@ -1,3 +1,22 @@
+[2026-04-02 CDT] Simplified starting inventory to axe + hammer + 40 logs
+  Player now starts with only 3 items: axe, hammer, and a stack of 40 logs.
+  Removed all other starting inventory items (hive tool, gloves, excluder,
+  super boxes, comb scraper, bucket grip, jars). Storage chest starts empty
+  instead of pre-stocked with equipment. Increased log max stack from 20 to
+  40 so 40 logs fit in a single inventory slot. Player must craft/buy/earn
+  all beekeeping equipment from scratch.
+  Files changed: scripts/core/player.gd (starting inventory, stack size, chest)
+
+[2026-04-02 CDT] Rebuilt workbench UI as clickable mouse-driven interface
+  Replaced keyboard-only crafting menu (UP/DOWN/ENTER/C) with clickable buttons.
+  Each recipe row now has a "Craft" button; "Convert Logs -> Lumber" is a button
+  with energy cost hint. Close button (X) in top-right corner plus ESC still works.
+  Buttons auto-disable when requirements are not met (insufficient lumber, energy,
+  or missing hammer). Improved error messages to be more specific (shows amounts
+  needed vs amounts had). Fixed potential stale-reference issue by using centralized
+  _get_player() helper. Added is_instance_valid check on feedback timer callback.
+  Files changed: scripts/ui/workbench_ui.gd (full rewrite)
+
 [2026-04-01 CDT] FIX: Toolbar/inventory non-functional on County Road
   Root cause: player.gd referenced the HUD via relative path "../../UI" which
   only resolved correctly in home_property (where player is under World/ node).
@@ -1205,6 +1224,32 @@
   all flowers dynamically via Sprite2D nodes.
 - Reset Sprite2D scales to reasonable values: lifecycle manager 0.4-0.55, scatter 0.35-0.55
   (roughly half a tile, ~14-18px on screen from 32px textures).
+- Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
+
+## 2026-04-02 -- Fix Workbench Craft Button Overlap
+- Craft buttons were overlapping vertically because Godot Button nodes enforce
+  a minimum internal height larger than the 10px we set
+- Increased ROW_H from 18 to 20, PANEL_H from 162 to 176, PANEL_Y from 6 to 2
+  to give recipe rows enough vertical space
+- Changed RECIPE_START_Y from 68 to 62 to reclaim space
+- Increased button dimensions (BTN_W=40, BTN_H=14) for all buttons
+- Added set_deferred("size", ...) after add_child on all buttons to force
+  Godot to respect our intended size after layout pass
+- Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
+
+## 2026-04-02 -- Fix County Road Tree Sprites
+- Replaced all broken Cainos sprite fragments with complete tree sprites
+  across all 30 harvestable trees in county_road.tscn
+- Broken fragments (02, 03, 04, 05, 08, 09, 10) were partial canopy pieces
+  from incorrectly split sprite sheet -- showed as visual mess in-game
+- Reassigned tree species to complete sprites:
+  Oak -> cainos_tree_13 (large broad canopy, light bark)
+  Walnut -> cainos_tree_12 (tall deciduous, medium canopy)
+  Maple -> cainos_tree_01 (bushy dense green, already correct)
+  Elm -> cainos_tree_07 (tall slender trunk, already correct)
+  Hickory -> cainos_tree_07 (tall slender)
+  Pine -> cainos_tree_01 (bushy dense green)
+  Ash -> cainos_tree_06 (small-medium with visible trunk)
 - Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
 
 ## 2026-03-31 -- County Road Rebuilt with Forest

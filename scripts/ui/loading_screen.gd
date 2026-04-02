@@ -5,12 +5,14 @@ const HOLD_DURATION := 0.15   # seconds of solid black between fades
 
 @onready var overlay: ColorRect = $CanvasLayer/Overlay
 
+## Initialize loading screen with black overlay and start loading sequence.
 func _ready() -> void:
 	# Arrive fully black, then kick off: hold -> load destination
 	overlay.modulate.a = 1.0
 	await get_tree().create_timer(HOLD_DURATION).timeout
 	_go_to_next()
 
+## Load the next scene from TimeManager.next_scene and fade in the overlay.
 func _go_to_next() -> void:
 	var dest: String = TimeManager.next_scene
 	if dest == "":
@@ -24,13 +26,13 @@ func _go_to_next() -> void:
 	while ResourceLoader.load_threaded_get_status(dest) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
 		await get_tree().process_frame
 
-	var packed = ResourceLoader.load_threaded_get(dest)
+	var packed: PackedScene = ResourceLoader.load_threaded_get(dest) as PackedScene
 	if packed == null:
 		push_error("LoadingScreen: failed to load '%s'" % dest)
 		return
 
 	# Fade out the black overlay before revealing the new scene
-	var tween := create_tween()
+	var tween: Tween = create_tween()
 	tween.tween_property(overlay, "modulate:a", 0.0, FADE_DURATION)
 	await tween.finished
 

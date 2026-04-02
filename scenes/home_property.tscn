@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://homeproperty01"]
 
 [ext_resource type="PackedScene" uid="uid://d3qdbfmsmyqoa" path="res://scenes/player/player.tscn" id="3_jyhfs"]
-[ext_resource type="Script" uid="uid://y3uori7de3fm" path="res://scripts/ui/hud.gd" id="3_tbgi4"]
 [ext_resource type="Texture2D" uid="uid://c0msvy6mg7kwg" path="res://assets/sprites/paid/Pixel Art Top Down - Village v1.0.7/Texture/TX Tileset Grass.png" id="4_hxvsk"]
 [ext_resource type="Texture2D" uid="uid://djh51xek3pwqf" path="res://assets/sprites/paid/Pixel Art Top Down - Village v1.0.7/Texture/TX Tileset Dirt.png" id="4_jw7v2"]
 [ext_resource type="Texture2D" uid="uid://427aecn1d2iy" path="res://assets/sprites/paid/Pixel Art Top Down - Village v1.0.7/Texture/TX Tileset Terrain.png" id="5_n1uxp"]
@@ -2624,104 +2623,6 @@ position = Vector2(565, 290)
 [node name="StorageChest" type="Node2D" parent="World"]
 position = Vector2(200, 220)
 script = ExtResource("chest_script")
-
-[node name="UI" type="CanvasLayer" parent="." unique_id=1171237371]
-script = ExtResource("3_tbgi4")
-
-[node name="DayLabel" type="Label" parent="UI" unique_id=908982785]
-offset_left = 6.0
-offset_top = 6.0
-offset_right = 54.0
-offset_bottom = 29.0
-scale = Vector2(0.2, 0.2)
-text = "Day: 0"
-
-[node name="TimeLabel" type="Label" parent="UI" unique_id=711223344]
-offset_left = 80.0
-offset_top = 2.0
-offset_right = 240.0
-offset_bottom = 12.0
-theme_override_font_sizes/font_size = 8
-text = "6:00 AM — Morning"
-horizontal_alignment = 1
-
-[node name="ResourceLabel" type="Label" parent="UI" unique_id=1451881323]
-offset_left = 6.0
-offset_top = 40.0
-offset_right = 46.0
-offset_bottom = 63.0
-scale = Vector2(0.2, 0.2)
-
-[node name="NextDayButton" type="Button" parent="UI" unique_id=655365337]
-offset_left = 6.0
-offset_top = 18.0
-offset_right = 110.0
-offset_bottom = 49.0
-scale = Vector2(0.2, 0.2)
-action_mode = 0
-text = "Advance Day"
-
-[node name="InventoryMenu" type="ColorRect" parent="UI" unique_id=882319082]
-visible = false
-offset_right = 320.0
-offset_bottom = 180.0
-color = Color(0.1, 0.1, 0.1, 0.8)
-
-[node name="MenuTitle" type="Label" parent="UI/InventoryMenu" unique_id=45914619]
-layout_mode = 0
-offset_left = 60.0
-offset_top = 28.0
-offset_right = 260.0
-offset_bottom = 38.0
-theme_override_font_sizes/font_size = 8
-text = "Player Inventory"
-horizontal_alignment = 1
-
-[node name="PlayerInventoryLabel" type="Label" parent="UI/InventoryMenu" unique_id=532890123]
-layout_mode = 0
-offset_left = 60.0
-offset_top = 40.0
-offset_right = 260.0
-offset_bottom = 50.0
-theme_override_font_sizes/font_size = 7
-text = "Honey Storage: 0.0 lbs"
-horizontal_alignment = 1
-
-[node name="GridContainer" type="GridContainer" parent="UI/InventoryMenu" unique_id=324901844]
-layout_mode = 0
-offset_left = 76.0
-offset_top = 54.0
-offset_right = 243.0
-offset_bottom = 85.0
-theme_override_constants/h_separation = 3
-theme_override_constants/v_separation = 3
-columns = 10
-
-[node name="ControlsLabel" type="Label" parent="UI/InventoryMenu" unique_id=1910283747]
-layout_mode = 0
-offset_left = 50.0
-offset_top = 92.0
-offset_right = 270.0
-offset_bottom = 172.0
-theme_override_font_sizes/font_size = 7
-text = "Controls:
-Arrows - Move
-G - Toggle Grid
-7 - Mark Garden Zone
-8 - Mark Apiary Zone
-9 - Clear Zone
-T - Till Dirt
-F - Plant Seed
-H - Place Hive
-E - Interact
-O - Open Menu"
-horizontal_alignment = 1
-
-; ═══════════════════════════════════════════════════════════════════════════════
-; UNCLE BOB NPC
-; GDD §9: Experienced local beekeeper, tutorial mentor, near starting apiary.
-; Positioned center-right near where his small house/shed would be.
-; ═══════════════════════════════════════════════════════════════════════════════
 
 [node name="UncleBob" type="Node2D" parent="World" unique_id=520001001]
 position = Vector2(380, 140)

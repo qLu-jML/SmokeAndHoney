@@ -7,20 +7,21 @@
 # --------------------------------------------------------------------------
 extends Node2D
 
-const FEED_NU_PER_DAY := 100
-const FEED_DURATION_DAYS := 10
+const FEED_NU_PER_DAY: int = 100
+const FEED_DURATION_DAYS: int = 10
 # 1 NU = approximately 0.01 lbs honey equivalent for store conversion
-const NU_TO_LBS := 0.01
+const NU_TO_LBS: float = 0.01
 # How close (px) a hive must be to receive feed
-const FEED_RADIUS := 128.0
+const FEED_RADIUS: float = 128.0
 
 var days_remaining: int = FEED_DURATION_DAYS
 var _prompt_label: Label = null
 var _sprite: Sprite2D = null
 var _player_cache: Node2D = null
 
-const PROMPT_RADIUS := 64.0
+const PROMPT_RADIUS: float = 64.0
 
+## Initialize the barrel feeder: sprite, prompt, and day-advance connection.
 func _ready() -> void:
 	add_to_group("barrel_feeder")
 	z_index = 1
@@ -29,14 +30,14 @@ func _ready() -> void:
 	_sprite = Sprite2D.new()
 	_sprite.name = "FeederSprite"
 	var tex: Texture2D = null
-	var tex_path := "res://assets/sprites/items/barrel_feeder.png"
+	var tex_path: String = "res://assets/sprites/items/barrel_feeder.png"
 	if ResourceLoader.exists(tex_path):
 		tex = load(tex_path) as Texture2D
 	if tex:
 		_sprite.texture = tex
 	else:
 		# Placeholder: brown rectangle
-		var img := Image.create(24, 28, false, Image.FORMAT_RGBA8)
+		var img: Image = Image.create(24, 28, false, Image.FORMAT_RGBA8)
 		img.fill(Color(0.55, 0.35, 0.15, 1.0))
 		_sprite.texture = ImageTexture.create_from_image(img)
 	_sprite.position = Vector2(0, -14)
@@ -59,6 +60,7 @@ func _ready() -> void:
 
 	_update_prompt_text()
 
+## Handle daily feed distribution to nearby hives.
 func _on_day_advanced(_new_day: int) -> void:
 	if days_remaining <= 0:
 		return
@@ -93,6 +95,7 @@ func _on_day_advanced(_new_day: int) -> void:
 		if _sprite:
 			_sprite.modulate = Color(0.5, 0.5, 0.5, 0.8)
 
+## Update the prompt label text based on remaining days.
 func _update_prompt_text() -> void:
 	if not _prompt_label:
 		return
@@ -101,6 +104,7 @@ func _update_prompt_text() -> void:
 	else:
 		_prompt_label.text = "[E] Pick Up (empty)"
 
+## Update prompt visibility each frame based on player proximity.
 func _process(_delta: float) -> void:
 	if not _prompt_label:
 		return
@@ -113,19 +117,19 @@ func _process(_delta: float) -> void:
 	else:
 		_prompt_label.visible = false
 
-## Called by the player interaction system to pick up an empty feeder.
+## Check if this feeder can be picked up (only when empty).
 func try_pickup() -> bool:
 	if days_remaining > 0:
 		return false  # still has syrup
 	return true
 
-## Remove from world after pickup.
+## Remove feeder from world and disconnect signals.
 func remove_feeder() -> void:
 	if TimeManager.has_signal("day_advanced"):
 		TimeManager.day_advanced.disconnect(_on_day_advanced)
 	queue_free()
 
-## Save state for SaveManager.
+## Return state dictionary for SaveManager.
 func collect_save_data() -> Dictionary:
 	return {
 		"pos_x": global_position.x,
@@ -133,7 +137,7 @@ func collect_save_data() -> Dictionary:
 		"days_remaining": days_remaining,
 	}
 
-## Restore state from SaveManager.
+## Restore state from SaveManager data.
 func apply_save_data(data: Dictionary) -> void:
 	global_position = Vector2(
 		float(data.get("pos_x", 0.0)),
@@ -143,3 +147,8 @@ func apply_save_data(data: Dictionary) -> void:
 	_update_prompt_text()
 	if days_remaining <= 0 and _sprite:
 		_sprite.modulate = Color(0.5, 0.5, 0.5, 0.8)
+
+## Disconnect TimeManager signals when leaving the scene tree.
+func _exit_tree() -> void:
+	if TimeManager and TimeManager.has_signal("day_advanced"):
+		TimeManager.day_advanced.disconnect(_on_day_advanced)

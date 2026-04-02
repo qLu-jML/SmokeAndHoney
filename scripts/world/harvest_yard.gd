@@ -105,6 +105,7 @@ const BUCKET_EMPTY_PATH := "res://assets/sprites/objects/honey_bucket_empty.png"
 # =========================================================================
 # LIFECYCLE
 # =========================================================================
+## Initialize harvest yard with all station visuals and overlays.
 func _ready() -> void:
 	add_to_group("harvest_yard")
 	_create_station_visuals()
@@ -115,9 +116,28 @@ func _ready() -> void:
 	_create_bucket_sprite()
 	print("[HarvestYard] Outdoor harvest yard ready.")
 
+## Disconnect all signals when node exits the tree.
+func _exit_tree() -> void:
+	if _scraping_overlay:
+		if _scraping_overlay.scraping_complete.is_connected(_on_scraping_complete):
+			_scraping_overlay.scraping_complete.disconnect(_on_scraping_complete)
+		if _scraping_overlay.scraping_cancelled.is_connected(_on_scraping_cancelled):
+			_scraping_overlay.scraping_cancelled.disconnect(_on_scraping_cancelled)
+	if _extractor_overlay:
+		if _extractor_overlay.extraction_complete.is_connected(_on_extraction_complete):
+			_extractor_overlay.extraction_complete.disconnect(_on_extraction_complete)
+		if _extractor_overlay.extraction_cancelled.is_connected(_on_extraction_cancelled):
+			_extractor_overlay.extraction_cancelled.disconnect(_on_extraction_cancelled)
+	if _bottling_overlay:
+		if _bottling_overlay.bottling_complete.is_connected(_on_bottling_complete):
+			_bottling_overlay.bottling_complete.disconnect(_on_bottling_complete)
+		if _bottling_overlay.bottling_cancelled.is_connected(_on_bottling_cancelled):
+			_bottling_overlay.bottling_cancelled.disconnect(_on_bottling_cancelled)
+
 # =========================================================================
 # DRAWING -- Placeholder colored rectangles for each station
 # =========================================================================
+## Redraw all station visuals and overlays.
 func _draw() -> void:
 	# Sprite2D nodes handle extractor, bucket, and super boxes -- just update state.
 	_update_bucket_visual()
@@ -140,6 +160,7 @@ func _draw() -> void:
 		_draw_text_at(fp + Vector2(fs.x * 0.5, fs.y + 10),
 			"%d/10 frames" % _frames_scraped, Color(0.9, 0.85, 0.6))
 
+## Draw a colored rectangle for a station at its position and size.
 func _draw_station_box(station: Station, color: Color) -> void:
 	var pos: Vector2 = STATION_POS[station]
 	var sz: Vector2 = STATION_SIZE[station]
@@ -147,12 +168,13 @@ func _draw_station_box(station: Station, color: Color) -> void:
 	draw_rect(rect, color, true)
 	draw_rect(rect, Color(0.25, 0.15, 0.05), false, 1.5)
 
+## Draw stacked jars on the bottling table.
 func _draw_jar_stacks() -> void:
 	var bp: Vector2 = STATION_POS[Station.BOTTLING]
 	var bs: Vector2 = STATION_SIZE[Station.BOTTLING]
-	var jar_w := 6
-	var jar_h := 8
-	var jar_gap := 2
+	var jar_w: int = 6
+	var jar_h: int = 8
+	var jar_gap: int = 2
 	var start_x: int = int(bp.x) + 4
 	var start_y: int = int(bp.y) + int(bs.y) - jar_h - 4
 	@warning_ignore("integer_division")
@@ -164,6 +186,7 @@ func _draw_jar_stacks() -> void:
 		draw_rect(Rect2(jx, jy, jar_w, jar_h), Color(0.95, 0.78, 0.25, 0.9), true)
 		draw_rect(Rect2(jx, jy, jar_w, jar_h), Color(0.6, 0.5, 0.2), false, 0.5)
 
+## Draw text at a specific position with the specified color.
 func _draw_text_at(pos: Vector2, text: String, color: Color) -> void:
 	# Simple text rendering using draw_string
 	var font: Font = ThemeDB.fallback_font
@@ -173,6 +196,7 @@ func _draw_text_at(pos: Vector2, text: String, color: Color) -> void:
 # =========================================================================
 # PALLET SPRITES -- Load the wooden pallet art for the two pallet stations
 # =========================================================================
+## Create sprite nodes for both pallets.
 func _create_pallet_sprites() -> void:
 	var tex: Texture2D = null
 	var abs_path: String = ProjectSettings.globalize_path(PALLET_TEXTURE_PATH)
@@ -207,6 +231,7 @@ func _create_pallet_sprites() -> void:
 # =========================================================================
 # SUPER BOX SPRITES -- Show hive_super.png on pallets, tinted by fill level
 # =========================================================================
+## Create super box sprite nodes for both pallets.
 func _create_super_box_sprites() -> void:
 	var abs_path: String = ProjectSettings.globalize_path(SUPER_BOX_TEXTURE_PATH)
 	var img: Image = Image.load_from_file(abs_path)
@@ -252,6 +277,7 @@ func _create_super_box_sprites() -> void:
 ## Super pallet shows one sprite per queued super (up to 4).
 ## Top super dims as frames are scraped out of it; others stay fully golden.
 ## Scraped pallet: starts pale, warms to golden as frames fill it.
+## Update visibility and positions of super box sprites based on current state.
 func _update_super_visuals() -> void:
 	if _pallet_super_sprites.size() < 4 or _scraped_box_sprite == null:
 		return
@@ -294,6 +320,7 @@ func _update_super_visuals() -> void:
 # =========================================================================
 # EXTRACTOR SPRITE -- Leonardo art replaces the placeholder circle
 # =========================================================================
+## Create the extractor sprite node.
 func _create_extractor_sprite() -> void:
 	var abs_path: String = ProjectSettings.globalize_path(EXTRACTOR_TEXTURE_PATH)
 	var img: Image = Image.load_from_file(abs_path)
@@ -315,6 +342,7 @@ func _create_extractor_sprite() -> void:
 # =========================================================================
 # BUCKET SPRITE -- Preload full + empty textures, switch on state change
 # =========================================================================
+## Create the bucket sprite node and load textures.
 func _create_bucket_sprite() -> void:
 	# Preload both textures so we never reload from disk on state change
 	var full_abs: String = ProjectSettings.globalize_path(BUCKET_FULL_PATH)
@@ -339,6 +367,7 @@ func _create_bucket_sprite() -> void:
 
 ## Update bucket sprite visibility, position, and texture to match pipeline state.
 ## Called from _draw() so it fires on every queue_redraw().
+## Update bucket sprite texture based on whether it contains honey.
 func _update_bucket_visual() -> void:
 	if _bucket_sprite == null:
 		return
@@ -364,6 +393,7 @@ func _update_bucket_visual() -> void:
 # =========================================================================
 # STATION VISUALS -- Create labels and collision areas
 # =========================================================================
+## Create all station visual nodes with collision boxes and labels.
 func _create_station_visuals() -> void:
 	_add_label(Station.SUPER_PALLET, "Super Pallet")
 	_add_label(Station.SCRAPED_PALLET, "Scraped Frames")
@@ -387,6 +417,7 @@ func _create_station_visuals() -> void:
 	cs.position = ext_pos + ext_size * 0.5
 	body.add_child(cs)
 
+## Add a label node for a station.
 func _add_label(station: Station, text: String) -> void:
 	var lbl := Label.new()
 	lbl.text = text
@@ -398,6 +429,7 @@ func _add_label(station: Station, text: String) -> void:
 	add_child(lbl)
 	_station_labels[station] = lbl
 
+## Add a collision rectangle shape to a static body for a station.
 func _add_collision_rect(body: StaticBody2D, station: Station) -> void:
 	var pos: Vector2 = STATION_POS[station]
 	var sz: Vector2 = STATION_SIZE[station]
@@ -408,6 +440,7 @@ func _add_collision_rect(body: StaticBody2D, station: Station) -> void:
 	cs.position = pos + sz * 0.5
 	body.add_child(cs)
 
+## Create the bucket area and collision detection.
 func _create_bucket_visual() -> void:
 	# Bucket is just drawn; label added
 	var lbl := Label.new()
@@ -423,6 +456,7 @@ func _create_bucket_visual() -> void:
 # =========================================================================
 
 ## Try to interact with the nearest station. Returns true if handled.
+## Check if player can interact with harvest yard and process interaction.
 func try_interact(player: Node2D) -> bool:
 	if _minigame_active:
 		return false
@@ -457,6 +491,7 @@ func try_interact(player: Node2D) -> bool:
 	return true
 
 ## Get the prompt text for the nearest station (for player HUD display)
+## Get the interaction prompt text for the nearby station.
 func get_nearby_prompt(player: Node2D) -> String:
 	if _minigame_active:
 		return ""
@@ -479,6 +514,7 @@ func get_nearby_prompt(player: Node2D) -> String:
 			return _get_prompt_text(station_id, player)
 	return ""
 
+## Get context-specific prompt text for a station based on current state.
 func _get_prompt_text(station: Station, player: Node2D) -> String:
 	match station:
 		Station.SUPER_PALLET:
@@ -550,6 +586,7 @@ func _get_prompt_text(station: Station, player: Node2D) -> String:
 # =========================================================================
 # STATION ACTIONS
 # =========================================================================
+## Execute the action for the current active station.
 func _do_station_action(player: Node2D) -> void:
 	match _active_station:
 		Station.SUPER_PALLET:
@@ -562,6 +599,7 @@ func _do_station_action(player: Node2D) -> void:
 			_action_bottling(player)
 
 # -- Super Pallet: place super or start scraping --------------------------
+## Handle player interaction with the super pallet station.
 func _action_super_pallet(player: Node2D) -> void:
 	# If frames already on pallet, check for scraper to start minigame
 	if _frames_on_pallet.size() > 0:
@@ -617,6 +655,7 @@ func _action_super_pallet(player: Node2D) -> void:
 	queue_redraw()
 
 # -- Scraping Minigame Launch ---------------------------------------------
+## Start the scraping minigame overlay.
 func _start_scraping_minigame() -> void:
 	if _frames_on_pallet.size() == 0:
 		return
@@ -652,6 +691,7 @@ func _start_scraping_minigame() -> void:
 	if _scraping_overlay.has_signal("scraping_cancelled"):
 		_scraping_overlay.scraping_cancelled.connect(_on_scraping_cancelled)
 
+## Handle scraping minigame completion and frame processing.
 func _on_scraping_complete() -> void:
 	_minigame_active = false
 	if _scraping_overlay:
@@ -705,6 +745,7 @@ func _on_scraping_complete() -> void:
 	_try_give_beeswax()
 	queue_redraw()
 
+## Handle scraping minigame cancellation by the player.
 func _on_scraping_cancelled() -> void:
 	_minigame_active = false
 	if _scraping_overlay:
@@ -712,6 +753,7 @@ func _on_scraping_cancelled() -> void:
 		_scraping_overlay = null
 
 # -- Scraped Frame Pallet: place super box or pick up completed super -----
+## Handle player interaction with the scraped pallet station.
 func _action_scraped_pallet(player: Node2D) -> void:
 	# Pick up completed scraped super -> give to player as ITEM_SCRAPED_SUPER
 	if _scraped_super_ready:
@@ -754,6 +796,7 @@ func _action_scraped_pallet(player: Node2D) -> void:
 		_notify("Super box is ready. Scrape frames at the other pallet.")
 
 # -- Extractor: player must carry ITEM_SCRAPED_SUPER and drop it in -------
+## Handle player interaction with the extractor station.
 func _action_extractor(player: Node2D) -> void:
 	# If frames already loaded (from this carry action), run the minigame
 	if _frames_in_extractor > 0:
@@ -781,6 +824,7 @@ func _action_extractor(player: Node2D) -> void:
 	_start_extractor_minigame(player)
 
 @warning_ignore("unused_parameter")
+## Start the extractor minigame with honey extraction gauge.
 func _start_extractor_minigame(player: Node2D) -> void:
 	_minigame_active = true
 
@@ -804,6 +848,7 @@ func _start_extractor_minigame(player: Node2D) -> void:
 	if _extractor_overlay.has_signal("extraction_cancelled"):
 		_extractor_overlay.extraction_cancelled.connect(_on_extraction_cancelled)
 
+## Handle extractor minigame completion and honey collection.
 func _on_extraction_complete() -> void:
 	_minigame_active = false
 	if _extractor_overlay:
@@ -831,6 +876,7 @@ func _on_extraction_complete() -> void:
 	GameData.add_xp(GameData.XP_HARVEST)
 	queue_redraw()
 
+## Handle extractor minigame cancellation by the player.
 func _on_extraction_cancelled() -> void:
 	_minigame_active = false
 	if _extractor_overlay:
@@ -838,6 +884,7 @@ func _on_extraction_cancelled() -> void:
 		_extractor_overlay = null
 
 # -- Bottling Table: fill jars or collect filled jars ---------------------
+## Handle player interaction with the bottling table station.
 func _action_bottling(player: Node2D) -> void:
 	# -- Collect finished jars (bucket done or removed) -----------------------
 	if _jars_on_table > 0 and not _bucket_on_bottling_table:
@@ -888,6 +935,7 @@ func _action_bottling(player: Node2D) -> void:
 
 	_notify("No honey to bottle! Extract honey first.")
 
+## Collect filled jars from the bottling table into player inventory.
 func _collect_jars(player: Node2D) -> void:
 	if _jars_on_table <= 0:
 		return
@@ -907,6 +955,7 @@ func _collect_jars(player: Node2D) -> void:
 		_bucket_on_bottling_table = false
 	queue_redraw()
 
+## Start the bottling minigame with jar filling.
 func _start_bottling_minigame(player: Node2D) -> void:
 	# Check for empty jars in inventory
 	var jar_count: int = 0
@@ -951,6 +1000,7 @@ func _start_bottling_minigame(player: Node2D) -> void:
 	if _bottling_overlay.has_signal("bottling_cancelled"):
 		_bottling_overlay.bottling_cancelled.connect(_on_bottling_cancelled)
 
+## Handle bottling minigame completion and jar filling.
 func _on_bottling_complete(jars_filled: int) -> void:
 	_minigame_active = false
 	if _bottling_overlay:
@@ -964,6 +1014,7 @@ func _on_bottling_complete(jars_filled: int) -> void:
 	_notify("%d jars filled! Collect from table to sell." % jars_filled)
 	queue_redraw()
 
+## Handle bottling minigame cancellation, returning unused jars.
 func _on_bottling_cancelled(jars_filled: int, jars_unused: int) -> void:
 	_minigame_active = false
 	if _bottling_overlay:
@@ -988,8 +1039,7 @@ func _on_bottling_cancelled(jars_filled: int, jars_unused: int) -> void:
 # =========================================================================
 # BUCKET GRIP ACTION
 # =========================================================================
-## Player equips ITEM_BUCKET_GRIP and presses E near the honey bucket.
-## Transfers the full bucket to their inventory as ITEM_HONEY_BUCKET.
+## Player picks up the full bucket and adds it to inventory.
 func _action_pick_up_bucket(player: Node2D) -> void:
 	if not _bucket_at_yard or _bucket_honey_lbs < 1.0:
 		_notify("The bucket is empty -- nothing to carry.")
@@ -1018,22 +1068,26 @@ func _action_pick_up_bucket(player: Node2D) -> void:
 # =========================================================================
 # HELPERS
 # =========================================================================
+## Get the name of the item the player is currently holding.
 func _get_held_item(player: Node2D) -> String:
 	if player.has_method("get_active_item_name"):
 		return player.get_active_item_name()
 	return ""
 
+## Find the player node in the scene.
 func _find_player() -> Node2D:
 	var players: Array = get_tree().get_nodes_in_group("player")
 	if players.size() > 0:
 		return players[0] as Node2D
 	return null
 
+## Send a notification message to the NotificationManager.
 func _notify(msg: String) -> void:
 	var nm: Node = get_tree().root.get_node_or_null("NotificationManager")
 	if nm and nm.has_method("notify"):
 		nm.notify(msg)
 
+## Attempt to give collected beeswax to the player.
 func _try_give_beeswax() -> void:
 	if _bucket_beeswax_lbs < 1.0:
 		GameData.beeswax_fractional += _bucket_beeswax_lbs

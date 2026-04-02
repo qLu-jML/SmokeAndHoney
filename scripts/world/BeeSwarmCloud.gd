@@ -97,6 +97,7 @@ var _hive_entrance_local := Vector2(0.0, -4.0)
 #  LIFECYCLE
 # =============================================================================
 
+## Ready.
 func _ready() -> void:
 	# Load generic fallback -- breed-specific texture applied on first snapshot
 	_bee_tex = load("res://assets/sprites/fx/bee_particle.png") as Texture2D
@@ -137,6 +138,7 @@ func _set_breed(species: String) -> void:
 		if is_instance_valid(f["sprite"]):
 			f["sprite"].texture = _bee_tex
 
+## Process.
 func _process(delta: float) -> void:
 	# Smooth particle scores
 	_activity = lerp(_activity, _target_activity, LERP_SPEED * delta)

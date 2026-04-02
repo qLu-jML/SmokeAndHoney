@@ -144,6 +144,7 @@ var _total_cells_seen: int        = 0    # total cells examined so far
 # Public API
 # ------------------------------------------------------------------------------
 
+## Opens the inspection overlay for a hive node, initializing display and state.
 func open(hive_node: Node) -> void:
 	_hive = hive_node
 	_sim  = hive_node.get_node_or_null("HiveSimulation") as HiveSimulation
@@ -192,6 +193,7 @@ func open(hive_node: Node) -> void:
 # Lifecycle
 # ------------------------------------------------------------------------------
 
+## Initializes the inspection overlay UI and constructs all visual elements.
 func _ready() -> void:
 	layer = 10
 	add_to_group("inspection_overlay")
@@ -426,6 +428,20 @@ func _ready() -> void:
 	# there. This call guarantees the correct initial state.
 	_apply_tier_visibility()
 
+## Disconnects all signals when the node is removed from the scene tree.
+func _exit_tree() -> void:
+	if GameData.dev_labels_toggled.is_connected(_on_dev_toggled):
+		GameData.dev_labels_toggled.disconnect(_on_dev_toggled)
+	if _cell_rect and _cell_rect.mouse_entered.is_connected(_on_grid_mouse_entered):
+		_cell_rect.mouse_entered.disconnect(_on_grid_mouse_entered)
+	if _cell_rect and _cell_rect.mouse_exited.is_connected(_on_grid_mouse_exited):
+		_cell_rect.mouse_exited.disconnect(_on_grid_mouse_exited)
+	if _dev_day_btn and _dev_day_btn.pressed.is_connected(_on_dev_advance_day_inspection):
+		_dev_day_btn.pressed.disconnect(_on_dev_advance_day_inspection)
+	if _dev_month_btn and _dev_month_btn.pressed.is_connected(_on_dev_advance_month_inspection):
+		_dev_month_btn.pressed.disconnect(_on_dev_advance_month_inspection)
+
+## Builds the development mode day/month advance buttons.
 func _build_dev_advance_buttons(bg: Control) -> void:
 	var btn_w: int = 36
 	var btn_h: int = 11
@@ -463,6 +479,7 @@ func _build_dev_advance_buttons(bg: Control) -> void:
 	_dev_day_btn.visible   = vis
 	_dev_month_btn.visible = vis
 
+## Creates a styled development button.
 func _make_dev_btn(label: String, x: int, y: int, w: int, h: int, col: Color) -> Button:
 	var btn := Button.new()
 	btn.text = label
@@ -495,6 +512,7 @@ func _make_dev_btn(label: String, x: int, y: int, w: int, h: int, col: Color) ->
 	return btn
 
 # -- Dev advance: run one simulation day and refresh the inspection view -------
+## Advances simulation by one day during inspection.
 func _on_dev_advance_day_inspection() -> void:
 	_dev_sim_one_day()
 	_refresh_frame()
@@ -502,6 +520,7 @@ func _on_dev_advance_day_inspection() -> void:
 	_populate_bees()
 	_refresh_harvest_overlay()
 
+## Begins advancing simulation by one month.
 func _on_dev_advance_month_inspection() -> void:
 	if _dev_month_advancing:
 		return
@@ -518,6 +537,7 @@ func _on_dev_advance_month_inspection() -> void:
 	add_child(timer)
 	timer.start()
 
+## Ticks one day during month advancement.
 func _dev_month_tick_inspection(timer: Timer) -> void:
 	if _dev_month_days_left <= 0:
 		timer.stop()
@@ -536,6 +556,7 @@ func _dev_month_tick_inspection(timer: Timer) -> void:
 		timer.queue_free()
 		_dev_month_finish_inspection()
 
+## Completes the month advancement sequence.
 func _dev_month_finish_inspection() -> void:
 	_dev_month_advancing = false
 	if _dev_month_btn:
@@ -557,6 +578,7 @@ func _dev_sim_one_day() -> void:
 	TimeManager.start_new_day()
 	GameData.full_restore_energy()
 
+## Handles keyboard input for navigation and actions.
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
@@ -597,6 +619,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			GameData.toggle_dev_labels()
 	get_viewport().set_input_as_handled()
 
+## Handles mouse click input for queen finder.
 func _unhandled_input(event: InputEvent) -> void:
 	# Queen Finder Phase 2: click detection on bee overlay
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -617,6 +640,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			# Wrong bee -- feedback handled by BeeOverlay flash_timer
 			get_viewport().set_input_as_handled()
 
+## Updates frame per-frame (tooltip positioning, etc).
 func _process(delta: float) -> void:
 	_refresh_tooltip()
 	# Queen Finder Phase 2: update bee animations and render overlay
@@ -629,6 +653,7 @@ func _process(delta: float) -> void:
 # Tier Visibility -- called once from open() after _tier is resolved
 # ------------------------------------------------------------------------------
 
+## Shows or hides UI elements based on inspection tier.
 func _apply_tier_visibility() -> void:
 	# Stats sidebar: hidden at tier 1-2, visible at tier 3+
 	var show_stats: bool = _tier >= 3
@@ -665,6 +690,7 @@ func _on_dev_toggled(_visible: bool) -> void:
 # Frame Navigation
 # ------------------------------------------------------------------------------
 
+## Navigates to adjacent frames.
 func _navigate(dir: int) -> void:
 	if _sim == null:
 		return
@@ -680,6 +706,7 @@ func _navigate(dir: int) -> void:
 	_populate_bees()
 	_refresh_harvest_overlay()
 
+## Switches between brood box and super box.
 func _switch_box(dir: int) -> void:
 	if _sim == null or _sim.boxes.size() <= 1:
 		return
@@ -692,6 +719,7 @@ func _switch_box(dir: int) -> void:
 	_populate_bees()
 	_refresh_harvest_overlay()
 
+## Flips between front and back sides of the current frame.
 func _flip_side() -> void:
 	_current_side = 1 - _current_side
 	_refresh_frame()
@@ -785,6 +813,7 @@ func _resize_for_frame_type(is_super: bool) -> void:
 	if _harvest_label:
 		_harvest_label.position = Vector2(cell_x + 2, cell_y + 2)
 
+## Re-renders the current frame based on simulation state.
 func _refresh_frame() -> void:
 	if _sim == null or _renderer == null:
 		return
@@ -843,6 +872,7 @@ func _record_current_side() -> void:
 # Stats Panel -- tiered display (GDD S6.1.1)
 # ------------------------------------------------------------------------------
 
+## Updates the stats panel with current tier data.
 func _refresh_stats() -> void:
 	# Tiers 1-2: no stats panel shown (labels are hidden via _apply_tier_visibility)
 	if _tier < 3:
@@ -892,6 +922,7 @@ func _refresh_stats() -> void:
 
 # -- Tier 3: Qualitative natural-language descriptions -------------------------
 
+## Builds tier 3 qualitative stat rows.
 func _build_qualitative_rows(counts: Dictionary, snap: Dictionary, cells_seen: int) -> Array:
 	var denom: float = maxf(float(cells_seen), 1.0)
 	var brood: int = counts.get(CellStateTransition.S_EGG, 0) \
@@ -1018,6 +1049,7 @@ func _build_qualitative_rows(counts: Dictionary, snap: Dictionary, cells_seen: i
 
 # -- Tier 4: Approximate counts with ranges ------------------------------------
 
+## Builds tier 4 approximate stat rows.
 func _build_approximate_rows(counts: Dictionary, snap: Dictionary, cells_seen: int) -> Array:
 	var denom: float = maxf(float(cells_seen), 1.0)
 	var eggs: int    = counts.get(CellStateTransition.S_EGG, 0)
@@ -1124,6 +1156,7 @@ func _build_approximate_rows(counts: Dictionary, snap: Dictionary, cells_seen: i
 
 # -- Tier 5: Master -- dynamic %s per frame, queen rank, qualitative pops ------
 
+## Builds tier 5 exact stat rows.
 func _build_exact_rows(counts: Dictionary, snap: Dictionary, cells_seen: int) -> Array:
 	# Accumulated percentages (grow as the player inspects more frame sides)
 	var denom: float = maxf(float(cells_seen), 1.0)
@@ -1314,6 +1347,7 @@ func _build_dev_rows(counts: Dictionary, snap: Dictionary) -> Array:
 # Mouse Tooltip -- tiered display (GDD S6.1.1)
 # ------------------------------------------------------------------------------
 
+## Handles mouse entry into the cell grid.
 func _on_grid_mouse_entered() -> void:
 	# Tier 1: no tooltip at all
 	if _tier < 2:
@@ -1321,10 +1355,12 @@ func _on_grid_mouse_entered() -> void:
 	if _tooltip_panel:
 		_tooltip_panel.visible = true
 
+## Handles mouse exit from the cell grid.
 func _on_grid_mouse_exited() -> void:
 	if _tooltip_panel:
 		_tooltip_panel.visible = false
 
+## Updates the tooltip text based on mouse position.
 func _refresh_tooltip() -> void:
 	# Tier 1: tooltip never shown
 	if _tier < 2:
@@ -1600,6 +1636,7 @@ func _confirm_mark_despite_fermentation() -> void:
 	_dismiss_fermentation_warning()
 	_refresh_harvest_overlay()
 
+## Dismisses the fermentation warning dialog.
 func _dismiss_fermentation_warning() -> void:
 	if _ferment_dialog:
 		_ferment_dialog.queue_free()
@@ -1661,6 +1698,7 @@ func _show_temp_message(msg: String) -> void:
 # Harvest shortcut from inside the overlay
 # ------------------------------------------------------------------------------
 
+## Harvests frames marked from the inspection view.
 func _harvest_from_overlay() -> void:
 	if not _hive or not _hive.has_method("harvest_honey"):
 		return

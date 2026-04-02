@@ -333,18 +333,21 @@ func apply_to_scene(scene_root: Node) -> void:
 # COLLECTION HELPERS  (save-side)
 # ==============================================================================
 
+## Returns the first player node in the scene, or null if not found.
 func _find_player() -> Node:
 	var players := get_tree().get_nodes_in_group("player")
 	return players[0] if players.size() > 0 else null
 
+## Returns the dandelion spawner node from the scene, or null if not present.
 func _find_dandelion_spawner() -> Node:
 	return get_tree().get_first_node_in_group("dandelion_spawner")
 
 
+## Collects player position and inventory for save file.
 func _collect_player(player: Node) -> Dictionary:
 	var pos: Vector2 = (player as Node2D).global_position
 	# inventory is an Array[20] of slots -- each is null or {item:str, count:int}.
-	var inv: Array = []
+	var inv: Array[Variant] = []
 	if "inventory" in player:
 		inv = (player.inventory as Array).duplicate(true)
 	return {
@@ -354,8 +357,9 @@ func _collect_player(player: Node) -> Dictionary:
 	}
 
 
+## Collects all hives in the scene for save file.
 func _collect_hives() -> Array:
-	var out: Array = []
+	var out: Array[Dictionary] = []
 	for hive_node in get_tree().get_nodes_in_group("hive"):
 		var sim: HiveSimulation = hive_node.get_node_or_null("HiveSimulation")
 		if sim == null:
@@ -376,6 +380,7 @@ func _collect_hives() -> Array:
 	return out
 
 
+## Collects all simulation state from a HiveSimulation for save file.
 func _collect_sim(sim: HiveSimulation) -> Dictionary:
 	return {
 		# -- Age / lifecycle ---------------------------------------------------
@@ -404,15 +409,17 @@ func _collect_sim(sim: HiveSimulation) -> Dictionary:
 	}
 
 
+## Collects all hive boxes for save file.
 func _collect_boxes(boxes: Array) -> Array:
-	var out: Array = []
+	var out: Array[Dictionary] = []
 	for box in boxes:
 		out.append(_collect_box(box as HiveSimulation.HiveBox))
 	return out
 
 
+## Collects frame data from a single hive box for save file.
 func _collect_box(box: HiveSimulation.HiveBox) -> Dictionary:
-	var frames_out: Array = []
+	var frames_out: Array[Dictionary] = []
 	for frame in box.frames:
 		var f: HiveSimulation.HiveFrame = frame as HiveSimulation.HiveFrame
 		frames_out.append({
@@ -426,8 +433,9 @@ func _collect_box(box: HiveSimulation.HiveBox) -> Dictionary:
 	}
 
 
+## Collects all flower patches in the scene for save file.
 func _collect_flowers() -> Array:
-	var out: Array = []
+	var out: Array[Dictionary] = []
 	for flower in get_tree().get_nodes_in_group("flowers"):
 		var fp: Vector2 = (flower as Node2D).global_position
 		out.append({
@@ -440,6 +448,7 @@ func _collect_flowers() -> Array:
 	return out
 
 
+## Collects dandelion spawner state for save file.
 func _collect_dandelion_spawner(spawner: Node) -> Dictionary:
 	return {
 		"current_year":          spawner.current_year,
@@ -451,9 +460,10 @@ func _collect_dandelion_spawner(spawner: Node) -> Dictionary:
 	}
 
 
+## Collects NPC state flags for save file.
 func _collect_npc_flags() -> Dictionary:
 	var flags: Dictionary = {}
-	var bob := get_tree().get_first_node_in_group("uncle_bob")
+	var bob: Node = get_tree().get_first_node_in_group("uncle_bob")
 	if bob and "_hint_index" in bob:
 		flags["uncle_bob_hint_index"] = bob._hint_index
 	return flags
@@ -463,6 +473,7 @@ func _collect_npc_flags() -> Dictionary:
 # APPLY HELPERS  (load-side)
 # ==============================================================================
 
+## Applies game data from save file to GameData autoload.
 func _apply_game_data(gd: Dictionary) -> void:
 	GameData.money             = float(gd.get("money",             500.0))
 	GameData.player_level      = int(gd.get("player_level",        1))
@@ -485,6 +496,7 @@ func _apply_game_data(gd: Dictionary) -> void:
 	GameData.energy_changed.emit(GameData.energy)
 
 
+## Instantiates and applies all hive data to the world.
 func _apply_hives(hive_data: Array, world: Node) -> void:
 	for entry in hive_data:
 		# Instantiate the Hive scene.  Because World is already in the scene
@@ -506,6 +518,7 @@ func _apply_hives(hive_data: Array, world: Node) -> void:
 				_apply_sim(entry["sim"], sim)
 
 
+## Applies simulation state to a HiveSimulation instance.
 func _apply_sim(sd: Dictionary, sim: HiveSimulation) -> void:
 	# -- Scalar population / store fields -------------------------------------
 	sim.days_elapsed           = int(sd.get("days_elapsed",           0))
@@ -533,6 +546,7 @@ func _apply_sim(sd: Dictionary, sim: HiveSimulation) -> void:
 	sim.last_snapshot = SnapshotWriter.write(sim, sim._calculate_health_score())
 
 
+## Applies frame and cell data to hive boxes.
 func _apply_boxes(boxes_data: Array, sim: HiveSimulation) -> void:
 	sim.boxes = []
 	for box_data in boxes_data:
@@ -547,7 +561,7 @@ func _apply_boxes(boxes_data: Array, sim: HiveSimulation) -> void:
 			box.frames.append(HiveSimulation.HiveFrame.new())
 
 		for i in range(mini(box.frames.size(), frames_data.size())):
-			var fd: Dictionary              = frames_data[i]
+			var fd: Dictionary = frames_data[i]
 			var frame: HiveSimulation.HiveFrame = box.frames[i]
 			if fd.has("cells_b64"):
 				# Marshalls.base64_to_raw() returns a PackedByteArray.
@@ -556,13 +570,14 @@ func _apply_boxes(boxes_data: Array, sim: HiveSimulation) -> void:
 				frame.cell_age = Marshalls.base64_to_raw(fd["cell_age_b64"])
 
 
+## Applies player position and inventory from save file.
 func _apply_player(pd: Dictionary, player: Node) -> void:
 	if pd.has("position_x") and pd.has("position_y"):
 		(player as Node2D).global_position = Vector2(
 			float(pd["position_x"]), float(pd["position_y"])
 		)
 	if pd.has("inventory") and "inventory" in player:
-		var raw: Array = pd["inventory"]
+		var raw: Array[Variant] = pd["inventory"]
 		player.inventory.resize(player.INVENTORY_SIZE)
 		player.inventory.fill(null)
 		for i in range(mini(raw.size(), player.INVENTORY_SIZE)):
@@ -574,6 +589,7 @@ func _apply_player(pd: Dictionary, player: Node) -> void:
 			player.sync_inventory_to_gamedata()
 
 
+## Instantiates and applies all flower patches to the world.
 func _apply_flowers(flowers_data: Array, world: Node) -> void:
 	for fd in flowers_data:
 		var flower_node: Node2D = FLOWER_SCENE.instantiate()
@@ -591,6 +607,7 @@ func _apply_flowers(flowers_data: Array, world: Node) -> void:
 			flower_node.update_appearance()
 
 
+## Applies forage manager state from save file.
 func _apply_forage_manager(fm: Dictionary) -> void:
 	# Write internal fields directly.  Normally set via set_dandelion_bloom()
 	# by DandelionSpawner, but on load we bypass the roll entirely.
@@ -600,6 +617,7 @@ func _apply_forage_manager(fm: Dictionary) -> void:
 	ForageManager._goldenrod_was_good = bool(fm.get("goldenrod_was_good", false))
 
 
+## Applies dandelion spawner state from save file and re-spawns visible dandelions.
 func _apply_dandelion_spawner(ds: Dictionary, spawner: Node) -> void:
 	spawner.current_year          = int(ds.get("current_year",         -1))
 	spawner.current_outcome       = str(ds.get("current_outcome",      ""))
@@ -619,6 +637,7 @@ func _apply_dandelion_spawner(ds: Dictionary, spawner: Node) -> void:
 	# will trigger the bloom on the correct in-game day.
 
 
+## Applies quest state from save file.
 func _apply_quest_manager(qm: Dictionary) -> void:
 	if qm.has("active_quests"):
 		QuestManager.active_quests    = (qm["active_quests"]    as Dictionary).duplicate()
@@ -628,8 +647,9 @@ func _apply_quest_manager(qm: Dictionary) -> void:
 		QuestManager.quest_notes      = (qm["quest_notes"]      as Dictionary).duplicate()
 
 
+## Applies NPC state flags from save file.
 func _apply_npc_flags(flags: Dictionary) -> void:
 	# Uncle Bob: restore hint rotation so he continues from where he left off.
-	var bob := get_tree().get_first_node_in_group("uncle_bob")
+	var bob: Node = get_tree().get_first_node_in_group("uncle_bob")
 	if bob and flags.has("uncle_bob_hint_index"):
 		bob._hint_index = int(flags["uncle_bob_hint_index"])

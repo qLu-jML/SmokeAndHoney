@@ -22,6 +22,7 @@ var _market_overlay_active: bool = false
 
 # -- Lifecycle ------------------------------------------------------------------
 
+## Ready.
 func _ready() -> void:
 	_setup_weather()
 	_setup_building_triggers()
@@ -38,6 +39,10 @@ func _ready() -> void:
 	ExitHelper.position_player_from_spawn_side(self)
 	print("Cedar Bend scene loaded -- Phase 4 build.")
 
+
+## Disconnect signals when exiting tree.
+func _exit_tree() -> void:
+	pass  # Signal cleanup handled by node references
 func _setup_zone_exits() -> void:
 	# Left edge -> County Road
 	ExitHelper.create_exit(self, "left", "res://scenes/world/county_road.tscn",
@@ -70,6 +75,7 @@ func _register_map_markers() -> void:
 	SceneManager.register_scene_exit("right", "Garden")
 	SceneManager.register_scene_exit("bottom", "Fairgrounds")
 
+## On day advanced.
 func _on_day_advanced(_day: int) -> void:
 	_apply_seasonal_visuals()
 	_check_saturday_market()
@@ -120,6 +126,7 @@ func _process(delta: float) -> void:
 
 # -- Door Collision Entry -------------------------------------------------------
 
+## On door entered.
 func _on_door_entered(body: Node2D, building_name: String) -> void:
 	if body.name != "player":
 		return

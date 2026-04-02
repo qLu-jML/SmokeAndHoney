@@ -1,4 +1,4 @@
-# map_overlay.gd -- Scene-level minimap showing current location detail.
+# map_overlay.gd - Scene-level minimap showing current location detail.
 # Opened by pressing M from any scene via SceneManager.
 # Shows a STATIC scaled view of the current zone with:
 #   - Fixed scene bounds (set per scene, never changes while map is open)
@@ -8,7 +8,7 @@
 # Navigation is done by WALKING, not clicking the map.
 #
 # Rendering approach: uses a single Control with _draw() for all dynamic
-# content (POIs, exits, player dot).  This avoids child-node z-ordering
+# content (POIs, exits, player dot). This avoids child-node z-ordering
 # issues that caused markers to be invisible in earlier versions.
 extends CanvasLayer
 
@@ -43,30 +43,33 @@ var _header_label: Label = null
 var _draw_layer: Control = null   # custom-draw surface for POIs/exits/player
 var _footer_label: Label = null
 
+## Initialize the map overlay.
 func _ready() -> void:
 	layer = 20
 	visible = false
 	_build_ui()
 
+## Update player position on the map every frame.
 func _process(_delta: float) -> void:
 	if not visible:
 		return
-	# Player dot moves every frame -- trigger redraw
+	# Player dot moves every frame - trigger redraw
 	if _draw_layer:
 		_draw_layer.queue_redraw()
 
 # -- UI Build (one-time shell) -------------------------------------------------
 
+## Build the map UI panel with all static elements.
 func _build_ui() -> void:
 	# Full-screen dim background
-	var bg_dim := ColorRect.new()
+	var bg_dim: ColorRect = ColorRect.new()
 	bg_dim.color = Color(0, 0, 0, 0.6)
 	bg_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg_dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(bg_dim)
 
 	# Gold border
-	var border := ColorRect.new()
+	var border: ColorRect = ColorRect.new()
 	border.size = Vector2(MAP_W + 4, MAP_H + 4)
 	border.position = Vector2(MAP_X - 2, MAP_Y - 2)
 	border.color = Color(0.72, 0.55, 0.22, 1.0)
@@ -92,7 +95,7 @@ func _build_ui() -> void:
 	_panel.add_child(_header_label)
 
 	# Map area background (dark fill inside the border)
-	var map_bg := ColorRect.new()
+	var map_bg: ColorRect = ColorRect.new()
 	map_bg.size = Vector2(AREA_W, AREA_H)
 	map_bg.position = Vector2(AREA_X, AREA_Y)
 	map_bg.color = Color(0.14, 0.12, 0.08, 1.0)
@@ -100,7 +103,7 @@ func _build_ui() -> void:
 	_panel.add_child(map_bg)
 
 	# Map area border (thin outline)
-	var ab := ColorRect.new()
+	var ab: ColorRect = ColorRect.new()
 	ab.size = Vector2(AREA_W + 2, AREA_H + 2)
 	ab.position = Vector2(AREA_X - 1, AREA_Y - 1)
 	ab.color = Color(0.45, 0.35, 0.18, 0.7)
@@ -108,7 +111,7 @@ func _build_ui() -> void:
 	ab.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_panel.add_child(ab)
 
-	# Custom draw layer -- ALL dynamic content (POIs, exits, player) goes here.
+	# Custom draw layer - ALL dynamic content (POIs, exits, player) goes here.
 	# This Control sits on top of the map background and draws everything
 	# in its _draw() callback, avoiding child-node rendering issues.
 	_draw_layer = Control.new()
@@ -134,11 +137,12 @@ func _build_ui() -> void:
 
 # -- Load scene data from SceneManager ----------------------------------------
 
+## Load POI and exit data from SceneManager.
 func _load_scene_data() -> void:
 	_pois.clear()
 	_exits.clear()
 
-	var sm = get_node_or_null("/root/SceneManager")
+	var sm: Node = get_node_or_null("/root/SceneManager")
 	if not sm:
 		print("[MapOverlay] ERROR: SceneManager not found!")
 		return
@@ -159,7 +163,7 @@ func _load_scene_data() -> void:
 			_pois.append(p.duplicate())
 	if sm.has_method("get_scene_exits"):
 		var raw_exits: Array = sm.get_scene_exits()
-		for e in raw_exits:
+		for e: Dictionary in raw_exits:
 			_exits.append(e.duplicate())
 
 	print("[MapOverlay] Loaded %d POIs, %d exits" % [_pois.size(), _exits.size()])
@@ -171,13 +175,15 @@ func _load_scene_data() -> void:
 
 # -- Custom Draw (all POIs, exits, player rendered here) -----------------------
 
+## Draw all map content (exits, POIs, player).
 func _on_draw_layer_draw() -> void:
 	_draw_exits_on(_draw_layer)
 	_draw_pois_on(_draw_layer)
 	_draw_player_on(_draw_layer)
 
+## Draw all POI markers on the map.
 func _draw_pois_on(ctrl: Control) -> void:
-	for poi in _pois:
+	for poi: Dictionary in _pois:
 		var map_pos: Vector2 = _world_to_map(poi["pos"])
 		map_pos = _clamp_to_area(map_pos)
 		var col: Color = poi.get("color", Color(0.85, 0.72, 0.35, 1.0))
@@ -195,8 +201,9 @@ func _draw_pois_on(ctrl: Control) -> void:
 		var text_pos: Vector2 = Vector2(map_pos.x - text_size.x * 0.5, map_pos.y - 8)
 		ctrl.draw_string(font, text_pos, label_text, HORIZONTAL_ALIGNMENT_LEFT, -1, fsize, col)
 
+## Draw all exit markers on the map edges.
 func _draw_exits_on(ctrl: Control) -> void:
-	for ex in _exits:
+	for ex: Dictionary in _exits:
 		var edge: String = ex.get("edge", "right")
 		var dest: String = ex.get("label", "???")
 		var world_pos: Vector2 = EXIT_WORLD_POS.get(edge, Vector2.ZERO)
@@ -215,7 +222,7 @@ func _draw_exits_on(ctrl: Control) -> void:
 		map_pos = _clamp_to_area(map_pos)
 
 		# Orange stripe along exit edge
-		var stripe_color := Color(1.0, 0.6, 0.15, 0.35)
+		var stripe_color: Color = Color(1.0, 0.6, 0.15, 0.35)
 		match edge:
 			"right":
 				ctrl.draw_rect(Rect2(AREA_X + AREA_W - 5, AREA_Y, 5, AREA_H), stripe_color)
@@ -227,7 +234,7 @@ func _draw_exits_on(ctrl: Control) -> void:
 				ctrl.draw_rect(Rect2(AREA_X, AREA_Y + AREA_H - 4, AREA_W, 4), stripe_color)
 
 		# Arrow glyph
-		var arrow_text := ""
+		var arrow_text: String = ""
 		match edge:
 			"right":  arrow_text = ">>"
 			"left":   arrow_text = "<<"
@@ -242,9 +249,9 @@ func _draw_exits_on(ctrl: Control) -> void:
 			Color(1.0, 0.65, 0.15, 1.0))
 
 		# Destination label
-		var dest_text := "to " + dest
+		var dest_text: String = "to " + dest
 		var dest_size: Vector2 = font.get_string_size(dest_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 6)
-		var dest_pos := Vector2.ZERO
+		var dest_pos: Vector2 = Vector2.ZERO
 		match edge:
 			"right":
 				dest_pos = Vector2(map_pos.x - dest_size.x - 4, map_pos.y + 3)
@@ -258,6 +265,7 @@ func _draw_exits_on(ctrl: Control) -> void:
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 6,
 			Color(1.0, 0.70, 0.25, 0.95))
 
+## Draw the player position dot on the map.
 func _draw_player_on(ctrl: Control) -> void:
 	var player: Node2D = _find_player()
 	if not player:
@@ -281,6 +289,7 @@ func _draw_player_on(ctrl: Control) -> void:
 
 # -- Coordinate Mapping --------------------------------------------------------
 
+## Convert world position to map panel coordinates.
 func _world_to_map(world_pos: Vector2) -> Vector2:
 	var bw: float = _bounds.size.x
 	var bh: float = _bounds.size.y
@@ -294,11 +303,13 @@ func _world_to_map(world_pos: Vector2) -> Vector2:
 	ny = clampf(ny, 0.0, 1.0)
 	return Vector2(AREA_X + nx * AREA_W, AREA_Y + ny * AREA_H)
 
+## Clamp position to stay within the map drawing area.
 func _clamp_to_area(pos: Vector2) -> Vector2:
 	pos.x = clampf(pos.x, AREA_X + 4, AREA_X + AREA_W - 4)
 	pos.y = clampf(pos.y, AREA_Y + 4, AREA_Y + AREA_H - 4)
 	return pos
 
+## Find the player node in the scene.
 func _find_player() -> Node2D:
 	var tree: SceneTree = get_tree()
 	if not tree:
@@ -310,18 +321,21 @@ func _find_player() -> Node2D:
 
 # -- Public API ----------------------------------------------------------------
 
+## Open the map overlay and load current scene data.
 func open() -> void:
 	_load_scene_data()
 	visible = true
 	if _draw_layer:
 		_draw_layer.queue_redraw()
 
+## Close the map overlay and notify SceneManager.
 func close() -> void:
 	visible = false
-	var sm = get_node_or_null("/root/SceneManager")
+	var sm: Node = get_node_or_null("/root/SceneManager")
 	if sm:
 		sm._map_open = false
 
+## Handle input events for map controls (ESC to close).
 func _input(event: InputEvent) -> void:
 	if not visible:
 		return

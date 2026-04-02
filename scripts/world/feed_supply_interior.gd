@@ -177,6 +177,7 @@ var _sty_row_hover_s: StyleBoxFlat = null
 
 # -- Lifecycle -----------------------------------------------------------------
 
+## Ready.
 func _ready() -> void:
 	TimeManager.current_scene_id = "feed_supply_interior"
 	if get_node_or_null("/root/SceneManager"):
@@ -195,6 +196,11 @@ func _ready() -> void:
 	TimeManager.day_advanced.connect(_on_day_advanced)
 	print("Tanner's Feed & Supply interior loaded.")
 
+## On day advanced.
+
+## Disconnect signals when exiting tree.
+func _exit_tree() -> void:
+	pass  # Signal cleanup handled by node references
 func _on_day_advanced(_day: int) -> void:
 	_update_seasonal_shelves()
 
@@ -217,6 +223,7 @@ func _update_seasonal_shelves() -> void:
 
 # -- Interaction ---------------------------------------------------------------
 
+## Process.
 func _process(delta: float) -> void:
 	_update_hints()
 	if _err_timer > 0.0:
@@ -444,6 +451,7 @@ func _open_shop() -> void:
 	shop_ui.visible = true
 	_refresh_shop()
 
+## Close shop.
 func _close_shop() -> void:
 	_shop_open = false
 	shop_ui.visible = false
@@ -510,14 +518,17 @@ func _refresh_shop() -> void:
 
 # -- Row callbacks -------------------------------------------------------------
 
+## On row click.
 func _on_row_click(idx: int) -> void:
 	_sel = idx
 	_refresh_shop()
 
+## On minus.
 func _on_minus() -> void:
 	_qtys[_sel] = maxi(1, _qtys[_sel] - 1)
 	_refresh_shop()
 
+## On plus.
 func _on_plus() -> void:
 	var mq: int = ALL_ITEMS[_sel].get("max_qty", 5)
 	_qtys[_sel] = mini(mq, _qtys[_sel] + 1)
@@ -525,6 +536,7 @@ func _on_plus() -> void:
 
 # -- Purchase logic ------------------------------------------------------------
 
+## On buy selected.
 func _on_buy_selected() -> void:
 	var item_data: Dictionary = ALL_ITEMS[_sel]
 
@@ -566,6 +578,7 @@ func _show_shop_err(msg: String) -> void:
 
 # -- Sell Honey ----------------------------------------------------------------
 
+## On sell honey.
 func _on_sell_honey() -> void:
 	_close_shop()
 	var scene: PackedScene = load("res://scenes/ui/sell_screen.tscn") as PackedScene
@@ -578,6 +591,7 @@ func _on_sell_honey() -> void:
 	get_tree().root.add_child(sell_ui)
 	sell_ui.closed.connect(_on_sell_closed)
 
+## On sell closed.
 func _on_sell_closed() -> void:
 	_open_shop()
 

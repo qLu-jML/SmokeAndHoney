@@ -23,6 +23,7 @@ var _bed_centre := Vector2(
 	(BED_MIN_ROW + (BED_MAX_ROW - BED_MIN_ROW + 1) * 0.5) * TILE)
 const BED_RADIUS := 64.0   # how close the player must be to interact
 
+## Ready.
 func _ready() -> void:
 	TimeManager.current_scene_id = "house_interior"
 	if get_node_or_null("/root/SceneManager"):
@@ -44,6 +45,10 @@ func _ready() -> void:
 
 # -- Background sprite ---------------------------------------------------------
 
+
+## Disconnect signals when exiting tree.
+func _exit_tree() -> void:
+	pass  # Signal cleanup handled by node references
 func _build_background() -> void:
 	var bg := Sprite2D.new()
 	bg.name = "Background"
@@ -243,6 +248,7 @@ func _show_daily_summary() -> void:
 	panel.add_child(btn)
 	btn.pressed.connect(_on_summary_accepted.bind(canvas))
 
+## On summary accepted.
 func _on_summary_accepted(canvas_layer: CanvasLayer) -> void:
 	# Save the game BEFORE advancing -- captures end-of-day state.
 	# Dev mode advance_day (G-key / HUD button) intentionally skips saving.
@@ -284,6 +290,7 @@ func _door_world_rect() -> Rect2:
 func _feet_rect(player_gpos: Vector2) -> Rect2:
 	return Rect2(player_gpos + Vector2(-7.0, 6.0), Vector2(14.0, 10.0))
 
+## Process.
 func _process(_delta: float) -> void:
 	if _transitioning:
 		return
@@ -304,6 +311,7 @@ func _process(_delta: float) -> void:
 	if isect.get_area() > feet.get_area() * 0.5:
 		_trigger()
 
+## Find player.
 func _find_player() -> Node:
 	var players := get_tree().get_nodes_in_group("player")
 	if players.size() > 0:

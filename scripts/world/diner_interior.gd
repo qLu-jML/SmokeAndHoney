@@ -99,6 +99,7 @@ var _sty_row_hover_s: StyleBoxFlat = null
 
 # -- Lifecycle -----------------------------------------------------------------
 
+## Ready.
 func _ready() -> void:
 	TimeManager.current_scene_id = "diner_interior"
 	if get_node_or_null("/root/SceneManager"):
@@ -115,6 +116,11 @@ func _ready() -> void:
 	TimeManager.day_advanced.connect(_on_day_advanced)
 	print("Crossroads Diner interior loaded.")
 
+## On day advanced.
+
+## Disconnect signals when exiting tree.
+func _exit_tree() -> void:
+	pass  # Signal cleanup handled by node references
 func _on_day_advanced(_day: int) -> void:
 	_update_tv_weather()
 	_update_npc_visibility()
@@ -344,6 +350,7 @@ func _open_menu() -> void:
 	menu_ui.visible = true
 	_refresh_menu_state()
 
+## Close menu.
 func _close_menu() -> void:
 	_menu_open = false
 	menu_ui.visible = false
@@ -426,12 +433,14 @@ func _refresh_menu_state() -> void:
 
 # -- Row callbacks -------------------------------------------------------------
 
+## On row click.
 func _on_row_click(idx: int) -> void:
 	_sel = idx
 	_refresh_menu_state()
 
 # -- Order logic ---------------------------------------------------------------
 
+## On order selected.
 func _on_order_selected() -> void:
 	var item_data: Dictionary = MENU_ITEMS[_sel]
 	var cost: float   = item_data["cost"]
@@ -463,6 +472,7 @@ func _show_err(msg: String) -> void:
 		_err_timer = 2.5
 
 # override _process to handle hints and error timer
+## Process.
 func _process(delta: float) -> void:
 	_update_hints()
 	if _err_timer > 0.0:

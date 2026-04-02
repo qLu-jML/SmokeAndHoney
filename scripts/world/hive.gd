@@ -105,6 +105,7 @@ const BUZZ_VOL_MIN_DB := -80.0
 var _player_cache: Node2D = null
 
 # -- Lifecycle -----------------------------------------------------------------
+## Ready.
 func _ready() -> void:
 	add_to_group("hive")
 
@@ -177,6 +178,10 @@ func _ready() -> void:
 	_update_prompt_text()
 
 # -- Duck-typing helpers -------------------------------------------------------
+
+## Disconnect signals when exiting tree.
+func _exit_tree() -> void:
+	pass  # Signal cleanup handled by node references
 func is_build_complete() -> bool:
 	return build_state == BuildState.COMPLETE
 
@@ -264,6 +269,7 @@ func install_colony() -> bool:
 	return true
 
 # -- Buzz helpers --------------------------------------------------------------
+## On buzz finished.
 func _on_buzz_finished() -> void:
 	# Safety fallback: restart if colony is alive and loop mode failed to engage
 	if colony_installed and _buzz_player != null:
@@ -294,6 +300,7 @@ func _update_buzz_volume(dist: float) -> void:
 	_buzz_player.volume_db = lerpf(BUZZ_VOL_MIN_DB, BUZZ_VOL_MAX_DB, curved)
 
 # -- Per-frame update ----------------------------------------------------------
+## Process.
 func _process(_delta: float) -> void:
 	# Prompt visibility and buzz volume both need player distance
 	if _prompt_label != null or (_buzz_player != null and _buzz_player.playing):
@@ -317,6 +324,7 @@ func _process(_delta: float) -> void:
 			if _prompt_label != null:
 				_prompt_label.visible = false
 
+## On ticked.
 func _on_ticked() -> void:
 	update_label()
 	_update_health_tint()

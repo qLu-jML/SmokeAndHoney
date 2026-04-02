@@ -213,37 +213,37 @@ func roll_daily_weather() -> void:
 		TimeManager.current_day, current_weather, current_temp_f,
 		current_wind_mph, current_humidity * 100.0])
 
-## Reset monthly rain counter (called on month change).
+## Resets monthly rain counter. Called when TimeManager emits month_changed signal.
 func _on_month_changed(_month_name: String) -> void:
 	_rain_days_this_month = 0
 
-## Get the foraging multiplier for current weather.
+## Returns the foraging multiplier (0.0-1.0) for the current weather state.
 func get_forage_multiplier() -> float:
 	return FORAGE_MULTIPLIER.get(current_weather, 1.0)
 
-## Can the player inspect hives right now?
+## Returns true if the player can currently inspect hives based on weather conditions.
 func can_inspect() -> bool:
 	var rules: Dictionary = INSPECTION_RULES.get(current_weather, {"allowed": true})
 	return rules["allowed"]
 
-## Get sting chance multiplier from weather.
+## Returns the sting chance multiplier based on the current weather state.
 func get_sting_multiplier() -> float:
 	var rules: Dictionary = INSPECTION_RULES.get(current_weather, {"sting_mult": 1.0})
 	return rules["sting_mult"]
 
-## Get the visual tint data for the current weather.
+## Returns the visual tint (color and overlay_alpha) for the current weather state.
 func get_tint_data() -> Dictionary:
 	return WEATHER_TINTS.get(current_weather, WEATHER_TINTS["Sunny"])
 
-## Is it currently raining? (Used by rain particle system)
+## Returns true if it is currently raining (used by rain particle system).
 func is_raining() -> bool:
 	return current_weather == "Rainy"
 
-## Is it snowing? (Rain in winter months becomes snow visually)
+## Returns true if it is snowing (rainy in winter months is rendered as snow).
 func is_snowing() -> bool:
 	return current_weather == "Rainy" and TimeManager.current_month_index() >= 6
 
-## Get a short description for the HUD weather display.
+## Returns a short description of current weather for HUD display.
 func get_weather_description() -> String:
 	match current_weather:
 		"Sunny":    return "Sunny, %.0fF" % current_temp_f
@@ -259,7 +259,7 @@ func get_weather_description() -> String:
 		"Foggy":    return "Foggy, %.0fF" % current_temp_f
 	return "%.0fF" % current_temp_f
 
-## Get weather icon text (placeholder until art assets are ready).
+## Returns weather icon text placeholder (until art assets are ready).
 func get_weather_icon_text() -> String:
 	match current_weather:
 		"Sunny":    return "Sun"
@@ -279,6 +279,7 @@ func get_weather_icon_text() -> String:
 # SERIALIZATION (called by SaveManager)
 # ============================================================================
 
+## Collects weather state for save file (called by SaveManager).
 func collect_save_data() -> Dictionary:
 	return {
 		"current_weather":      current_weather,
@@ -290,6 +291,7 @@ func collect_save_data() -> Dictionary:
 		"last_rain_day":        _last_rain_day,
 	}
 
+## Applies weather state from save file (called by SaveManager).
 func apply_save_data(data: Dictionary) -> void:
 	current_weather      = str(data.get("current_weather", "Sunny"))
 	current_temp_f       = float(data.get("current_temp_f", 65.0))
@@ -307,6 +309,9 @@ func apply_save_data(data: Dictionary) -> void:
 
 func _ready() -> void:
 	TimeManager.month_changed.connect(_on_month_changed)
+
+func _exit_tree() -> void:
+	TimeManager.month_changed.disconnect(_on_month_changed)
 
 # ============================================================================
 # INTERNAL

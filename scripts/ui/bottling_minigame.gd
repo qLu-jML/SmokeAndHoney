@@ -1,4 +1,4 @@
-# bottling_minigame.gd -- Honey jar filling minigame overlay.
+# bottling_minigame.gd - Honey jar filling minigame overlay.
 # Player presses E to open the honey gate. Honey fills the jar visually.
 # When the jar is full, it auto-stops and places the jar on the table.
 # Jars stack in groups of 10. Player fills up to 40 jars per session.
@@ -50,12 +50,14 @@ const TABLE_H := 100
 # =========================================================================
 # LIFECYCLE
 # =========================================================================
+## Initialize the bottling minigame UI and load metadata.
 func _ready() -> void:
 	# Read meta data passed from harvest_yard
 	_honey_available = get_meta("honey_available", 0.0) as float
 	_jars_available = get_meta("jars_available", 0) as int
 	_build_ui()
 
+## Build all UI elements for the bottling minigame.
 func _build_ui() -> void:
 	# Background
 	_bg = ColorRect.new()
@@ -72,7 +74,7 @@ func _build_ui() -> void:
 	add_child(_title_label)
 
 	# Honey gate area (above jar)
-	var gate_label := Label.new()
+	var gate_label: Label = Label.new()
 	gate_label.text = "Honey Gate"
 	gate_label.add_theme_font_size_override("font_size", 4)
 	gate_label.add_theme_color_override("font_color", Color(0.7, 0.65, 0.5))
@@ -93,7 +95,7 @@ func _build_ui() -> void:
 	add_child(_jar_bg)
 
 	# Jar border
-	var jar_border := ColorRect.new()
+	var jar_border: ColorRect = ColorRect.new()
 	jar_border.color = Color(0.5, 0.55, 0.58, 0.8)
 	jar_border.size = Vector2(JAR_W + 4, JAR_H + 4)
 	jar_border.position = Vector2(JAR_X - 2, JAR_Y - 2)
@@ -114,7 +116,7 @@ func _build_ui() -> void:
 	_table_panel.position = Vector2(TABLE_X, TABLE_Y)
 	add_child(_table_panel)
 
-	var table_label := Label.new()
+	var table_label: Label = Label.new()
 	table_label.text = "Filled Jars"
 	table_label.add_theme_font_size_override("font_size", 4)
 	table_label.add_theme_color_override("font_color", Color(0.85, 0.78, 0.55))
@@ -156,6 +158,7 @@ func _build_ui() -> void:
 # =========================================================================
 # INPUT
 # =========================================================================
+## Handle input events: E to toggle gate, ESC to finish.
 func _input(event: InputEvent) -> void:
 	if _session_done:
 		return
@@ -184,6 +187,7 @@ func _input(event: InputEvent) -> void:
 # =========================================================================
 # PROCESS
 # =========================================================================
+## Update jar filling and check for session completion.
 func _process(delta: float) -> void:
 	if _session_done or _placing_jar:
 		return
@@ -206,6 +210,7 @@ func _process(delta: float) -> void:
 		if _jars_filled > 0 or _current_fill > 0:
 			_finish_session(false)
 
+## Place a completed jar on the table and reset or finish.
 func _place_jar() -> void:
 	_placing_jar = true
 	_jars_filled += 1
@@ -226,12 +231,14 @@ func _place_jar() -> void:
 	var reset_timer: SceneTreeTimer = get_tree().create_timer(0.5)
 	reset_timer.timeout.connect(_reset_jar)
 
+## Reset the jar for another fill cycle.
 func _reset_jar() -> void:
 	_placing_jar = false
 	_current_fill = 0.0
 	_update_jar_visual()
 	_status_label.text = "Press [E] to fill next jar"
 
+## Finish the session and emit appropriate signal.
 func _finish_session(cancelled: bool) -> void:
 	_session_done = true
 	_gate_open = false
@@ -248,6 +255,7 @@ func _finish_session(cancelled: bool) -> void:
 # =========================================================================
 # VISUAL UPDATES
 # =========================================================================
+## Update the jar fill visual based on current fill level.
 func _update_jar_visual() -> void:
 	if _jar_fill == null:
 		return
@@ -257,6 +265,7 @@ func _update_jar_visual() -> void:
 		float(JAR_X) + 2.0,
 		float(JAR_Y) + float(JAR_H) - 2.0 - fill_h)
 
+## Update the honey gate visual based on open/closed state.
 func _update_gate_visual() -> void:
 	if _gate_indicator == null:
 		return
@@ -265,33 +274,36 @@ func _update_gate_visual() -> void:
 	else:
 		_gate_indicator.color = Color(0.50, 0.35, 0.20, 1.0)  # Closed: brown
 
+## Update the jar count label.
 func _update_count_label() -> void:
 	if _count_label:
 		_count_label.text = "%d / %d jars" % [_jars_filled, _jars_filled + _jars_available]
 
+## Update the honey remaining label.
 func _update_honey_label() -> void:
 	if _honey_label:
 		_honey_label.text = "Honey: %.1f lbs" % _honey_available
 
+## Draw a small jar icon on the table to represent a filled jar.
 func _draw_filled_jar_on_table() -> void:
 	# Add a small jar icon on the table panel
-	var jar_w := 6
-	var jar_h := 10
-	var jar_gap := 2
+	var jar_w: int = 6
+	var jar_h: int = 10
+	var jar_gap: int = 2
 	@warning_ignore("integer_division")
 	var stack: int = (_jars_filled - 1) / 5
 	var in_stack: int = (_jars_filled - 1) % 5
 	var jx: float = float(TABLE_X + 6 + stack * (jar_w + 4))
 	var jy: float = float(TABLE_Y + TABLE_H - 14 - in_stack * (jar_h + jar_gap))
 
-	var jar_icon := ColorRect.new()
+	var jar_icon: ColorRect = ColorRect.new()
 	jar_icon.color = Color(0.92, 0.75, 0.20, 0.9)
 	jar_icon.size = Vector2(jar_w, jar_h)
 	jar_icon.position = Vector2(jx, jy)
 	add_child(jar_icon)
 
 	# Jar lid
-	var lid := ColorRect.new()
+	var lid: ColorRect = ColorRect.new()
 	lid.color = Color(0.65, 0.55, 0.35, 1.0)
 	lid.size = Vector2(jar_w + 2, 2)
 	lid.position = Vector2(jx - 1, jy - 2)

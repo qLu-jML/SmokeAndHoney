@@ -3,17 +3,18 @@
 # 50-slot grid. Interaction (E key) opens the ChestStorage overlay.
 extends Node2D
 
-const CHEST_SLOTS := 50
-const SPRITE_PATH := "res://assets/sprites/objects/chest.png"
+const CHEST_SLOTS: int = 50
+const SPRITE_PATH: String = "res://assets/sprites/objects/chest.png"
 
 # Persistent inventory: Array of {item: String, count: int} or null.
 var storage: Array = []
 
 # Node refs
 var _sprite: Sprite2D
-var _area:   Area2D
+var _area: Area2D
 var _prompt_label: Label
 
+## Initialize the chest: sprite, interaction area, and prompt label.
 func _ready() -> void:
 	add_to_group("chest")
 	z_index = 0
@@ -26,8 +27,8 @@ func _ready() -> void:
 	# Sprite (loaded at runtime to bypass import pipeline)
 	_sprite = Sprite2D.new()
 	_sprite.name = "ChestSprite"
-	var abs_path := ProjectSettings.globalize_path(SPRITE_PATH)
-	var img := Image.load_from_file(abs_path)
+	var abs_path: String = ProjectSettings.globalize_path(SPRITE_PATH)
+	var img: Image = Image.load_from_file(abs_path)
 	if img:
 		_sprite.texture = ImageTexture.create_from_image(img)
 	_sprite.offset = Vector2(0, -9)
@@ -38,8 +39,8 @@ func _ready() -> void:
 	_area.name = "InteractArea"
 	_area.collision_layer = 0
 	_area.collision_mask  = 0
-	var shape := CollisionShape2D.new()
-	var rect := RectangleShape2D.new()
+	var shape: CollisionShape2D = CollisionShape2D.new()
+	var rect: RectangleShape2D = RectangleShape2D.new()
 	rect.size = Vector2(28, 22)
 	shape.shape = rect
 	shape.position = Vector2(0, -9)
@@ -57,8 +58,9 @@ func _ready() -> void:
 	_prompt_label.visible = false
 	add_child(_prompt_label)
 
+## Update prompt visibility based on player proximity each frame.
 func _process(_delta: float) -> void:
-	var players := get_tree().get_nodes_in_group("player")
+	var players: Array = get_tree().get_nodes_in_group("player")
 	if players.size() > 0:
 		var d: float = (players[0] as Node2D).global_position.distance_to(global_position)
 		_prompt_label.visible = d <= 64.0
@@ -67,28 +69,30 @@ func _process(_delta: float) -> void:
 
 # -- Public API ---------------------------------------------------------------
 
-## Opens the chest storage overlay. Called by player.gd on interaction.
+## Open the chest storage overlay. Called by player.gd on interaction.
 func open_storage() -> void:
 	if get_tree().get_first_node_in_group("chest_storage_overlay"):
 		return
-	var scene = load("res://scenes/ui/chest_storage.tscn")
+	var scene: PackedScene = load("res://scenes/ui/chest_storage.tscn")
 	if scene == null:
 		push_error("Chest: failed to load chest_storage.tscn")
 		return
-	var overlay = scene.instantiate()
+	var overlay: Node = scene.instantiate()
 	overlay.chest_ref = self
 	get_tree().root.add_child(overlay)
 
 # -- Inventory helpers (mirror player.gd API) ---------------------------------
 
+## Get the maximum stack size for an item from the player.
 func get_max_stack(item_name: String) -> int:
-	var players := get_tree().get_nodes_in_group("player")
+	var players: Array = get_tree().get_nodes_in_group("player")
 	if players.size() > 0 and players[0].has_method("get_max_stack"):
 		return players[0].get_max_stack(item_name)
 	return 20
 
+## Add items to storage and return overflow amount.
 func add_item(item_name: String, amount: int) -> int:
-	var stack_max := get_max_stack(item_name)
+	var stack_max: int = get_max_stack(item_name)
 	for i in range(CHEST_SLOTS):
 		if storage[i] != null and storage[i]["item"] == item_name:
 			var space: int = stack_max - storage[i]["count"]
@@ -107,19 +111,21 @@ func add_item(item_name: String, amount: int) -> int:
 				return 0
 	return amount
 
+## Remove items from a storage slot.
 func remove_slot(slot_idx: int, amount: int) -> Dictionary:
 	if slot_idx < 0 or slot_idx >= CHEST_SLOTS or storage[slot_idx] == null:
 		return {}
-	var slot = storage[slot_idx]
+	var slot: Dictionary = storage[slot_idx]
 	var take: int = mini(amount, slot["count"])
-	var result := {"item": slot["item"], "count": take}
+	var result: Dictionary = {"item": slot["item"], "count": take}
 	slot["count"] -= take
 	if slot["count"] <= 0:
 		storage[slot_idx] = null
 	return result
 
+## Count total items of a given type in storage.
 func count_item(item_name: String) -> int:
-	var total := 0
+	var total: int = 0
 	for slot in storage:
 		if slot != null and slot["item"] == item_name:
 			total += slot["count"]

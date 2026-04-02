@@ -48,6 +48,7 @@ var _err_timer: float    = 0.0
 
 # -- Lifecycle -----------------------------------------------------------
 
+## Initializes the sell screen UI and state. Sets up pause, loads jar count, and builds the interface.
 func _ready() -> void:
 	layer = 10
 	get_tree().paused = true
@@ -57,6 +58,7 @@ func _ready() -> void:
 	_build_ui()
 	_refresh()
 
+## Updates error message timer each frame, clearing the message when time expires.
 func _process(delta: float) -> void:
 	if _err_timer > 0.0:
 		_err_timer -= delta
@@ -65,6 +67,7 @@ func _process(delta: float) -> void:
 
 # -- Input ---------------------------------------------------------------
 
+## Handles keyboard input for quantity adjustment and sell/cancel actions.
 func _input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
@@ -84,6 +87,7 @@ func _input(event: InputEvent) -> void:
 
 # -- Sell logic ----------------------------------------------------------
 
+## Validates jar availability and player state, then completes the sale transaction.
 func _try_sell() -> void:
 	if _max_jars <= 0:
 		_show_err("You have no honey jars to sell!")
@@ -138,11 +142,13 @@ func _try_sell() -> void:
 	_qty = _max_jars if _max_jars > 0 else 0
 	_refresh()
 
+## Displays an error message for 3 seconds.
 func _show_err(msg: String) -> void:
 	if _err_label:
 		_err_label.text = msg
 		_err_timer = 3.0
 
+## Closes the sell screen, resumes the game, and emits the closed signal.
 func _close() -> void:
 	get_tree().paused = false
 	closed.emit()
@@ -150,10 +156,12 @@ func _close() -> void:
 
 # -- Helpers -------------------------------------------------------------
 
+## Returns the player node from the 'player' group, or null if not found.
 func _get_player() -> Node:
 	var list := get_tree().get_nodes_in_group("player")
 	return list[0] if list.size() > 0 else null
 
+## Returns the player's current honey jar inventory count.
 func _get_jar_count() -> int:
 	var player: Node = _get_player()
 	if player and player.has_method("count_item"):
@@ -162,14 +170,17 @@ func _get_jar_count() -> int:
 
 # -- Refresh display -----------------------------------------------------
 
+## Decreases quantity by 1 (minimum 1) and refreshes display.
 func _on_minus() -> void:
 	_qty = maxi(1, _qty - 1)
 	_refresh()
 
+## Increases quantity by 1 (maximum jar count) and refreshes display.
 func _on_plus() -> void:
 	_qty = mini(_max_jars, _qty + 1)
 	_refresh()
 
+## Updates all UI labels to reflect current state (money, quantity, total, button states).
 func _refresh() -> void:
 	if _money_label:
 		_money_label.text = "Your money: $%.0f" % GameData.money
@@ -187,6 +198,7 @@ func _refresh() -> void:
 
 # -- UI construction -----------------------------------------------------
 
+## Builds the entire sell screen UI with panels, buttons, labels, and styling.
 func _build_ui() -> void:
 	# -- Dim backdrop
 	var dim := ColorRect.new()
@@ -292,6 +304,7 @@ func _build_ui() -> void:
 
 # -- Widget helpers -------------------------------------------------------
 
+## Creates an absolutely-positioned label with the specified properties.
 func _abs_label(text_val: String, x: int, y: int, w: int, h: int,
 		fsize: int, col: Color, centred: bool) -> Label:
 	var l: Label = Label.new()
@@ -309,6 +322,7 @@ func _abs_label(text_val: String, x: int, y: int, w: int, h: int,
 	add_child(l)
 	return l
 
+## Creates a horizontal divider line at the specified position with given color.
 func _divider(x: int, y: int, w: int, col: Color) -> void:
 	var d: ColorRect = ColorRect.new()
 	d.color = col
@@ -318,6 +332,7 @@ func _divider(x: int, y: int, w: int, col: Color) -> void:
 	d.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(d)
 
+## Generates the four border rectangles (top, bottom, left, right) for a panel.
 func _border_rects(x: int, y: int, w: int, h: int) -> Array:
 	var rects: Array = []
 	for coords in [
@@ -336,6 +351,7 @@ func _border_rects(x: int, y: int, w: int, h: int) -> Array:
 		rects.append(r)
 	return rects
 
+## Creates a styled button with theme overrides for all button states.
 func _make_btn(label_text: String, x: int, y: int, w: int, h: int) -> Button:
 	var btn: Button = Button.new()
 	btn.text = label_text

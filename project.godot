@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Smoke and Honey"
-run/main_scene="res://scenes/ui/MainMenu.tscn"
+run/main_scene="res://scenes/home_property.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
 
@@ -29,6 +29,7 @@ WeatherManager="*res://scripts/autoloads/WeatherManager.gd"
 DialogueUI="*res://scripts/ui/DialogueUI.gd"
 SceneManager="*res://scripts/autoloads/SceneManager.gd"
 MusicManager="*res://scripts/autoloads/MusicManager.gd"
+HUD="*res://scripts/ui/hud.gd"
 
 [display]
 

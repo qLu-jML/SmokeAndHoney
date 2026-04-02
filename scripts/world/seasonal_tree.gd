@@ -134,6 +134,7 @@ const TREE_PATH := "res://assets/sprites/environment/trees/"
 
 # -- Lifecycle ---------------------------------------------------------------
 
+## Initialize the seasonal tree: sprite, collision, textures, and forage.
 func _ready() -> void:
 	# Match player z_index so y-sort actually determines draw order
 	z_index = 1
@@ -154,9 +155,9 @@ func _ready() -> void:
 	# Create trunk collision (StaticBody2D at base)
 	_body = StaticBody2D.new()
 	_body.name = "TrunkCollision"
-	var col_shape := CollisionShape2D.new()
+	var col_shape: CollisionShape2D = CollisionShape2D.new()
 	col_shape.name = "CollisionShape2D"
-	var rect := RectangleShape2D.new()
+	var rect: RectangleShape2D = RectangleShape2D.new()
 	rect.size = Vector2(trunk_collision_width, trunk_collision_height)
 	col_shape.shape = rect
 	col_shape.position = Vector2(0.0, -trunk_collision_height * 0.5)
@@ -171,6 +172,7 @@ func _ready() -> void:
 		_apply_season(TimeManager.current_season_name())
 
 
+## Apply default forage values based on tree species.
 func _apply_forage_defaults() -> void:
 	# Only apply defaults if the exports still match the class defaults
 	# (i.e., user hasn't customized them in the Inspector)
@@ -182,9 +184,10 @@ func _apply_forage_defaults() -> void:
 		forage_month_end = data["month_end"]
 
 
+## Load seasonal textures from disk, plus optional bloom texture.
 func _load_textures() -> void:
-	var seasons := ["spring", "summer", "fall", "winter"]
-	var season_keys := ["Spring", "Summer", "Fall", "Winter"]
+	var seasons: PackedStringArray = ["spring", "summer", "fall", "winter"]
+	var season_keys: PackedStringArray = ["Spring", "Summer", "Fall", "Winter"]
 	for i in range(4):
 		var path: String = TREE_PATH + tree_type + "_" + seasons[i] + ".png"
 		if ResourceLoader.exists(path):
@@ -197,6 +200,7 @@ func _load_textures() -> void:
 		_bloom_texture = load(bloom_path)
 
 
+## Apply the season texture, checking for bloom override first.
 func _apply_season(season_name: String) -> void:
 	_current_season = season_name
 	if not _sprite:
@@ -213,6 +217,7 @@ func _apply_season(season_name: String) -> void:
 	_update_sprite_offset()
 
 
+## Update sprite offset to center the texture horizontally and anchor at bottom.
 func _update_sprite_offset() -> void:
 	if _sprite and _sprite.texture:
 		var tex_w: float = _sprite.texture.get_width()
@@ -240,10 +245,19 @@ func is_in_bloom() -> bool:
 
 # -- Signal Handlers ---------------------------------------------------------
 
+## Handle TimeManager season change signal.
 func _on_season_changed(season_name: String) -> void:
 	_apply_season(season_name)
 
 
+## Handle TimeManager day advance signal to check for bloom transition.
 func _on_day_advanced(_new_day: int) -> void:
 	if _bloom_texture and bloom_start > 0 and bloom_end > 0:
 		_apply_season(_current_season)
+
+
+## Disconnect TimeManager signals when leaving the scene tree.
+func _exit_tree() -> void:
+	if TimeManager:
+		TimeManager.season_changed.disconnect(_on_season_changed)
+		TimeManager.day_advanced.disconnect(_on_day_advanced)

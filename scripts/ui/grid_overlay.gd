@@ -4,12 +4,13 @@ const TILE_SIZE := 32
 var show_grid: bool = false
 var _was_drawing: bool = false   # tracks previous frame's draw state
 
+## Check if grid or hive preview needs redraw this frame.
 func _process(_delta: float) -> void:
 	# Only force a redraw when there is something visible to update.
 	# When the grid and hive-placement preview are both off, _draw() would do
 	# nothing, so skipping queue_redraw() saves a draw call every frame.
-	var player = get_node_or_null("../player")
-	var needs_draw := show_grid
+	var player: Node = get_node_or_null("../player")
+	var needs_draw: bool = show_grid
 	if not needs_draw and player and player.has_method("get") \
 			and player.get("current_mode") == 3:
 		needs_draw = true
@@ -21,18 +22,15 @@ func _process(_delta: float) -> void:
 		_was_drawing = false
 		queue_redraw()
 
+## Draw grid lines and hive placement preview.
 func _draw() -> void:
-	var player = get_node_or_null("../player")
+	var player: Node = get_node_or_null("../player")
 	var tilemap: TileMap = get_node_or_null("../TileMap")
 
 	if not player or not tilemap:
 		return
 
-	var map_coords: Vector2i = (
-		player.get_target_tile_coords(tilemap)
-		if player.has_method("get_target_tile_coords")
-		else Vector2i.ZERO
-	)
+	var map_coords: Vector2i = player.get_target_tile_coords(tilemap) if player.has_method("get_target_tile_coords") else Vector2i.ZERO
 	var snapped_rect := _tile_rect(map_coords, tilemap)
 
 	if show_grid:
@@ -82,7 +80,7 @@ func _draw() -> void:
 				)
 
 		# Check if target tile is too close to an existing hive
-		var too_close := false
+		var too_close: bool = false
 		for hive_tile in hive_tiles:
 			var ht: Vector2i = hive_tile as Vector2i
 			if maxi(absi(map_coords.x - ht.x), absi(map_coords.y - ht.y)) <= 2:

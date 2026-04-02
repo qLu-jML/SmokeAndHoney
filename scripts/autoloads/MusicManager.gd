@@ -37,18 +37,29 @@ var _current_month_index: int = -1
 
 # -- Lifecycle -----------------------------------------------------------------
 
+## Initializes audio players and sets up month change listener.
 func _ready() -> void:
 	# Keep music playing even when the scene tree is paused (chest, shop, etc.)
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
+	# Ensure Music bus exists and start muted (dev default -- unmute in Settings)
+	var mi: int = AudioServer.get_bus_index("Music")
+	if mi == -1:
+		AudioServer.add_bus()
+		mi = AudioServer.bus_count - 1
+		AudioServer.set_bus_name(mi, "Music")
+		AudioServer.set_bus_send(mi, "Master")
+		AudioServer.set_bus_volume_db(mi, 0.0)
+	AudioServer.set_bus_mute(mi, true)
+
 	# Create two AudioStreamPlayers for crossfading
 	_player_a = AudioStreamPlayer.new()
-	_player_a.bus = "Music" if AudioServer.get_bus_index("Music") != -1 else "Master"
+	_player_a.bus = "Music"
 	_player_a.volume_db = DEFAULT_VOLUME_DB
 	add_child(_player_a)
 
 	_player_b = AudioStreamPlayer.new()
-	_player_b.bus = "Music" if AudioServer.get_bus_index("Music") != -1 else "Master"
+	_player_b.bus = "Music"
 	_player_b.volume_db = -80.0
 	add_child(_player_b)
 
@@ -64,7 +75,15 @@ func _ready() -> void:
 		# Play the track for the current month right away
 		_play_month_track(TimeManager.current_month_index())
 
+func _exit_tree() -> void:
+	if _player_a and _player_a.finished.is_connected(_on_track_finished):
+		_player_a.finished.disconnect(_on_track_finished)
+	if _player_b and _player_b.finished.is_connected(_on_track_finished):
+		_player_b.finished.disconnect(_on_track_finished)
+	if TimeManager and TimeManager.month_changed.is_connected(_on_month_changed):
+		TimeManager.month_changed.disconnect(_on_month_changed)
 
+## Handles crossfade animation between tracks.
 func _process(delta: float) -> void:
 	if not _fading:
 		return
@@ -81,6 +100,7 @@ func _process(delta: float) -> void:
 
 # -- Track management ----------------------------------------------------------
 
+## Loads and plays the track for a given month with crossfade.
 func _play_month_track(month_idx: int) -> void:
 	if month_idx == _current_month_index:
 		return
@@ -113,11 +133,13 @@ func _play_month_track(month_idx: int) -> void:
 		_active_player = next_player
 
 
+## Handles month change signal from TimeManager and plays the new seasonal track.
 func _on_month_changed(_month_name: String) -> void:
 	if TimeManager:
 		_play_month_track(TimeManager.current_month_index())
 
 
+## Restarts the track when it finishes (creates looping effect).
 func _on_track_finished(player: AudioStreamPlayer) -> void:
 	# Loop: restart from the beginning
 	if player == _active_player and player.stream != null:
@@ -142,7 +164,7 @@ func play_title_theme() -> void:
 	_active_player = _player_a
 	_fading = false
 
-## Resume the correct seasonal track for the current TimeManager month.
+## Resumes the correct seasonal track for the current TimeManager month.
 ## Called when leaving the title screen so in-game music takes over.
 func resume_seasonal_music() -> void:
 	_current_month_index = -1   # force reload

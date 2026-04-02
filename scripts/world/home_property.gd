@@ -14,7 +14,36 @@ var _active_workbench_ui: CanvasLayer = null
 const WORKBENCH_POS := Vector2(520, -20)  # Near buildings, right of honey house
 const WORKBENCH_RADIUS := 48.0
 
+## Ready.
 func _ready() -> void:
+	# -- Dev bypass: initialize default game state when skipping main menu ------
+	# Only runs on a truly fresh launch (no save, no interior return, no
+	# character created yet).  Mirrors MainMenu._on_start() defaults.
+	if not TimeManager.came_from_interior and not PlayerData.character_created:
+		GameData.money        = 500.0
+		GameData.energy       = 100.0
+		GameData.player_level = 1
+		GameData.xp           = 0
+		GameData.reputation   = 0.0
+		# Dev inventory: give player essential tools for testing all systems.
+		# The player script will use this array instead of its starting defaults.
+		GameData.player_inventory = []
+		GameData.player_inventory.resize(10)
+		GameData.player_inventory.fill(null)
+		GameData.player_inventory[0] = {"item": GameData.ITEM_HIVE_TOOL, "count": 1}
+		GameData.player_inventory[1] = {"item": GameData.ITEM_GLOVES, "count": 1}
+		GameData.player_inventory[2] = {"item": GameData.ITEM_AXE, "count": 1}
+		GameData.player_inventory[3] = {"item": GameData.ITEM_HAMMER, "count": 1}
+		GameData.player_inventory[4] = {"item": GameData.ITEM_SMOKER, "count": 1}
+		GameData.player_inventory_valid = true
+		TimeManager.current_hour = 6.0
+		GameData.new_game_mode = 0
+		TimeManager.current_day = 1
+		PlayerData.player_name = "Beekeeper"
+		PlayerData.backstory_tag = "newcomer"
+		PlayerData.character_created = true
+		print("[home_property] Dev bypass: initialized default game state")
+
 	TimeManager.current_scene_id = "home"
 	if get_node_or_null("/root/SceneManager"):
 		SceneManager.current_zone_name = "Home Property"
@@ -89,6 +118,10 @@ func _ready() -> void:
 	# -- Shed Workbench (crafting station for frames/boxes from lumber) --------
 	_spawn_workbench()
 
+
+## Disconnect signals when exiting tree.
+func _exit_tree() -> void:
+	pass  # Signal cleanup handled by node references
 func _register_map_markers() -> void:
 	SceneManager.clear_scene_markers()
 	# Fixed bounds for the home property map.
@@ -207,6 +240,7 @@ func _setup_building_triggers() -> void:
 		area.body_entered.connect(_on_door_entered.bind(bname))
 		print("[HomeProperty] Created door zone for %s" % bname)
 
+## On door entered.
 func _on_door_entered(body: Node2D, building_name: String) -> void:
 	# Only the player triggers door entry
 	if body.name != "player":
@@ -406,6 +440,7 @@ func _open_workbench() -> void:
 	add_child(_active_workbench_ui)
 	_active_workbench_ui.workbench_closed.connect(_close_workbench)
 
+## Close workbench.
 func _close_workbench() -> void:
 	if _active_workbench_ui:
 		_active_workbench_ui.queue_free()

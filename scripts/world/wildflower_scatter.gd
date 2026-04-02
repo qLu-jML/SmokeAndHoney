@@ -96,8 +96,9 @@ const TEXTURE_PATHS: Dictionary = {
 }
 
 # Consistent seed so clusters look the same every load (but still organic)
-const SCATTER_SEED := 48271953
+const SCATTER_SEED: int = 48271953
 
+## Initialize: remove old static patches and spawn organic wildflower clusters.
 func _ready() -> void:
 	# Remove any old static flower patch Sprite2D children (keep WillowTree etc.)
 	for child in get_children():
@@ -105,12 +106,13 @@ func _ready() -> void:
 			child.queue_free()
 
 	# Spawn organic clusters
-	var rng := RandomNumberGenerator.new()
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = SCATTER_SEED
 
 	for def in CLUSTER_DEFS:
 		_spawn_cluster(def, rng)
 
+## Spawn a single wildflower cluster with scattered sprites.
 func _spawn_cluster(def: Dictionary, rng: RandomNumberGenerator) -> void:
 	var center: Vector2 = def["center"]
 	var flower_type: String = def["type"]
@@ -124,22 +126,22 @@ func _spawn_cluster(def: Dictionary, rng: RandomNumberGenerator) -> void:
 		return
 
 	for i in range(count):
-		var sprite := Sprite2D.new()
+		var sprite: Sprite2D = Sprite2D.new()
 		sprite.texture = tex
 
 		# -- Random position within an elliptical area (more natural than circle)
-		var angle := rng.randf() * TAU
+		var angle: float = rng.randf() * TAU
 		# Use sqrt for uniform distribution within circle
-		var dist := sqrt(rng.randf()) * radius
+		var dist: float = sqrt(rng.randf()) * radius
 		# Slight ellipse: wider horizontally than vertically
-		var offset := Vector2(cos(angle) * dist * 1.3, sin(angle) * dist * 0.9)
+		var offset: Vector2 = Vector2(cos(angle) * dist * 1.3, sin(angle) * dist * 0.9)
 		sprite.position = center + offset
 
-		# -- Random rotation (subtle, ?15 degrees)
+		# -- Random rotation (subtle, +/- 15 degrees)
 		sprite.rotation = rng.randf_range(-0.26, 0.26)
 
-		# -- Random scale variation (0.7-1.1 for variety)
-		var s := rng.randf_range(0.7, 1.1)
+		# -- Random scale variation (0.35-0.55 for variety)
+		var s: float = rng.randf_range(0.35, 0.55)
 		sprite.scale = Vector2(s, s)
 
 		# -- Random flip for extra variety
@@ -147,7 +149,7 @@ func _spawn_cluster(def: Dictionary, rng: RandomNumberGenerator) -> void:
 			sprite.flip_h = true
 
 		# -- Subtle alpha variation for depth (0.75-0.95)
-		var alpha := rng.randf_range(0.75, 0.95)
+		var alpha: float = rng.randf_range(0.75, 0.95)
 		sprite.modulate = Color(1.0, 1.0, 1.0, alpha)
 
 		# -- Z-index 1: renders below equipment/buildings (which use z=3+)

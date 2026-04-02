@@ -1,15 +1,30 @@
 {
   "permissions": {
     "allow": [
-      "Bash(Get-Content \"C:\\\\Users\\\\ntbde\\\\OneDrive\\\\Documents\\\\GitHub\\\\SmokeAndHoney\\\\scenes\\\\TestEnvironment.tscn\")",
-      "Bash(Select-Object -Last 80)",
-      "Bash(where pandoc:*)",
-      "Bash(python -c \"import docx\")",
-      "Bash(node -e \"require\\(''fs''\\)\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git merge:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)",
+      "Bash(git remote:*)",
+      "Bash(git fetch:*)",
+      "Bash(git tag:*)",
+      "Bash(rm -f .git/index.lock:*)",
+      "Bash(rm .git/index.lock:*)",
       "Bash(python3:*)",
-      "Bash(node -e \":*)",
-      "Bash(ls \"C:/Users/ntbde/AppData/Local/Temp/gdd_c\"*.txt)",
-      "Bash(grep -r uid://boosxpntui8f4 C:/Users/ntbde/OneDrive/Documents/GitHub/SmokeAndHoney/ --include=*.gd --include=*.tscn --include=*.tres -l)"
+      "Bash(node -e:*)",
+      "Bash(wc -c:*)",
+      "Bash(grep:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)"
     ]
   }
 }

@@ -47,6 +47,7 @@ var current_scene_id:   String  = "home"   # used by zone minimap
 
 # -- Time Progression ----------------------------------------------------------
 
+## Advances in-game time each frame (1 real minute = 1 in-game hour).
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
@@ -71,22 +72,27 @@ func start_new_day() -> void:
 
 # -- Computed Calendar Properties ---------------------------------------------
 
+## Returns the current month index (0-7) within the 8-month calendar.
 func current_month_index() -> int:
 	var day_in_year := (current_day - 1) % YEAR_LENGTH
 	@warning_ignore("INTEGER_DIVISION")
 	return day_in_year / MONTH_LENGTH
 
+## Returns the name of the current month.
 func current_month_name() -> String:
 	return MONTH_NAMES[current_month_index()]
 
+## Returns the current day within the month (1-28).
 func current_day_of_month() -> int:
 	var day_in_year := (current_day - 1) % YEAR_LENGTH
 	return (day_in_year % MONTH_LENGTH) + 1
 
+## Returns the current in-game year (1-based).
 func current_year() -> int:
 	@warning_ignore("INTEGER_DIVISION")
 	return (current_day - 1) / YEAR_LENGTH + 1
 
+## Returns the name of the current season.
 func current_season_name() -> String:
 	@warning_ignore("INTEGER_DIVISION")
 	return SEASON_NAMES[current_month_index() / 2]
@@ -105,12 +111,15 @@ func season_factor() -> float:
 		7: return 0.05   # Kindlemonth
 	return 0.5
 
+## Returns true if the current month is in winter.
 func is_winter() -> bool:
 	return current_month_index() >= 6
 
+## Returns true if the current month is in spring.
 func is_spring() -> bool:
 	return current_month_index() <= 1
 
+## Returns true if the current month is in summer.
 func is_summer() -> bool:
 	var m := current_month_index()
 	return m == 2 or m == 3
@@ -133,6 +142,7 @@ func time_of_day_name() -> String:
 		return "Evening"
 
 ## 12-hour clock string, e.g. "6:42 AM".
+## Returns a 12-hour clock string representation of the current time (e.g. "6:42 AM").
 func format_time() -> String:
 	var h := int(current_hour)
 	var m := int((current_hour - float(h)) * 60.0)
@@ -144,6 +154,7 @@ func format_time() -> String:
 
 # -- Day Advancement -----------------------------------------------------------
 
+## Advances the calendar by one day and emits relevant change signals.
 func advance_day() -> void:
 	var old_month  := current_month_index()
 	var old_season := current_season_name()

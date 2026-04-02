@@ -72,9 +72,10 @@ const C_PANEL_BG   := Color(0.07, 0.06, 0.05, 0.97)
 const C_CURSOR     := Color(0.95, 0.78, 0.32, 1.0)
 
 # Slot colour map (matches hud.gd)
-var SLOT_COLORS := {}
-var LONG_NAME := {}
+var SLOT_COLORS: Dictionary = {}
+var LONG_NAME: Dictionary = {}
 
+## Initializes item color and name mappings.
 func _init_color_maps() -> void:
 	SLOT_COLORS = {
 		GameData.ITEM_RAW_HONEY: Color(0.78, 0.52, 0.08),
@@ -131,6 +132,7 @@ func _init_color_maps() -> void:
 
 # -- Lifecycle ----------------------------------------------------------------
 
+## Initializes the storage chest UI.
 func _ready() -> void:
 	layer = 10
 	add_to_group("chest_storage_overlay")
@@ -141,6 +143,7 @@ func _ready() -> void:
 	_build_ui()
 	_refresh()
 
+## Loads item sprite textures.
 func _load_item_textures() -> void:
 	var ITEM_SPRITE_MAP: Dictionary = {
 		GameData.ITEM_RAW_HONEY: "raw_honey.png",
@@ -180,6 +183,7 @@ func _load_item_textures() -> void:
 
 # -- Input --------------------------------------------------------------------
 
+## Handles keyboard navigation and transfer controls.
 func _input(event: InputEvent) -> void:
 	# ---- Mouse input (drag-and-drop) ----------------------------------------
 	if event is InputEventMouseButton:
@@ -572,6 +576,7 @@ func _slot_at_position(pos: Vector2) -> Dictionary:
 
 # -- Close --------------------------------------------------------------------
 
+## Closes the storage UI and resumes the game.
 func _close() -> void:
 	# Return any dragged items before closing
 	if _drag_active:
@@ -579,12 +584,14 @@ func _close() -> void:
 	get_tree().paused = false
 	queue_free()
 
+## Returns the player node.
 func _get_player() -> Node:
 	var list := get_tree().get_nodes_in_group("player")
 	return list[0] if list.size() > 0 else null
 
 # -- Refresh display ----------------------------------------------------------
 
+## Updates display to match current inventory state.
 func _refresh() -> void:
 	# Chest grid
 	if chest_ref:
@@ -663,6 +670,7 @@ func _get_cursor_slot():
 
 # -- UI construction ----------------------------------------------------------
 
+## Constructs the storage UI grid and controls.
 func _build_ui() -> void:
 	# Dim backdrop
 	var dim := ColorRect.new()

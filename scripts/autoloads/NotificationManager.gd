@@ -46,13 +46,14 @@ const COLORS := {
 }
 
 # -- Active notification tracking ----------------------------------------------
-var _active: Array = []   # Array of { panel, tween, slot }
+var _active: Array[Dictionary] = []   # Array of { panel, tween, slot }
 
 # -- Signals -------------------------------------------------------------------
 signal notification_shown(message: String, type: String)
 
 # -- Lifecycle -----------------------------------------------------------------
 
+## Initializes the notification layer and connects to game signals.
 func _ready() -> void:
 	layer = 50   # always on top -- above InspectionOverlay (10), PauseMenu (30)
 	# Connect to GameData signals so we auto-notify level-ups
@@ -62,6 +63,19 @@ func _ready() -> void:
 	if TimeManager:
 		TimeManager.season_changed.connect(_on_season_changed)
 		TimeManager.month_changed.connect(_on_month_changed)
+
+## Disconnects all signal connections on exit.
+func _exit_tree() -> void:
+	if GameData:
+		if GameData.level_up.is_connected(_on_level_up):
+			GameData.level_up.disconnect(_on_level_up)
+		if GameData.xp_gained.is_connected(_on_xp_gained):
+			GameData.xp_gained.disconnect(_on_xp_gained)
+	if TimeManager:
+		if TimeManager.season_changed.is_connected(_on_season_changed):
+			TimeManager.season_changed.disconnect(_on_season_changed)
+		if TimeManager.month_changed.is_connected(_on_month_changed):
+			TimeManager.month_changed.disconnect(_on_month_changed)
 
 # -- Public API ----------------------------------------------------------------
 
@@ -88,19 +102,23 @@ func notify(message: String, type: String = T_DEFAULT, duration: float = 0.0) ->
 
 # -- Auto-notifications from signals ------------------------------------------
 
+## Shows a level-up notification when the player gains a level.
 func _on_level_up(new_level: int) -> void:
 	var title := GameData.get_level_title()
 	notify("? Level %d -- %s!" % [new_level, title], T_XP, 4.0)
 
+## Shows an XP gain notification for significant gains (10+ XP).
 func _on_xp_gained(amount: int, _total: int) -> void:
 	# Only show XP toasts for significant gains (?10) to avoid spam
 	if amount >= 10:
 		notify("+%d XP" % amount, T_XP)
 
+## Shows a season change notification when the season changes.
 func _on_season_changed(season_name: String) -> void:
 	var emoji := { "Spring": "?", "Summer": "??", "Fall": "?", "Winter": "??" }
 	notify("%s %s begins" % [emoji.get(season_name, ""), season_name], T_INFO, 4.0)
 
+## Shows a month change notification when the month changes.
 func _on_month_changed(month_name: String) -> void:
 	notify("?  %s" % month_name, T_DEFAULT)
 
@@ -122,6 +140,7 @@ func show_success(text: String) -> void:
 
 # -- Panel Builder -------------------------------------------------------------
 
+## Builds and returns a notification panel Control node.
 func _build_panel(message: String, type: String, slot: int) -> Control:
 	var theme: Dictionary = COLORS.get(type, COLORS[T_DEFAULT])
 	var y_pos := NOTIF_TOP + slot * (NOTIF_H + NOTIF_PAD)
@@ -179,6 +198,7 @@ func _build_panel(message: String, type: String, slot: int) -> Control:
 
 # -- Animation -----------------------------------------------------------------
 
+## Animates a notification sliding in, holding, then fading out.
 func _animate_in_then_out(entry: Dictionary, hold_time: float) -> void:
 	var panel: Control = entry["panel"]
 	@warning_ignore("unused_variable")
@@ -204,6 +224,7 @@ func _animate_in_then_out(entry: Dictionary, hold_time: float) -> void:
 	_active.erase(entry)
 	_restack()
 
+## Removes the oldest notification from the active stack.
 func _dismiss_oldest() -> void:
 	if _active.is_empty():
 		return
@@ -213,6 +234,7 @@ func _dismiss_oldest() -> void:
 		panel.queue_free()
 	_active.erase(oldest)
 
+## Re-positions remaining notifications to their new slots after one is dismissed.
 func _restack() -> void:
 	# Re-position remaining notifications into their new slots
 	for i in _active.size():

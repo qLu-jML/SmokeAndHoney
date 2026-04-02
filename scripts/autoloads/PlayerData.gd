@@ -26,6 +26,7 @@ var character_created: bool = false   # False until character creator is complet
 
 # -- Pronoun Preset Loading ----------------------------------------------------
 
+## Sets pronouns to they/them.
 func set_pronouns_they_them() -> void:
     pronoun_they    = "they"
     pronoun_them    = "them"
@@ -33,6 +34,7 @@ func set_pronouns_they_them() -> void:
     pronoun_theirs  = "theirs"
     pronoun_themself = "themself"
 
+## Sets pronouns to she/her.
 func set_pronouns_she_her() -> void:
     pronoun_they    = "she"
     pronoun_them    = "her"
@@ -40,6 +42,7 @@ func set_pronouns_she_her() -> void:
     pronoun_theirs  = "hers"
     pronoun_themself = "herself"
 
+## Sets pronouns to he/him.
 func set_pronouns_he_him() -> void:
     pronoun_they    = "he"
     pronoun_them    = "him"
@@ -50,6 +53,7 @@ func set_pronouns_he_him() -> void:
 # -- Token Replacement Utility -------------------------------------------------
 # Replaces tokens like {player_name}, {they}, {them}, {their} in dialogue strings.
 
+## Replaces pronoun and name tokens in dialogue strings for dynamic text.
 func inject_tokens(text: String) -> String:
     text = text.replace("{player_name}", player_name)
     text = text.replace("{they}", pronoun_they)
@@ -68,6 +72,7 @@ func inject_tokens(text: String) -> String:
 
 # -- Save/Load -----------------------------------------------------------------
 
+## Collects player identity data for save file.
 func collect_save_data() -> Dictionary:
     return {
         "player_name": player_name,
@@ -80,6 +85,7 @@ func collect_save_data() -> Dictionary:
         "character_created": character_created,
     }
 
+## Applies player identity data from save file.
 func apply_save_data(data: Dictionary) -> void:
     player_name      = data.get("player_name", "Beekeeper")
     pronoun_they     = data.get("pronoun_they", "they")

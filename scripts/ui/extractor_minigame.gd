@@ -1,6 +1,6 @@
-# extractor_minigame.gd -- Honey extractor button-mash minigame overlay.
+# extractor_minigame.gd - Honey extractor button-mash minigame overlay.
 # Player taps E continuously for ~20 seconds to extract honey.
-# A speed gauge tracks tap frequency -- must stay above 60% to make progress.
+# A speed gauge tracks tap frequency - must stay above 60% to make progress.
 # -------------------------------------------------------------------------
 extends CanvasLayer
 
@@ -9,7 +9,7 @@ signal extraction_cancelled
 
 # -- Tuning constants -----------------------------------------------------
 # Target feel: ~3 taps/sec to maintain threshold, ~10 seconds to complete.
-# Old decay 1.8 + tap 0.15 required 12 taps/sec -- impossible to sustain.
+# Old decay 1.8 + tap 0.15 required 12 taps/sec - impossible to sustain.
 # New: decay 0.65, tap 0.22 => need 0.65/0.22 = ~3 taps/sec to hold 40%+.
 const EXTRACT_DURATION := 10.0       # Seconds of sustained effort needed
 const GAUGE_DECAY_RATE := 0.65       # Gauge drops per second (0-1 range)
@@ -55,9 +55,11 @@ const PROG_H := 10
 # =========================================================================
 # LIFECYCLE
 # =========================================================================
+## Initialize the minigame UI.
 func _ready() -> void:
 	_build_ui()
 
+## Build all UI elements for the extractor minigame.
 func _build_ui() -> void:
 	# Background
 	_bg = ColorRect.new()
@@ -74,14 +76,14 @@ func _build_ui() -> void:
 	add_child(_title_label)
 
 	# Extractor visual (simple circle in center)
-	var ext_visual := ColorRect.new()
+	var ext_visual: ColorRect = ColorRect.new()
 	ext_visual.color = Color(0.50, 0.52, 0.54, 1.0)
 	ext_visual.size = Vector2(80, 80)
 	ext_visual.position = Vector2(120, 40)
 	add_child(ext_visual)
 
 	# Inner circle label
-	var ext_label := Label.new()
+	var ext_label: Label = Label.new()
 	ext_label.text = "SPIN"
 	ext_label.add_theme_font_size_override("font_size", 7)
 	ext_label.add_theme_color_override("font_color", Color(0.8, 0.75, 0.6))
@@ -117,7 +119,7 @@ func _build_ui() -> void:
 	add_child(_gauge_threshold_line)
 
 	# 40% label
-	var thresh_label := Label.new()
+	var thresh_label: Label = Label.new()
 	thresh_label.text = "40%"
 	thresh_label.add_theme_font_size_override("font_size", 4)
 	thresh_label.add_theme_color_override("font_color", Color(0.95, 0.40, 0.30))
@@ -164,6 +166,7 @@ func _build_ui() -> void:
 # =========================================================================
 # INPUT
 # =========================================================================
+## Handle input events: E to tap, ESC to cancel.
 func _input(event: InputEvent) -> void:
 	if _finished:
 		return
@@ -183,6 +186,7 @@ func _input(event: InputEvent) -> void:
 # =========================================================================
 # PROCESS
 # =========================================================================
+## Update gauge decay and progress accumulation each frame.
 func _process(delta: float) -> void:
 	if _finished:
 		return
@@ -213,12 +217,14 @@ func _process(delta: float) -> void:
 		var timer: SceneTreeTimer = get_tree().create_timer(1.2)
 		timer.timeout.connect(_emit_complete)
 
+## Emit the extraction_complete signal.
 func _emit_complete() -> void:
 	extraction_complete.emit()
 
 # =========================================================================
 # VISUAL UPDATES
 # =========================================================================
+## Update the visual representation of the gauge fill and color.
 func _update_gauge_visual() -> void:
 	if _gauge_fill == null:
 		return
@@ -234,6 +240,7 @@ func _update_gauge_visual() -> void:
 	else:
 		_gauge_fill.color = Color(0.90, 0.35, 0.25, 1.0)  # Red
 
+## Update the visual representation of the progress bar and label.
 func _update_progress_visual() -> void:
 	if _progress_fill == null:
 		return

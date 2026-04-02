@@ -1,4 +1,4 @@
-# hive_management.gd -- Hive Management UI overlay.
+# hive_management.gd - Hive Management UI overlay.
 # Opened when player has Gloves active and presses E near a colonized hive.
 # Uses the same absolute-pixel layout technique as the HUD dev panel so
 # buttons render with proper visible StyleBoxFlat backgrounds and borders.
@@ -6,10 +6,10 @@
 # Viewport: 320x180.  Panel: 262x160, centred at (29, 10).
 extends CanvasLayer
 
-# -- External references (set before adding to tree) -------------------------
+# - External references (set before adding to tree) -------------------------
 var hive_ref: Node = null   # The Hive node (scripts/world/hive.gd)
 
-# -- Viewport / panel constants -----------------------------------------------
+# - Viewport / panel constants -----------------------------------------------
 const VP_W: int  = 320
 const VP_H: int  = 180
 const PNL_W: int = 262
@@ -17,7 +17,7 @@ const PNL_H: int = 160
 const PNL_X: int = 29    # (320 - 262) / 2
 const PNL_Y: int = 10    # (180 - 160) / 2
 
-# -- Accent colours (matching HUD palette) ------------------------------------
+# - Accent colours (matching HUD palette) ------------------------------------
 const C_ACCENT:   Color = Color(0.95, 0.78, 0.32, 1.0)   # gold border
 const C_BG:       Color = Color(0.15, 0.10, 0.05, 0.97)  # dark panel bg
 const C_TEXT:     Color = Color(0.92, 0.85, 0.65, 1.0)   # normal text
@@ -26,7 +26,7 @@ const C_STATUS:   Color = Color(0.95, 0.82, 0.40, 1.0)   # status msg
 const C_BTN_BG:   Color = Color(0.22, 0.15, 0.07, 0.97)  # button bg
 const C_HOVER_BG: Color = Color(0.35, 0.24, 0.10, 0.97)  # hover bg
 
-# -- Internal refs -----------------------------------------------------------
+# - Internal refs -----------------------------------------------------------
 var _btn_add_deep:     Button = null
 var _btn_add_super:    Button = null
 var _btn_remove_super: Button = null
@@ -47,7 +47,7 @@ func _input(event: InputEvent) -> void:
 			_close()
 			get_viewport().set_input_as_handled()
 
-# -- UI construction (absolute pixel coords matching HUD dev-panel style) ----
+# - UI construction (absolute pixel coords matching HUD dev-panel style) ----
 
 func _build_ui() -> void:
 	# Full-screen dark overlay
@@ -115,7 +115,7 @@ func _build_ui() -> void:
 	div2.size     = Vector2(PNL_W - 2, 1)
 	add_child(div2)
 
-	# -- Buttons (14px tall, 3px gap, starting at y=30 inside panel) ----------
+	# - Buttons (14px tall, 3px gap, starting at y=30 inside panel) ----------
 	var BX: int  = PNL_X + 5         # button left edge
 	var BW: int  = PNL_W - 10        # button width
 	var BY: int  = PNL_Y + 30        # first button top
@@ -153,7 +153,7 @@ func _build_ui() -> void:
 		Vector2(PNL_W - 4, 8),
 		6, Color(0.48, 0.42, 0.30), true)
 
-# -- Widget factories --------------------------------------------------------
+# - Widget factories --------------------------------------------------------
 
 ## Create a button using the same pattern as the HUD dev panel.
 ## Anchor = 0 everywhere; positioned by absolute pixel rect.
@@ -221,7 +221,7 @@ func _make_label(lbl_name: String, text_val: String,
 	add_child(lbl)
 	return lbl
 
-# -- Refresh button states ---------------------------------------------------
+# - Refresh button states ---------------------------------------------------
 
 func _refresh() -> void:
 	if not hive_ref or not is_instance_valid(hive_ref):
@@ -262,7 +262,7 @@ func _refresh() -> void:
 	else:
 		_set_btn(_btn_add_super, "Add Honey Super  (%d/10)" % supers, false)
 
-	# Remove Super -- smart: checks honey content to show correct action
+	# Remove Super - smart: checks honey content to show correct action
 	if already_carrying:
 		_set_btn(_btn_remove_super, "Remove Super  [hands full!]", true)
 	elif supers <= 0:
@@ -292,7 +292,7 @@ func _set_btn(btn: Button, text_val: String, disabled_val: bool) -> void:
 	btn.text = text_val
 	btn.disabled = disabled_val
 
-# -- Actions -----------------------------------------------------------------
+# - Actions -----------------------------------------------------------------
 
 func _on_add_deep() -> void:
 	var player: Node = _get_player()
@@ -396,12 +396,12 @@ func _on_add_excluder() -> void:
 func _on_rotate() -> void:
 	if hive_ref.has_method("try_rotate_deeps"):
 		if hive_ref.try_rotate_deeps():
-			_show_status("Deeps rotated -- bottom box moved to top!")
+			_show_status("Deeps rotated - bottom box moved to top!")
 		else:
-			_show_status("Cannot rotate -- need 2 deep bodies.")
+			_show_status("Cannot rotate - need 2 deep bodies.")
 	_refresh()
 
-# -- Helpers -----------------------------------------------------------------
+# - Helpers -----------------------------------------------------------------
 
 func _get_player() -> Node:
 	var players: Array = get_tree().get_nodes_in_group("player")

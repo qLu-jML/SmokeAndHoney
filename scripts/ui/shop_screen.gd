@@ -68,6 +68,7 @@ var _sty_row_hover_s:    StyleBoxFlat = null
 
 # -- Lifecycle ------------------------------------------------------------
 
+## Initializes the shop UI, pauses the game, and sets up initial quantities.
 func _ready() -> void:
 	layer = 10
 	get_tree().paused = true
@@ -77,6 +78,7 @@ func _ready() -> void:
 	_build_ui()
 	_refresh()
 
+## Updates error message timer each frame.
 func _process(delta: float) -> void:
 	if _err_timer > 0.0:
 		_err_timer -= delta
@@ -85,6 +87,7 @@ func _process(delta: float) -> void:
 
 # -- Input ----------------------------------------------------------------
 
+## Handles keyboard input for item selection, quantity adjustment, and purchase.
 func _input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
@@ -106,20 +109,24 @@ func _input(event: InputEvent) -> void:
 
 # -- Button callbacks -----------------------------------------------------
 
+## Selects an item row when clicked.
 func _on_row_click(idx: int) -> void:
 	_sel = idx
 	_refresh()
 
+## Decreases the selected quantity by 1.
 func _on_minus() -> void:
 	_qtys[_sel] = maxi(1, _qtys[_sel] - 1)
 	_refresh()
 
+## Increases the selected quantity by 1.
 func _on_plus() -> void:
 	_qtys[_sel] = mini(CATALOGUE[_sel]["max_qty"], _qtys[_sel] + 1)
 	_refresh()
 
 # -- Purchase logic -------------------------------------------------------
 
+## Validates and completes the purchase transaction.
 func _try_purchase() -> void:
 	var entry: Dictionary = CATALOGUE[_sel]
 	var qty: int = _qtys[_sel]
@@ -141,22 +148,26 @@ func _try_purchase() -> void:
 	_qtys[_sel] = 1
 	_refresh()
 
+## Displays an error or feedback message for 2.5 seconds.
 func _show_err(msg: String) -> void:
 	if _err_lbl:
 		_err_lbl.text = msg
 		_err_timer = 2.5
 
+## Closes the shop and resumes the game.
 func _close() -> void:
 	get_tree().paused = false
 	closed.emit()
 	queue_free()
 
+## Returns the player node from the player group.
 func _get_player() -> Node:
 	var list := get_tree().get_nodes_in_group("player")
 	return list[0] if list.size() > 0 else null
 
 # -- Refresh display ------------------------------------------------------
 
+## Updates all UI labels to reflect current shop state.
 func _refresh() -> void:
 	if _money_lbl:
 		_money_lbl.text = "Balance: $%.0f" % GameData.money
@@ -194,6 +205,7 @@ func _refresh() -> void:
 
 # -- UI construction ------------------------------------------------------
 
+## Constructs the complete shop interface.
 func _build_ui() -> void:
 	# Pre-build shared row stylebboxes
 	_sty_row_normal = StyleBoxFlat.new()
@@ -336,6 +348,7 @@ func _build_ui() -> void:
 
 # -- Widget helpers -------------------------------------------------------
 
+## Creates an absolutely-positioned label.
 func _abs_label(text_val: String, x: int, y: int, w: int, h: int,
 		fsize: int, col: Color, centred: bool) -> Label:
 	var l := Label.new()
@@ -353,6 +366,7 @@ func _abs_label(text_val: String, x: int, y: int, w: int, h: int,
 	add_child(l)
 	return l
 
+## Creates a horizontal divider line.
 func _divider(x: int, y: int, w: int, col: Color) -> void:
 	var d := ColorRect.new()
 	d.color = col
@@ -362,6 +376,7 @@ func _divider(x: int, y: int, w: int, col: Color) -> void:
 	d.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(d)
 
+## Generates border rectangles for a panel.
 func _border_rects(x: int, y: int, w: int, h: int) -> Array:
 	var rects: Array = []
 	for coords in [
@@ -380,6 +395,7 @@ func _border_rects(x: int, y: int, w: int, h: int) -> Array:
 		rects.append(r)
 	return rects
 
+## Creates a styled button with theme overrides.
 func _make_btn(label_text: String, x: int, y: int, w: int, h: int) -> Button:
 	var btn := Button.new()
 	btn.text       = label_text

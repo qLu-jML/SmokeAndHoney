@@ -4,64 +4,69 @@
 # GDD S5.3 / S5.4: Nap is a partial-rest action for mid-day recovery.
 extends Node2D
 
-const NAP_HOURS := 2.0       # In-game hours the nap costs
-const ENERGY_PERCENT := 0.50  # Fraction of max_energy restored
+const NAP_HOURS: float = 2.0       # In-game hours the nap costs
+const ENERGY_PERCENT: float = 0.50  # Fraction of max_energy restored
 
-const INTERACT_RADIUS := 48.0  # Distance in pixels for prompt to appear
-const FADE_DURATION := 0.4     # Seconds for fade-to-black and fade-back
+const INTERACT_RADIUS: float = 48.0  # Distance in pixels for prompt to appear
+const FADE_DURATION: float = 0.4     # Seconds for fade-to-black and fade-back
 
 var _prompt_label: Label = null
-var _napping := false          # Prevents double-trigger
+var _napping: bool = false          # Prevents double-trigger
 
 # -- Setup ---------------------------------------------------------------------
 
+## Initialize the bench: sprite, collision, interact area, and prompt.
 func _ready() -> void:
 	_build_sprite()
 	_build_collision()
 	_build_interact_area()
 	_build_prompt_label()
 
+## Build sprite from disk image file.
 func _build_sprite() -> void:
-	var spr := Sprite2D.new()
+	var spr: Sprite2D = Sprite2D.new()
 	spr.name = "BenchSprite"
 	# Load at runtime to avoid import-pipeline issues
-	var path := "res://assets/sprites/world/props/bench.png"
-	var abs_path := ProjectSettings.globalize_path(path)
-	var img := Image.load_from_file(abs_path)
+	var path: String = "res://assets/sprites/world/props/bench.png"
+	var abs_path: String = ProjectSettings.globalize_path(path)
+	var img: Image = Image.load_from_file(abs_path)
 	if img == null:
 		push_error("nap_bench: failed to load bench sprite from %s" % abs_path)
 		return
-	var tex := ImageTexture.create_from_image(img)
+	var tex: ImageTexture = ImageTexture.create_from_image(img)
 	spr.texture = tex
 	spr.z_index = 0
 	add_child(spr)
 
+## Build collision body to prevent player clipping through bench.
 func _build_collision() -> void:
 	# Small static body so the player cannot walk through the bench
-	var body := StaticBody2D.new()
+	var body: StaticBody2D = StaticBody2D.new()
 	body.name = "BenchBody"
-	var cs := CollisionShape2D.new()
-	var rect := RectangleShape2D.new()
+	var cs: CollisionShape2D = CollisionShape2D.new()
+	var rect: RectangleShape2D = RectangleShape2D.new()
 	rect.size = Vector2(42, 14)
 	cs.shape = rect
 	cs.position = Vector2(0, 4)  # Slightly below centre (seat area)
 	body.add_child(cs)
 	add_child(body)
 
+## Build interact area to detect player proximity.
 func _build_interact_area() -> void:
 	# Larger Area2D around the bench so we can detect player proximity
-	var area := Area2D.new()
+	var area: Area2D = Area2D.new()
 	area.name = "InteractArea"
 	area.collision_layer = 0
 	area.collision_mask = 1  # Detect player (physics layer 1)
 	area.monitoring = true
-	var cs := CollisionShape2D.new()
-	var circle := CircleShape2D.new()
+	var cs: CollisionShape2D = CollisionShape2D.new()
+	var circle: CircleShape2D = CircleShape2D.new()
 	circle.radius = INTERACT_RADIUS
 	cs.shape = circle
 	area.add_child(cs)
 	add_child(area)
 
+## Build the nap prompt label.
 func _build_prompt_label() -> void:
 	_prompt_label = Label.new()
 	_prompt_label.name = "NapPrompt"
@@ -80,8 +85,9 @@ func _build_prompt_label() -> void:
 
 # -- Proximity check -----------------------------------------------------------
 
+## Check if the player is within interaction range.
 func _is_player_near() -> bool:
-	var players := get_tree().get_nodes_in_group("player")
+	var players: Array = get_tree().get_nodes_in_group("player")
 	if players.size() == 0:
 		return false
 	var player: Node2D = players[0] as Node2D
@@ -89,6 +95,7 @@ func _is_player_near() -> bool:
 
 # -- Frame update: show/hide prompt -------------------------------------------
 
+## Update prompt visibility each frame.
 func _process(_delta: float) -> void:
 	if _napping:
 		return
@@ -97,6 +104,7 @@ func _process(_delta: float) -> void:
 
 # -- Input: nap on E ----------------------------------------------------------
 
+## Handle input to trigger nap on E key press.
 func _input(event: InputEvent) -> void:
 	if _napping:
 		return
@@ -108,6 +116,7 @@ func _input(event: InputEvent) -> void:
 
 # -- Nap sequence: fade out -> advance time -> restore energy -> fade in ------
 
+## Execute the complete nap sequence with fade effects and time/energy updates.
 func _do_nap() -> void:
 	_napping = true
 	if _prompt_label:
@@ -116,18 +125,18 @@ func _do_nap() -> void:
 		ENERGY_PERCENT * 100.0, int(NAP_HOURS)])
 
 	# Create a full-screen black overlay on a high CanvasLayer
-	var canvas := CanvasLayer.new()
+	var canvas: CanvasLayer = CanvasLayer.new()
 	canvas.layer = 100
 	add_child(canvas)
 
-	var overlay := ColorRect.new()
+	var overlay: ColorRect = ColorRect.new()
 	overlay.color = Color(0.0, 0.0, 0.0, 0.0)  # Start transparent
 	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 	canvas.add_child(overlay)
 
 	# -- Phase 1: Fade to black ------------------------------------------------
-	var tween := create_tween()
+	var tween: Tween = create_tween()
 	tween.tween_property(overlay, "color:a", 1.0, FADE_DURATION)
 
 	# -- Phase 2: Hold black, apply effects ------------------------------------
@@ -141,6 +150,7 @@ func _do_nap() -> void:
 	tween.tween_callback(canvas.queue_free)
 	tween.tween_callback(_finish_nap)
 
+## Apply nap effects: restore energy and advance time.
 func _apply_nap_effects() -> void:
 	# Restore 50% of max energy
 	var restore_amount: float = GameData.max_energy * ENERGY_PERCENT
@@ -157,5 +167,6 @@ func _apply_nap_effects() -> void:
 	print("[Bench] Nap complete -- energy now %.0f / %.0f, hour now %.1f" % [
 		GameData.energy, GameData.max_energy, TimeManager.current_hour])
 
+## Mark nap as finished and allow new interactions.
 func _finish_nap() -> void:
 	_napping = false

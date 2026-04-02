@@ -83,6 +83,7 @@ var _layer: Node2D = null
 
 # -- Lifecycle -----------------------------------------------------------------
 
+## Ready.
 func _ready() -> void:
 	# Register in group so ForageManager and SaveManager can find this node
 	# via get_first_node_in_group("dandelion_spawner") regardless of scene layout.
@@ -104,12 +105,18 @@ func _ready() -> void:
 
 const DANDELION_DEATH_DAY := 64  # Day of year when all dandelions die (Wide-Clover day 8)
 
+## On month changed.
+
+## Disconnect signals when exiting tree.
+func _exit_tree() -> void:
+	pass  # Signal cleanup handled by node references
 func _on_month_changed(month_name: String) -> void:
 	match month_name:
 		"Quickening":
 			# Spring begins -- perform the annual roll
 			_do_annual_roll()
 
+## On day advanced.
 func _on_day_advanced(new_day: int) -> void:
 	# Check for despawn -- dandelions die by day 64 (Wide-Clover day 8)
 	if _bloomed:

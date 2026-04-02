@@ -1,40 +1,44 @@
 # PauseMenu.gd
 # -----------------------------------------------------------------------------
 # Pause screen -- opened by pressing [ESC] or [P] when no other overlay is up.
-#
-# Features:
-#   - Pauses the game tree (get_tree().paused = true)
-#   - Resume / Save / Settings / Quit buttons
-#   - Settings sub-panel with Music and SFX volume sliders
-#   - Warm amber/cream GDD palette
-#
-# Audio bus setup:
-#   Ensures "Music" and "SFX" buses exist as children of Master.
-#   MusicManager routes to "Music" bus; future SFX use "SFX" bus.
-#   Sliders control bus volume in dB via AudioServer.
+# Uses custom Control+ColorRect+Label buttons instead of Godot Button nodes
+# to get pixel-perfect sizing at the 320x180 viewport.
 # -----------------------------------------------------------------------------
 extends CanvasLayer
 
 # -- Layout --------------------------------------------------------------------
 const VP_W    := 320
 const VP_H    := 180
-const PANEL_W := 160
-const PANEL_H := 156
-const PANEL_X := (VP_W - PANEL_W) / 2
-const PANEL_Y := (VP_H - PANEL_H) / 2
+const PANEL_W := 130
+const PANEL_H := 138
+const PANEL_X: int = (VP_W - PANEL_W) / 2
+const PANEL_Y: int = (VP_H - PANEL_H) / 2
 
-# Settings sub-panel
 const SETTINGS_W := 150
-const SETTINGS_H := 105
+const SETTINGS_H := 120
+
+const BTN_H := 14
+const BTN_GAP := 3
 
 # -- Colors (GDD warm palette) ------------------------------------------------
-const C_DIM      := Color(0.00, 0.00, 0.00, 0.68)
-const C_PANEL    := Color(0.09, 0.07, 0.04, 0.97)
+const C_DIM      := Color(0.00, 0.00, 0.00, 0.72)
+const C_PANEL    := Color(0.07, 0.05, 0.03, 0.96)
 const C_BORDER   := Color(0.80, 0.53, 0.10, 1.0)
 const C_BORDER_D := Color(0.47, 0.28, 0.05, 1.0)
 const C_TITLE    := Color(0.95, 0.78, 0.32, 1.0)
 const C_TEXT     := Color(0.88, 0.83, 0.68, 1.0)
 const C_MUTED    := Color(0.55, 0.50, 0.40, 1.0)
+
+# Button colors
+const C_BTN_FILL     := Color(0.13, 0.09, 0.04, 1.0)
+const C_BTN_BORDER   := Color(0.55, 0.37, 0.10, 1.0)
+const C_BTN_FILL_H   := Color(0.24, 0.16, 0.05, 1.0)
+const C_BTN_BORDER_H := Color(0.90, 0.62, 0.15, 1.0)
+const C_BTN_FILL_P   := Color(0.08, 0.06, 0.02, 1.0)
+const C_BTN_BORDER_P := Color(0.45, 0.30, 0.08, 1.0)
+const C_BTN_TEXT     := Color(0.88, 0.82, 0.68, 1.0)
+const C_BTN_TEXT_H   := Color(1.00, 0.92, 0.60, 1.0)
+const C_BTN_TEXT_P   := Color(0.70, 0.62, 0.48, 1.0)
 
 # -- State ---------------------------------------------------------------------
 var _panel: Control = null
@@ -46,18 +50,14 @@ var _sfx_slider: HSlider = null
 var _music_pct_label: Label = null
 var _sfx_pct_label: Label = null
 var _mute_checkbox: CheckBox = null
-var _main_music_slider: HSlider = null
-var _main_music_pct: Label = null
-var _main_mute_checkbox: CheckBox = null
 var _exit_confirm: Control = null
 var _exit_confirm_open: bool = false
-
-# -- Audio bus indices (cached) ------------------------------------------------
 var _music_bus_idx: int = -1
 var _sfx_bus_idx: int = -1
 
 # -- Lifecycle -----------------------------------------------------------------
 
+## Initializes the pause menu UI and sets up the input system.
 func _ready() -> void:
 	layer = 30
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -67,6 +67,20 @@ func _ready() -> void:
 	_build_settings_panel()
 	_build_exit_confirm()
 	visible = false
+
+## Handles ESC key to toggle the pause menu.
+## Disconnects all signals when the node is removed from the scene tree.
+func _exit_tree() -> void:
+	# Disconnect slider signals
+	if _slider_music and _slider_music.value_changed.is_connected(_on_music_vol):
+		_slider_music.value_changed.disconnect(_on_music_vol)
+	if _slider_sfx and _slider_sfx.value_changed.is_connected(_on_sfx_vol):
+		_slider_sfx.value_changed.disconnect(_on_sfx_vol)
+	if _slider_master and _slider_master.value_changed.is_connected(_on_master_vol):
+		_slider_master.value_changed.disconnect(_on_master_vol)
+	# Disconnect mute toggle
+	if _check_mute and _check_mute.toggled.is_connected(_on_mute):
+		_check_mute.toggled.disconnect(_on_mute)
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -83,26 +97,31 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 # -- Public API ----------------------------------------------------------------
 
+## Toggles the pause menu open or closed.
 func toggle() -> void:
-	if _settings_open:
+	if _exit_confirm_open:
+		_close_exit_confirm()
+	elif _settings_open:
 		_close_settings()
 	elif _open:
 		_close()
 	else:
 		_open_menu()
 
+## Opens the pause menu and pauses the game.
 func open() -> void:
 	if not _open:
 		_open_menu()
 
+## Closes the pause menu and resumes the game.
 func close() -> void:
 	if _open:
 		_close()
 
 # -- Audio bus setup -----------------------------------------------------------
 
+## Ensures all required audio buses exist in the audio system.
 func _ensure_audio_buses() -> void:
-	# Find or create "Music" bus
 	_music_bus_idx = AudioServer.get_bus_index("Music")
 	if _music_bus_idx == -1:
 		AudioServer.add_bus()
@@ -110,8 +129,6 @@ func _ensure_audio_buses() -> void:
 		AudioServer.set_bus_name(_music_bus_idx, "Music")
 		AudioServer.set_bus_send(_music_bus_idx, "Master")
 		AudioServer.set_bus_volume_db(_music_bus_idx, 0.0)
-
-	# Find or create "SFX" bus
 	_sfx_bus_idx = AudioServer.get_bus_index("SFX")
 	if _sfx_bus_idx == -1:
 		AudioServer.add_bus()
@@ -119,29 +136,32 @@ func _ensure_audio_buses() -> void:
 		AudioServer.set_bus_name(_sfx_bus_idx, "SFX")
 		AudioServer.set_bus_send(_sfx_bus_idx, "Master")
 		AudioServer.set_bus_volume_db(_sfx_bus_idx, 0.0)
-
-	# Route MusicManager to the Music bus if it exists
-	_route_music_manager()
-
-func _route_music_manager() -> void:
 	var mm: Node = get_tree().root.get_node_or_null("MusicManager")
-	if mm == null:
-		return
-	for child in mm.get_children():
-		if child is AudioStreamPlayer:
-			child.bus = "Music"
+	if mm:
+		for child in mm.get_children():
+			if child is AudioStreamPlayer:
+				child.bus = "Music"
 
-# -- UI Construction: Main panel -----------------------------------------------
+# -- UI: Main panel ------------------------------------------------------------
+# Pixel layout (PANEL_H=138):
+#   0-18   title bar + PAUSED label + divider at 18
+#   22-34  status line 1 (h=12)
+#   36-48  status line 2 (h=12)
+#   52     divider
+#   56-70  Resume    (14px btn)
+#   73-87  Save      (3px gap)
+#   90-104 Settings  (3px gap)
+#   107-121 Exit     (3px gap)
+#   126-134 [ESC] Close hint
 
+## Constructs the main pause menu UI with panels and buttons.
 func _build_ui() -> void:
-	# Full-screen dim
 	var dim := ColorRect.new()
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.color = C_DIM
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(dim)
 
-	# Panel root
 	_panel = Control.new()
 	_panel.name = "PausePanel"
 	_panel.size = Vector2(PANEL_W, PANEL_H)
@@ -149,254 +169,156 @@ func _build_ui() -> void:
 	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_panel)
 
-	# Panel background
+	# Solid background
 	var bg := ColorRect.new()
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg.color = C_PANEL
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_panel.add_child(bg)
 
-	# Optional wood panel texture
-	var tex_path := "res://assets/sprites/ui/menu_panel.png"
-	if ResourceLoader.exists(tex_path):
-		var tex := TextureRect.new()
-		tex.texture = load(tex_path)
-		tex.set_anchors_preset(Control.PRESET_FULL_RECT)
-		tex.stretch_mode = TextureRect.STRETCH_SCALE
-		tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		bg.add_child(tex)
+	# Borders
+	_panel.add_child(_border(Vector2.ZERO, Vector2(PANEL_W, PANEL_H), C_BORDER))
+	_panel.add_child(_border(Vector2(2, 2), Vector2(PANEL_W - 4, PANEL_H - 4), C_BORDER_D))
 
-	# Outer border
-	var outer_sty := StyleBoxFlat.new()
-	outer_sty.bg_color = Color(0, 0, 0, 0)
-	outer_sty.draw_center = false
-	outer_sty.border_color = C_BORDER
-	outer_sty.set_border_width_all(1)
-	var outer_brd := Panel.new()
-	outer_brd.set_anchors_preset(Control.PRESET_FULL_RECT)
-	outer_brd.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	outer_brd.add_theme_stylebox_override("panel", outer_sty)
-	_panel.add_child(outer_brd)
+	# Title bar
+	var tbg := ColorRect.new()
+	tbg.color = Color(0.14, 0.09, 0.03, 1.0)
+	tbg.size = Vector2(PANEL_W, 18)
+	tbg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_panel.add_child(tbg)
 
-	# Inner border (inset 2px)
-	var inner_sty := StyleBoxFlat.new()
-	inner_sty.bg_color = Color(0, 0, 0, 0)
-	inner_sty.draw_center = false
-	inner_sty.border_color = C_BORDER_D
-	inner_sty.set_border_width_all(1)
-	var inner_brd := Panel.new()
-	inner_brd.position = Vector2(2, 2)
-	inner_brd.size = Vector2(PANEL_W - 4, PANEL_H - 4)
-	inner_brd.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	inner_brd.add_theme_stylebox_override("panel", inner_sty)
-	_panel.add_child(inner_brd)
+	_panel.add_child(_centered_label("PAUSED", 9, 2, 16, PANEL_W, C_TITLE))
+	_panel.add_child(_hdiv(4, 18, PANEL_W - 8, C_BORDER))
 
-	# -- Title bar -------------------------------------------------
-	var title_bg := ColorRect.new()
-	title_bg.color = Color(0.18, 0.12, 0.04, 1.0)
-	title_bg.size = Vector2(PANEL_W, 18)
-	title_bg.position = Vector2(0, 0)
-	title_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_panel.add_child(title_bg)
+	# Status
+	var s1 := _centered_label("", 6, 22, 12, PANEL_W - 16, C_TEXT)
+	s1.name = "StatusLabel"
+	s1.position.x = 8
+	_panel.add_child(s1)
 
-	var title := _lbl("PAUSED", 9, Vector2(0, 4), Vector2(PANEL_W, 12), C_TITLE)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_panel.add_child(title)
+	var s2 := _centered_label("", 6, 36, 12, PANEL_W - 16, C_MUTED)
+	s2.name = "StatusLabel2"
+	s2.position.x = 8
+	_panel.add_child(s2)
 
-	# Title divider
-	var title_div := ColorRect.new()
-	title_div.color = C_BORDER
-	title_div.size = Vector2(PANEL_W - 4, 1)
-	title_div.position = Vector2(2, 18)
-	_panel.add_child(title_div)
+	_panel.add_child(_hdiv(10, 52, PANEL_W - 20, C_BORDER_D))
 
-	# -- Status info -----------------------------------------------
-	var status := _lbl("", 6, Vector2(10, 24), Vector2(PANEL_W - 20, 8), C_TEXT)
-	status.name = "StatusLabel"
-	_panel.add_child(status)
-
-	var status2 := _lbl("", 6, Vector2(10, 33), Vector2(PANEL_W - 20, 8), C_MUTED)
-	status2.name = "StatusLabel2"
-	_panel.add_child(status2)
-
-	var div2 := ColorRect.new()
-	div2.color = Color(0.47, 0.28, 0.05, 0.60)
-	div2.size = Vector2(PANEL_W - 20, 1)
-	div2.position = Vector2(10, 44)
-	_panel.add_child(div2)
-
-	# -- Buttons ---------------------------------------------------
-	var btn_y := 50
-	for btn_data in [
-		["Resume",     "_on_resume"],
-		["Save",       "_on_save"],
-		["Settings",   "_on_settings"],
-		["Exit",       "_on_exit"],
-	]:
-		var btn := _make_button(btn_data[0], Vector2(20, btn_y), Vector2(PANEL_W - 40, 14))
-		btn.pressed.connect(Callable(self, btn_data[1]))
+	# Buttons -- custom Control nodes, pixel-perfect
+	var bw: int = PANEL_W - 30
+	var bx: int = 15
+	var by := 56
+	var btn_data: Array = [
+		["Resume", Callable(self, "_on_resume")],
+		["Save", Callable(self, "_on_save")],
+		["Settings", Callable(self, "_on_settings")],
+		["Exit", Callable(self, "_on_exit")],
+	]
+	for info in btn_data:
+		var btn: Control = _make_btn(info[0], Vector2(bx, by), Vector2(bw, BTN_H), info[1])
 		_panel.add_child(btn)
-		btn_y += 16
+		by += BTN_H + BTN_GAP
 
-	# -- Music controls (directly on main panel) -------------------
-	btn_y += 4
-	var music_div := ColorRect.new()
-	music_div.color = Color(0.47, 0.28, 0.05, 0.60)
-	music_div.size = Vector2(PANEL_W - 20, 1)
-	music_div.position = Vector2(10, btn_y)
-	_panel.add_child(music_div)
-	btn_y += 5
+	# ESC hint well below last button
+	_panel.add_child(_centered_label("[ESC] Close", 4, 126, 8, PANEL_W, C_MUTED))
 
-	# Music volume row
-	var mvol_label := _lbl("Music", 6, Vector2(10, btn_y), Vector2(32, 10), C_TEXT)
-	_panel.add_child(mvol_label)
+# -- UI: Settings sub-panel ---------------------------------------------------
 
-	_main_music_slider = _make_slider(Vector2(42, btn_y), Vector2(74, 10))
-	_main_music_slider.value = _db_to_percent(_get_bus_volume_db("Music"))
-	_main_music_slider.value_changed.connect(_on_main_music_changed)
-	_panel.add_child(_main_music_slider)
-
-	_main_music_pct = _lbl(str(int(_main_music_slider.value)) + "%", 6,
-		Vector2(118, btn_y), Vector2(30, 10), C_MUTED)
-	_panel.add_child(_main_music_pct)
-	btn_y += 14
-
-	# Mute checkbox row
-	_main_mute_checkbox = CheckBox.new()
-	_main_mute_checkbox.text = "Mute Music"
-	_main_mute_checkbox.position = Vector2(10, btn_y)
-	_main_mute_checkbox.size = Vector2(PANEL_W - 20, 12)
-	_main_mute_checkbox.add_theme_font_size_override("font_size", 6)
-	_main_mute_checkbox.add_theme_color_override("font_color", C_TEXT)
-	_main_mute_checkbox.add_theme_color_override("font_hover_color", C_TITLE)
-	_main_mute_checkbox.focus_mode = Control.FOCUS_NONE
-	# Check current mute state
-	var music_idx: int = AudioServer.get_bus_index("Music")
-	if music_idx != -1:
-		_main_mute_checkbox.button_pressed = AudioServer.is_bus_mute(music_idx)
-	_main_mute_checkbox.toggled.connect(_on_mute_toggled)
-	_panel.add_child(_main_mute_checkbox)
-
-	# Close hint
-	var close_hint := _lbl("[ESC] to close", 5,
-		Vector2(0, PANEL_H - 10), Vector2(PANEL_W, 7), C_MUTED)
-	close_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_panel.add_child(close_hint)
-
-# -- UI Construction: Settings sub-panel ---------------------------------------
-
+## Builds the settings panel with audio sliders.
 func _build_settings_panel() -> void:
 	_settings_panel = Control.new()
 	_settings_panel.name = "SettingsPanel"
 	_settings_panel.size = Vector2(SETTINGS_W, SETTINGS_H)
 	_settings_panel.position = Vector2(
-		(VP_W - SETTINGS_W) / 2.0,
-		(VP_H - SETTINGS_H) / 2.0
-	)
+		(VP_W - SETTINGS_W) / 2.0, (VP_H - SETTINGS_H) / 2.0)
 	_settings_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	_settings_panel.visible = false
 	add_child(_settings_panel)
 
-	# Background
 	var bg := ColorRect.new()
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg.color = C_PANEL
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_settings_panel.add_child(bg)
+	_settings_panel.add_child(
+		_border(Vector2.ZERO, Vector2(SETTINGS_W, SETTINGS_H), C_BORDER))
 
-	# Border
-	var brd_sty := StyleBoxFlat.new()
-	brd_sty.bg_color = Color(0, 0, 0, 0)
-	brd_sty.draw_center = false
-	brd_sty.border_color = C_BORDER
-	brd_sty.set_border_width_all(1)
-	var brd := Panel.new()
-	brd.set_anchors_preset(Control.PRESET_FULL_RECT)
-	brd.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	brd.add_theme_stylebox_override("panel", brd_sty)
-	_settings_panel.add_child(brd)
+	var tbg := ColorRect.new()
+	tbg.color = Color(0.14, 0.09, 0.03, 1.0)
+	tbg.size = Vector2(SETTINGS_W, 18)
+	tbg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_settings_panel.add_child(tbg)
+	_settings_panel.add_child(
+		_centered_label("SETTINGS", 9, 2, 16, SETTINGS_W, C_TITLE))
+	_settings_panel.add_child(_hdiv(4, 18, SETTINGS_W - 8, C_BORDER))
 
-	# Title
-	var title_bg := ColorRect.new()
-	title_bg.color = Color(0.18, 0.12, 0.04, 1.0)
-	title_bg.size = Vector2(SETTINGS_W, 16)
-	title_bg.position = Vector2(0, 0)
-	title_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_settings_panel.add_child(title_bg)
+	var ry := 24
+	var lx := 10
+	var sx := 48
+	var sw := 70
+	var px := 120
 
-	var title := _lbl("AUDIO SETTINGS", 7, Vector2(0, 3), Vector2(SETTINGS_W, 10), C_TITLE)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_settings_panel.add_child(title)
-
-	var title_div := ColorRect.new()
-	title_div.color = C_BORDER
-	title_div.size = Vector2(SETTINGS_W - 4, 1)
-	title_div.position = Vector2(2, 16)
-	_settings_panel.add_child(title_div)
-
-	# -- Music volume row ------------------------------------------
-	var music_label := _lbl("Music", 6, Vector2(10, 22), Vector2(40, 10), C_TEXT)
-	_settings_panel.add_child(music_label)
-
-	_music_slider = _make_slider(Vector2(50, 22), Vector2(70, 10))
-	_music_slider.value = _db_to_percent(_get_bus_volume_db("Music"))
-	_music_slider.value_changed.connect(_on_music_volume_changed)
+	# Music row
+	_settings_panel.add_child(_vlabel("Music", 6, Vector2(lx, ry), Vector2(36, 14)))
+	_music_slider = _make_slider(Vector2(sx, ry + 2), Vector2(sw, 10))
+	_music_slider.value = _db_to_pct(_bus_vol("Music"))
+	_music_slider.value_changed.connect(_on_music_vol)
 	_settings_panel.add_child(_music_slider)
-
-	_music_pct_label = _lbl(str(int(_music_slider.value)) + "%", 6,
-		Vector2(122, 22), Vector2(24, 10), C_MUTED)
+	_music_pct_label = _vlabel(str(int(_music_slider.value)) + "%", 6,
+		Vector2(px, ry), Vector2(26, 14))
+	_music_pct_label.add_theme_color_override("font_color", C_MUTED)
 	_settings_panel.add_child(_music_pct_label)
+	ry += 18
 
-	# -- SFX volume row --------------------------------------------
-	var sfx_label := _lbl("Effects", 6, Vector2(10, 38), Vector2(40, 10), C_TEXT)
-	_settings_panel.add_child(sfx_label)
-
-	_sfx_slider = _make_slider(Vector2(50, 38), Vector2(70, 10))
-	_sfx_slider.value = _db_to_percent(_get_bus_volume_db("SFX"))
-	_sfx_slider.value_changed.connect(_on_sfx_volume_changed)
+	# SFX row
+	_settings_panel.add_child(_vlabel("Effects", 6, Vector2(lx, ry), Vector2(36, 14)))
+	_sfx_slider = _make_slider(Vector2(sx, ry + 2), Vector2(sw, 10))
+	_sfx_slider.value = _db_to_pct(_bus_vol("SFX"))
+	_sfx_slider.value_changed.connect(_on_sfx_vol)
 	_settings_panel.add_child(_sfx_slider)
-
-	_sfx_pct_label = _lbl(str(int(_sfx_slider.value)) + "%", 6,
-		Vector2(122, 38), Vector2(24, 10), C_MUTED)
+	_sfx_pct_label = _vlabel(str(int(_sfx_slider.value)) + "%", 6,
+		Vector2(px, ry), Vector2(26, 14))
+	_sfx_pct_label.add_theme_color_override("font_color", C_MUTED)
 	_settings_panel.add_child(_sfx_pct_label)
+	ry += 18
 
-	# -- Master volume row -----------------------------------------
-	var master_label := _lbl("Master", 6, Vector2(10, 54), Vector2(40, 10), C_TEXT)
-	_settings_panel.add_child(master_label)
+	# Master row
+	_settings_panel.add_child(_vlabel("Master", 6, Vector2(lx, ry), Vector2(36, 14)))
+	var ms := _make_slider(Vector2(sx, ry + 2), Vector2(sw, 10))
+	ms.value = _db_to_pct(_bus_vol("Master"))
+	ms.value_changed.connect(_on_master_vol)
+	ms.name = "MasterSlider"
+	_settings_panel.add_child(ms)
+	var mp := _vlabel(str(int(ms.value)) + "%", 6, Vector2(px, ry), Vector2(26, 14))
+	mp.name = "MasterPctLabel"
+	mp.add_theme_color_override("font_color", C_MUTED)
+	_settings_panel.add_child(mp)
+	ry += 20
 
-	var master_slider := _make_slider(Vector2(50, 54), Vector2(70, 10))
-	master_slider.value = _db_to_percent(_get_bus_volume_db("Master"))
-	master_slider.value_changed.connect(_on_master_volume_changed)
-	master_slider.name = "MasterSlider"
-	_settings_panel.add_child(master_slider)
+	_settings_panel.add_child(_hdiv(10, ry, SETTINGS_W - 20, C_BORDER_D))
+	ry += 6
 
-	var master_pct := _lbl(str(int(master_slider.value)) + "%", 6,
-		Vector2(122, 54), Vector2(24, 10), C_MUTED)
-	master_pct.name = "MasterPctLabel"
-	_settings_panel.add_child(master_pct)
-
-	# -- Mute checkbox ---------------------------------------------
+	# Mute checkbox
 	_mute_checkbox = CheckBox.new()
 	_mute_checkbox.text = "Mute Music"
-	_mute_checkbox.position = Vector2(10, 68)
-	_mute_checkbox.size = Vector2(SETTINGS_W - 20, 12)
+	_mute_checkbox.position = Vector2(lx, ry)
+	_mute_checkbox.size = Vector2(SETTINGS_W - 20, 14)
 	_mute_checkbox.add_theme_font_size_override("font_size", 6)
 	_mute_checkbox.add_theme_color_override("font_color", C_TEXT)
-	_mute_checkbox.add_theme_color_override("font_hover_color", C_TITLE)
 	_mute_checkbox.focus_mode = Control.FOCUS_NONE
-	var settings_music_idx: int = AudioServer.get_bus_index("Music")
-	if settings_music_idx != -1:
-		_mute_checkbox.button_pressed = AudioServer.is_bus_mute(settings_music_idx)
-	_mute_checkbox.toggled.connect(_on_settings_mute_toggled)
+	var mi: int = AudioServer.get_bus_index("Music")
+	if mi != -1:
+		_mute_checkbox.button_pressed = AudioServer.is_bus_mute(mi)
+	_mute_checkbox.toggled.connect(_on_mute)
 	_settings_panel.add_child(_mute_checkbox)
 
-	# -- Back button -----------------------------------------------
-	var back_btn := _make_button("Back", Vector2(45, SETTINGS_H - 20), Vector2(60, 14))
-	back_btn.pressed.connect(_close_settings)
-	_settings_panel.add_child(back_btn)
+	var back: Control = _make_btn("Back",
+		Vector2((SETTINGS_W - 60) / 2.0, SETTINGS_H - 22),
+		Vector2(60, BTN_H), Callable(self, "_close_settings"))
+	_settings_panel.add_child(back)
 
 # -- Slider factory ------------------------------------------------------------
 
+## Creates a styled audio volume slider.
 func _make_slider(pos: Vector2, sz: Vector2) -> HSlider:
 	var s := HSlider.new()
 	s.position = pos
@@ -405,185 +327,190 @@ func _make_slider(pos: Vector2, sz: Vector2) -> HSlider:
 	s.max_value = 100.0
 	s.step = 1.0
 	s.value = 100.0
-
-	# Style the slider track
 	var track := StyleBoxFlat.new()
-	track.bg_color = Color(0.20, 0.14, 0.06, 1.0)
-	track.border_color = Color(0.47, 0.28, 0.05, 0.6)
+	track.bg_color = Color(0.18, 0.12, 0.05, 1.0)
+	track.border_color = C_BORDER_D
 	track.set_border_width_all(1)
 	track.content_margin_top = 2
 	track.content_margin_bottom = 2
 	s.add_theme_stylebox_override("slider", track)
-
-	# Grabber icon -- use a small flat stylebox as the grabber
-	var grabber := StyleBoxFlat.new()
-	grabber.bg_color = Color(0.90, 0.62, 0.15, 1.0)
-	grabber.set_corner_radius_all(2)
-	s.add_theme_stylebox_override("grabber_area", grabber)
-
+	var grab := StyleBoxFlat.new()
+	grab.bg_color = Color(0.90, 0.62, 0.15, 1.0)
+	grab.set_corner_radius_all(2)
+	s.add_theme_stylebox_override("grabber_area", grab)
 	return s
 
 # -- Volume helpers ------------------------------------------------------------
 
-func _get_bus_volume_db(bus_name: String) -> float:
-	var idx: int = AudioServer.get_bus_index(bus_name)
-	if idx == -1:
+## Retrieves the current volume (dB) for an audio bus.
+func _bus_vol(bus: String) -> float:
+	var i: int = AudioServer.get_bus_index(bus)
+	if i == -1:
 		return 0.0
-	return AudioServer.get_bus_volume_db(idx)
+	return AudioServer.get_bus_volume_db(i)
 
-func _set_bus_volume_db(bus_name: String, db: float) -> void:
-	var idx: int = AudioServer.get_bus_index(bus_name)
-	if idx == -1:
+## Sets the volume (dB) for an audio bus.
+func _set_bus(bus: String, db: float) -> void:
+	var i: int = AudioServer.get_bus_index(bus)
+	if i == -1:
 		return
-	AudioServer.set_bus_volume_db(idx, db)
-	# Mute if slider at zero
-	AudioServer.set_bus_mute(idx, db <= -60.0)
+	AudioServer.set_bus_volume_db(i, db)
+	AudioServer.set_bus_mute(i, db <= -60.0)
 
-func _percent_to_db(pct: float) -> float:
-	# 0% = muted (-80dB), 100% = 0dB, logarithmic curve
-	if pct <= 0.0:
+## Converts a percentage (0-100) to decibels.
+func _pct_to_db(p: float) -> float:
+	if p <= 0.0:
 		return -80.0
-	return linear_to_db(pct / 100.0)
+	return linear_to_db(p / 100.0)
 
-func _db_to_percent(db: float) -> float:
+## Converts decibels to a percentage (0-100).
+func _db_to_pct(db: float) -> float:
 	if db <= -60.0:
 		return 0.0
 	return db_to_linear(db) * 100.0
 
-# -- Slider callbacks ----------------------------------------------------------
-
-func _on_main_music_changed(value: float) -> void:
-	_set_bus_volume_db("Music", _percent_to_db(value))
-	if _main_music_pct:
-		_main_music_pct.text = str(int(value)) + "%"
-	# Sync the settings sub-panel slider if it exists
-	if _music_slider:
-		_music_slider.set_value_no_signal(value)
+## Handles music volume slider changes.
+func _on_music_vol(v: float) -> void:
+	_set_bus("Music", _pct_to_db(v))
 	if _music_pct_label:
-		_music_pct_label.text = str(int(value)) + "%"
-	# Un-mute if user drags slider above 0
-	if value > 0.0 and _main_mute_checkbox and _main_mute_checkbox.button_pressed:
-		_main_mute_checkbox.set_pressed_no_signal(false)
-		if _mute_checkbox:
-			_mute_checkbox.set_pressed_no_signal(false)
+		_music_pct_label.text = str(int(v)) + "%"
+	if v > 0.0 and _mute_checkbox and _mute_checkbox.button_pressed:
+		_mute_checkbox.set_pressed_no_signal(false)
 
-func _on_mute_toggled(muted: bool) -> void:
-	var idx: int = AudioServer.get_bus_index("Music")
-	if idx == -1:
-		return
-	AudioServer.set_bus_mute(idx, muted)
-	# Sync the settings sub-panel checkbox if it exists
-	if _mute_checkbox and _mute_checkbox != _main_mute_checkbox:
-		_mute_checkbox.set_pressed_no_signal(muted)
-
-func _on_music_volume_changed(value: float) -> void:
-	_set_bus_volume_db("Music", _percent_to_db(value))
-	if _music_pct_label:
-		_music_pct_label.text = str(int(value)) + "%"
-	# Sync the main panel slider
-	if _main_music_slider:
-		_main_music_slider.set_value_no_signal(value)
-	if _main_music_pct:
-		_main_music_pct.text = str(int(value)) + "%"
-	# Un-mute if slider moved above 0
-	if value > 0.0 and _main_mute_checkbox and _main_mute_checkbox.button_pressed:
-		_main_mute_checkbox.set_pressed_no_signal(false)
-		if _mute_checkbox:
-			_mute_checkbox.set_pressed_no_signal(false)
-
-func _on_sfx_volume_changed(value: float) -> void:
-	_set_bus_volume_db("SFX", _percent_to_db(value))
+## Handles SFX volume slider changes.
+func _on_sfx_vol(v: float) -> void:
+	_set_bus("SFX", _pct_to_db(v))
 	if _sfx_pct_label:
-		_sfx_pct_label.text = str(int(value)) + "%"
+		_sfx_pct_label.text = str(int(v)) + "%"
 
-func _on_settings_mute_toggled(muted: bool) -> void:
-	var idx: int = AudioServer.get_bus_index("Music")
-	if idx == -1:
-		return
-	AudioServer.set_bus_mute(idx, muted)
-	# Sync the main panel checkbox
-	if _main_mute_checkbox:
-		_main_mute_checkbox.set_pressed_no_signal(muted)
+## Handles mute toggle changes.
+func _on_mute(muted: bool) -> void:
+	var i: int = AudioServer.get_bus_index("Music")
+	if i != -1:
+		AudioServer.set_bus_mute(i, muted)
 
-func _on_master_volume_changed(value: float) -> void:
-	_set_bus_volume_db("Master", _percent_to_db(value))
-	var lbl: Label = _settings_panel.get_node_or_null("MasterPctLabel") as Label
-	if lbl:
-		lbl.text = str(int(value)) + "%"
+## Handles master volume slider changes.
+func _on_master_vol(v: float) -> void:
+	_set_bus("Master", _pct_to_db(v))
+	var l: Label = _settings_panel.get_node_or_null("MasterPctLabel") as Label
+	if l:
+		l.text = str(int(v)) + "%"
 
-# -- Button factory ------------------------------------------------------------
+# -- Custom button factory (no Godot Button -- pure pixel control) ------------
+# Each "button" is a Control with two ColorRect children (border + fill) and
+# a Label child. Mouse hover/press colors are applied manually via signals.
+# This avoids Godot's Button auto-expand and minimum-size calculations that
+# break at 320x180 viewports.
 
-func _make_button(label: String, pos: Vector2, sz: Vector2) -> Button:
-	var btn := Button.new()
-	btn.text = label
-	btn.position = pos
-	btn.size = sz
-	btn.focus_mode = Control.FOCUS_NONE
-	btn.add_theme_font_size_override("font_size", 7)
-	# Normal style
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(0.15, 0.10, 0.04, 1.0)
-	normal.border_color = Color(0.60, 0.40, 0.10, 1.0)
-	normal.set_border_width_all(1)
-	# Hover style
-	var hover := StyleBoxFlat.new()
-	hover.bg_color = Color(0.28, 0.18, 0.06, 1.0)
-	hover.border_color = Color(0.90, 0.62, 0.15, 1.0)
-	hover.set_border_width_all(1)
-	# Pressed style
-	var pressed := StyleBoxFlat.new()
-	pressed.bg_color = Color(0.10, 0.07, 0.03, 1.0)
-	pressed.border_color = Color(0.55, 0.35, 0.08, 1.0)
-	pressed.set_border_width_all(1)
-	btn.add_theme_stylebox_override("normal", normal)
-	btn.add_theme_stylebox_override("hover", hover)
-	btn.add_theme_stylebox_override("pressed", pressed)
-	btn.add_theme_stylebox_override("focus", normal)
-	btn.add_theme_color_override("font_color", Color(0.90, 0.85, 0.70, 1.0))
-	btn.add_theme_color_override("font_hover_color", Color(1.00, 0.92, 0.60, 1.0))
-	btn.add_theme_color_override("font_pressed_color", Color(0.75, 0.65, 0.50, 1.0))
-	return btn
+## Creates a styled button with theme overrides.
+func _make_btn(label_text: String, pos: Vector2, sz: Vector2,
+		callback: Callable) -> Control:
+	var root := Control.new()
+	root.position = pos
+	root.size = sz
+	root.custom_minimum_size = sz
+	root.mouse_filter = Control.MOUSE_FILTER_STOP
 
-# -- Open / Close main panel ---------------------------------------------------
+	# Border rect (outer) -- acts as a 1px border around the fill
+	var border_rect := ColorRect.new()
+	border_rect.name = "Border"
+	border_rect.position = Vector2.ZERO
+	border_rect.size = sz
+	border_rect.color = C_BTN_BORDER
+	border_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(border_rect)
 
+	# Fill rect (inner) -- inset by 1px on each side
+	var fill := ColorRect.new()
+	fill.name = "Fill"
+	fill.position = Vector2(1, 1)
+	fill.size = Vector2(sz.x - 2, sz.y - 2)
+	fill.color = C_BTN_FILL
+	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(fill)
+
+	# Label -- nudged up 2px to visually center (Godot font descent
+	# pushes text low at small sizes)
+	var lbl := Label.new()
+	lbl.name = "Label"
+	lbl.text = label_text
+	lbl.position = Vector2(0, -2)
+	lbl.size = sz
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 7)
+	lbl.add_theme_color_override("font_color", C_BTN_TEXT)
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(lbl)
+
+	# Hover state
+	root.mouse_entered.connect(func() -> void:
+		border_rect.color = C_BTN_BORDER_H
+		fill.color = C_BTN_FILL_H
+		lbl.add_theme_color_override("font_color", C_BTN_TEXT_H)
+	)
+	root.mouse_exited.connect(func() -> void:
+		border_rect.color = C_BTN_BORDER
+		fill.color = C_BTN_FILL
+		lbl.add_theme_color_override("font_color", C_BTN_TEXT)
+	)
+
+	# Click handling
+	root.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton:
+			var mb: InputEventMouseButton = event as InputEventMouseButton
+			if mb.button_index == MOUSE_BUTTON_LEFT:
+				if mb.pressed:
+					border_rect.color = C_BTN_BORDER_P
+					fill.color = C_BTN_FILL_P
+					lbl.add_theme_color_override("font_color", C_BTN_TEXT_P)
+				else:
+					# Released inside -- fire callback
+					border_rect.color = C_BTN_BORDER_H
+					fill.color = C_BTN_FILL_H
+					lbl.add_theme_color_override("font_color", C_BTN_TEXT_H)
+					callback.call()
+	)
+
+	return root
+
+# -- Open / Close --------------------------------------------------------------
+
+## Opens the main menu UI.
 func _open_menu() -> void:
 	_open = true
 	visible = true
 	get_tree().paused = true
 	_refresh_status()
-	_sync_main_music_controls()
-	# Slide in from above
 	_panel.visible = true
 	_settings_panel.visible = false
 	_settings_open = false
-	_panel.position.y = float(PANEL_Y) - 20.0
+	_exit_confirm_open = false
+	if _exit_confirm:
+		_exit_confirm.visible = false
+	_panel.position.y = float(PANEL_Y) - 16.0
 	var tw := create_tween()
 	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tw.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(_panel, "position:y", float(PANEL_Y), 0.18)
+	tw.tween_property(_panel, "position:y", float(PANEL_Y), 0.15)
 
-func _sync_main_music_controls() -> void:
-	var vol_pct: float = _db_to_percent(_get_bus_volume_db("Music"))
-	if _main_music_slider:
-		_main_music_slider.set_value_no_signal(vol_pct)
-	if _main_music_pct:
-		_main_music_pct.text = str(int(vol_pct)) + "%"
-	var idx: int = AudioServer.get_bus_index("Music")
-	if idx != -1 and _main_mute_checkbox:
-		_main_mute_checkbox.set_pressed_no_signal(AudioServer.is_bus_mute(idx))
-
+## Closes the pause menu.
 func _close() -> void:
 	_open = false
 	_settings_open = false
+	_exit_confirm_open = false
 	get_tree().paused = false
 	var tw := create_tween()
 	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tw.tween_property(_panel, "position:y", float(PANEL_Y) - 20.0, 0.12)
+	tw.tween_property(_panel, "position:y", float(PANEL_Y) - 16.0, 0.10)
 	await tw.finished
 	visible = false
 	_settings_panel.visible = false
+	if _exit_confirm:
+		_exit_confirm.visible = false
 
+## Updates the status display (paused/unpaused state).
 func _refresh_status() -> void:
 	var s: Label = _panel.get_node_or_null("StatusLabel") as Label
 	var s2: Label = _panel.get_node_or_null("StatusLabel2") as Label
@@ -594,37 +521,37 @@ func _refresh_status() -> void:
 			TimeManager.current_year()
 		]
 	if s2 and GameData:
-		s2.text = "$%.2f  |  E:%d%%  |  %s" % [
-			GameData.money,
-			int(GameData.energy),
-			GameData.get_level_title()
+		s2.text = "$%.2f | E:%d%% | %s" % [
+			GameData.money, int(GameData.energy), GameData.get_level_title()
 		]
 
-# -- Settings open / close -----------------------------------------------------
-
+## Opens the settings panel.
 func _on_settings() -> void:
 	_settings_open = true
 	_panel.visible = false
 	_settings_panel.visible = true
-	# Refresh slider positions to current bus volumes
 	if _music_slider:
-		_music_slider.value = _db_to_percent(_get_bus_volume_db("Music"))
+		_music_slider.value = _db_to_pct(_bus_vol("Music"))
 	if _sfx_slider:
-		_sfx_slider.value = _db_to_percent(_get_bus_volume_db("SFX"))
+		_sfx_slider.value = _db_to_pct(_bus_vol("SFX"))
 	var ms: HSlider = _settings_panel.get_node_or_null("MasterSlider") as HSlider
 	if ms:
-		ms.value = _db_to_percent(_get_bus_volume_db("Master"))
+		ms.value = _db_to_pct(_bus_vol("Master"))
+	var i: int = AudioServer.get_bus_index("Music")
+	if i != -1 and _mute_checkbox:
+		_mute_checkbox.set_pressed_no_signal(AudioServer.is_bus_mute(i))
 
+## Closes the settings panel.
 func _close_settings() -> void:
 	_settings_open = false
 	_settings_panel.visible = false
 	_panel.visible = true
 
-# -- Button handlers -----------------------------------------------------------
-
+## Resumes the game from the pause menu.
 func _on_resume() -> void:
 	_close()
 
+## Saves the game.
 func _on_save() -> void:
 	var sm: Node = get_tree().root.get_node_or_null("SaveManager")
 	if sm and sm.has_method("save_game"):
@@ -632,15 +559,14 @@ func _on_save() -> void:
 		var lbl: Label = _panel.get_node_or_null("StatusLabel") as Label
 		if lbl:
 			lbl.text = "Game saved!"
-	else:
-		print("[PauseMenu] SaveManager not found -- save skipped")
 
+## Shows the exit confirmation dialog.
 func _on_exit() -> void:
-	# Show save-before-exit confirmation
 	_exit_confirm_open = true
 	_panel.visible = false
 	_exit_confirm.visible = true
 
+## Saves and exits to the main menu.
 func _on_save_and_exit() -> void:
 	var sm: Node = get_tree().root.get_node_or_null("SaveManager")
 	if sm and sm.has_method("save_game"):
@@ -648,20 +574,23 @@ func _on_save_and_exit() -> void:
 	get_tree().paused = false
 	get_tree().quit()
 
+## Exits to the main menu without saving.
 func _on_exit_no_save() -> void:
 	get_tree().paused = false
 	get_tree().quit()
 
+## Closes the exit confirmation dialog.
 func _close_exit_confirm() -> void:
 	_exit_confirm_open = false
 	_exit_confirm.visible = false
 	_panel.visible = true
 
-# -- Exit confirmation panel ---------------------------------------------------
+# -- Exit confirm dialog -------------------------------------------------------
 
+## Builds the exit confirmation UI.
 func _build_exit_confirm() -> void:
 	var ew := 140
-	var eh := 60
+	var eh := 80
 	_exit_confirm = Control.new()
 	_exit_confirm.name = "ExitConfirm"
 	_exit_confirm.size = Vector2(ew, eh)
@@ -670,62 +599,79 @@ func _build_exit_confirm() -> void:
 	_exit_confirm.visible = false
 	add_child(_exit_confirm)
 
-	# Background
 	var bg := ColorRect.new()
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg.color = C_PANEL
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_exit_confirm.add_child(bg)
+	_exit_confirm.add_child(_border(Vector2.ZERO, Vector2(ew, eh), C_BORDER))
 
-	# Border
-	var brd_sty := StyleBoxFlat.new()
-	brd_sty.bg_color = Color(0, 0, 0, 0)
-	brd_sty.draw_center = false
-	brd_sty.border_color = C_BORDER
-	brd_sty.set_border_width_all(1)
-	var brd := Panel.new()
-	brd.set_anchors_preset(Control.PRESET_FULL_RECT)
-	brd.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	brd.add_theme_stylebox_override("panel", brd_sty)
-	_exit_confirm.add_child(brd)
+	_exit_confirm.add_child(
+		_centered_label("Save before exiting?", 7, 4, 14, ew, C_TITLE))
+	_exit_confirm.add_child(_hdiv(6, 20, ew - 12, C_BORDER))
 
-	# Title
-	var title := _lbl("Save before exiting?", 7,
-		Vector2(0, 6), Vector2(ew, 10), C_TITLE)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_exit_confirm.add_child(title)
-
-	# Divider
-	var div := ColorRect.new()
-	div.color = C_BORDER
-	div.size = Vector2(ew - 8, 1)
-	div.position = Vector2(4, 18)
-	_exit_confirm.add_child(div)
-
-	# Buttons
 	var bw := 110
 	var bx: float = (ew - bw) / 2.0
-	var save_exit_btn := _make_button("Save & Exit", Vector2(bx, 22), Vector2(bw, 12))
-	save_exit_btn.pressed.connect(_on_save_and_exit)
-	_exit_confirm.add_child(save_exit_btn)
+	var b1: Control = _make_btn("Save & Exit",
+		Vector2(bx, 24), Vector2(bw, BTN_H),
+		Callable(self, "_on_save_and_exit"))
+	_exit_confirm.add_child(b1)
+	var b2: Control = _make_btn("Exit Without Saving",
+		Vector2(bx, 24 + BTN_H + BTN_GAP), Vector2(bw, BTN_H),
+		Callable(self, "_on_exit_no_save"))
+	_exit_confirm.add_child(b2)
+	var b3: Control = _make_btn("Cancel",
+		Vector2(bx, 24 + (BTN_H + BTN_GAP) * 2), Vector2(bw, BTN_H),
+		Callable(self, "_close_exit_confirm"))
+	_exit_confirm.add_child(b3)
 
-	var exit_btn := _make_button("Exit Without Saving", Vector2(bx, 36), Vector2(bw, 12))
-	exit_btn.pressed.connect(_on_exit_no_save)
-	_exit_confirm.add_child(exit_btn)
+# -- Helpers -------------------------------------------------------------------
 
-	var cancel_btn := _make_button("Cancel", Vector2(bx, 50), Vector2(bw, 12))
-	cancel_btn.pressed.connect(_close_exit_confirm)
-	_exit_confirm.add_child(cancel_btn)
+## Creates a panel with a colored border.
+func _border(pos: Vector2, sz: Vector2, color: Color) -> Panel:
+	var sty := StyleBoxFlat.new()
+	sty.bg_color = Color(0, 0, 0, 0)
+	sty.draw_center = false
+	sty.border_color = color
+	sty.set_border_width_all(1)
+	var p := Panel.new()
+	p.position = pos
+	p.size = sz
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.add_theme_stylebox_override("panel", sty)
+	return p
 
-# -- Helper --------------------------------------------------------------------
+## Creates a horizontal divider line.
+func _hdiv(x: int, y: int, w: int, color: Color) -> ColorRect:
+	var d := ColorRect.new()
+	d.color = color
+	d.size = Vector2(w, 1)
+	d.position = Vector2(x, y)
+	d.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return d
 
-func _lbl(text: String, font_size: int, pos: Vector2, sz: Vector2,
-		color: Color = Color.WHITE) -> Label:
+## Creates a centered label.
+func _centered_label(text: String, font_size: int, y: int, h: int,
+		w: int, color: Color) -> Label:
+	var l := Label.new()
+	l.text = text
+	l.position = Vector2(0, y)
+	l.size = Vector2(w, h)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.add_theme_font_size_override("font_size", font_size)
+	l.add_theme_color_override("font_color", color)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return l
+
+## Creates a vertically-aligned label.
+func _vlabel(text: String, font_size: int, pos: Vector2, sz: Vector2) -> Label:
 	var l := Label.new()
 	l.text = text
 	l.position = pos
 	l.size = sz
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	l.add_theme_font_size_override("font_size", font_size)
-	l.add_theme_color_override("font_color", color)
+	l.add_theme_color_override("font_color", C_TEXT)
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return l

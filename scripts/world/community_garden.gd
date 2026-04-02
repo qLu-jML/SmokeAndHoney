@@ -3,8 +3,9 @@
 # First-pass scene: walkable garden area with plots, benches, and NPC.
 extends Node2D
 
-const INTERACT_RADIUS := 60.0
+const INTERACT_RADIUS: float = 60.0
 
+## Initialize the community garden: weather, season, exits, and signals.
 func _ready() -> void:
 	_setup_weather()
 	TimeManager.current_scene_id = "community_garden"
@@ -18,11 +19,13 @@ func _ready() -> void:
 	ExitHelper.position_player_from_spawn_side(self)
 	print("Community Garden scene loaded.")
 
+## Create dynamic exits for the garden.
 func _setup_exits() -> void:
 	# Left edge -> Cedar Bend
 	ExitHelper.create_exit(self, "left", "res://scenes/world/cedar_bend.tscn",
 		"<- Cedar Bend")
 
+## Register map markers for garden features and NPCs.
 func _register_map_markers() -> void:
 	SceneManager.clear_scene_markers()
 	SceneManager.set_scene_bounds(Rect2(-800, -300, 1600, 600))
@@ -40,9 +43,11 @@ func _register_map_markers() -> void:
 	# Exits
 	SceneManager.register_scene_exit("left", "Cedar Bend")
 
+## Handle day advancement to update seasonal visuals.
 func _on_day_advanced(_day: int) -> void:
 	_apply_seasonal_visuals()
 
+## Apply seasonal color tinting to the garden.
 func _apply_seasonal_visuals() -> void:
 	var season: String = TimeManager.current_season_name()
 	var garden: Node2D = get_node_or_null("World/Garden") as Node2D
@@ -57,11 +62,13 @@ func _apply_seasonal_visuals() -> void:
 			"Winter":
 				garden.modulate = Color(0.90, 0.92, 0.98, 1.0)
 
+## Handle input events for interactions.
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_E:
 			_try_interact()
 
+## Attempt to interact with nearby NPCs and features.
 func _try_interact() -> void:
 	var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
 	if not player:
@@ -81,6 +88,7 @@ func _try_interact() -> void:
 			print("[Garden] Plaque: 'Cedar Bend Community Pollinator Garden - Est. 1987'")
 			return
 
+## Set up weather overlay and particles for this scene.
 func _setup_weather() -> void:
 	if get_node_or_null("WeatherOverlay") == null:
 		var overlay: CanvasLayer = CanvasLayer.new()
@@ -93,3 +101,8 @@ func _setup_weather() -> void:
 		particles.name = "WeatherParticles"
 		particles.set_script(load("res://scripts/world/weather_particles.gd"))
 		world.add_child(particles)
+
+## Disconnect TimeManager signals when leaving the scene tree.
+func _exit_tree() -> void:
+	if TimeManager and TimeManager.is_connected("day_advanced", Callable(self, "_on_day_advanced")):
+		TimeManager.day_advanced.disconnect(_on_day_advanced)
