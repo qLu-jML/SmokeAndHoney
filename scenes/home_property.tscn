@@ -24,6 +24,8 @@
 [ext_resource type="Script" path="res://scripts/world/chest.gd" id="chest_script"]
 [ext_resource type="Texture2D" path="res://assets/sprites/buildings/farmhouse.png" id="farmhouse_tex"]
 [ext_resource type="Texture2D" path="res://assets/sprites/buildings/honey_house.png" id="honey_house_tex"]
+[ext_resource type="PackedScene" uid="uid://c5seasonal_tree" path="res://scenes/world/seasonal_tree.tscn" id="seasonal_tree_scene"]
+[ext_resource type="Script" uid="uid://d3faqcbm42k6a" path="res://scripts/world/harvest_yard.gd" id="harvest_yard_script"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_tq2pu"]
 texture = ExtResource("4_hxvsk")
@@ -2654,5 +2656,87 @@ horizontal_alignment = 1
 [node name="FlowerLifecycleManager" type="Node2D" parent="World" unique_id=525000001]
 script = ExtResource("flower_lifecycle_script")
 
-; ── Willow tree removed (art pass pending) ────────────────────────────────────
 
+; ==============================================================================
+; FARMSTEAD TREES - drag in editor to reposition, check collision, fix overlap
+; Each tree position = trunk base. Sprite draws upward from there.
+; y-sort in World node handles draw order (lower y = drawn behind).
+; ==============================================================================
+
+[node name="FarmsteadTrees" type="Node2D" parent="World"]
+
+; -- WILLOWS (month 0): earliest spring pollen + nectar lifeline --
+[node name="WillowCreek1" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
+position = Vector2(-120, 280)
+tree_type = "willow"
+flip = false
+
+[node name="WillowCreek2" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
+position = Vector2(-160, 120)
+tree_type = "willow"
+flip = true
+
+; -- SILVER MAPLE (month 0): yard shade tree with heavy early pollen --
+[node name="SilverMapleYard" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
+position = Vector2(160, -40)
+tree_type = "silver_maple"
+flip = false
+
+; -- WILD PLUM (months 0-1): fenceline thicket along west edge --
+[node name="WildPlumFence1" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
+position = Vector2(-100, 400)
+tree_type = "wild_plum"
+flip = false
+
+[node name="WildPlumFence2" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
+position = Vector2(-140, 480)
+tree_type = "wild_plum"
+flip = true
+
+; -- COTTONWOOD (months 0-1): tall windbreak at far north-east --
+[node name="CottonwoodWind" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
+position = Vector2(680, -60)
+tree_type = "cottonwood"
+flip = false
+
+; -- APPLE TREE (month 1): farmhouse fruit tree, bridges into Greening --
+[node name="AppleTreeYard" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
+position = Vector2(180, -100)
+tree_type = "apple_tree"
+flip = false
+
+; -- BASSWOOD/LINDEN (months 2-3): premium summer honey tree, far south-east --
+[node name="BasswoodSouth" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
+position = Vector2(820, 450)
+tree_type = "basswood_linden"
+flip = false
+
+; -- ELM DEAD: atmosphere, no forage -- far south-west --
+[node name="ElmDead" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
+position = Vector2(-80, 520)
+tree_type = "elm_dead"
+flip = true
+
+; -- SYCAMORE (months 0-1): minor pollen, nice visual near buildings --
+[node name="SycamoreNorth" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
+position = Vector2(350, -60)
+tree_type = "sycamore"
+flip = false
+
+; ==============================================================================
+; HARVEST YARD - outdoor processing area (Level 1 manual processing stations)
+; Drag to reposition. Script builds stations relative to this origin.
+; ==============================================================================
+
+[node name="HarvestYard" type="Node2D" parent="World"]
+position = Vector2(480, 350)
+z_index = 2
+script = ExtResource("harvest_yard_script")
+
+; ==============================================================================
+; WORKBENCH - shed crafting station for frames/boxes from lumber
+; Drag to reposition. home_property.gd handles interaction and UI overlay.
+; ==============================================================================
+
+[node name="Workbench" type="Node2D" parent="World"]
+position = Vector2(520, -20)

@@ -2,7 +2,8 @@ extends Node2D
 
 const HIVE_SCENE   := preload("res://scenes/hive.tscn")
 const FLOWER_SCENE := preload("res://scenes/flowers/flowers.tscn")
-const TREE_SCENE   := preload("res://scenes/world/seasonal_tree.tscn")
+# Trees, HarvestYard, and Workbench are placed in the .tscn scene file
+# so they can be dragged in the editor. No scripted spawning needed.
 
 # Building door triggers: node_name -> interior scene path
 var _building_triggers: Dictionary = {}
@@ -11,7 +12,7 @@ var _building_triggers: Dictionary = {}
 var _workbench_node: Node2D = null
 var _workbench_hint: Label = null
 var _active_workbench_ui: CanvasLayer = null
-const WORKBENCH_POS := Vector2(520, -20)  # Near buildings, right of honey house
+# Workbench position is set in the .tscn scene file (editor-draggable)
 const WORKBENCH_RADIUS := 48.0
 
 ## Ready.
@@ -109,14 +110,9 @@ func _ready() -> void:
 	# Position player based on which direction they came from
 	ExitHelper.position_player_from_spawn_side(self)
 
-	# -- Farmstead Trees (early spring forage before dandelion bloom) ----------
-	_spawn_trees()
-
-	# -- Outdoor Harvest Yard (Level 1 manual processing) ---------------------
-	_spawn_harvest_yard()
-
-	# -- Shed Workbench (crafting station for frames/boxes from lumber) --------
-	_spawn_workbench()
+	# -- Workbench: find the editor-placed node and build its visuals ----------
+	_init_workbench()
+	# Trees and HarvestYard are editor-placed in the .tscn -- no spawn needed.
 
 
 ## Disconnect signals when exiting tree.
@@ -160,8 +156,10 @@ func _register_map_markers() -> void:
 		SceneManager.register_scene_poi(bench.global_position, "Bench", Color(0.55, 0.75, 0.85))
 	# Hive (spawned at fixed position on fresh game)
 	SceneManager.register_scene_poi(Vector2(300, 350), "Hive", Color(0.95, 0.80, 0.25))
-	# Harvest Yard (outdoor processing area)
-	SceneManager.register_scene_poi(Vector2(580, 380), "Harvest Yard", Color(0.85, 0.65, 0.30))
+	# Harvest Yard (outdoor processing area) - use editor-placed position
+	var harvest_yard: Node2D = get_node_or_null("World/HarvestYard") as Node2D
+	if harvest_yard:
+		SceneManager.register_scene_poi(harvest_yard.global_position, "Harvest Yard", Color(0.85, 0.65, 0.30))
 	print("[HomeProperty] Registered Hive at (300, 350)")
 	# Exits
 	SceneManager.register_scene_exit("right", "County Road")
@@ -272,98 +270,27 @@ func _save_exterior_state() -> void:
 				"pos": child.global_position
 			})
 
-## Spawn the outdoor harvest yard (Level 1 manual processing stations).
-## Positioned south-east of the main buildings, near the hive.
-func _spawn_harvest_yard() -> void:
-	var world: Node = get_node_or_null("World")
-	if world == null:
-		return
-	# Don't duplicate if already exists (e.g. returning from interior)
-	if world.get_node_or_null("HarvestYard"):
-		return
-	var yard := Node2D.new()
-	yard.name = "HarvestYard"
-	yard.set_script(load("res://scripts/world/harvest_yard.gd"))
-	world.add_child(yard)
-	# Position the yard south-east of existing buildings
-	# Farmhouse at (80,-80), HoneyHouse at (450,-40), Hive at (300,350)
-	# Place processing area right of hive, accessible from hive walk
-	yard.global_position = Vector2(480, 350)
-	yard.z_index = 2  # Above flowers (z=1) so bottling table is not hidden
-	print("[HomeProperty] Harvest yard spawned at %s" % str(yard.global_position))
+# HarvestYard is placed in the .tscn scene file with its script attached.
+# Open home_property.tscn in the Godot editor to drag/reposition it.
 
-## Spawn farmstead trees that provide early-spring forage before the dandelion bloom.
-## Iowa farmstead layout: willows near creek/pond, silver maple in yard, wild plum
-## along fenceline, fruit trees near house, cottonwood as windbreak, basswood for
-## summer honey flow. An old dead elm provides atmosphere but no forage.
-## These trees feed the hive from Day 1 through the "trees" group forage system.
-func _spawn_trees() -> void:
-	var world: Node = get_node_or_null("World")
-	if world == null:
-		return
-	# Don't duplicate if trees already exist (returning from interior)
-	if world.get_node_or_null("FarmsteadTrees"):
-		return
-
-	var tree_root := Node2D.new()
-	tree_root.name = "FarmsteadTrees"
-	world.add_child(tree_root)
-
-	# Tree layout data: [tree_type, position, flip, name]
-	# Scene bounds: Rect2(-240, -130, 1640, 700)
-	# Farmhouse ~(80,-80), HoneyHouse ~(450,-40), Hive ~(300,350), Player start ~(73,141)
-	var tree_defs: Array = [
-		# -- WILLOWS (month 0): earliest spring pollen + nectar lifeline --
-		# Creek-side willows at the south-west edge of the property
-		["willow",         Vector2(-120, 280),  false, "WillowCreek1"],
-		["willow",         Vector2(-160, 120),  true,  "WillowCreek2"],
-
-		# -- SILVER MAPLE (month 0): yard shade tree with heavy early pollen --
-		["silver_maple",   Vector2(160, -40),   false, "SilverMapleYard"],
-
-		# -- WILD PLUM (months 0-1): fenceline thicket along west edge --
-		["wild_plum",      Vector2(-100, 400),  false, "WildPlumFence1"],
-		["wild_plum",      Vector2(-140, 480),  true,  "WildPlumFence2"],
-
-		# -- COTTONWOOD (months 0-1): tall windbreak at far north-east --
-		["cottonwood",     Vector2(680, -60),   false, "CottonwoodWind"],
-
-		# -- APPLE TREE (month 1): farmhouse fruit tree, bridges into Greening --
-		["apple_tree",     Vector2(180, -100),  false, "AppleTreeYard"],
-
-		# -- BASSWOOD/LINDEN (months 2-3): premium summer honey tree, far south-east --
-		["basswood_linden", Vector2(820, 450),  false, "BasswoodSouth"],
-
-		# -- ELM DEAD: atmosphere, no forage -- far south-west away from hive --
-		["elm_dead",       Vector2(-80, 520),   true,  "ElmDead"],
-
-		# -- SYCAMORE (months 0-1): minor pollen, nice visual near buildings --
-		["sycamore",       Vector2(350, -60),   false, "SycamoreNorth"],
-	]
-
-	for td in tree_defs:
-		var tree_node: Node2D = TREE_SCENE.instantiate()
-		tree_node.name = td[3]
-		tree_node.set("tree_type", td[0])
-		tree_node.set("flip", td[2])
-		tree_root.add_child(tree_node)
-		tree_node.global_position = td[1]
-
-	print("[HomeProperty] Spawned %d farmstead trees" % tree_defs.size())
+# Trees are placed in the .tscn scene file as SeasonalTree instances.
+# Open home_property.tscn in the Godot editor to drag/reposition them.
 
 # -- Workbench (shed crafting station) ----------------------------------------
 
-func _spawn_workbench() -> void:
-	var world: Node = get_node_or_null("World")
-	if world == null:
+## Find the editor-placed Workbench node and build its visual children.
+## The Workbench Node2D is placed in the .tscn so you can drag it in the editor.
+func _init_workbench() -> void:
+	_workbench_node = get_node_or_null("World/Workbench") as Node2D
+	if _workbench_node == null:
+		push_warning("[HomeProperty] Workbench node not found in scene!")
 		return
-	if world.get_node_or_null("Workbench"):
-		return  # Already exists
 
-	_workbench_node = Node2D.new()
-	_workbench_node.name = "Workbench"
-	_workbench_node.position = WORKBENCH_POS
-	world.add_child(_workbench_node)
+	# Only build visuals once (skip if returning from interior and already built)
+	if _workbench_node.get_child_count() > 0:
+		# Re-grab the hint label reference
+		_workbench_hint = _workbench_node.get_node_or_null("WorkbenchHint") as Label
+		return
 
 	# Visual: small brown table
 	var table := ColorRect.new()
@@ -381,6 +308,7 @@ func _spawn_workbench() -> void:
 
 	# Interaction hint
 	_workbench_hint = Label.new()
+	_workbench_hint.name = "WorkbenchHint"
 	_workbench_hint.text = "[E] Workbench"
 	_workbench_hint.add_theme_font_size_override("font_size", 5)
 	_workbench_hint.add_theme_color_override("font_color", Color(0.95, 0.88, 0.55))
@@ -398,11 +326,11 @@ func _spawn_workbench() -> void:
 	dev_lbl.add_to_group("dev_label")
 	_workbench_node.add_child(dev_lbl)
 
-	# Register as POI
+	# Register as POI using the editor-placed position
 	if get_node_or_null("/root/SceneManager"):
-		SceneManager.register_scene_poi(WORKBENCH_POS, "Workbench", Color(0.70, 0.55, 0.30))
+		SceneManager.register_scene_poi(_workbench_node.global_position, "Workbench", Color(0.70, 0.55, 0.30))
 
-	print("[HomeProperty] Workbench spawned at %s" % str(WORKBENCH_POS))
+	print("[HomeProperty] Workbench initialized at %s" % str(_workbench_node.global_position))
 
 func _process(_delta: float) -> void:
 	if _active_workbench_ui:

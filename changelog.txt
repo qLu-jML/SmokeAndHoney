@@ -1,3 +1,14 @@
+[2026-04-02 CDT] Move trees, workbench, harvest yard from script to scene editor
+  Converted all 10 farmstead trees from _spawn_trees() in home_property.gd
+  to SeasonalTree instance nodes in home_property.tscn. Each tree is now
+  a draggable node in the Godot editor for visual placement and collision
+  checking. Converted HarvestYard from scripted spawn to editor-placed
+  Node2D with harvest_yard.gd script attached. Converted Workbench from
+  _spawn_workbench() to editor-placed Node2D (visuals still built by
+  _init_workbench()). Removed _spawn_trees(), _spawn_harvest_yard(),
+  _spawn_workbench(), and TREE_SCENE/WORKBENCH_POS constants. Map marker
+  registration now reads positions from editor-placed nodes dynamically.
+
 [2026-04-02 CDT] Placeholder item sprites and ITEM_SPRITE_MAP completion
   Generated 9 placeholder 32x32 RGBA sprites for items missing icons:
   swarm_trap, scraped_super, barrel_feeder, logs, lumber, axe, hammer,
