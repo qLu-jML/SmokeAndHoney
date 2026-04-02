@@ -155,9 +155,8 @@ func _update_mode_label() -> void:
 func _set_active_slot(idx: int) -> void:
 	active_slot = clampi(idx, 0, INVENTORY_SIZE - 1)
 	_sync_grid_overlay()
-	var hud = get_node_or_null("../../UI")
-	if hud and hud.has_method("set_active_slot"):
-		hud.set_active_slot(active_slot)
+	if HUD and HUD.has_method("set_active_slot"):
+		HUD.set_active_slot(active_slot)
 
 ## Returns the item name in the active slot, or "" if empty.
 func get_active_item_name() -> String:
@@ -177,9 +176,8 @@ func _sync_grid_overlay() -> void:
 # -- HUD Bridge ----------------------------------------------------------------
 
 func update_hud_inventory() -> void:
-	var hud = get_node_or_null("../../UI")
-	if hud and hud.has_method("update_player_inventory"):
-		hud.update_player_inventory(inventory)
+	if HUD and HUD.has_method("update_player_inventory"):
+		HUD.update_player_inventory(inventory)
 	_update_carry_visual()
 
 # -- Carried item visual -------------------------------------------------------
@@ -818,9 +816,8 @@ func _action_place_hive() -> void:
 func _action_sleep() -> void:
 	if get_tree().get_first_node_in_group("inspection_overlay"):
 		return
-	var hud = get_node_or_null("../../UI")
-	if hud and hud.has_method("_show_daily_summary"):
-		hud._show_daily_summary()
+	if HUD and HUD.has_method("_show_daily_summary"):
+		HUD._show_daily_summary()
 	else:
 		TimeManager.start_new_day()
 		GameData.full_restore_energy()

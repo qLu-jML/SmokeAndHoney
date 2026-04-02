@@ -1,3 +1,147 @@
+[2026-04-01 CDT] FIX: Toolbar/inventory non-functional on County Road
+  Root cause: player.gd referenced the HUD via relative path "../../UI" which
+  only resolved correctly in home_property (where player is under World/ node).
+  On county_road the player is a direct child of root, so the path went outside
+  the scene tree and returned null -- silently breaking slot selection, inventory
+  display, and the daily summary overlay.
+  Fix: Replaced all three get_node_or_null("../../UI") calls with the global HUD
+  autoload singleton, which is always accessible regardless of scene hierarchy.
+  Files changed: scripts/core/player.gd (lines 158, 180, 821)
+
+[2026-04-01 CDT] FIX: HUD/toolbar disappearing after chopping minigame
+  Root cause: HUD was a per-scene CanvasLayer node ("UI") manually placed in
+  main.tscn and home_property.tscn but NOT in county_road.tscn. When transitioning
+  scenes, the HUD node was destroyed with the old scene. The chopping minigame
+  (also a CanvasLayer) could also overlap and obscure it.
+  Fix: Converted HUD to an autoload singleton registered in project.godot.
+  As an autoload, it persists across all scene transitions and is always present.
+  Set HUD layer=10 so it renders above minigame overlays (layer 1).
+  Removed per-scene "UI" CanvasLayer nodes and their children from main.tscn
+  and home_property.tscn to avoid duplicate HUD instances.
+  Files changed: scripts/ui/hud.gd, project.godot, scenes/main.tscn,
+    scenes/home_property.tscn
+
+[2026-04-01 CDT] Added 30 harvestable trees as scene nodes to county road
+  Trees are physical Node2D objects under a "Trees" parent node -- each can be
+  individually dragged in the Godot editor. Each tree uses a pixel art texture
+  (cainos pixel art pack only, no generated art) via @export tree_texture on
+  harvestable_tree.gd. Removed programmatic oak_tree.png and pine_tree.png refs.
+  The script is now @tool so trees show their textures in the editor preview.
+  Species: Oak, Maple, Ash, Walnut, Elm, Hickory, Pine, Birch -- scattered
+  across the forest zone (y=-1050 to 220, x=-1400 to 1400) with 80px min spacing.
+  Re-added chopping interaction to county_road.gd using get_nodes_in_group().
+  Files changed: scripts/world/harvestable_tree.gd, scripts/world/county_road.gd,
+    scenes/world/county_road.tscn
+
+[2026-04-01 CDT] FIX: Exit bounce-back loop on scene transition
+  Player was spawning inside exit collision zones and immediately re-triggering
+  the transition back. Two fixes:
+  1) All exits (ZoneExit + dynamic) now disable monitoring for 0.5s after scene
+     load, giving the player time to exist near an exit without triggering it.
+  2) Spawn offset bumped from 150 to 200px away from the exit.
+  Files changed: scripts/world/zone_exit.gd, scripts/world/exit_helper.gd
+
+[2026-04-01 CDT] FIX: Player now spawns near the exit they arrived from
+  Rewrote ExitHelper.position_player_from_spawn_side() to find the actual exit
+  node leading back to the source scene and spawn the player 150px inward from
+  it. Both zone_exit.gd and ExitHelper.create_exit() now store source_scene in
+  TimeManager metadata during transitions. The function searches all Area2D
+  children for matching target_scene, then offsets the player away from the exit
+  so they don't re-trigger it. Falls back to bounds-edge positioning if no
+  matching exit is found. Works for all scene transitions universally.
+  Files changed: scripts/world/exit_helper.gd, scripts/world/zone_exit.gd
+
+[2026-04-01 CDT] FIX: Green debug box visible at runtime + invisible wall blocking exit
+  1) zone_exit.gd _draw() now only renders in editor (Engine.is_editor_hint check).
+     Debug rectangles no longer appear during gameplay.
+  2) Removed SceneBounds StaticBody2D from county_road.tscn -- its LeftWall at
+     x=-1600 was blocking the player from reaching ExitToHome at the same position.
+     Scene boundary walls are unnecessary when exits handle the edges.
+  Files changed: scripts/world/zone_exit.gd, scenes/world/county_road.tscn
+
+[2026-04-01 CDT] FIX: Camera limits now auto-adapt to every scene
+  ExitHelper.position_player_from_spawn_side() now resolves bounds 3 ways:
+  1) Explicit bounds arg (e.g. county_road passes SCENE_BOUNDS)
+  2) Scene script's SCENE_BOUNDS constant (auto-detected via reflection)
+  3) If neither exists, removes all camera limits so it follows freely
+  This fixes camera not following player in home_property and any other scene
+  that doesn't define explicit bounds. No per-scene changes needed.
+  Files changed: scripts/world/exit_helper.gd
+
+[2026-04-01 CDT] FIX: Player spawning offscreen on scene transitions
+  The player's Camera2D had hardcoded limits (-1200 to 3000) from an old scene
+  layout. When entering county_road (bounds -1600 to 1600), the camera couldn't
+  scroll to the left spawn point. Fix: ExitHelper.position_player_from_spawn_side()
+  now dynamically sets camera limits to match each scene's bounds on every
+  transition. Also bumped spawn margin from 80 to 120 for breathing room.
+  Files changed: scripts/world/exit_helper.gd
+
+[2026-04-01 CDT] FIX: CountryRoad instant-skip caused by player boundary colliders
+  4 giant CollisionShape2D nodes (3400x26, 376x2592) were parented to the player
+  node in county_road.tscn. This made the player's physics body span the entire
+  scene, immediately overlapping exit zones and triggering a scene change on spawn.
+  Fix: moved all 4 boundary shapes from player to a standalone SceneBounds
+  StaticBody2D node at the scene root. Player node now only has its own collider.
+  Files changed: scenes/world/county_road.tscn
+
+[2026-04-01 CDT] CountryRoad stripped to editor-only layout (no dynamic spawning)
+  Gutted county_road.gd -- removed ALL dynamic spawning: 120 decorative trees,
+  60 bushes, 20 harvestable trees, weather overlay, seasonal visuals, mailbox/truck
+  interaction, and chopping minigame. Script now only handles: scene ID, zone name,
+  minimap/map overlay, and player spawn positioning.
+  Exits are physical ZoneExit nodes in the .tscn (draggable in editor):
+    - ExitToHome (green) - left side, goes to home_property
+    - ExitToCedarBend (blue) - right side, goes to cedar_bend
+  Removed Harmon Farm and Timber Creek exits.
+  What you see in the editor is now what you get at runtime.
+  Files changed: scenes/world/county_road.tscn, scripts/world/county_road.gd
+
+[2026-04-01 CDT] DEV: Added axe, hammer, smoker to dev bypass inventory
+  Dev bypass now pre-populates player inventory with all essential tools:
+  hive tool, gloves, axe, hammer, smoker. This lets the chopping/crafting loop
+  be tested immediately without needing to buy tools at Tanner's first.
+  Files changed: scripts/world/home_property.gd
+
+[2026-04-01 CDT] FIX: ESC double-toggle bug (menu opens then immediately closes)
+  Root cause: Both hud.gd _input() and PauseMenu.gd _unhandled_key_input()
+  processed the same ESC keypress. HUD opens the menu, then PauseMenu closes it
+  on the same frame. Fix: HUD now calls set_input_as_handled() after ESC/P.
+  Files changed: scripts/ui/hud.gd
+
+[2026-04-01 CDT] FIX: Pause menu buttons rebuilt with custom controls
+  Root cause: Godot's Button class has internal minimum-size calculations that
+  auto-expand or clip text at the 320x180 viewport, making pixel-perfect layout
+  impossible. Replaced _make_button() (Button nodes) with _make_btn() using
+  Control + ColorRect (border) + ColorRect (fill) + Label. No Godot Button
+  internals involved -- gives 100% pixel control over sizing, spacing, colors.
+  Also increased BTN_H from 12 to 14, font_size from 6 to 7, and adjusted panel
+  height to 138. Exit confirm dialog also uses custom buttons.
+  Cleared .godot cache (imported, shader_cache, uid_cache, class caches).
+  Files changed: scripts/ui/PauseMenu.gd
+
+[2026-04-01 CDT] DEV: Bypass main menu for testing
+  Changed project.godot main_scene from MainMenu.tscn to home_property.tscn.
+  Added fresh-game state initialization to home_property._ready() so defaults
+  (money, energy, day 1, Spring, etc.) are set when no save/character exists.
+  MainMenu.tscn is preserved and can be re-enabled by reverting main_scene.
+  Files changed: project.godot, scripts/world/home_property.gd
+
+[2026-04-01 CDT] OVERHAUL: Pause menu UI rebuilt from scratch
+  Problems: menu_panel.png texture had ruled lines bleeding through all elements,
+  panel was 160x156 (87% of viewport height) cramming buttons and music controls,
+  music slider/mute checkbox cut off at bottom edge.
+  Fix: Removed texture overlay entirely (solid dark background only). Shrunk panel
+  to 120x100 centered. Moved all volume controls (Music/SFX/Master + Mute) into
+  Settings sub-panel only (no duplication on main panel). Clean 4-button layout:
+  Resume, Save, Settings, Exit. Exit confirmation dialog also compacted.
+  Files changed: scripts/ui/PauseMenu.gd
+
+[2026-04-01 CDT] FIX: ESC key now opens/closes pause menu
+  HUD _input() only handled KEY_P for pause toggle -- KEY_ESCAPE was missing.
+  Added KEY_ESCAPE to the same match arm so ESC opens the pause menu with
+  Resume, Save, Settings, and Exit options as designed.
+  Files changed: scripts/ui/hud.gd
+
 [2026-03-31 CDT] TWEAK: Skip character creation on new game
   Start button now bypasses CharacterCreator and goes straight to home_property.
   Sets default name "Beekeeper", backstory "newcomer" if no character exists.
@@ -1030,3 +1174,54 @@
   boxes, controls reference table with alternating rows, test results checklist.
   Saved to research/reports/Testing_Guide_2026-03-31.pdf alongside HTML version.
   Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
+
+[2026-03-31 22:45:00 CDT] DOCS: Playtester feedback form and PDF QR code.
+  Created Google Form "Smoke & Honey - Playtester Feedback" in Five Cats
+  Gmail workspace with 7 questions: Name/Tester ID (short answer), Systems
+  tested (checkboxes, 16 options + Other), Overall rating (1-5 linear scale),
+  Bugs encountered (paragraph), What enjoyed most (paragraph), Suggestions
+  for improvement (paragraph), Additional comments (paragraph).
+  Form URL: https://docs.google.com/forms/d/1eefNpvpHW6dEfcLv4hu2XpeNgOsY27avnfmcHZ-1oaI/viewform
+  Generated amber-colored QR code (450x450px) linking to the form.
+  Rebuilt Testing Guide PDF (66,749 bytes) with embedded QR code on page 1.
+  Updated to research/reports/Testing_Guide_2026-03-31.pdf.
+  Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
+
+## 2026-03-31 -- Flower Scale Reduction
+- Reduced wildflower scatter scale from 0.7-1.1 to 0.32-0.48 (scripts/world/wildflower_scatter.gd)
+- Reduced lifecycle manager flower scale from 0.42-0.58 to 0.22-0.30 (scripts/world/flower_lifecycle_manager.gd)
+- Flowers were appearing too large relative to the player and environment
+- Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
+
+## 2026-03-31 -- Flower Scale Reduction (Round 2)
+- Reduced wildflower scatter scale from 0.32-0.48 to 0.08-0.12 (25% of previous)
+- Reduced lifecycle manager flower scale from 0.22-0.30 to 0.055-0.075 (25% of previous)
+- Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
+
+## 2026-03-31 -- Fix: Flowers rendered as TileMap tiles, not Sprite2D
+- ROOT CAUSE: Flowers were baked as 32x32 TileMap tiles on Layer 3 (flowers_forage),
+  rendered at full tile size regardless of Sprite2D scale changes.
+- FIX: FlowerLifecycleManager now clears TileMap Layer 3 on _ready, since it handles
+  all flowers dynamically via Sprite2D nodes.
+- Reset Sprite2D scales to reasonable values: lifecycle manager 0.4-0.55, scatter 0.35-0.55
+  (roughly half a tile, ~14-18px on screen from 32px textures).
+- Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
+
+## 2026-03-31 -- County Road Rebuilt with Forest
+- Expanded county_road scene from 640x200 to 3200x2400 pixels
+- Added dense forest zone (upper 2/3 of scene) with 120+ decorative trees
+  using extracted Cainos Village Pack tree sprites + existing oak/pine sprites
+- Extracted 18 tree/bush sprites from Cainos TX Village Plant.png spritesheet
+  into assets/sprites/environment/cainos_trees/
+- Road now runs left-right at y=330-420 with ditches on both sides
+- Harmon farm field visible in bottom-left section
+- Harvestable trees expanded from 8 to 20, spread throughout the forest
+  (14 in deep forest, 6 near the road for easy access)
+- Updated ExitHelper to support custom scene bounds via optional Rect2 parameter
+  (backward compatible - default bounds match original 1400x500 scenes)
+- Updated ExitHelper.position_player_from_spawn_side() to use bounds-relative
+  positioning with 80px margin
+- Background scenery: grain elevator silhouette, water tower (distant right)
+- 60 undergrowth bushes from Cainos bush sprites for forest floor detail
+- All GDScript ASCII-verified, no non-ASCII characters
+- Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
