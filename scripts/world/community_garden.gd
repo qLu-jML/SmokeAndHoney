@@ -19,8 +19,10 @@ func _ready() -> void:
 	ExitHelper.position_player_from_spawn_side(self)
 	print("Community Garden scene loaded.")
 
-## Create dynamic exits for the garden.
+## Create dynamic exits for the garden (skipped if editor-placed nodes exist).
 func _setup_exits() -> void:
+	if get_node_or_null("ExitToCedarBend"):
+		return
 	# Left edge -> Cedar Bend
 	ExitHelper.create_exit(self, "left", "res://scenes/world/cedar_bend.tscn",
 		"<- Cedar Bend")

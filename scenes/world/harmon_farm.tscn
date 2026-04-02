@@ -1,6 +1,7 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/harmon_farm.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/world/zone_exit.gd" id="zone_exit_script"]
 [ext_resource type="PackedScene" uid="uid://d3qdbfmsmyqoa" path="res://scenes/player/player.tscn" id="2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/buildings/harmon_farmhouse.png" id="3"]
 [ext_resource type="Texture2D" path="res://assets/sprites/buildings/harmon_barn.png" id="4"]
@@ -140,6 +141,21 @@ text = "Kacey Harmon"
 theme_override_font_sizes/font_size = 7
 theme_override_colors/font_color = Color(0.70, 0.55, 0.25, 1)
 horizontal_alignment = 1
+
+[sub_resource type="RectangleShape2D" id="exit_hf_top"]
+size = Vector2(1500, 30)
+
+[node name="ExitToCountyRoad" type="Area2D" parent="."]
+position = Vector2(150, -200)
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("zone_exit_script")
+target_scene = "res://scenes/world/county_road.tscn"
+exit_label_text = "^ County Road"
+spawn_side = "down"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ExitToCountyRoad"]
+shape = SubResource("exit_hf_top")
 
 [node name="player" parent="." instance=ExtResource("2")]
 position = Vector2(0, 110)

@@ -102,7 +102,7 @@ func _ready() -> void:
 	# Door zones and exit zones are now placed as nodes in the .tscn file
 	# so they are visible and draggable in the Godot editor.
 	# Legacy dynamic creation is kept as a fallback only.
-	if not _has_scene_exit("ExitRight_CountyRoad"):
+	if not _has_scene_exit("ExitToCountyRoad"):
 		_setup_exits()
 	if not _has_scene_door("FarmhouseDoor"):
 		_setup_building_triggers()

@@ -1,10 +1,68 @@
-[gd_scene format=3 uid="uid://houseinterior01"]
+[gd_scene load_steps=9 format=3 uid="uid://houseinterior01"]
 
 [ext_resource type="Script" path="res://scripts/world/house_interior.gd" id="1_int"]
 [ext_resource type="PackedScene" uid="uid://d3qdbfmsmyqoa" path="res://scenes/player/player.tscn" id="2_int"]
+[ext_resource type="Texture2D" path="res://assets/sprites/interiors/house_interior_bg.png" id="3_bg"]
+
+[sub_resource type="RectangleShape2D" id="wall_top"]
+size = Vector2(480, 32)
+
+[sub_resource type="RectangleShape2D" id="wall_left"]
+size = Vector2(32, 288)
+
+[sub_resource type="RectangleShape2D" id="wall_right"]
+size = Vector2(32, 288)
+
+[sub_resource type="RectangleShape2D" id="wall_bot_left"]
+size = Vector2(224, 32)
+
+[sub_resource type="RectangleShape2D" id="wall_bot_right"]
+size = Vector2(224, 32)
 
 [node name="HouseInterior" type="Node2D"]
 script = ExtResource("1_int")
+
+[node name="Background" type="Sprite2D" parent="."]
+centered = false
+z_index = -10
+texture = ExtResource("3_bg")
+
+[node name="Walls" type="StaticBody2D" parent="."]
+
+[node name="TopWall" type="CollisionShape2D" parent="Walls"]
+position = Vector2(240, 16)
+shape = SubResource("wall_top")
+
+[node name="LeftWall" type="CollisionShape2D" parent="Walls"]
+position = Vector2(16, 176)
+shape = SubResource("wall_left")
+
+[node name="RightWall" type="CollisionShape2D" parent="Walls"]
+position = Vector2(464, 176)
+shape = SubResource("wall_right")
+
+[node name="BottomWallLeft" type="CollisionShape2D" parent="Walls"]
+position = Vector2(112, 304)
+shape = SubResource("wall_bot_left")
+
+[node name="BottomWallRight" type="CollisionShape2D" parent="Walls"]
+position = Vector2(368, 304)
+shape = SubResource("wall_bot_right")
+
+[node name="BedPrompt" type="Label" parent="."]
+offset_left = 360.0
+offset_top = 64.0
+offset_right = 408.0
+offset_bottom = 76.0
+z_index = 20
+text = "[E] Sleep"
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(1, 1, 0.8, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+horizontal_alignment = 1
+visible = false
 
 [node name="player" parent="." instance=ExtResource("2_int")]
 position = Vector2(240, 256)

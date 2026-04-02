@@ -38,9 +38,14 @@ func _ready() -> void:
 			Vector2((BED_MIN_COL + 1) * TILE, (BED_MIN_ROW + 1) * TILE),
 			"Bed", Color(0.3, 0.5, 0.8))
 		SceneManager.register_scene_exit("bottom", "Outside")
-	_build_background()
-	_build_walls()
-	_build_prompt_label()
+	if not get_node_or_null("Background"):
+		_build_background()
+	if not get_node_or_null("Walls"):
+		_build_walls()
+	if not get_node_or_null("BedPrompt"):
+		_build_prompt_label()
+	else:
+		_prompt_label = get_node("BedPrompt") as Label
 	_place_player()
 
 # -- Background sprite ---------------------------------------------------------

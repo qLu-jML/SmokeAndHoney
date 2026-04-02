@@ -19,8 +19,10 @@ func _ready() -> void:
 	ExitHelper.position_player_from_spawn_side(self)
 	print("County Fairgrounds scene loaded.")
 
-## Create dynamic exits for the fairgrounds.
+## Create dynamic exits for the fairgrounds (skipped if editor-placed nodes exist).
 func _setup_exits() -> void:
+	if get_node_or_null("ExitToCedarBend"):
+		return
 	# Top edge -> Cedar Bend
 	ExitHelper.create_exit(self, "top", "res://scenes/world/cedar_bend.tscn",
 		"^ Cedar Bend")

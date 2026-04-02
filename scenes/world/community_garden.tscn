@@ -1,6 +1,7 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/community_garden.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/world/zone_exit.gd" id="zone_exit_script"]
 [ext_resource type="PackedScene" uid="uid://d3qdbfmsmyqoa" path="res://scenes/player/player.tscn" id="2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/environment/props/park_bench.png" id="3"]
 [ext_resource type="Texture2D" path="res://assets/sprites/environment/props/garden_plaque.png" id="4"]
@@ -150,6 +151,21 @@ text = "Dr. Terri Vogel"
 theme_override_font_sizes/font_size = 5
 theme_override_colors/font_color = Color(0.70, 0.55, 0.25, 1)
 horizontal_alignment = 1
+
+[sub_resource type="RectangleShape2D" id="exit_cg_left"]
+size = Vector2(30, 270)
+
+[node name="ExitToCedarBend" type="Area2D" parent="."]
+position = Vector2(-200, 45)
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("zone_exit_script")
+target_scene = "res://scenes/world/cedar_bend.tscn"
+exit_label_text = "<- Cedar Bend"
+spawn_side = "right"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ExitToCedarBend"]
+shape = SubResource("exit_cg_left")
 
 [node name="player" parent="." instance=ExtResource("2")]
 position = Vector2(-160, 46)

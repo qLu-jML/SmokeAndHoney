@@ -148,6 +148,7 @@ var _bloom_texture: CompressedTexture2D = null
 var _current_season: String = ""
 var _sprite: Sprite2D = null
 var _body: StaticBody2D = null
+var _debug_overlay: Node2D = null
 
 const TREE_PATH := "res://assets/sprites/environment/trees/"
 
@@ -168,8 +169,10 @@ func _ready() -> void:
 	# Build sprite and collision (works in both editor and runtime)
 	_rebuild()
 
-	# Runtime-only: connect to TimeManager for season changes
+	# Runtime-only: connect to TimeManager for season changes and debug overlay
 	if not Engine.is_editor_hint():
+		_create_debug_overlay()
+		GameData.dev_labels_toggled.connect(_on_dev_labels_toggled)
 		if TimeManager:
 			TimeManager.season_changed.connect(_on_season_changed)
 			TimeManager.day_advanced.connect(_on_day_advanced)
@@ -298,6 +301,39 @@ func is_in_bloom() -> bool:
 	return month >= forage_month_start and month <= forage_month_end
 
 
+# -- Debug Drawing -----------------------------------------------------------
+
+## Create high-z overlay node for collision debug so it renders on top of everything.
+func _create_debug_overlay() -> void:
+	_debug_overlay = Node2D.new()
+	_debug_overlay.name = "CollisionDebugOverlay"
+	_debug_overlay.z_index = 100
+	_debug_overlay.z_as_relative = false
+	_debug_overlay.set_script(load("res://scripts/debug/collision_debug_draw.gd"))
+	_debug_overlay.set_meta("rects", [])
+	_update_debug_rects()
+	add_child(_debug_overlay)
+	_debug_overlay.visible = GameData.dev_labels_visible
+
+
+## Update the collision rectangles stored on the debug overlay.
+func _update_debug_rects() -> void:
+	if _debug_overlay == null:
+		return
+	var hw: float = trunk_collision_width * 0.5
+	var hh: float = trunk_collision_height
+	var rect := Rect2(-hw, -hh, trunk_collision_width, trunk_collision_height)
+	_debug_overlay.set_meta("rects", [rect])
+	_debug_overlay.queue_redraw()
+
+
+## Toggle debug overlay visibility when dev labels toggle.
+func _on_dev_labels_toggled(vis: bool) -> void:
+	if _debug_overlay:
+		_debug_overlay.visible = vis
+		_debug_overlay.queue_redraw()
+
+
 # -- Signal Handlers ---------------------------------------------------------
 
 ## Handle TimeManager season change signal.
@@ -311,9 +347,13 @@ func _on_day_advanced(_new_day: int) -> void:
 		_apply_season(_current_season)
 
 
-## Disconnect TimeManager signals when leaving the scene tree.
+## Disconnect signals when leaving the scene tree.
 func _exit_tree() -> void:
-	if not Engine.is_editor_hint() and TimeManager:
+	if Engine.is_editor_hint():
+		return
+	if GameData and GameData.dev_labels_toggled.is_connected(_on_dev_labels_toggled):
+		GameData.dev_labels_toggled.disconnect(_on_dev_labels_toggled)
+	if TimeManager:
 		if TimeManager.season_changed.is_connected(_on_season_changed):
 			TimeManager.season_changed.disconnect(_on_season_changed)
 		if TimeManager.day_advanced.is_connected(_on_day_advanced):

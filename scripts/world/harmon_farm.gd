@@ -19,8 +19,10 @@ func _ready() -> void:
 	ExitHelper.position_player_from_spawn_side(self)
 	print("Harmon Farm scene loaded.")
 
-## Create dynamic exits for the farm.
+## Create dynamic exits for the farm (skipped if editor-placed nodes exist).
 func _setup_exits() -> void:
+	if get_node_or_null("ExitToCountyRoad"):
+		return
 	# Top edge -> County Road
 	ExitHelper.create_exit(self, "top", "res://scenes/world/county_road.tscn",
 		"^ County Road")

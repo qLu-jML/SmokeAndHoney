@@ -1,7 +1,40 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/honey_house.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://d3qdbfmsmyqoa" path="res://scenes/player/player.tscn" id="2"]
+
+[sub_resource type="RectangleShape2D" id="wall_top"]
+size = Vector2(384, 32)
+
+[sub_resource type="RectangleShape2D" id="wall_left"]
+size = Vector2(32, 288)
+
+[sub_resource type="RectangleShape2D" id="wall_right"]
+size = Vector2(32, 288)
+
+[sub_resource type="RectangleShape2D" id="wall_bot_left"]
+size = Vector2(160, 32)
+
+[sub_resource type="RectangleShape2D" id="wall_bot_right"]
+size = Vector2(192, 32)
+
+[sub_resource type="RectangleShape2D" id="station_prep"]
+size = Vector2(96, 64)
+
+[sub_resource type="RectangleShape2D" id="station_holder"]
+size = Vector2(96, 64)
+
+[sub_resource type="RectangleShape2D" id="station_uncap"]
+size = Vector2(96, 64)
+
+[sub_resource type="RectangleShape2D" id="station_spinner"]
+size = Vector2(128, 96)
+
+[sub_resource type="RectangleShape2D" id="station_canning"]
+size = Vector2(128, 32)
+
+[sub_resource type="RectangleShape2D" id="station_shelf"]
+size = Vector2(160, 32)
 
 [node name="HoneyHouse" type="Node2D"]
 script = ExtResource("1")
@@ -25,6 +58,52 @@ text = "Honey House"
 theme_override_font_sizes/font_size = 6
 theme_override_colors/font_color = Color(0.65, 0.50, 0.28, 1)
 horizontal_alignment = 1
+
+[node name="Walls" type="StaticBody2D" parent="."]
+
+[node name="TopWall" type="CollisionShape2D" parent="Walls"]
+position = Vector2(192, 16)
+shape = SubResource("wall_top")
+
+[node name="LeftWall" type="CollisionShape2D" parent="Walls"]
+position = Vector2(16, 176)
+shape = SubResource("wall_left")
+
+[node name="RightWall" type="CollisionShape2D" parent="Walls"]
+position = Vector2(368, 176)
+shape = SubResource("wall_right")
+
+[node name="BottomWallLeft" type="CollisionShape2D" parent="Walls"]
+position = Vector2(80, 304)
+shape = SubResource("wall_bot_left")
+
+[node name="BottomWallRight" type="CollisionShape2D" parent="Walls"]
+position = Vector2(288, 304)
+shape = SubResource("wall_bot_right")
+
+[node name="SuperPrep" type="CollisionShape2D" parent="Walls"]
+position = Vector2(80, 48)
+shape = SubResource("station_prep")
+
+[node name="FrameHolder" type="CollisionShape2D" parent="Walls"]
+position = Vector2(208, 48)
+shape = SubResource("station_holder")
+
+[node name="Uncapping" type="CollisionShape2D" parent="Walls"]
+position = Vector2(80, 160)
+shape = SubResource("station_uncap")
+
+[node name="Spinner" type="CollisionShape2D" parent="Walls"]
+position = Vector2(224, 176)
+shape = SubResource("station_spinner")
+
+[node name="CanningTable" type="CollisionShape2D" parent="Walls"]
+position = Vector2(96, 240)
+shape = SubResource("station_canning")
+
+[node name="HoneyShelf" type="CollisionShape2D" parent="Walls"]
+position = Vector2(272, 240)
+shape = SubResource("station_shelf")
 
 [node name="player" parent="." instance=ExtResource("2")]
 position = Vector2(192, 256)

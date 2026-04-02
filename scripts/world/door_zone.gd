@@ -11,6 +11,7 @@ extends Area2D
 @export var debug_color: Color = Color(1.0, 0.5, 0.2, 0.3)
 
 var _transitioning: bool = false
+var _debug_overlay: Node2D = null
 
 ## Initialize the door zone collision and signal connections.
 func _ready() -> void:
@@ -21,11 +22,49 @@ func _ready() -> void:
 	collision_mask = 1
 	monitoring = true
 	body_entered.connect(_on_body_entered)
+	_create_debug_overlay()
+	GameData.dev_labels_toggled.connect(_on_dev_labels_toggled)
 
-## Disconnect signal when exiting the scene.
+## Create high-z debug overlay so collision is visible on top of everything.
+func _create_debug_overlay() -> void:
+	_debug_overlay = Node2D.new()
+	_debug_overlay.name = "CollisionDebugOverlay"
+	_debug_overlay.z_index = 100
+	_debug_overlay.z_as_relative = false
+	_debug_overlay.set_script(load("res://scripts/debug/collision_debug_draw.gd"))
+	_update_debug_rects()
+	add_child(_debug_overlay)
+	_debug_overlay.visible = GameData.dev_labels_visible
+
+## Update debug overlay from child CollisionShape2D nodes.
+func _update_debug_rects() -> void:
+	if _debug_overlay == null:
+		return
+	var rects: Array = []
+	for child in get_children():
+		if child is CollisionShape2D:
+			var cshape: CollisionShape2D = child as CollisionShape2D
+			if cshape.shape is RectangleShape2D:
+				var rs: RectangleShape2D = cshape.shape as RectangleShape2D
+				var half: Vector2 = rs.size * 0.5
+				rects.append(Rect2(cshape.position - half, rs.size))
+	_debug_overlay.set_meta("rects", rects)
+	_debug_overlay.queue_redraw()
+
+## Toggle debug overlay when dev mode changes.
+func _on_dev_labels_toggled(vis: bool) -> void:
+	if _debug_overlay:
+		_debug_overlay.visible = vis
+		_debug_overlay.queue_redraw()
+
+## Disconnect signals when exiting the scene.
 func _exit_tree() -> void:
-	if not Engine.is_editor_hint() and body_entered.is_connected(_on_body_entered):
+	if Engine.is_editor_hint():
+		return
+	if body_entered.is_connected(_on_body_entered):
 		body_entered.disconnect(_on_body_entered)
+	if GameData and GameData.dev_labels_toggled.is_connected(_on_dev_labels_toggled):
+		GameData.dev_labels_toggled.disconnect(_on_dev_labels_toggled)
 
 ## Draw debug rectangle and building name label in the editor.
 func _draw() -> void:

@@ -25,7 +25,11 @@ var _market_overlay_active: bool = false
 ## Ready.
 func _ready() -> void:
 	_setup_weather()
-	_setup_building_triggers()
+	# Only create dynamic doors/exits if editor-placed nodes are missing
+	if not get_node_or_null("World/Buildings/CrossroadsDiner/DoorZone"):
+		_setup_building_triggers()
+	if not get_node_or_null("ExitToCountyRoad"):
+		_setup_zone_exits()
 	_apply_seasonal_visuals()
 	_check_saturday_market()
 	_spawn_initial_pedestrians()
@@ -35,7 +39,6 @@ func _ready() -> void:
 		SceneManager.current_zone_name = "Cedar Bend"
 		SceneManager.show_zone_name()
 		_register_map_markers()
-	_setup_zone_exits()
 	ExitHelper.position_player_from_spawn_side(self)
 	print("Cedar Bend scene loaded -- Phase 4 build.")
 

@@ -16,6 +16,7 @@ extends Area2D
 var _transitioning: bool = false
 var _cooldown: bool = true
 var _label: Label = null
+var _debug_overlay: Node2D = null
 
 ## Initialize the zone exit with collision shapes and signal connections.
 func _ready() -> void:
@@ -23,6 +24,10 @@ func _ready() -> void:
 	if Engine.is_editor_hint():
 		queue_redraw()
 		return
+
+	# Create high-z debug overlay for dev mode collision visibility
+	_create_debug_overlay()
+	GameData.dev_labels_toggled.connect(_on_dev_labels_toggled)
 
 	# Disable collision for a short time so the player doesn't
 	# immediately re-trigger this exit when spawning near it
@@ -86,11 +91,45 @@ func _draw() -> void:
 	if exit_label_text != "":
 		draw_string(ThemeDB.fallback_font, Vector2(-30, -8), exit_label_text, HORIZONTAL_ALIGNMENT_CENTER, 60, 5, Color(1, 1, 0.7, 0.9))
 
+## Create high-z debug overlay so collision is visible on top of everything.
+func _create_debug_overlay() -> void:
+	_debug_overlay = Node2D.new()
+	_debug_overlay.name = "CollisionDebugOverlay"
+	_debug_overlay.z_index = 100
+	_debug_overlay.z_as_relative = false
+	_debug_overlay.set_script(load("res://scripts/debug/collision_debug_draw.gd"))
+	_update_debug_rects()
+	add_child(_debug_overlay)
+	_debug_overlay.visible = GameData.dev_labels_visible
+
+## Update debug overlay collision rectangles from child CollisionShape2D nodes.
+func _update_debug_rects() -> void:
+	if _debug_overlay == null:
+		return
+	var rects: Array = []
+	for child in get_children():
+		if child is CollisionShape2D:
+			var cshape: CollisionShape2D = child as CollisionShape2D
+			if cshape.shape is RectangleShape2D:
+				var rs: RectangleShape2D = cshape.shape as RectangleShape2D
+				var half: Vector2 = rs.size * 0.5
+				rects.append(Rect2(cshape.position - half, rs.size))
+	_debug_overlay.set_meta("rects", rects)
+	_debug_overlay.queue_redraw()
+
+## Toggle debug overlay when dev mode changes.
+func _on_dev_labels_toggled(vis: bool) -> void:
+	if _debug_overlay:
+		_debug_overlay.visible = vis
+		_debug_overlay.queue_redraw()
+
 ## Disconnect signals when exiting the scene.
 func _exit_tree() -> void:
 	if not Engine.is_editor_hint():
 		if body_entered.is_connected(_on_body_entered):
 			body_entered.disconnect(_on_body_entered)
+		if GameData and GameData.dev_labels_toggled.is_connected(_on_dev_labels_toggled):
+			GameData.dev_labels_toggled.disconnect(_on_dev_labels_toggled)
 
 ## Handle player entering the zone exit and transition to target scene.
 func _on_body_entered(body: Node2D) -> void:

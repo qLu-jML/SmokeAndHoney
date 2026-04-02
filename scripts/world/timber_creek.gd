@@ -22,8 +22,10 @@ func _exit_tree() -> void:
 	if TimeManager.day_advanced.is_connected(_on_day_advanced):
 		TimeManager.day_advanced.disconnect(_on_day_advanced)
 
-## Create scene exits connecting to adjacent areas.
+## Create scene exits connecting to adjacent areas (skipped if editor-placed nodes exist).
 func _setup_exits() -> void:
+	if get_node_or_null("ExitToCountyRoad"):
+		return
 	# Bottom edge -> County Road
 	ExitHelper.create_exit(self, "bottom", "res://scenes/world/county_road.tscn",
 		"v County Road")

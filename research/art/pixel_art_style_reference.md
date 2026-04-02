@@ -1,5 +1,9 @@
-# Smoke & Honey — PixelLab.ai Style Guide
+# Smoke & Honey — Pixel Art Style Reference
 *Art direction based on "Pixel Art Top Down - Village v1.0.7" asset pack*
+
+> **Note:** Originally written for PixelLab.ai. Retained as a style reference for human
+> pixel artists. All in-house AI art generation uses Leonardo AI per CLAUDE.md rules.
+> Renamed from PIXELLAB_STYLE_GUIDE.md on 2026-04-02.
 
 ---
 

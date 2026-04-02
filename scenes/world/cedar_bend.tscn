@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=27 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/cedar_bend.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://d3qdbfmsmyqoa" path="res://scenes/player/player.tscn" id="11"]
@@ -19,6 +19,17 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/world/props/barrel.png" id="17"]
 [ext_resource type="Texture2D" path="res://assets/sprites/world/props/fire_hydrant.png" id="18"]
 [ext_resource type="Texture2D" path="res://assets/sprites/world/props/crate.png" id="19"]
+[ext_resource type="Script" path="res://scripts/world/zone_exit.gd" id="zone_exit_script"]
+[ext_resource type="Script" path="res://scripts/world/door_zone.gd" id="door_zone_script"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_exit_v"]
+size = Vector2(30, 600)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_exit_h"]
+size = Vector2(1600, 30)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_door_cb"]
+size = Vector2(30, 14)
 
 [node name="CedarBend" type="Node2D"]
 script = ExtResource("1")
@@ -347,3 +358,98 @@ mouse_filter = 2
 
 [node name="player" parent="." instance=ExtResource("11")]
 position = Vector2(0, 70)
+
+; ==============================================================================
+; ZONE EXITS -- Walk-to scene transition triggers. Drag in editor to reposition.
+; ==============================================================================
+
+[node name="ExitToCountyRoad" type="Area2D" parent="."]
+position = Vector2(-800, 0)
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("zone_exit_script")
+target_scene = "res://scenes/world/county_road.tscn"
+exit_label_text = "<- County Road"
+spawn_side = "right"
+debug_color = Color(0.2, 0.8, 0.2, 0.25)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ExitToCountyRoad"]
+shape = SubResource("RectangleShape2D_exit_v")
+
+[node name="ExitToGarden" type="Area2D" parent="."]
+position = Vector2(800, 0)
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("zone_exit_script")
+target_scene = "res://scenes/world/community_garden.tscn"
+exit_label_text = "-> Garden"
+spawn_side = "left"
+debug_color = Color(0.2, 0.6, 1.0, 0.25)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ExitToGarden"]
+shape = SubResource("RectangleShape2D_exit_v")
+
+[node name="ExitToFairgrounds" type="Area2D" parent="."]
+position = Vector2(0, 300)
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("zone_exit_script")
+target_scene = "res://scenes/world/fairgrounds.tscn"
+exit_label_text = "v Fairgrounds"
+spawn_side = "top"
+debug_color = Color(0.8, 0.2, 0.8, 0.25)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ExitToFairgrounds"]
+shape = SubResource("RectangleShape2D_exit_h")
+
+; ==============================================================================
+; DOOR ZONES -- Building entrance triggers. Drag in editor to reposition.
+; ==============================================================================
+
+[node name="DoorZone" type="Area2D" parent="World/Buildings/CrossroadsDiner"]
+position = Vector2(0, 80)
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("door_zone_script")
+target_scene = "res://scenes/world/diner_interior.tscn"
+building_name = "Diner"
+debug_color = Color(1.0, 0.5, 0.2, 0.3)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Buildings/CrossroadsDiner/DoorZone"]
+shape = SubResource("RectangleShape2D_door_cb")
+
+[node name="DoorZone" type="Area2D" parent="World/Buildings/FeedSupply"]
+position = Vector2(0, 80)
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("door_zone_script")
+target_scene = "res://scenes/world/feed_supply_interior.tscn"
+building_name = "Feed & Supply"
+debug_color = Color(1.0, 0.5, 0.2, 0.3)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Buildings/FeedSupply/DoorZone"]
+shape = SubResource("RectangleShape2D_door_cb")
+
+[node name="DoorZone" type="Area2D" parent="World/Buildings/PostOffice"]
+position = Vector2(0, 80)
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("door_zone_script")
+target_scene = "res://scenes/world/post_office_interior.tscn"
+building_name = "Post Office"
+debug_color = Color(1.0, 0.5, 0.2, 0.3)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Buildings/PostOffice/DoorZone"]
+shape = SubResource("RectangleShape2D_door_cb")
+
+[node name="DoorZone" type="Area2D" parent="World/Buildings/GrangeHall"]
+position = Vector2(0, 80)
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("door_zone_script")
+target_scene = ""
+building_name = "Grange Hall"
+debug_color = Color(0.5, 0.5, 0.5, 0.2)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Buildings/GrangeHall/DoorZone"]
+shape = SubResource("RectangleShape2D_door_cb")

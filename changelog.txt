@@ -1,3 +1,89 @@
+[2026-04-02 CDT] Full scene conversion: all dynamic objects to editor nodes
+  Converted all remaining dynamically-created objects across every scene to
+  editor-placed .tscn nodes so they are visible and draggable in the Godot
+  editor without touching scripts:
+  Exterior ZoneExits (4 scenes):
+  - community_garden.tscn: ExitToCedarBend (left edge, 30x270)
+  - timber_creek.tscn: ExitToCountyRoad (bottom edge, 960x30)
+  - fairgrounds.tscn: ExitToCedarBend (top edge, 1500x30)
+  - harmon_farm.tscn: ExitToCountyRoad (top edge, 1500x30)
+  Interior walls/collisions:
+  - house_interior.tscn: Background Sprite2D, Walls StaticBody2D (5 shapes),
+    BedPrompt Label -- all previously created in code via _build_*() methods
+  - honey_house.tscn: Walls StaticBody2D with 5 wall collision shapes +
+    6 station collision shapes (SuperPrep, FrameHolder, Uncapping, Spinner,
+    CanningTable, HoneyShelf)
+  Script fallback guards added:
+  - community_garden.gd, timber_creek.gd, fairgrounds.gd, harmon_farm.gd:
+    _setup_exits() returns early if editor-placed ZoneExit node found
+  - house_interior.gd: skips _build_background(), _build_walls(),
+    _build_prompt_label() when editor nodes exist
+  - honey_house.gd: skips _build_walls() when editor Walls node exists
+  Interior scenes (diner, post_office, feed_supply) verified: walls and
+  furniture already editor-placed; only UI overlays are dynamic (correct).
+
+[2026-04-02 CDT] Editor-placed exit/door zones + dev mode visibility
+  Converted all dynamic scene transitions to editor-placed nodes so they
+  are visible and draggable in the Godot editor:
+  home_property.tscn:
+  - ExitToCountyRoad (ZoneExit) on right edge of World
+  - FarmhouseDoor (DoorZone) on Farmhouse building
+  - HoneyHouseDoor (DoorZone) on HoneyHouse building
+  cedar_bend.tscn:
+  - ExitToCountyRoad (ZoneExit) on left edge
+  - ExitToGarden (ZoneExit) on right edge
+  - ExitToFairgrounds (ZoneExit) on bottom edge
+  - DoorZone on CrossroadsDiner, FeedSupply, PostOffice, GrangeHall
+  Scripts updated:
+  - zone_exit.gd: Added runtime collision debug overlay (z_index=100)
+    using collision_debug_draw.gd, toggles with G key dev mode
+  - door_zone.gd: Same debug overlay treatment
+  - home_property.gd: Skips dynamic creation when editor nodes exist
+  - cedar_bend.gd: Same fallback check
+
+[2026-04-02 CDT] Trim tree sprite root flare + collision debug overlay
+  Tree sprites: Trimmed root/ground artifacts from the bottom of all 40
+  seasonal tree sprites (10 species x 4 seasons). The wide root flare,
+  exposed roots, and grassy mound pixels at the base of each tree caused
+  the player to render behind ground-level elements when walking nearby.
+  Backups saved to research/archive/tree_sprites_pretrim/.
+  Collision debug: Created scripts/debug/collision_debug_draw.gd -- a
+  shared overlay script that draws green collision outlines at z_index=100
+  (absolute) so they always render on top of all game objects. Applied to
+  both seasonal_tree.gd and harvest_yard.gd, replacing the old _draw()
+  approach that rendered debug at the node's own z_index (hidden behind
+  other objects).
+
+[2026-04-02 CDT] Fix tree y-sorting and collision debug
+  Problem: Player rendered in front of trees instead of behind them,
+  and tree collision shapes were not visible in dev mode.
+  Root cause: FarmsteadTrees parent node lacked y_sort_enabled, so all
+  10 trees were treated as a single unit for depth sorting.
+  Fixes:
+  - home_property.tscn: Added y_sort_enabled=true to FarmsteadTrees
+    so each tree individually y-sorts against the player
+  - seasonal_tree.gd: Added _draw() collision debug that shows green
+    trunk collision rectangle when dev mode is active (G key)
+  - seasonal_tree.gd: Connected GameData.dev_labels_toggled signal
+    with proper cleanup in _exit_tree()
+
+[2026-04-02 CDT] Fix y-sorting and collision debug in harvest yard
+  Problem: Player could walk "under" station assets instead of "behind"
+  them, and collision shapes were not visible in dev mode (G key).
+  Root cause: HarvestYard node had z_index=2 which overrode y-sorting,
+  and station sprites used z_index=3-4 instead of y_sort_origin.
+  Fixes:
+  - home_property.tscn: Replaced z_index=2 with y_sort_enabled=true on
+    HarvestYard node so its children flatten into World's y-sort
+  - harvest_yard.gd: Replaced z_index on pallet sprites, extractor, and
+    bucket with y_sort_origin set to bottom edge of each station
+  - harvest_yard.gd: Added _draw_collision_debug() that draws green
+    collision outlines over all stations when dev mode is active
+  - harvest_yard.gd: Connected GameData.dev_labels_toggled signal to
+    queue_redraw so collision debug updates on G key toggle
+  - GameData.gd: Added get_tree().debug_collisions_hint toggle to show
+    Godot's built-in collision shapes (walls, tilemap physics, etc.)
+
 [2026-04-02 CDT] Add @tool to world scripts so objects render in editor
   Made 6 scripts @tool so their sprites, collision, and labels are visible
   in the Godot editor for drag-and-drop layout:

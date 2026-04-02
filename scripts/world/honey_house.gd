@@ -113,7 +113,8 @@ func _ready() -> void:
 			"Door", Color(0.7, 0.4, 0.2))
 		SceneManager.register_scene_exit("bottom", "Exit")
 
-	_build_walls()
+	if not get_node_or_null("Walls"):
+		_build_walls()
 	_create_stations()
 	_create_ui()
 	_place_player()

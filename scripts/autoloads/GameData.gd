@@ -27,6 +27,8 @@ func _input(event: InputEvent) -> void:
 func toggle_dev_labels() -> void:
 	dev_labels_visible = not dev_labels_visible
 	dev_labels_toggled.emit(dev_labels_visible)
+	# Toggle Godot's built-in collision shape debug overlay
+	get_tree().debug_collisions_hint = dev_labels_visible
 	# Also toggle all nodes in the "dev_label" group
 	for node in get_tree().get_nodes_in_group("dev_label"):
 		if node is CanvasItem:

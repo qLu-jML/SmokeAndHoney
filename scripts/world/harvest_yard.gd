@@ -71,6 +71,7 @@ const INTERACT_DIST := 52.0
 
 # -- Station visual nodes -------------------------------------------------
 var _station_labels: Dictionary = {}        # Station -> Label
+var _debug_overlay: Node2D = null           # High-z collision debug overlay
 
 # -- Pallet sprite nodes --------------------------------------------------
 var _super_pallet_sprite: Sprite2D = null
@@ -117,7 +118,41 @@ func _ready() -> void:
 	_create_extractor_sprite()
 	_create_bucket_sprite()
 	if not Engine.is_editor_hint():
+		_create_debug_overlay()
+		GameData.dev_labels_toggled.connect(_on_dev_labels_toggled)
 		print("[HarvestYard] Outdoor harvest yard ready.")
+
+## Create high-z overlay for collision debug that renders on top of everything.
+func _create_debug_overlay() -> void:
+	_debug_overlay = Node2D.new()
+	_debug_overlay.name = "CollisionDebugOverlay"
+	_debug_overlay.z_index = 100
+	_debug_overlay.z_as_relative = false
+	_debug_overlay.set_script(load("res://scripts/debug/collision_debug_draw.gd"))
+	_update_debug_overlay()
+	add_child(_debug_overlay)
+	_debug_overlay.visible = GameData.dev_labels_visible
+
+## Update collision rects/circles on the debug overlay.
+func _update_debug_overlay() -> void:
+	if _debug_overlay == null:
+		return
+	var rects: Array = []
+	for station_id in [Station.SUPER_PALLET, Station.SCRAPED_PALLET, Station.EXTRACTOR, Station.BOTTLING]:
+		if STATION_POS.has(station_id) and STATION_SIZE.has(station_id):
+			var pos: Vector2 = STATION_POS[station_id]
+			var sz: Vector2 = STATION_SIZE[station_id]
+			rects.append(Rect2(pos, sz))
+	_debug_overlay.set_meta("rects", rects)
+	_debug_overlay.set_meta("circles", [[BUCKET_OFFSET, BUCKET_RADIUS]])
+	_debug_overlay.queue_redraw()
+
+## Toggle debug overlay visibility when dev labels toggle.
+func _on_dev_labels_toggled(vis: bool) -> void:
+	if _debug_overlay:
+		_debug_overlay.visible = vis
+		_debug_overlay.queue_redraw()
+	queue_redraw()
 
 ## Disconnect all signals when node exits the tree.
 func _exit_tree() -> void:
@@ -168,6 +203,7 @@ func _draw() -> void:
 		var fs: Vector2 = STATION_SIZE[Station.SCRAPED_PALLET]
 		_draw_text_at(fp + Vector2(fs.x * 0.5, fs.y + 10),
 			"%d/10 frames" % _frames_scraped, Color(0.9, 0.85, 0.6))
+	# Collision debug is handled by the high-z _debug_overlay node
 
 ## Draw a colored rectangle for a station at its position and size.
 func _draw_station_box(station: Station, color: Color) -> void:
@@ -219,13 +255,16 @@ func _create_pallet_sprites() -> void:
 	var sc_size: Vector2 = STATION_SIZE[Station.SCRAPED_PALLET] # 96x64
 
 	# Super Pallet sprite
+	# Position at bottom edge of station for correct y-sort depth ordering.
+	# Sprite visual is shifted up via offset so it still appears in the right place.
 	_super_pallet_sprite = Sprite2D.new()
 	_super_pallet_sprite.name = "SuperPalletSprite"
 	if tex != null:
 		_super_pallet_sprite.texture = tex
-	# Sprite origin is center; offset to align top-left corner with station pos
-	_super_pallet_sprite.position = STATION_POS[Station.SUPER_PALLET] + sp_size * 0.5
-	_super_pallet_sprite.z_index = 3
+	_super_pallet_sprite.position = Vector2(
+		STATION_POS[Station.SUPER_PALLET].x + sp_size.x * 0.5,
+		STATION_POS[Station.SUPER_PALLET].y + sp_size.y)
+	_super_pallet_sprite.offset.y = -sp_size.y * 0.5
 	add_child(_super_pallet_sprite)
 
 	# Scraped Frame Pallet sprite (reuses same texture)
@@ -233,8 +272,10 @@ func _create_pallet_sprites() -> void:
 	_scraped_pallet_sprite.name = "ScrapedPalletSprite"
 	if tex != null:
 		_scraped_pallet_sprite.texture = tex
-	_scraped_pallet_sprite.position = STATION_POS[Station.SCRAPED_PALLET] + sc_size * 0.5
-	_scraped_pallet_sprite.z_index = 3
+	_scraped_pallet_sprite.position = Vector2(
+		STATION_POS[Station.SCRAPED_PALLET].x + sc_size.x * 0.5,
+		STATION_POS[Station.SCRAPED_PALLET].y + sc_size.y)
+	_scraped_pallet_sprite.offset.y = -sc_size.y * 0.5
 	add_child(_scraped_pallet_sprite)
 
 # =========================================================================
@@ -265,7 +306,6 @@ func _create_super_box_sprites() -> void:
 		sp.scale = Vector2(SUPER_BOX_SCALE_PALLET, SUPER_BOX_SCALE_PALLET)
 		# Top-left of slot -> center for Sprite2D (which is centered by default)
 		sp.position = pallet_origin + slot_offset + half
-		sp.z_index = 4
 		sp.visible = false
 		add_child(sp)
 		_pallet_super_sprites.append(sp)
@@ -278,7 +318,6 @@ func _create_super_box_sprites() -> void:
 		_scraped_box_sprite.texture = tex
 	_scraped_box_sprite.scale = Vector2(SUPER_BOX_SCALE_SCRAPED, SUPER_BOX_SCALE_SCRAPED)
 	_scraped_box_sprite.position = STATION_POS[Station.SCRAPED_PALLET] + sc_size * 0.5
-	_scraped_box_sprite.z_index = 4
 	_scraped_box_sprite.visible = false
 	add_child(_scraped_box_sprite)
 
@@ -341,11 +380,13 @@ func _create_extractor_sprite() -> void:
 		push_warning("[HarvestYard] Extractor texture not found: " + EXTRACTOR_TEXTURE_PATH)
 	# Scale down to fit 64x64 station area (sprite is 128x96 natural)
 	_extractor_sprite.scale = Vector2(0.5, 0.5)
-	# Center sprite at the extractor station center
+	# Position at bottom edge of station for correct y-sort depth ordering.
 	var ext_pos: Vector2 = STATION_POS[Station.EXTRACTOR]
 	var ext_size: Vector2 = STATION_SIZE[Station.EXTRACTOR]
-	_extractor_sprite.position = ext_pos + ext_size * 0.5
-	_extractor_sprite.z_index = 3
+	_extractor_sprite.position = Vector2(
+		ext_pos.x + ext_size.x * 0.5,
+		ext_pos.y + ext_size.y)
+	_extractor_sprite.offset.y = -ext_size.y * 0.5
 	add_child(_extractor_sprite)
 
 # =========================================================================
@@ -370,7 +411,6 @@ func _create_bucket_sprite() -> void:
 	_bucket_sprite.name = "BucketSprite"
 	_bucket_sprite.texture = _bucket_tex_empty
 	_bucket_sprite.position = BUCKET_OFFSET
-	_bucket_sprite.z_index = 4
 	_bucket_sprite.visible = false
 	add_child(_bucket_sprite)
 

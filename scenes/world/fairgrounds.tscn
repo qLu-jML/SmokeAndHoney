@@ -1,6 +1,7 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/fairgrounds.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/world/zone_exit.gd" id="zone_exit_script"]
 [ext_resource type="PackedScene" uid="uid://d3qdbfmsmyqoa" path="res://scenes/player/player.tscn" id="2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/buildings/fairgrounds_gate.png" id="3"]
 [ext_resource type="Texture2D" path="res://assets/sprites/buildings/harwick_office.png" id="4"]
@@ -146,6 +147,21 @@ horizontal_alignment = 1
 position = Vector2(450, 80)
 texture = ExtResource("7")
 z_index = 2
+
+[sub_resource type="RectangleShape2D" id="exit_fg_top"]
+size = Vector2(1500, 30)
+
+[node name="ExitToCedarBend" type="Area2D" parent="."]
+position = Vector2(150, -200)
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("zone_exit_script")
+target_scene = "res://scenes/world/cedar_bend.tscn"
+exit_label_text = "^ Cedar Bend"
+spawn_side = "down"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ExitToCedarBend"]
+shape = SubResource("exit_fg_top")
 
 [node name="player" parent="." instance=ExtResource("2")]
 position = Vector2(-180, 90)

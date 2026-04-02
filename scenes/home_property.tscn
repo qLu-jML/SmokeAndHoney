@@ -27,6 +27,8 @@
 [ext_resource type="PackedScene" uid="uid://c5seasonal_tree" path="res://scenes/world/seasonal_tree.tscn" id="seasonal_tree_scene"]
 [ext_resource type="Script" uid="uid://d3faqcbm42k6a" path="res://scripts/world/harvest_yard.gd" id="harvest_yard_script"]
 [ext_resource type="Script" path="res://scripts/world/workbench_world.gd" id="workbench_world_script"]
+[ext_resource type="Script" path="res://scripts/world/zone_exit.gd" id="zone_exit_script"]
+[ext_resource type="Script" path="res://scripts/world/door_zone.gd" id="door_zone_script"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_tq2pu"]
 texture = ExtResource("4_hxvsk")
@@ -2525,6 +2527,14 @@ size = Vector2(22.5, 1672)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gardenbed"]
 size = Vector2(48, 16)
 
+; Zone exit collision shape (tall vertical strip for edge exits)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_zone_exit"]
+size = Vector2(30, 500)
+
+; Door zone collision shape (small horizontal strip at building entrance)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_door"]
+size = Vector2(30, 14)
+
 [node name="HomeProperty" type="Node2D" unique_id=802804618]
 script = ExtResource("test_env_script")
 
@@ -2665,6 +2675,7 @@ script = ExtResource("flower_lifecycle_script")
 ; ==============================================================================
 
 [node name="FarmsteadTrees" type="Node2D" parent="World"]
+y_sort_enabled = true
 
 ; -- WILLOWS (month 0): earliest spring pollen + nectar lifeline --
 [node name="WillowCreek1" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
@@ -2731,7 +2742,7 @@ flip = false
 
 [node name="HarvestYard" type="Node2D" parent="World"]
 position = Vector2(480, 350)
-z_index = 2
+y_sort_enabled = true
 script = ExtResource("harvest_yard_script")
 
 ; ==============================================================================
@@ -2742,3 +2753,48 @@ script = ExtResource("harvest_yard_script")
 [node name="Workbench" type="Node2D" parent="World"]
 position = Vector2(520, -20)
 script = ExtResource("workbench_world_script")
+
+; ==============================================================================
+; ZONE EXITS -- Walk-to scene transition triggers. Drag in editor to reposition.
+; ==============================================================================
+
+[node name="ExitToCountyRoad" type="Area2D" parent="World"]
+position = Vector2(1300, 50)
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("zone_exit_script")
+target_scene = "res://scenes/world/county_road.tscn"
+exit_label_text = "-> County Road"
+spawn_side = "left"
+debug_color = Color(0.2, 0.6, 1.0, 0.25)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/ExitToCountyRoad"]
+shape = SubResource("RectangleShape2D_zone_exit")
+
+; ==============================================================================
+; DOOR ZONES -- Building entrance triggers. Drag in editor to reposition.
+; ==============================================================================
+
+[node name="FarmhouseDoor" type="Area2D" parent="World/Buildings/Farmhouse"]
+position = Vector2(0, 60)
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("door_zone_script")
+target_scene = "res://scenes/house/house_interior.tscn"
+building_name = "Farmhouse"
+debug_color = Color(1.0, 0.5, 0.2, 0.3)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Buildings/Farmhouse/FarmhouseDoor"]
+shape = SubResource("RectangleShape2D_door")
+
+[node name="HoneyHouseDoor" type="Area2D" parent="World/Buildings/HoneyHouse"]
+position = Vector2(0, 60)
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("door_zone_script")
+target_scene = "res://scenes/world/honey_house.tscn"
+building_name = "HoneyHouse"
+debug_color = Color(1.0, 0.5, 0.2, 0.3)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Buildings/HoneyHouse/HoneyHouseDoor"]
+shape = SubResource("RectangleShape2D_door")

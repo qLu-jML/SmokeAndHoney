@@ -118,23 +118,24 @@ Your game's educational angle in beekeeping and agricultural science opens doors
 ---
 
 ## Recommended Action Plan (Ordered by Effort vs. Reward)
+*Originally prepared March 26, 2026. Updated April 2, 2026 with absolute dates and status.*
 
-**This week:**
-1. Set up a Ko-fi page with a few devlog screenshots/GIFs
-2. Create an itch.io page with a playable demo build of Phase 1
+**By April 12, 2026 (was "this week" — OVERDUE):**
+1. Set up a Ko-fi page with a few devlog screenshots/GIFs — STATUS: NOT STARTED
+2. Create an itch.io page with a playable demo build of Phase 1 — STATUS: NOT STARTED
 
-**This month:**
-3. Apply to the DANGEN Entertainment grant (you meet all requirements today)
-4. Submit to Indie Fund (quick form, high upside, zero downside)
-5. Register on Xsolla Funding portal
+**By April 30, 2026 (was "this month"):**
+3. Apply to the DANGEN Entertainment grant (you meet all requirements today) — STATUS: NOT STARTED
+4. Submit to Indie Fund (quick form, high upside, zero downside) — STATUS: NOT STARTED
+5. Register on Xsolla Funding portal — STATUS: NOT STARTED
 
-**Next 1-3 months:**
-6. If you're a U.S. citizen/resident, register a sole proprietorship or LLC
-7. Apply to USDA SBIR Phase I (agricultural education angle)
-8. Apply to IES SBIR Phase I (educational simulation game angle)
-9. Explore NEA with a local fiscal sponsor
+**By June 30, 2026 (was "next 1-3 months"):**
+6. ~~Register a sole proprietorship or LLC~~ — COMPLETE (Five Cats Studios LLC filed 3/30/2026)
+7. Apply to USDA SBIR Phase I (agricultural education angle) — STATUS: NOT STARTED
+8. Apply to IES SBIR Phase I (educational simulation game angle) — STATUS: NOT STARTED
+9. Explore NEA with a local fiscal sponsor (deadline: July 9, 2026) — STATUS: NOT STARTED
 
-**When Phase 2 is done:**
+**When Phase 2 is done (target: included in Alpha Q4 2026):**
 10. Launch Steam Early Access ($9.99-14.99)
 11. Launch Patreon with tiered memberships
 
@@ -156,4 +157,4 @@ Your game's educational angle in beekeeping and agricultural science opens doors
 
 ---
 
-*Note: All information current as of March 2026. Check each program's website for the latest deadlines and requirements.*
+*Note: Originally prepared March 26, 2026. Action plan updated April 2, 2026. Check each program's website for the latest deadlines and requirements.*
