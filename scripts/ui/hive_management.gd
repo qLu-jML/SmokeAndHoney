@@ -332,6 +332,7 @@ func _on_add_super() -> void:
 	if player.has_method("update_hud_inventory"):
 		player.update_hud_inventory()
 	_show_status("Honey super added!")
+	QuestManager.notify_event("super_added", {"hive": hive_ref})
 	_refresh()
 
 func _on_remove_super() -> void:

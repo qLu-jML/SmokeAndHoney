@@ -1,78 +1,125 @@
 # QuestManager.gd -- Tracks active and completed quests, fires quest events.
 # Autoloaded as "QuestManager" in project.godot.
-# Phase 6 will add actual quest definitions and checking logic.
+#
+# Game systems report actions via notify_event(event_id, data).
+# The manager checks if any active quest completes on that event,
+# awards XP, and auto-starts the next quest in chain.
 extends Node
 
 # -- Signals -------------------------------------------------------------------
 signal quest_started(quest_id: String)
 signal quest_completed(quest_id: String, xp_reward: int)
 signal quest_failed(quest_id: String)
+signal quest_hint_changed(hint_text: String)
 @warning_ignore("UNUSED_SIGNAL")
-signal challenge_event_fired(event_id: String)  # Phase 6: challenge quest triggers
+signal challenge_event_fired(event_id: String)
 
 # -- Quest States --------------------------------------------------------------
 enum QuestState { INACTIVE, ACTIVE, COMPLETE, FAILED }
 
 # -- State ---------------------------------------------------------------------
 var active_quests: Dictionary = {}     # quest_id -> QuestState
-# Dictionary used as a hash-set for O(1) .has() -- Array.has() is O(n).
-var completed_quests: Dictionary = {}  # quest_id -> true
+var completed_quests: Dictionary = {}  # quest_id -> true  (O(1) hash-set)
 var quest_notes: Dictionary = {}       # quest_id -> player note string
 var quest_data: Dictionary = {}        # quest_id -> quest definition dict
 var daily_tasks: Array[String] = []    # daily quests that reset each day
 var last_daily_reset_day: int = -1     # track when daily quests were last reset
 
-# -- Public API ----------------------------------------------------------------
+# Tracks the last alcohol wash result for "battening_down" quest check.
+var last_wash_mites_per_100: float = -1.0
 
-## Initializes quest definitions and resets daily quests if needed.
+# -- Lifecycle -----------------------------------------------------------------
+
 func _ready() -> void:
-	# Initialize quest definitions
 	_init_quest_definitions()
-	# Initialize daily tasks
+	_init_year1_chain_quests()
 	_reset_daily_quests_if_needed()
+	TimeManager.day_advanced.connect(_on_day_advanced)
+	# Auto-start Year 1 chain on day 1 if nothing is active yet.
+	call_deferred("_try_auto_start_first_quest")
 
-## Starts a quest and emits the quest_started signal.
+func _try_auto_start_first_quest() -> void:
+	if completed_quests.is_empty() and not is_active("first_light"):
+		start_quest("first_light")
+
+# -- Public API: Event Bus -----------------------------------------------------
+
+## Game systems call this to report an action.  The manager checks if any
+## active quest completes on this event.
+##
+## Common event_ids:
+##   "inspection_opened"  -- player opened InspectionOverlay
+##   "feeder_placed"      -- player placed feeder bucket with syrup
+##   "super_added"        -- player added a honey super
+##   "harvest_complete"   -- player completed a harvest
+##   "winter_ready"       -- checked by day_advanced (compound condition)
+##   "treatment_applied"  -- player applied mite treatment
+##   "wash_complete"      -- player completed an alcohol wash
+func notify_event(event_id: String, data: Dictionary = {}) -> void:
+	if event_id == "wash_complete":
+		last_wash_mites_per_100 = data.get("mites_per_100", -1.0)
+	_process_chain_event(event_id, data)
+
+# -- Public API: Quest Management ----------------------------------------------
+
 func start_quest(quest_id: String) -> void:
 	if active_quests.has(quest_id) and active_quests[quest_id] == QuestState.ACTIVE:
-		return  # already running
+		return
 	if completed_quests.has(quest_id):
-		return  # already done
+		return
+	# Check chain quest start conditions (month gating)
+	if QuestDefs.QUESTS.has(quest_id):
+		if not QuestDefs.check_start_conditions(quest_id):
+			active_quests[quest_id] = QuestState.INACTIVE
+			return
 	active_quests[quest_id] = QuestState.ACTIVE
 	quest_started.emit(quest_id)
-	print("? Quest started: %s" % quest_id)
+	var title: String = _get_quest_title(quest_id)
+	NotificationManager.notify("Quest: " + title, NotificationManager.T_INFO)
+	quest_hint_changed.emit(get_active_hint())
+	print("Quest started: %s" % quest_id)
 
-## Marks a quest as complete and awards XP.
 func complete_quest(quest_id: String, xp_reward: int = 0) -> void:
 	active_quests[quest_id] = QuestState.COMPLETE
-	completed_quests[quest_id] = true   # O(1) insert; duplicate writes are harmless
+	completed_quests[quest_id] = true
 	if xp_reward > 0:
 		GameData.add_xp(xp_reward)
 	quest_completed.emit(quest_id, xp_reward)
-	print("? Quest complete: %s (+%d XP)" % [quest_id, xp_reward])
+	var title: String = _get_quest_title(quest_id)
+	NotificationManager.notify("Quest complete: " + title + " (+" + str(xp_reward) + " XP)", NotificationManager.T_XP)
+	print("Quest complete: %s (+%d XP)" % [quest_id, xp_reward])
+	# Auto-start next quest in Year 1 chain
+	_start_next_in_chain(quest_id)
+	quest_hint_changed.emit(get_active_hint())
 
-## Marks a quest as failed and emits the quest_failed signal.
 func fail_quest(quest_id: String) -> void:
 	active_quests[quest_id] = QuestState.FAILED
 	quest_failed.emit(quest_id)
-	print("? Quest failed: %s" % quest_id)
+	print("Quest failed: %s" % quest_id)
 
-## Returns true if the quest is currently active.
 func is_active(quest_id: String) -> bool:
 	return active_quests.get(quest_id, QuestState.INACTIVE) == QuestState.ACTIVE
 
-## Returns true if the quest has been completed.
 func is_complete(quest_id: String) -> bool:
-	return completed_quests.has(quest_id)   # O(1) hash lookup
+	return completed_quests.has(quest_id)
 
-## Returns a one-line hint string for the HUD displaying active quest.
+## Returns a one-line hint string for the HUD.
 func get_active_hint() -> String:
-	# Returns a one-line hint string for the HUD.
-	# Phase 6 will use proper quest definitions with hint text.
-	if active_quests.is_empty():
-		return ""
-	for quest_id in active_quests:
-		if active_quests[quest_id] == QuestState.ACTIVE:
-			return "Quest: " + quest_id.replace("_", " ").capitalize()
+	# Prefer Year 1 chain quests for the hint
+	for qid in QuestDefs.year_1_chain():
+		if active_quests.get(qid, QuestState.INACTIVE) == QuestState.ACTIVE:
+			return QuestDefs.QUESTS[qid].get("hint", "")
+	# Fall back to any active quest
+	for qid in active_quests:
+		if active_quests[qid] == QuestState.ACTIVE:
+			return _get_quest_title(qid)
+	return ""
+
+## Returns the id of the currently active Year 1 chain quest, or "".
+func get_active_chain_quest_id() -> String:
+	for qid in QuestDefs.year_1_chain():
+		if active_quests.get(qid, QuestState.INACTIVE) == QuestState.ACTIVE:
+			return qid
 	return ""
 
 ## Advances an objective towards completion and auto-completes quest when done.
@@ -88,8 +135,7 @@ func complete_objective(quest_id: String, obj_key: String, amount: int = 1) -> v
 		if obj.key == obj_key:
 			obj.current = mini(obj.current + amount, obj.target)
 			if obj.current >= obj.target and not completed_quests.has(quest_id):
-				# Quest auto-complete when all objectives done
-				var rewards = qd.get("rewards", {})
+				var rewards: Dictionary = qd.get("rewards", {})
 				var xp: int = int(rewards.get("xp", 0))
 				complete_quest(quest_id, xp)
 			break
@@ -102,11 +148,71 @@ func is_quest_active(quest_id: String) -> bool:
 func is_quest_complete(quest_id: String) -> bool:
 	return is_complete(quest_id)
 
-# -- Quest Definitions -------------------------------------------------------
+# -- Year 1 Chain Event Processing ---------------------------------------------
 
-## Initializes all quest data structures and definitions.
+func _process_chain_event(event_id: String, _data: Dictionary) -> void:
+	var to_complete: Array = []
+	for qid in active_quests:
+		if active_quests[qid] != QuestState.ACTIVE:
+			continue
+		if not QuestDefs.QUESTS.has(qid):
+			continue
+		var qdef: Dictionary = QuestDefs.QUESTS[qid]
+		if qdef.get("completion_event", "") == event_id:
+			to_complete.append(qid)
+	for qid in to_complete:
+		var xp: int = QuestDefs.QUESTS[qid].get("xp_reward", 0)
+		complete_quest(qid, xp)
+
+func _start_next_in_chain(quest_id: String) -> void:
+	if not QuestDefs.QUESTS.has(quest_id):
+		return
+	var next_id: String = QuestDefs.QUESTS[quest_id].get("next_quest", "")
+	if next_id == "":
+		return
+	start_quest(next_id)
+
+# -- Day-Based Checks ----------------------------------------------------------
+
+func _on_day_advanced(_new_day: int) -> void:
+	_reset_daily_quests_if_needed()
+	# Try to activate any INACTIVE chain quests whose conditions are now met
+	for qid in active_quests:
+		if active_quests[qid] == QuestState.INACTIVE:
+			if QuestDefs.QUESTS.has(qid) and QuestDefs.check_start_conditions(qid):
+				active_quests[qid] = QuestState.ACTIVE
+				quest_started.emit(qid)
+				var title: String = _get_quest_title(qid)
+				NotificationManager.notify("Quest: " + title, NotificationManager.T_INFO)
+				quest_hint_changed.emit(get_active_hint())
+				print("Quest started (deferred): %s" % qid)
+	# Check compound conditions for "battening_down"
+	if is_active("battening_down"):
+		_check_battening_down()
+
+func _check_battening_down() -> void:
+	var hives: Array = get_tree().get_nodes_in_group("hive")
+	for hive in hives:
+		var sim: Node = hive.get("simulation") if hive != null else null
+		if sim == null:
+			continue
+		var stores: float = sim.get("honey_stores") if sim.get("honey_stores") != null else 0.0
+		if stores >= 60.0 and last_wash_mites_per_100 >= 0.0 and last_wash_mites_per_100 < 3.0:
+			notify_event("winter_ready")
+			return
+
+# -- Helpers -------------------------------------------------------------------
+
+func _get_quest_title(quest_id: String) -> String:
+	if QuestDefs.QUESTS.has(quest_id):
+		return QuestDefs.QUESTS[quest_id].get("title", quest_id)
+	if quest_data.has(quest_id):
+		return quest_data[quest_id].get("title", quest_id)
+	return quest_id.replace("_", " ").capitalize()
+
+# -- Quest Definitions (daily / objective-based) --------------------------------
+
 func _init_quest_definitions() -> void:
-	# Intro quest: Meet Uncle Bob
 	quest_data["bob_intro"] = {
 		"id": "bob_intro",
 		"title": "Meet Uncle Bob",
@@ -116,8 +222,6 @@ func _init_quest_definitions() -> void:
 		],
 		"rewards": {"xp": 25, "money": 0, "items": []}
 	}
-
-	# Daily quest 1: Inspect your hives
 	quest_data["daily_inspection"] = {
 		"id": "daily_inspection",
 		"title": "Inspect Your Hives",
@@ -127,8 +231,6 @@ func _init_quest_definitions() -> void:
 		],
 		"rewards": {"xp": 10, "money": 5, "items": []}
 	}
-
-	# Daily quest 2: Harvest a full super
 	quest_data["daily_harvest"] = {
 		"id": "daily_harvest",
 		"title": "Harvest a Full Super",
@@ -138,8 +240,6 @@ func _init_quest_definitions() -> void:
 		],
 		"rewards": {"xp": 15, "money": 10, "items": []}
 	}
-
-	# Daily quest 3: Sell at Saturday market
 	quest_data["daily_market"] = {
 		"id": "daily_market",
 		"title": "Sell at Saturday Market",
@@ -150,29 +250,33 @@ func _init_quest_definitions() -> void:
 		"rewards": {"xp": 20, "money": 0, "items": []}
 	}
 
-## Checks if daily quests need to be reset and calls reset if true.
+func _init_year1_chain_quests() -> void:
+	# Register Year 1 chain quest data for UI lookup
+	for qid in QuestDefs.QUESTS:
+		var qdef: Dictionary = QuestDefs.QUESTS[qid]
+		quest_data[qid] = {
+			"id": qid,
+			"title": qdef.get("title", ""),
+			"description": qdef.get("description", ""),
+			"objectives": [],
+			"rewards": {"xp": qdef.get("xp_reward", 0), "money": 0, "items": []}
+		}
+
 func _reset_daily_quests_if_needed() -> void:
 	var current_day: int = TimeManager.current_day if TimeManager else 0
 	if current_day != last_daily_reset_day:
 		_reset_daily_quests()
 		last_daily_reset_day = current_day
 
-## Resets all daily quest progress and auto-starts them.
 func _reset_daily_quests() -> void:
-	# Reset daily quest progress
 	daily_tasks = ["daily_inspection", "daily_harvest", "daily_market"]
-
-	# Mark any active dailies as inactive and reset objectives
 	for qid in daily_tasks:
 		if active_quests.has(qid):
 			active_quests.erase(qid)
 		if quest_data.has(qid):
-			# Reset all objectives to 0
 			var qd: Dictionary = quest_data[qid]
 			if "objectives" in qd:
 				for obj in qd.objectives:
 					obj.current = 0
-
-	# Auto-start all daily quests
 	for qid in daily_tasks:
 		start_quest(qid)

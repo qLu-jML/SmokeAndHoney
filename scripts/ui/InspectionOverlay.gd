@@ -189,6 +189,9 @@ func open(hive_node: Node) -> void:
 	_populate_bees()
 	_refresh_harvest_overlay()
 
+	# Notify quest system that an inspection was opened
+	QuestManager.notify_event("inspection_opened", {"hive": hive_node})
+
 # ------------------------------------------------------------------------------
 # Lifecycle
 # ------------------------------------------------------------------------------

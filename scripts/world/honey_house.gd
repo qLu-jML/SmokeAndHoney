@@ -728,6 +728,7 @@ func _finish_spinning() -> void:
 
 	# XP for extraction
 	GameData.add_xp(GameData.XP_HARVEST)
+	QuestManager.notify_event("harvest_complete", {"lbs": _bucket_honey_lbs})
 
 ## BUCKET PICKUP: Player picks up the honey bucket from the floor.
 ## Also adds ITEM_HONEY_BUCKET to inventory so the carry sprite shows on the player.

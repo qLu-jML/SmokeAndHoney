@@ -22,13 +22,24 @@ enum Station {
 }
 
 # -- Station world positions (pixel coords, relative to this node) --------
-# Layout based on Nathan's mockup: stations right of house, south area
-const STATION_POS := {
+# Populated at runtime from editor-placed child marker nodes so each station
+# can be dragged independently in the Godot editor.
+# Fallback defaults match the original hardcoded layout.
+var STATION_POS: Dictionary = {
 	Station.SUPER_PALLET:   Vector2(0, 0),
-	Station.SCRAPING:       Vector2(0, 0),       # Same as super pallet (scrape at the pallet)
+	Station.SCRAPING:       Vector2(0, 0),
 	Station.SCRAPED_PALLET: Vector2(140, 0),
 	Station.EXTRACTOR:      Vector2(260, -40),
 	Station.BOTTLING:       Vector2(260, 120),
+}
+
+# Map from Station enum to child node name in the scene tree.
+const STATION_NODE_NAMES := {
+	Station.SUPER_PALLET:   "SuperPallet",
+	Station.SCRAPING:       "SuperPallet",      # Scraping happens at the super pallet
+	Station.SCRAPED_PALLET: "ScrapedPallet",
+	Station.EXTRACTOR:      "Extractor",
+	Station.BOTTLING:       "BottlingTable",
 }
 
 # Station collision/draw sizes (pixels)
@@ -40,8 +51,13 @@ const STATION_SIZE := {
 }
 
 # Bucket sits between extractor and bottling table
-const BUCKET_OFFSET := Vector2(260, 50)
+# Populated at runtime from the "HoneyBucket" child marker node.
+var BUCKET_OFFSET: Vector2 = Vector2(292, 16)
 const BUCKET_RADIUS := 16.0
+
+# -- Marker node references (editor-placed Node2D children) ---------------
+var _station_markers: Dictionary = {}  # Station enum -> Node2D marker node
+var _bucket_marker: Node2D = null
 
 # -- Pipeline State -------------------------------------------------------
 var _frames_on_pallet: Array = []          # Frames from opened super (max 10)
@@ -97,6 +113,10 @@ const SUPER_SLOT_OFFSETS: Array = [
 	Vector2(0, 32), Vector2(48, 32),  # row 1: bottom-left, bottom-right
 ]
 
+# -- Jarring / Bottling table sprite node ---------------------------------
+var _bottling_sprite: Sprite2D = null
+const BOTTLING_TABLE_TEXTURE_PATH := "res://assets/sprites/objects/jarring_table.png"
+
 # -- Extractor sprite node ------------------------------------------------
 var _extractor_sprite: Sprite2D = null
 const EXTRACTOR_TEXTURE_PATH := "res://assets/sprites/objects/honey_spinner.png"
@@ -111,20 +131,89 @@ const BUCKET_EMPTY_PATH := "res://assets/sprites/objects/honey_bucket_empty.png"
 # =========================================================================
 # LIFECYCLE
 # =========================================================================
+## Read positions from editor-placed child marker nodes into STATION_POS / BUCKET_OFFSET.
+## Falls back to defaults if a marker node is missing.
+func _read_station_positions() -> void:
+	for station_id in STATION_NODE_NAMES.keys():
+		var node_name: String = STATION_NODE_NAMES[station_id]
+		var marker: Node2D = get_node_or_null(node_name) as Node2D
+		if marker != null:
+			STATION_POS[station_id] = marker.position
+			_station_markers[station_id] = marker
+	var bm: Node2D = get_node_or_null("HoneyBucket") as Node2D
+	if bm != null:
+		BUCKET_OFFSET = bm.position
+		_bucket_marker = bm
+
+## Helper: get the marker node for a station, or null.
+func _get_marker(station: Station) -> Node2D:
+	return _station_markers.get(station)
+
+## Helper: add a child to the station marker if it exists, otherwise to self.
+func _add_to_station(station: Station, child_node: Node) -> void:
+	var marker: Node2D = _get_marker(station)
+	if marker != null:
+		marker.add_child(child_node)
+	else:
+		add_child(child_node)
+
 ## Initialize harvest yard with all station visuals and overlays.
 func _ready() -> void:
-	if not Engine.is_editor_hint():
-		add_to_group("harvest_yard")
+	_read_station_positions()
+	if Engine.is_editor_hint():
+		# Editor: only read marker positions; _draw() handles outlines.
+		queue_redraw()
+		return
+	add_to_group("harvest_yard")
 	_create_station_visuals()
 	_create_bucket_visual()
 	_create_pallet_sprites()
 	_create_super_box_sprites()
 	_create_extractor_sprite()
+	_create_bottling_sprite()
 	_create_bucket_sprite()
-	if not Engine.is_editor_hint():
-		_create_debug_overlay()
-		GameData.dev_labels_toggled.connect(_on_dev_labels_toggled)
-		print("[HarvestYard] Outdoor harvest yard ready.")
+	_create_debug_overlay()
+	GameData.dev_labels_toggled.connect(_on_dev_labels_toggled)
+	print("[HarvestYard] Outdoor harvest yard ready.")
+
+## Per-frame update: editor marker tracking + runtime prompt overlay.
+func _process(_delta: float) -> void:
+	if Engine.is_editor_hint():
+		# Track marker position changes so _draw() outlines follow drags.
+		var changed: bool = false
+		for station_id in _station_markers.keys():
+			var marker: Node2D = _station_markers[station_id]
+			if marker != null and STATION_POS[station_id] != marker.position:
+				STATION_POS[station_id] = marker.position
+				changed = true
+		if _bucket_marker != null and BUCKET_OFFSET != _bucket_marker.position:
+			BUCKET_OFFSET = _bucket_marker.position
+			changed = true
+		if changed:
+			queue_redraw()
+		return
+	# -- Runtime: prompt label near player --
+	if _minigame_active:
+		if _prompt_label:
+			_prompt_label.visible = false
+		return
+	var player: Node2D = _find_player()
+	if player == null:
+		return
+	var prompt_text: String = get_nearby_prompt(player)
+	if prompt_text != "":
+		if _prompt_label == null:
+			_prompt_label = Label.new()
+			_prompt_label.add_theme_font_size_override("font_size", 5)
+			_prompt_label.add_theme_color_override("font_color", Color(0.95, 0.85, 0.40, 1.0))
+			_prompt_label.z_index = 15
+			add_child(_prompt_label)
+		_prompt_label.text = prompt_text
+		_prompt_label.visible = true
+		_prompt_label.position = player.global_position - global_position + Vector2(-40, -24)
+	else:
+		if _prompt_label:
+			_prompt_label.visible = false
 
 ## Create high-z overlay for collision debug that renders on top of everything.
 func _create_debug_overlay() -> void:
@@ -184,14 +273,16 @@ func _exit_tree() -> void:
 ## Redraw all station visuals and overlays.
 func _draw() -> void:
 	if Engine.is_editor_hint():
-		# In editor: just draw station outlines so you can see layout
-		_draw_station_box(Station.BOTTLING, Color(0.60, 0.42, 0.25, 1.0))
+		# In editor: draw faint outlines around all stations for layout visibility
+		for sid in [Station.SUPER_PALLET, Station.SCRAPED_PALLET, Station.EXTRACTOR, Station.BOTTLING]:
+			_draw_station_box(sid, Color(0.4, 0.3, 0.2, 0.25))
+		# Bucket circle outline
+		draw_circle(BUCKET_OFFSET, BUCKET_RADIUS, Color(0.4, 0.3, 0.2, 0.25))
+		draw_arc(BUCKET_OFFSET, BUCKET_RADIUS, 0, TAU, 32, Color(0.25, 0.15, 0.05, 0.5), 1.5)
 		return
-	# Sprite2D nodes handle extractor, bucket, and super boxes -- just update state.
+	# Sprite2D nodes handle extractor, bucket, bottling table, and super boxes.
 	_update_bucket_visual()
 	_update_super_visuals()
-	# Bottling Table - warm wood placeholder (Leonardo asset pending)
-	_draw_station_box(Station.BOTTLING, Color(0.60, 0.42, 0.25, 1.0))
 	# Jars on bottling table
 	if _jars_on_table > 0:
 		_draw_jar_stacks()
@@ -265,22 +356,20 @@ func _create_pallet_sprites() -> void:
 	_super_pallet_sprite.name = "SuperPalletSprite"
 	if tex != null:
 		_super_pallet_sprite.texture = tex
-	_super_pallet_sprite.position = Vector2(
-		STATION_POS[Station.SUPER_PALLET].x + sp_size.x * 0.5,
-		STATION_POS[Station.SUPER_PALLET].y + sp_size.y)
+	# Local coords: marker is already at station position
+	_super_pallet_sprite.position = Vector2(sp_size.x * 0.5, sp_size.y)
 	_super_pallet_sprite.offset.y = -sp_size.y * 0.5
-	add_child(_super_pallet_sprite)
+	_add_to_station(Station.SUPER_PALLET, _super_pallet_sprite)
 
 	# Scraped Frame Pallet sprite (reuses same texture)
 	_scraped_pallet_sprite = Sprite2D.new()
 	_scraped_pallet_sprite.name = "ScrapedPalletSprite"
 	if tex != null:
 		_scraped_pallet_sprite.texture = tex
-	_scraped_pallet_sprite.position = Vector2(
-		STATION_POS[Station.SCRAPED_PALLET].x + sc_size.x * 0.5,
-		STATION_POS[Station.SCRAPED_PALLET].y + sc_size.y)
+	# Local coords: marker is already at station position
+	_scraped_pallet_sprite.position = Vector2(sc_size.x * 0.5, sc_size.y)
 	_scraped_pallet_sprite.offset.y = -sc_size.y * 0.5
-	add_child(_scraped_pallet_sprite)
+	_add_to_station(Station.SCRAPED_PALLET, _scraped_pallet_sprite)
 
 # =========================================================================
 # SUPER BOX SPRITES -- Show hive_super.png on pallets, tinted by fill level
@@ -295,8 +384,7 @@ func _create_super_box_sprites() -> void:
 	else:
 		push_warning("[HarvestYard] Super box texture not found: " + SUPER_BOX_TEXTURE_PATH)
 
-	var pallet_origin: Vector2 = STATION_POS[Station.SUPER_PALLET]
-	# Half the size of one super at SUPER_BOX_SCALE_PALLET for centering (24/2*2, 14/2*2)
+	# Local coords: super box sprites are children of the SuperPallet marker
 	var half: Vector2 = Vector2(24.0, 14.0) * SUPER_BOX_SCALE_PALLET * 0.5
 
 	# Create 4 individual super sprites in a 2x2 grid on the super pallet.
@@ -308,10 +396,10 @@ func _create_super_box_sprites() -> void:
 		if tex != null:
 			sp.texture = tex
 		sp.scale = Vector2(SUPER_BOX_SCALE_PALLET, SUPER_BOX_SCALE_PALLET)
-		# Top-left of slot -> center for Sprite2D (which is centered by default)
-		sp.position = pallet_origin + slot_offset + half
+		# Local to marker -- no pallet_origin offset needed
+		sp.position = slot_offset + half
 		sp.visible = false
-		add_child(sp)
+		_add_to_station(Station.SUPER_PALLET, sp)
 		_pallet_super_sprites.append(sp)
 
 	# Scraped pallet: empty draft super placed here, fills as frames are scraped
@@ -325,18 +413,18 @@ func _create_super_box_sprites() -> void:
 		_scraped_box_sprite.texture = ImageTexture.create_from_image(draft_img)
 	elif tex != null:
 		_scraped_box_sprite.texture = tex  # fallback to old super
-	# No scaling needed -- draft sprite is already 48x41 (appropriate size for pallet)
-	_scraped_box_sprite.position = STATION_POS[Station.SCRAPED_PALLET] + sc_size * 0.5
+	# Local to marker
+	_scraped_box_sprite.position = sc_size * 0.5
 	_scraped_box_sprite.visible = false
-	add_child(_scraped_box_sprite)
+	_add_to_station(Station.SCRAPED_PALLET, _scraped_box_sprite)
 
 	# Frame overlay sprite (sits inside the draft super cavity, shows fill progress)
 	_scraped_frame_overlay = Sprite2D.new()
 	_scraped_frame_overlay.name = "ScrapedFrameOverlay"
-	_scraped_frame_overlay.position = STATION_POS[Station.SCRAPED_PALLET] + sc_size * 0.5
+	_scraped_frame_overlay.position = sc_size * 0.5
 	_scraped_frame_overlay.visible = false
 	_scraped_frame_overlay.z_index = 1  # above the box sprite
-	add_child(_scraped_frame_overlay)
+	_add_to_station(Station.SCRAPED_PALLET, _scraped_frame_overlay)
 
 	# Load frame overlay textures (one_frame through ten_frames)
 	var frame_names: Array = [
@@ -414,16 +502,32 @@ func _create_extractor_sprite() -> void:
 		_extractor_sprite.texture = ImageTexture.create_from_image(img)
 	else:
 		push_warning("[HarvestYard] Extractor texture not found: " + EXTRACTOR_TEXTURE_PATH)
-	# Scale down to fit 64x64 station area (sprite is 128x96 natural)
-	_extractor_sprite.scale = Vector2(0.5, 0.5)
-	# Position at bottom edge of station for correct y-sort depth ordering.
-	var ext_pos: Vector2 = STATION_POS[Station.EXTRACTOR]
+	# Sprite is 64x64 native -- matches the 64x64 station area, no scaling needed.
+	# Local to marker -- position at bottom edge for y-sort depth ordering.
 	var ext_size: Vector2 = STATION_SIZE[Station.EXTRACTOR]
-	_extractor_sprite.position = Vector2(
-		ext_pos.x + ext_size.x * 0.5,
-		ext_pos.y + ext_size.y)
+	_extractor_sprite.position = Vector2(ext_size.x * 0.5, ext_size.y)
 	_extractor_sprite.offset.y = -ext_size.y * 0.5
-	add_child(_extractor_sprite)
+	_add_to_station(Station.EXTRACTOR, _extractor_sprite)
+
+# =========================================================================
+# BOTTLING TABLE SPRITE -- Jarring table Leonardo art
+# =========================================================================
+## Create the bottling / jarring table sprite node.
+func _create_bottling_sprite() -> void:
+	var abs_path: String = ProjectSettings.globalize_path(BOTTLING_TABLE_TEXTURE_PATH)
+	var img: Image = Image.load_from_file(abs_path)
+	_bottling_sprite = Sprite2D.new()
+	_bottling_sprite.name = "BottlingTableSprite"
+	if img != null:
+		_bottling_sprite.texture = ImageTexture.create_from_image(img)
+	else:
+		push_warning("[HarvestYard] Bottling table texture not found: " + BOTTLING_TABLE_TEXTURE_PATH)
+	# Sprite is 96x72 -- fits the 96x80 station area without scaling.
+	var btl_size: Vector2 = STATION_SIZE[Station.BOTTLING]
+	# Local to marker -- position at bottom edge for y-sort depth ordering.
+	_bottling_sprite.position = Vector2(btl_size.x * 0.5, btl_size.y)
+	_bottling_sprite.offset.y = -btl_size.y * 0.5
+	_add_to_station(Station.BOTTLING, _bottling_sprite)
 
 # =========================================================================
 # BUCKET SPRITE -- Preload full + empty textures, switch on state change
@@ -447,7 +551,7 @@ func _create_bucket_sprite() -> void:
 	_bucket_sprite.name = "BucketSprite"
 	_bucket_sprite.texture = _bucket_tex_empty
 	_bucket_sprite.position = BUCKET_OFFSET
-	_bucket_sprite.visible = false
+	_bucket_sprite.visible = true  # Show empty bucket at its spot
 	add_child(_bucket_sprite)
 
 ## Update bucket sprite visibility, position, and texture to match pipeline state.
@@ -456,9 +560,12 @@ func _create_bucket_sprite() -> void:
 func _update_bucket_visual() -> void:
 	if _bucket_sprite == null:
 		return
-	var bucket_visible: bool = _bucket_at_yard or _bucket_on_bottling_table
-	_bucket_sprite.visible = bucket_visible
-	if not bucket_visible:
+	# Bucket is always visible at its resting spot (empty texture).
+	# It moves to the bottling table when placed there, or hides only when
+	# the player is physically carrying it (picked up into inventory).
+	var player_carrying: bool = not _bucket_at_yard and not _bucket_on_bottling_table and _bucket_honey_lbs > 0.0
+	_bucket_sprite.visible = not player_carrying
+	if player_carrying:
 		return
 	# Move to bottling table when placed there, otherwise stay at yard spot
 	if _bucket_on_bottling_table:
@@ -479,62 +586,52 @@ func _update_bucket_visual() -> void:
 # STATION VISUALS -- Create labels and collision areas
 # =========================================================================
 ## Create all station visual nodes with collision boxes and labels.
+## Each station gets its own StaticBody2D + label parented under its marker.
 func _create_station_visuals() -> void:
 	_add_label(Station.SUPER_PALLET, "Super Pallet")
 	_add_label(Station.SCRAPED_PALLET, "Scraped Frames")
 	_add_label(Station.EXTRACTOR, "Honey Extractor")
 	_add_label(Station.BOTTLING, "Bottling Table")
 
-	# Create collision bodies so player walks around stations
-	var body := StaticBody2D.new()
-	body.name = "StationCollisions"
-	add_child(body)
-	_add_collision_rect(body, Station.SUPER_PALLET)
-	_add_collision_rect(body, Station.SCRAPED_PALLET)
-	_add_collision_rect(body, Station.BOTTLING)
-	# Extractor is circular but we approximate with a rect
-	var ext_pos: Vector2 = STATION_POS[Station.EXTRACTOR]
-	var ext_size: Vector2 = STATION_SIZE[Station.EXTRACTOR]
-	var cs := CollisionShape2D.new()
-	var rs := RectangleShape2D.new()
-	rs.size = ext_size
-	cs.shape = rs
-	cs.position = ext_pos + ext_size * 0.5
-	body.add_child(cs)
+	# Create one collision body per station, parented under its marker
+	for station_id in [Station.SUPER_PALLET, Station.SCRAPED_PALLET, Station.EXTRACTOR, Station.BOTTLING]:
+		var sz: Vector2 = STATION_SIZE[station_id]
+		var body := StaticBody2D.new()
+		body.name = "Collision"
+		var cs := CollisionShape2D.new()
+		var rs := RectangleShape2D.new()
+		rs.size = sz
+		cs.shape = rs
+		cs.position = sz * 0.5  # local center
+		body.add_child(cs)
+		_add_to_station(station_id, body)
 
-## Add a label node for a station.
+## Add a label node for a station (parented under its marker).
 func _add_label(station: Station, text: String) -> void:
 	var lbl := Label.new()
 	lbl.text = text
 	lbl.add_theme_font_size_override("font_size", 4)
 	lbl.add_theme_color_override("font_color", Color(0.95, 0.90, 0.75, 1.0))
-	var pos: Vector2 = STATION_POS[station]
-	lbl.position = Vector2(pos.x, pos.y - 10)
+	# Local to marker
+	lbl.position = Vector2(0, -10)
 	lbl.z_index = 5
-	add_child(lbl)
+	_add_to_station(station, lbl)
 	_station_labels[station] = lbl
-
-## Add a collision rectangle shape to a static body for a station.
-func _add_collision_rect(body: StaticBody2D, station: Station) -> void:
-	var pos: Vector2 = STATION_POS[station]
-	var sz: Vector2 = STATION_SIZE[station]
-	var cs := CollisionShape2D.new()
-	var rs := RectangleShape2D.new()
-	rs.size = sz
-	cs.shape = rs
-	cs.position = pos + sz * 0.5
-	body.add_child(cs)
 
 ## Create the bucket area and collision detection.
 func _create_bucket_visual() -> void:
-	# Bucket is just drawn; label added
+	# Bucket label parented under bucket marker
 	var lbl := Label.new()
 	lbl.text = "Honey Bucket"
 	lbl.add_theme_font_size_override("font_size", 3)
 	lbl.add_theme_color_override("font_color", Color(0.8, 0.75, 0.6, 1.0))
-	lbl.position = BUCKET_OFFSET + Vector2(-20, BUCKET_RADIUS + 2)
+	# Local to bucket marker
+	lbl.position = Vector2(-20, BUCKET_RADIUS + 2)
 	lbl.z_index = 5
-	add_child(lbl)
+	if _bucket_marker != null:
+		_bucket_marker.add_child(lbl)
+	else:
+		add_child(lbl)
 
 # =========================================================================
 # INTERACTION -- Called by player._perform_action via group check
@@ -959,6 +1056,7 @@ func _on_extraction_complete() -> void:
 
 	_notify("Extracted! %.1f lbs in bucket. Got %d frames back. Use Bucket Grip!" % [_bucket_honey_lbs, frames_back])
 	GameData.add_xp(GameData.XP_HARVEST)
+	QuestManager.notify_event("harvest_complete", {"lbs": _bucket_honey_lbs})
 	queue_redraw()
 
 ## Handle extractor minigame cancellation by the player.
@@ -1198,31 +1296,3 @@ func _try_give_beeswax() -> void:
 
 # -- Prompt overlay (floating text near stations) -------------------------
 var _prompt_label: Label = null
-
-func _process(_delta: float) -> void:
-	if Engine.is_editor_hint():
-		return
-	if _minigame_active:
-		if _prompt_label:
-			_prompt_label.visible = false
-		return
-
-	var player: Node2D = _find_player()
-	if player == null:
-		return
-
-	var prompt_text: String = get_nearby_prompt(player)
-	if prompt_text != "":
-		if _prompt_label == null:
-			_prompt_label = Label.new()
-			_prompt_label.add_theme_font_size_override("font_size", 5)
-			_prompt_label.add_theme_color_override("font_color", Color(0.95, 0.85, 0.40, 1.0))
-			_prompt_label.z_index = 15
-			add_child(_prompt_label)
-		_prompt_label.text = prompt_text
-		_prompt_label.visible = true
-		# Position prompt near player
-		_prompt_label.position = player.global_position - global_position + Vector2(-40, -24)
-	else:
-		if _prompt_label:
-			_prompt_label.visible = false
