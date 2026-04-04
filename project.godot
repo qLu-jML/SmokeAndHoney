@@ -30,6 +30,7 @@ DialogueUI="*res://scripts/ui/DialogueUI.gd"
 SceneManager="*res://scripts/autoloads/SceneManager.gd"
 MusicManager="*res://scripts/autoloads/MusicManager.gd"
 KnowledgeLog="*res://scripts/autoloads/KnowledgeLog.gd"
+HolidayManager="*res://scripts/autoloads/HolidayManager.gd"
 HUD="*res://scripts/ui/hud.gd"
 
 [display]
@@ -79,5 +80,4 @@ ui_down={
 
 textures/canvas_textures/default_texture_filter=0
 rendering_device/driver.windows="d3d12"
-renderer/rendering_method="gl_compatibility"
-renderer/rendering_method.mobile="gl_compatibility"
+renderer/rendering_method="gl_compatibili

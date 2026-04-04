@@ -64,11 +64,8 @@ func _ready():
 		for i in range(mini(GameData.player_inventory.size(), INVENTORY_SIZE)):
 			inventory[i] = GameData.player_inventory[i]
 	else:
-		# Starting inventory: harvest tools only (everything else in chest)
-		add_item(GameData.ITEM_GLOVES,          1)
-		add_item(GameData.ITEM_BUCKET_GRIP,     1)
-		add_item(GameData.ITEM_COMB_SCRAPER,    1)
-		# First sync so future scene changes preserve this inventory
+		# New game: start with empty inventory -- all tools are in the chest.
+		# Player learns to open chest and grab items via Uncle Bob's onboarding.
 		sync_inventory_to_gamedata()
 	# Deferred: stock the storage chest with remaining items after scene loads
 	call_deferred("_stock_starting_chest")
@@ -126,17 +123,24 @@ func _stock_starting_chest() -> void:
 	if GameData.chest_stocked:
 		print("[Player] Storage chest already stocked, skipping.")
 		return
-	# Tools
+	# -- Essential tools (player grabs these from the chest via onboarding) --
+	chest.add_item(GameData.ITEM_HIVE_TOOL,       1)
+	chest.add_item(GameData.ITEM_SMOKER,          1)
+	chest.add_item(GameData.ITEM_GLOVES,          1)
 	chest.add_item(GameData.ITEM_AXE,             1)
 	chest.add_item(GameData.ITEM_HAMMER,          1)
-	chest.add_item(GameData.ITEM_HIVE_TOOL,       1)
-	# Hive components
+	# -- Harvest tools (needed for first_pull quest) --
+	chest.add_item(GameData.ITEM_BUCKET_GRIP,     1)
+	chest.add_item(GameData.ITEM_COMB_SCRAPER,    1)
+	# -- Mite monitoring (needed for battening_down quest) --
+	chest.add_item(GameData.ITEM_WASH_KIT,        1)
+	# -- Hive components --
 	chest.add_item(GameData.ITEM_DEEP_BODY,       5)
 	chest.add_item(GameData.ITEM_SUPER_BOX,       5)
 	chest.add_item(GameData.ITEM_FRAMES,         20)
 	chest.add_item(GameData.ITEM_QUEEN_EXCLUDER,  1)
 	GameData.chest_stocked = true
-	print("[Player] Storage chest stocked with hive components.")
+	print("[Player] Storage chest stocked with tools and hive components.")
 
 # -- Modes ----------------------------------------------------------------------
 
@@ -365,6 +369,10 @@ func _input(event: InputEvent) -> void:
 
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
+	# Journal (J) works even during inspection -- overlay renders above it
+	if event.keycode == KEY_J:
+		_open_journal()
+		return
 	if _is_ui_blocking():
 		return
 	match event.keycode:
@@ -386,14 +394,19 @@ func _input(event: InputEvent) -> void:
 		KEY_7: _set_active_slot(6)
 		KEY_8: _set_active_slot(7)
 		KEY_9: _set_active_slot(8)
-		KEY_J: _open_journal()
 
 # -- Journal -------------------------------------------------------------------
+
+## Called when the inspection overlay closes. Resets smoker state.
+func _on_inspection_closed() -> void:
+	_smoker_active = false
+	_smoker_puffs = 0
 
 ## Open the knowledge log journal overlay.
 func _open_journal() -> void:
 	# Don't open if already open
-	if get_tree().get_nodes_in_group("knowledge_log_overlay").size() > 0:
+	var existing: Array = get_tree().get_nodes_in_group("knowledge_log_overlay")
+	if existing.size() > 0:
 		return
 	var script: GDScript = load("res://scripts/ui/knowledge_log_overlay.gd") as GDScript
 	if script == null:
@@ -402,6 +415,9 @@ func _open_journal() -> void:
 	overlay.set_script(script)
 	overlay.add_to_group("knowledge_log_overlay")
 	get_tree().current_scene.add_child(overlay)
+	# Consume the event so the overlay's _unhandled_key_input doesn't
+	# immediately see this same J press and queue_free() itself.
+	get_viewport().set_input_as_handled()
 
 # -- Actions -------------------------------------------------------------------
 #
@@ -444,21 +460,21 @@ func _perform_action() -> void:
 		_action_place_chest()
 		return
 
-	# -- 1d. Pick up empty barrel feeder or place new one ---------------------
-	var nearby_feeder := _closest_in_group("barrel_feeder", INTERACT_RADIUS)
+	# -- 1d. Pick up empty feeder bucket or place new one ---------------------
+	var nearby_feeder := _closest_in_group("feeder_bucket", INTERACT_RADIUS)
 	if nearby_feeder and nearby_feeder.has_method("try_pickup") and nearby_feeder.try_pickup():
 		# Try refill first if player has sugar syrup
 		if count_item(GameData.ITEM_SUGAR_SYRUP) > 0 and nearby_feeder.has_method("try_refill"):
 			nearby_feeder.try_refill(self)
 			return
-		add_item(GameData.ITEM_BARREL_FEEDER, 1)
+		add_item(GameData.ITEM_FEEDER_BUCKET, 1)
 		nearby_feeder.remove_feeder()
 		update_hud_inventory()
 		var nm_f = get_tree().root.get_node_or_null("NotificationManager")
 		if nm_f and nm_f.has_method("notify"):
 			nm_f.notify("Picked up empty barrel feeder.")
 		return
-	if get_active_item_name() == GameData.ITEM_BARREL_FEEDER:
+	if get_active_item_name() == GameData.ITEM_FEEDER_BUCKET:
 		_action_place_barrel_feeder()
 		return
 
@@ -593,29 +609,37 @@ func _perform_action() -> void:
 					if nm and nm.has_method("notify"):
 						nm.notify("Super removed -- take it to the Honey House!")
 				return
-			# Hive tool must be selected in hotbar to inspect
-			if held != GameData.ITEM_HIVE_TOOL:
-				var nm1 = get_tree().root.get_node_or_null("NotificationManager")
-				if nm1 and nm1.has_method("notify"):
-					nm1.notify("Select the Hive Tool in your toolbar to inspect!")
+			# -- Smoker: smoke the hive before opening (pre-inspection action) --
+			if held == GameData.ITEM_SMOKER:
+				if _smoker_active:
+					var nm_already = get_tree().root.get_node_or_null("NotificationManager")
+					if nm_already and nm_already.has_method("notify"):
+						nm_already.notify("Hive already smoked. Select the Hive Tool to inspect.")
 				else:
-					print("Select the Hive Tool in your toolbar to inspect!")
-				return
-			if GameData.energy >= 10.0:
-				# Handle smoker activation before inspection
-				if held == GameData.ITEM_SMOKER:
 					_smoker_active = true
 					_smoker_puffs = 3
 					var nm_s = get_tree().root.get_node_or_null("NotificationManager")
 					if nm_s and nm_s.has_method("notify"):
-						nm_s.notify("Hive smoked -- bees calmed for this inspection!")
-
+						nm_s.notify("Hive smoked -- bees calmed! Now use the Hive Tool to inspect.")
+				return
+			# -- Hive tool: open inspection --
+			if held != GameData.ITEM_HIVE_TOOL:
+				var nm1 = get_tree().root.get_node_or_null("NotificationManager")
+				if nm1 and nm1.has_method("notify"):
+					nm1.notify("Select the Hive Tool (or Smoker) in your toolbar!")
+				else:
+					print("Select the Hive Tool (or Smoker) in your toolbar!")
+				return
+			if GameData.energy >= 10.0:
 				nearby_hive.open_inspection()
-				# Connect inspection overlay's closed signal to handle sting mechanics
+				# Connect inspection overlay's closed signal to reset smoker state
 				var overlay = get_tree().get_first_node_in_group("inspection_overlay")
 				if overlay and overlay.has_signal("closed"):
 					if not overlay.closed.is_connected(_on_inspection_closed):
 						overlay.closed.connect(_on_inspection_closed)
+				# Pass smoker state to the inspection overlay for sting calculations
+				if overlay and overlay.has_method("set_smoker_state"):
+					overlay.set_smoker_state(_smoker_active)
 			else:
 				var nm2 = get_tree().root.get_node_or_null("NotificationManager")
 				if nm2 and nm2.has_method("notify"):
@@ -626,10 +650,31 @@ func _perform_action() -> void:
 			_try_build_hive(nearby_hive)
 		return
 
-	# -- 3. Uncle Bob NPC ------------------------------------------------------
-	var nearby_bob := _closest_in_group("uncle_bob", INTERACT_RADIUS)
-	if nearby_bob and nearby_bob.has_method("interact"):
-		nearby_bob.interact()
+	# -- 3a. Honey House ruin examination --------------------------------------
+	var nearby_ruin := _closest_in_group("honey_house_ruin", INTERACT_RADIUS)
+	if nearby_ruin and nearby_ruin.has_method("interact"):
+		nearby_ruin.interact()
+		return
+
+	# -- 3. NPCs (talk / quest interaction) ------------------------------------
+	var nearby_npc: Node = null
+	for npc_group in [
+		"uncle_bob", "darlene_kowalski", "silas_crenshaw",
+		"carl_tanner", "rose_delacroix", "june_wellman",
+		"ellen_harwick", "frank_fischbach",
+	]:
+		var candidate := _closest_in_group(npc_group, INTERACT_RADIUS)
+		if candidate and candidate.has_method("interact"):
+			if nearby_npc == null:
+				nearby_npc = candidate
+			else:
+				# Pick the closer one
+				var d_new: float = (candidate as Node2D).global_position.distance_to(global_position)
+				var d_old: float = (nearby_npc as Node2D).global_position.distance_to(global_position)
+				if d_new < d_old:
+					nearby_npc = candidate
+	if nearby_npc:
+		nearby_npc.interact()
 		return
 
 	# -- 4. Flower (harvest seeds) ---------------------------------------------
@@ -740,7 +785,7 @@ func _action_place_barrel_feeder() -> void:
 	if not tilemap:
 		return
 	var map_coords = get_target_tile_coords(tilemap)
-	if not consume_item(GameData.ITEM_BARREL_FEEDER, 1):
+	if not consume_item(GameData.ITEM_FEEDER_BUCKET, 1):
 		var nm_bf = get_tree().root.get_node_or_null("NotificationManager")
 		if nm_bf and nm_bf.has_method("notify"):
 			nm_bf.notify("No barrel feeder in inventory!")
@@ -984,27 +1029,4 @@ func _update_sprite_frame() -> void:
 
 # -- Sting Mechanics (GDD S6.5) ------------------------------------------------
 
-## Called when InspectionOverlay closes after an inspection session.
-## Computes sting probability and applies damage/notifications.
-func _on_inspection_closed() -> void:
-	# Compute sting probability per GDD S6.5
-	# Base: 25% chance of getting stung per inspection
-	var base_chance: float = 0.25
-	var weather_mult: float = 1.0
-	if WeatherManager:
-		weather_mult = WeatherManager.get_sting_multiplier()
-	var suit_mult: float = 0.3 if count_item(GameData.ITEM_BEE_SUIT) > 0 else 1.0
-	var smoke_mult: float = 0.2 if _smoker_active else 1.0
-	var final_chance: float = base_chance * weather_mult * suit_mult * smoke_mult
-
-	# Reset smoker state after inspection
-	_smoker_active = false
-	_smoker_puffs = 0
-
-	# Roll for sting
-	if randf() < final_chance:
-		var sting_dmg: float = 5.0 if count_item(GameData.ITEM_BEE_SUIT) > 0 else 10.0
-		GameData.deduct_energy(sting_dmg)
-		var nm = get_tree().root.get_node_or_null("NotificationManager")
-		if nm and nm.has_method("notify"):
-			nm.notify("Ouch! You got stung! (-%.0f energy)" % sting_dmg, "warn")
+## Called when

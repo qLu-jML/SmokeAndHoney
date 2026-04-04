@@ -146,6 +146,15 @@ var _viewed_sides:     Dictionary = {}   # "frame:side" -> true
 var _accum_counts:     Dictionary = {}   # cell_state -> accumulated count
 var _total_cells_seen: int        = 0    # total cells examined so far
 
+# -- Sting Probability System (GDD S6.1) --------------------------------------
+# Each inspection step (frame change, box change, flip) rolls a sting check.
+# Base sting chance: 10% (calm) to 25% (defensive) based on queen temperament.
+# Modifiers: bee suit x0.20, smoker x0.85, evening x1.25, weather mult.
+# Each sting costs 5-8 energy.
+var _smoker_used:       bool  = false    # True if player smoked hive before opening
+var _sting_count:       int   = 0        # Stings this inspection
+var _sting_status_lbl:  Label = null     # UI label showing protection status
+
 # ------------------------------------------------------------------------------
 # Public API
 # ------------------------------------------------------------------------------
@@ -211,6 +220,80 @@ func open(hive_node: Node) -> void:
 		if NotificationManager and NotificationManager.has_method("show_notification"):
 			NotificationManager.show_notification("A foul smell hits you as you open this hive. Something is very wrong.")
 
+	# Initial sting roll -- opening the hive is the first inspection step
+	_roll_sting()
+	_refresh_sting_status()
+
+## Called by player.gd after open() to pass in whether the hive was smoked.
+func set_smoker_state(smoked: bool) -> void:
+	_smoker_used = smoked
+	_refresh_sting_status()
+
+## Roll a sting check on each inspection step (GDD S6.1 Sting Probability Model).
+## Steps: navigating frames (A/D), switching boxes (W/S), flipping sides (F).
+func _roll_sting() -> void:
+	if _sim == null:
+		return
+	# Base sting chance from queen temperament (0.0-1.0 scale).
+	# Tuned so a calm+smoked hive yields ~0-1 stings per full inspection
+	# (10 steps), while a defensive+unsmoked hive averages 2-3 stings.
+	# calm (>=0.9) = 7%, normal (0.7-0.9) = 15%, defensive (<0.7) = 22%
+	var temp: float = _sim.queen.get("temperament", 1.0)
+	var base_chance: float = 0.07
+	if temp < 0.7:
+		base_chance = 0.22
+	elif temp < 0.9:
+		base_chance = 0.15
+
+	# Bee suit modifier: x0.20 (80% reduction)
+	var player: Node = get_tree().get_first_node_in_group("player")
+	var has_suit: bool = false
+	if player and player.has_method("count_item"):
+		has_suit = player.count_item(GameData.ITEM_BEE_SUIT) > 0
+	if has_suit:
+		base_chance *= 0.20
+
+	# Smoker modifier: x0.85 (15% reduction)
+	if _smoker_used:
+		base_chance *= 0.85
+
+	# Time of day modifier: evening (>=15:00) x1.25
+	if TimeManager and TimeManager.current_hour >= 15.0:
+		base_chance *= 1.25
+
+	# Weather modifier
+	if WeatherManager and WeatherManager.has_method("get_sting_multiplier"):
+		base_chance *= WeatherManager.get_sting_multiplier()
+
+	# Roll
+	if randf() < base_chance:
+		var damage: int = randi_range(5, 8)
+		GameData.deduct_energy(float(damage))
+		_sting_count += 1
+		var nm: Node = get_tree().root.get_node_or_null("NotificationManager")
+		if nm and nm.has_method("notify"):
+			nm.notify("Stung! -%d energy" % damage, "warn")
+		_refresh_sting_status()
+
+## Updates the sting/smoker status label in the header.
+func _refresh_sting_status() -> void:
+	if _sting_status_lbl == null:
+		return
+	var parts: Array = []
+	if _smoker_used:
+		parts.append("SMOKED")
+	else:
+		parts.append("NO SMOKE")
+	if _sting_count > 0:
+		parts.append("Stings: %d" % _sting_count)
+	_sting_status_lbl.text = " | ".join(parts)
+	if _smoker_used:
+		_sting_status_lbl.add_theme_color_override("font_color", C_GOOD)
+	elif _sting_count > 0:
+		_sting_status_lbl.add_theme_color_override("font_color", C_DANGER)
+	else:
+		_sting_status_lbl.add_theme_color_override("font_color", C_MUTED)
+
 # ------------------------------------------------------------------------------
 # Lifecycle
 # ------------------------------------------------------------------------------
@@ -236,6 +319,11 @@ func _ready() -> void:
 
 	_header_name = _lbl("", 7, Vector2(4, 2), Vector2(180, 10), C_ACCENT)
 	header_bar.add_child(_header_name)
+
+	# Sting/smoker status indicator (right side of header)
+	_sting_status_lbl = _lbl("", 5, Vector2(VP_W - 100, 3), Vector2(96, 8), C_MUTED)
+	_sting_status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	header_bar.add_child(_sting_status_lbl)
 
 	_header_frame = _lbl("Frame 1/10", 6, Vector2(190, 2), Vector2(80, 10), C_MUTED)
 	_header_frame.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -542,7 +630,8 @@ func _on_wash_kit_pressed() -> void:
 func _on_wash_complete(mites_per_100: float) -> void:
 	if PlayerData and PlayerData.has_method("set_flag"):
 		PlayerData.set_flag("alcohol_wash_done")
-	QuestManager.notify_event("mite_wash_result", {"mites_per_100": mites_per_100})
+	var h_id: String = _hive.name if _hive else "unknown"
+	QuestManager.notify_event("mite_wash_result", {"mites_per_100": mites_per_100, "hive_id": h_id})
 
 func _on_wash_cancelled() -> void:
 	pass  # nothing to clean up
@@ -766,6 +855,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	match event.keycode:
 		KEY_ESCAPE:
+			# Fire hive_inspected for Ellen Colony Dynamics tracking
+			if _hive and _viewed_sides.size() > 0:
+				var h_id: String = _hive.name if _hive else "unknown"
+				QuestManager.notify_event("hive_inspected", {"hive_id": h_id})
 			closed.emit()
 			queue_free()
 		KEY_A:
@@ -808,6 +901,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			var xp_amount: int = result.get("xp", 15)
 			GameData.add_xp(xp_amount)
 			_show_queen_notification_phase2(xp_amount)
+			# Track queen sighting for Darlene's Marked Queen quest
+			QuestManager.notify_event("queen_spotted", {})
 			get_viewport().set_input_as_handled()
 		elif result.get("hit", false):
 			# Wrong bee -- feedback handled by BeeOverlay flash_timer
@@ -878,6 +973,7 @@ func _navigate(dir: int) -> void:
 	_refresh_stats()
 	_populate_bees()
 	_refresh_harvest_overlay()
+	_roll_sting()
 
 ## Switches between brood box and super box.
 func _switch_box(dir: int) -> void:
@@ -891,6 +987,7 @@ func _switch_box(dir: int) -> void:
 	_refresh_stats()
 	_populate_bees()
 	_refresh_harvest_overlay()
+	_roll_sting()
 
 ## Flips between front and back sides of the current frame.
 func _flip_side() -> void:
@@ -898,6 +995,7 @@ func _flip_side() -> void:
 	_refresh_frame()
 	_record_current_side()
 	_refresh_stats()
+	_roll_sting()
 
 ## Total number of inspectable sides across ALL boxes (frames * 2 per box).
 func _total_inspectable_sides() -> int:
@@ -1043,6 +1141,23 @@ func _record_current_side() -> void:
 		_accum_counts[state_id] = prev + int(side_counts[state_id])
 
 	_total_cells_seen += TOTAL_CELLS
+
+	# -- Quest completion events based on inspection progress --
+	# Count unique frames viewed (any side counts the frame as visited)
+	var unique_frames: Dictionary = {}
+	for k in _viewed_sides:
+		var parts: PackedStringArray = k.split(":")
+		if parts.size() >= 2:
+			var frame_key: String = parts[0] + ":" + parts[1]
+			unique_frames[frame_key] = true
+
+	# first_inspection_3_frames: viewed 3+ unique frames (any side)
+	if unique_frames.size() >= 3:
+		QuestManager.notify_event("first_inspection_3_frames", {})
+
+	# full_inspection_complete: viewed 8+ unique frame sides
+	if _viewed_sides.size() >= 8:
+		QuestManager.notify_event("full_inspection_complete", {})
 
 # ------------------------------------------------------------------------------
 # Stats Panel -- tiered display (GDD S6.1.1)
@@ -1728,239 +1843,4 @@ func _mark_entire_super() -> void:
 		for f_idx in box.frames.size():
 			var f: Variant = box.frames[f_idx]
 			var fc := 0
-			var ft := 0
-			for side_cells in [f.cells, f.cells_b]:
-				for i in f.grid_size:
-					var s: int = int(side_cells[i])
-					if s == CellStateTransition.S_CAPPED_HONEY or s == CellStateTransition.S_PREMIUM_HONEY:
-						fc += 1
-						ft += 1
-					elif s == CellStateTransition.S_CURING_HONEY or s == CellStateTransition.S_NECTAR:
-						ft += 1
-			var pct: float = 100.0 if ft == 0 else (float(fc) / float(ft)) * 100.0
-			if pct < worst_cap:
-				worst_cap = pct
-		if worst_cap < 80.0:
-			_show_fermentation_warning(worst_cap, true)
-			return
-		for frame in box.frames:
-			frame.marked_for_harvest = true
-		_show_temp_message("All %d frames marked for harvest!" % box.frames.size())
-	_refresh_harvest_overlay()
-
-## Variable to track if marking entire super after fermentation confirm
-var _pending_mark_super: bool = false
-
-## Show fermentation warning dialog.
-func _show_fermentation_warning(cap_pct: float, is_super: bool = false) -> void:
-	_pending_mark_super = is_super
-	if _ferment_dialog != null:
-		_ferment_dialog.queue_free()
-	var bg_node := get_child(0)
-
-	# Dark overlay
-	_ferment_dialog = Control.new()
-	_ferment_dialog.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_ferment_dialog.z_index = 50
-	_ferment_dialog.mouse_filter = Control.MOUSE_FILTER_STOP
-
-	var dim := ColorRect.new()
-	dim.color = Color(0.0, 0.0, 0.0, 0.6)
-	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_ferment_dialog.add_child(dim)
-
-	# Warning panel
-	var panel := ColorRect.new()
-	panel.color = Color(0.12, 0.08, 0.04, 0.95)
-	panel.size = Vector2(200, 60)
-	@warning_ignore("INTEGER_DIVISION")
-	panel.position = Vector2((VP_W - 200) / 2, (VP_H - 60) / 2)
-	_ferment_dialog.add_child(panel)
-
-	var border := ColorRect.new()
-	border.color = C_DANGER
-	border.size = Vector2(200, 1)
-	border.position = panel.position
-	_ferment_dialog.add_child(border)
-
-	var msg: String = "Only %.0f%% capped! Uncapped honey\nhas high moisture and may ferment.\nHarvest anyway?" % cap_pct
-	var warn_lbl := _lbl(msg, 5,
-		panel.position + Vector2(6, 6), Vector2(188, 30), C_DANGER)
-	_ferment_dialog.add_child(warn_lbl)
-
-	var choice_lbl := _lbl("[Y] Harvest Anyway   [N] Wait", 5,
-		panel.position + Vector2(6, 44), Vector2(188, 10), C_MUTED)
-	choice_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_ferment_dialog.add_child(choice_lbl)
-
-	bg_node.add_child(_ferment_dialog)
-
-## Player confirmed marking despite low capping.
-func _confirm_mark_despite_fermentation() -> void:
-	var box: Variant = _current_box()
-	if box == null:
-		_dismiss_fermentation_warning()
-		return
-	if _pending_mark_super:
-		for frame in box.frames:
-			frame.marked_for_harvest = true
-		_show_temp_message("All frames marked (fermentation risk!).")
-	else:
-		if _frame_idx < box.frames.size():
-			box.frames[_frame_idx].marked_for_harvest = true
-		_show_temp_message("Frame %d marked (fermentation risk!)." % (_frame_idx + 1))
-	_dismiss_fermentation_warning()
-	_refresh_harvest_overlay()
-
-## Dismisses the fermentation warning dialog.
-func _dismiss_fermentation_warning() -> void:
-	if _ferment_dialog:
-		_ferment_dialog.queue_free()
-		_ferment_dialog = null
-	_pending_mark_super = false
-
-## Update the gold overlay and label to reflect current frame's mark state.
-func _refresh_harvest_overlay() -> void:
-	var box: Variant = _current_box()
-	if box == null or _frame_idx >= box.frames.size():
-		if _harvest_mark_rect:
-			_harvest_mark_rect.visible = false
-		if _harvest_label:
-			_harvest_label.visible = false
-		return
-
-	var frame: Variant = box.frames[_frame_idx]
-	var is_super: bool = box.is_super
-
-	if _harvest_mark_rect:
-		_harvest_mark_rect.visible = frame.marked_for_harvest
-
-	if _harvest_label and is_super:
-		var cap_pct: float = _calc_frame_capping_pct()
-		var cap_color: Color
-		var cap_icon: String
-		if cap_pct >= 80.0:
-			cap_color = C_CAP_GREEN
-			cap_icon = "Ready"
-		elif cap_pct >= 60.0:
-			cap_color = C_CAP_YELLOW
-			cap_icon = "Wait"
-		else:
-			cap_color = C_CAP_RED
-			cap_icon = "Risk"
-		var mark_str: String = " [MARKED]" if frame.marked_for_harvest else ""
-		_harvest_label.text = "Cap: %.0f%% %s%s" % [cap_pct, cap_icon, mark_str]
-		_harvest_label.add_theme_color_override("font_color", cap_color)
-		_harvest_label.visible = true
-	elif _harvest_label:
-		_harvest_label.visible = false
-
-## Show a temporary notification message on the overlay.
-func _show_temp_message(msg: String) -> void:
-	var bg_node := get_child(0)
-	var note := Label.new()
-	note.text = msg
-	note.add_theme_font_size_override("font_size", 6)
-	note.add_theme_color_override("font_color", C_ACCENT)
-	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	@warning_ignore("INTEGER_DIVISION")
-	note.position = Vector2(0, VP_H / 2 + 20)
-	note.size = Vector2(VP_W, 10)
-	note.z_index = 30
-	bg_node.add_child(note)
-	get_tree().create_timer(2.0).timeout.connect(note.queue_free)
-
-# ------------------------------------------------------------------------------
-# Harvest shortcut from inside the overlay
-# ------------------------------------------------------------------------------
-
-## Harvests frames marked from the inspection view.
-func _harvest_from_overlay() -> void:
-	if not _hive or not _hive.has_method("harvest_honey"):
-		return
-	var player = get_tree().get_first_node_in_group("player")
-	if player == null:
-		return
-	var amount: int = roundi(_hive.harvest_honey())
-	if amount > 0:
-		player.add_item(GameData.ITEM_RAW_HONEY, amount)
-		GameData.deduct_energy(5.0)
-		_refresh_stats()
-		var nm := get_tree().root.get_node_or_null("NotificationManager")
-		if nm and nm.has_method("show_harvest"):
-			nm.show_harvest(amount)
-	else:
-		var bg := get_child(0)
-		var hint := Label.new()
-		hint.text = "No honey ready to harvest yet."
-		hint.add_theme_font_size_override("font_size", 6)
-		hint.add_theme_color_override("font_color", Color(0.75, 0.60, 0.40, 1.0))
-		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		@warning_ignore("INTEGER_DIVISION")
-		hint.position = Vector2(0, VP_H / 2 + 10)
-		hint.size = Vector2(VP_W, 10)
-		hint.z_index = 30
-		bg.add_child(hint)
-		get_tree().create_timer(2.0).timeout.connect(hint.queue_free)
-
-# ------------------------------------------------------------------------------
-# Helpers
-# ------------------------------------------------------------------------------
-
-static func _state_name(s: int) -> String:
-	match s:
-		0:  return "Foundation"
-		1:  return "Empty"
-		2:  return "Egg"
-		3:  return "Larva"
-		4:  return "Capped brood"
-		5:  return "Drone brood"
-		6:  return "Nectar"
-		7:  return "Curing honey"
-		8:  return "Honey"
-		9:  return "Premium honey"
-		10: return "Varroa"
-		11: return "AFB"
-		12: return "Queen cell"
-		13: return "Vacated"
-	return "Unknown"
-
-static func _fmt_k(n: int) -> String:
-	if n >= 1000:
-		return "%.1fk" % (float(n) / 1000.0)
-	return str(n)
-
-## Approximate a count to the nearest human-friendly round number for tier 4.
-static func _approx_count(n: int) -> String:
-	if n >= 1000:
-		return "%dk" % roundi(float(n) / 1000.0)
-	if n >= 100:
-		var rounded := roundi(float(n) / 50.0) * 50
-		return str(rounded)
-	if n >= 10:
-		var rounded := roundi(float(n) / 10.0) * 10
-		return str(rounded)
-	if n > 0:
-		return "<%d" % (10 if n < 10 else n)
-	return "0"
-
-## Approximate a large number (adults, etc.) for tier 4.
-static func _approx_k(n: int) -> String:
-	if n >= 10000:
-		return "~%dk" % roundi(float(n) / 1000.0)
-	if n >= 1000:
-		return "~%.0fk" % (roundf(float(n) / 500.0) * 0.5)
-	if n >= 100:
-		return "~%d" % (roundi(float(n) / 100.0) * 100)
-	return "~%d" % n
-
-func _lbl(text: String, font_size: int, pos: Vector2, sz: Vector2,
-		color: Color = Color.WHITE) -> Label:
-	var l := Label.new()
-	l.text     = text
-	l.position = pos
-	l.size     = sz
-	l.add_theme_font_size_override("font_size", font_size)
-	l.add_theme_color_override("font_color", color)
-	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return l
+			var ft :

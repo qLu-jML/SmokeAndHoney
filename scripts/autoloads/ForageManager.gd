@@ -7,6 +7,11 @@
 #
 # Now integrates with FlowerLifecycleManager for dynamic, tile-based forage
 # sourced from the season ranking system (S/A/B/C/D/F).
+#
+# Forage level uses SCENE-WIDE totals (get_total_zone_nectar/pollen) so
+# the indicator reflects everything the hives can access, not just a local
+# 5x5 tile sample. When multiple hives exist, the total is divided by
+# colony count so the level represents each hive's share of the resource.
 # -----------------------------------------------------------------------------
 extends Node
 
@@ -53,33 +58,55 @@ signal forage_updated(level: float)
 
 # -- Public API ---------------------------------------------------------------
 
-## Returns forage level (0.0-1.0) for a given world position.
-## Queries FlowerLifecycleManager for actual tile-based flower density data.
-func calculate_forage_pool(world_position: Vector2) -> float:
+## Returns forage level (0.0-1.0) for the current zone.
+## Uses SCENE-WIDE totals from FlowerLifecycleManager + SeasonalTree forage,
+## divided by colony count so the level reflects each hive's share.
+## The world_position parameter is kept for API compatibility but is NOT used
+## for local sampling -- the entire map contributes to the forage level.
+func calculate_forage_pool(_world_position: Vector2) -> float:
 	var month: int = TimeManager.current_month_index()
 
 	# Winter: no forage at all
 	if month >= 6:
 		return 0.0
 
-	# Try to get dynamic forage from FlowerLifecycleManager
+	# Try to get scene-wide forage from FlowerLifecycleManager
 	var flm := _get_flower_manager()
 	if flm:
-		var forage_data: Dictionary = flm.get_forage_at(world_position)
-		var nectar: float = forage_data.get("nectar", 0.0)
-		var pollen: float = forage_data.get("pollen", 0.0)
+		# Scene-wide flower totals (already divided by AREA_SCALE inside FLM)
+		var flower_nectar: float = float(flm.get_total_zone_nectar())
+		var flower_pollen: float = float(flm.get_total_zone_pollen())
 
-		# Add contributions from all placed SeasonalTree instances
-		var tree_forage: Dictionary = _get_tree_forage(month)
-		nectar += tree_forage.get("nectar", 0.0)
-		pollen += tree_forage.get("pollen", 0.0)
+		# Add contributions from all placed SeasonalTree instances (raw values)
+		var tree_nectar := 0.0
+		var tree_pollen := 0.0
+		var trees := get_tree().get_nodes_in_group("trees")
+		for tree_node in trees:
+			if tree_node.has_method("get_forage_contribution"):
+				var contrib: Dictionary = tree_node.get_forage_contribution(month)
+				tree_nectar += contrib.get("nectar", 0.0)
+				tree_pollen += contrib.get("pollen", 0.0)
 
-		# Combined NU (nectar-weighted since that's what makes honey)
-		var total_nu: float = nectar * 0.7 + pollen * 0.3
+		var total_nectar: float = flower_nectar + tree_nectar
+		var total_pollen: float = flower_pollen + tree_pollen
 
-		# Normalize to 0-1 range.  Peak expected NU at B rank is ~3-4.
-		# S rank could reach 6-8.  Use 8.0 as normalization ceiling.
-		var level := clampf(total_nu / 8.0, 0.0, 1.0)
+		# Divide by colony count -- more hives means each gets a smaller share
+		var colony_count: int = maxi(1, HiveManager.hive_count())
+		total_nectar /= float(colony_count)
+		total_pollen /= float(colony_count)
+
+		# Combined NU (nectar-weighted since that is what makes honey)
+		var total_nu: float = total_nectar * 0.7 + total_pollen * 0.3
+
+		# Normalize to 0-1 range.
+		# Calibrated via full production chain simulation:
+		# B-tier, 2 hives, High-Sun (peak summer) -> ~600 weighted NU -> 0.85
+		#   = Abundant. Full honey production if player times harvests right.
+		# S-tier, 2 hives, peak -> 1000+ NU -> 1.0 (capped). Bees build &
+		#   produce as fast as possible; honey overflows if not harvested.
+		# F-tier, 2 hives, peak -> ~110 NU -> 0.15 = Dearth. Hives starve.
+		# Ceiling 700.0 anchors B-tier peak at Abundant for 2 colonies.
+		var level := clampf(total_nu / 700.0, 0.0, 1.0)
 		return level
 
 	# -- Fallback: hardcoded baseline (if FlowerLifecycleManager not found) ---
@@ -142,25 +169,6 @@ func report_goldenrod_end_of_season(_was_good: bool) -> void:
 	pass  # No longer used -- FlowerLifecycleManager manages all flowers
 
 # -- Internal -----------------------------------------------------------------
-
-## Sum nectar/pollen from all SeasonalTree instances in the "trees" group.
-## Each tree reports its own contribution based on species and bloom window.
-## NU values are divided by NU_SCALE (250) to match flower tile scale.
-func _get_tree_forage(month: int) -> Dictionary:
-	var total_nectar := 0.0
-	var total_pollen := 0.0
-	var trees := get_tree().get_nodes_in_group("trees")
-	for tree_node in trees:
-		if tree_node.has_method("get_forage_contribution"):
-			var contrib: Dictionary = tree_node.get_forage_contribution(month)
-			total_nectar += contrib.get("nectar", 0.0)
-			total_pollen += contrib.get("pollen", 0.0)
-	# Scale tree NU down to match flower tile density scale
-	# One tree with 8 NU total should contribute roughly as much as
-	# a patch of 20-30 mature flower tiles (which yield ~0.5-1.0 after NU_SCALE)
-	# Using /10 so a willow (2 nectar + 6 pollen) gives ~0.2 nectar + 0.6 pollen
-	return { "nectar": total_nectar / 10.0, "pollen": total_pollen / 10.0 }
-
 
 ## Find the FlowerLifecycleManager in the scene tree.
 func _get_flower_manager() -> FlowerLifecycleManager:

@@ -1092,7 +1092,7 @@ func _load_item_textures() -> void:
 		GameData.ITEM_SMOKER: "smoker.png",
 		GameData.ITEM_SWARM_TRAP: "swarm_trap.png",
 		GameData.ITEM_SCRAPED_SUPER: "scraped_super.png",
-		GameData.ITEM_BARREL_FEEDER: "barrel_feeder.png",
+		GameData.ITEM_FEEDER_BUCKET: "barrel_feeder.png",
 		GameData.ITEM_LOGS: "logs.png",
 		GameData.ITEM_LUMBER: "lumber.png",
 		GameData.ITEM_AXE: "axe.png",
@@ -1776,6 +1776,4 @@ func update_player_inventory(inv_array: Array = []) -> void:
 	if _active_item_lbl:
 		var active_inv = inv_array[_active_slot_idx] if _active_slot_idx < inv_array.size() else null
 		if active_inv != null:
-			_active_item_lbl.text = LONG_NAME.get(active_inv["item"], active_inv["item"].capitalize())
-		else:
-			_active_item_lbl.text = ""
+			_active_item_lbl.text = LONG_NAME.get(active_inv["item"], active_inv["item"].capitalize

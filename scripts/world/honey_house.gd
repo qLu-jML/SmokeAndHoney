@@ -878,4 +878,4 @@ func _trigger_exit() -> void:
 		target = "res://scenes/home_property.tscn"
 	TimeManager.came_from_interior = true
 	TimeManager.next_scene = target
-	get_tree().change_scene_to_file("res://scenes/loading/loading_screen.tscn")
+	g

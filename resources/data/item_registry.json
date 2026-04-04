@@ -312,9 +312,9 @@
       "_note": "Intermediate harvest pipeline item. Not sold directly -- fill jars at canning table."
     },
 
-    "barrel_feeder": {
-      "display_name": "Barrel Feeder",
-      "description": "A sugar syrup barrel feeder. Place near hives to supply 100 NU per day for 10 days. Essential for early spring feeding before natural forage is available.",
+    "feeder_bucket": {
+      "display_name": "Feeder Bucket",
+      "description": "A sugar syrup feeder bucket. Place near hives to supply 100 NU per day for 10 days. Essential for early spring feeding before natural forage is available.",
       "sprite": "res://assets/sprites/items/barrel_feeder.png",
       "sprite_size": [32, 32],
       "category": "equipment",

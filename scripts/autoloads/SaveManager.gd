@@ -674,23 +674,4 @@ func _apply_dandelion_spawner(ds: Dictionary, spawner: Node) -> void:
 	if was_bloomed and not spawner.current_outcome.is_empty():
 		if spawner.has_method("_spawn_dandelions"):
 			spawner._spawn_dandelions()
-	# If not bloomed, _bloomed stays false and the normal day-advance logic
-	# will trigger the bloom on the correct in-game day.
-
-
-## Applies quest state from save file.
-func _apply_quest_manager(qm: Dictionary) -> void:
-	if qm.has("active_quests"):
-		QuestManager.active_quests    = (qm["active_quests"]    as Dictionary).duplicate()
-	if qm.has("completed_quests"):
-		QuestManager.completed_quests = (qm["completed_quests"] as Dictionary).duplicate()
-	if qm.has("quest_notes"):
-		QuestManager.quest_notes      = (qm["quest_notes"]      as Dictionary).duplicate()
-
-
-## Applies NPC state flags from save file.
-func _apply_npc_flags(flags: Dictionary) -> void:
-	# Uncle Bob: restore hint rotation so he continues from where he left off.
-	var bob: Node = get_tree().get_first_node_in_group("uncle_bob")
-	if bob and flags.has("uncle_bob_hint_index"):
-		bob._hint_index = int(flags["uncle_bob_hint_index"])
+	# If not bloomed, _

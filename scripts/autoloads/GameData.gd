@@ -199,7 +199,7 @@ const ITEM_GLOVES            := "gloves"
 const ITEM_COMB_SCRAPER      := "comb_scraper"     # Tier 0 de-capping tool
 const ITEM_HONEY_BUCKET      := "honey_bucket"     # Full honey bucket (carried to bottling table)
 const ITEM_BUCKET_GRIP       := "bucket_grip"      # Tool: required to lift and carry honey bucket
-const ITEM_BARREL_FEEDER     := "barrel_feeder"    # Placeable feeder: 100 NU/day for 10 days
+const ITEM_FEEDER_BUCKET     := "feeder_bucket"    # Placeable feeder: 100 NU/day for 10 days
 const ITEM_LOGS              := "logs"             # Raw logs from chopping trees
 const ITEM_LUMBER            := "lumber"           # Processed lumber for crafting
 const ITEM_AXE               := "axe"              # Tool: required for tree chopping
@@ -351,6 +351,4 @@ func apply_coffee_buff() -> void:
 func is_xp_buff_active() -> bool:
 	return TimeManager.current_day == xp_buff_until_day
 
-## Apply the seasonal special XP buff for the rest of today.
-func apply_xp_buff() -> void:
-	xp_buff_until_day = TimeManager.current_day
+## Apply the seasonal special XP buff for the 

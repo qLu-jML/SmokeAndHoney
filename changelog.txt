@@ -1,3 +1,385 @@
+[2026-04-04 CDT] Wave 5: Seasonal holidays, community events, holiday NPC dialogue
+  scripts/autoloads/HolidayManager.gd (NEW, registered as autoload):
+  - Coordinates all 4 seasonal holiday events
+  - Quickening Morn (Greening 12): 10-line spring renewal scene -- Bob brings comb,
+    Rose feeds the player, Darlene introduces them to the community
+  - Founder's Beam (High-Sun 19): 10-line midsummer festival -- market special,
+    Rose vs Darlene pie contest, Carl's speech, fireworks at dusk
+  - Reaping Fire (Full-Earth 7): 12-line harvest bonfire -- Lloyd's storm story,
+    Silas's interruption tradition, Rose's cider, player watches the fire
+  - Long Table (Deepcold 21): 12-line winter feast -- just Bob and the player,
+    Rose brings pie, Darlene brings mead, Bob talks about his wife
+  - Attendance tracking via QuestManager counters
+  - Standing and XP rewards (25 XP / +15 Standing, Long Table 40 XP / +25)
+  - Save/load support for holiday_triggered state
+  project.godot:
+  - Added HolidayManager autoload registration
+  scripts/world/cedar_bend.gd:
+  - Holiday event auto-triggers on scene load when holiday is pending
+  - _check_saturday_market() now activates market on Founder's Beam (any day)
+  - Founder's Beam market prices +25% premium ("festival premium")
+  scripts/world/home_property.gd:
+  - Long Table triggers at home (not in town) via HolidayManager
+  scripts/npc/uncle_bob.gd:
+  - Added HOLIDAY_LINES dict with 4 holiday-specific dialogue sets
+  - Holiday priority 3.5 between quest-aware and seasonal rotation
+  - Quickening Morn: "Someday you will be the one carrying the comb"
+  - Long Table: "Two is enough" (emotional anchor for Y1)
+  scripts/npc/darlene_kowalski.gd:
+  - Added HOLIDAY_LINES for all 4 holidays
+  - Grandmother references in Quickening Morn and Long Table
+  - Pie rivalry in Founder's Beam dialogue
+  scripts/npc/rose_delacroix.gd:
+  - Added HOLIDAY_LINES for all 4 holidays
+  - Founder's Beam pie contest rivalry with Darlene
+  - Long Table: "Nobody eats alone on the longest night"
+  scripts/npc/frank_fischbach.gd:
+  - Added HOLIDAY_LINES for all 4 holidays
+  - Founder's Beam: "I doubled the prices. Nobody blinks."
+  - Market boost awareness in dialogue
+  All files: ASCII-verified, protected docs intact (700070 + 145195 bytes)
+
+[2026-04-04 CDT] Wave 4: Compound quest objectives, CVBA meetings, Ellen milestones
+  scripts/world/grange_interior.gd (NEW):
+  - Custom Grange Hall script replacing generic_interior.gd
+  - CVBA meeting attendance system with 4 rotating meeting dialogues
+  - Meeting 1: stranger, Meeting 2: recognized, Meeting 3: you belong (quest completes)
+  - Auto-increments cvba_meetings counter, fires cvba_three_meetings on 3rd visit
+  - Darlene cameo in meeting dialogue, Lloyd (John Deere cap man) recurring character
+  scenes/world/grange_interior.tscn:
+  - Switched script from generic_interior.gd to grange_interior.gd
+  scripts/autoloads/QuestManager.gd:
+  - Added Saturday Regulars compound tracking:
+    sr_last_market_week, sr_consecutive_weeks, sr_total_earnings, sr_products_sold
+    Tracks 4 consecutive Saturday visits + 2 product types + $50 earnings
+    Auto-fires saturday_regulars_done when all 3 conditions met
+    Resets streak on missed week
+  - Added Ellen Colony Dynamics tracking:
+    ellen_inspections_today dict tracks same-day hive inspections
+    Sets ellen_colony_comparison_ready flag when 2+ hives inspected in one day
+  - Added Ellen Health Monitoring tracking:
+    Tracks per-hive wash flags (ellen_wash_{hive_id})
+    Sets ellen_health_report_ready when all hives (3+) have been washed
+  - Fixed wash event name matching (mite_wash_complete, mite_wash_result, wash_complete)
+  - All new tracking state saved/loaded in collect_save_data/apply_save_data
+  scripts/npc/ellen_harwick.gd:
+  - Added COMPARISON_REPORT_LINES (5 lines) for Colony Dynamics completion
+  - Added HEALTH_REPORT_LINES (6 lines) for Health Monitoring completion
+  - Quest-aware dialogue now checks readiness flags before firing completion events
+  - Player must inspect 2 hives same day THEN visit Ellen to complete Colony Dynamics
+  - Player must wash all hives THEN visit Ellen to complete Health Monitoring
+  scripts/ui/InspectionOverlay.gd:
+  - Added hive_inspected event on inspection close (KEY_ESCAPE) with hive_id
+  - Added hive_id to mite_wash_result event data
+  scripts/ui/sell_screen.gd:
+  - Added market_sale_tracked event with product type and earnings data
+  scripts/autoloads/PlayerData.gd:
+  - Added clear_flag() method for removing persistent flags
+  All files: ASCII-verified, protected docs intact (700070 + 145195 bytes)
+
+[2026-04-04 CDT] Wave 3: Gameplay trigger wiring for all Y1 side-chain quests
+  scripts/ui/sell_screen.gd:
+  - Added QuestManager.notify_event("first_market_sale", {...}) after sale completes
+  - Added QuestManager.notify_event("market_attended", {}) for Frank quest tracking
+  scripts/ui/InspectionOverlay.gd:
+  - Added QuestManager.notify_event("queen_spotted", {}) on queen detection
+  - Feeds queen_sightings counter for Darlene's Marked Queen prerequisite
+  scripts/world/post_office_interior.gd:
+  - Added bee package detection in _collect_all_deliveries()
+  - Fires QuestManager.notify_event("bee_package_collected", {}) for June's quest
+  scripts/npc/rose_delacroix.gd:
+  - Added honey delivery check in quest-aware dialogue priority
+  - When rose_honey_in_coffee active and player has honey: consume jar, fire event
+  - Seamless dialogue-based item delivery (no separate UI needed)
+  scripts/world/feed_supply_interior.gd:
+  - Added "Post Swarm-Removal Notice" button to bulletin board UI
+  - Button visible only when carl_bulletin_board quest is active
+  - Fires bulletin_board_posted event, sets PlayerData flag, shows posted notice
+  - Posted notice persists on board after quest completion
+  scripts/npc/darlene_kowalski.gd:
+  - Added OBSERVATION_LINES (8-line hive observation sequence)
+  - Added MARKING_LINES (8-line queen marking ceremony)
+  - Over the Fence: second visit to Darlene fires darlene_fence_visit event
+  - Marked Queen: auto-completes when sightings >= 3 and player talks to Darlene
+  All files: ASCII-verified, protected docs intact (700070 + 145195 bytes)
+
+[2026-04-04 CDT] Wave 2: NPC world placement, portraits, interaction wiring, Honey House ruin
+  assets/sprites/npc/:
+  - Created 5 new portrait files (128x128, cropped/resized from NPC_Portraits):
+    uncle_bob_portrait.png, darlene_portrait.png, silas_portrait.png,
+    rose_portrait.png, ellen_portrait.png
+  - Existing portraits: carl_portrait.png, frank_portrait.png, june_portrait.png
+  scripts/npc/*.gd (all 8 NPCs):
+  - All show_dialogue() calls now pass portrait_key parameter
+  - Portraits display in DialogueUI's 40x40 portrait rect during conversations
+  scripts/core/player.gd:
+  - Replaced single uncle_bob detection with unified NPC interaction loop
+  - Scans all 8 NPC groups (uncle_bob, darlene_kowalski, silas_crenshaw,
+    carl_tanner, rose_delacroix, june_wellman, ellen_harwick, frank_fischbach)
+  - Picks closest NPC within INTERACT_RADIUS (64px)
+  - Added honey_house_ruin detection before NPC loop
+  scenes/home_property.tscn:
+  - Added DarleneKowalski Node2D at (520, 160) -- fence line east of Bob
+  - Attached darlene_kowalski.gd script, placeholder sprite
+  - Added HoneyHouseRuin Node2D as child of HoneyHouse building
+  scenes/world/cedar_bend.tscn:
+  - Added SilasCrenshaw Node2D in NPCs at (300, 80) with silas_crenshaw.gd
+  - Added EllenHarwick Node2D in NPCs at (-200, 60) with ellen_harwick.gd
+  - Added FrankScript Node2D in NPCs at (-400, 70) with frank_fischbach.gd
+  scenes/world/feed_supply_interior.tscn:
+  - Added CarlScript Node2D as child of CarlTanner Sprite2D
+  - Attached carl_tanner.gd for quest-aware dialogue
+  scenes/world/diner_interior.tscn:
+  - Added RoseScript Node2D as child of RoseWaitress Sprite2D
+  - Attached rose_delacroix.gd for quest-aware dialogue
+  scenes/world/post_office_interior.tscn:
+  - Added JuneScript Node2D as child of JunePostmaster Sprite2D
+  - Attached june_wellman.gd for quest-aware dialogue
+  scripts/world/honey_house_ruin.gd: (NEW)
+  - Examination interaction for Silas quest chain
+  - Shows "[E] Examine the Honey House" when quest active and player nearby
+  - Fires examination dialogue describing the ruin's state
+  - Sets honey_house_examined flag; Silas fires completion event when visited
+  - Auto-hides after examination or when Honey House is restored
+  scripts/npc/silas_crenshaw.gd:
+  - First visit and quest-aware dialogue now check honey_house_examined flag
+  - Fires silas_honey_house_assessed event when player visits after examining ruin
+
+[2026-04-04 CDT] Wave 1: Y1 quest infrastructure -- all NPC quest chains + multi-chain QuestManager
+  scripts/quests/quest_defs.gd:
+  - Added 15 new Y1 quest definitions across 8 NPC chains:
+    Darlene (2): Over the Fence, The Marked Queen
+    Frank (2): First Jar, The Saturday Regulars
+    Silas (3): The Old Honey House, Gathering Materials, Raising the Roof
+    Ellen (3): The First Hive, Colony Dynamics, Health Monitoring
+    Carl (2): New Customer, The Bulletin Board
+    Rose (1): Honey in the Coffee
+    June (1): The Buzzing Box
+    CVBA (1): The New Kid
+  - Added CHAINS dictionary mapping chain names to ordered quest ID arrays
+  - Added helper methods: all_y1_quests(), get_chain(), side_chain_first_quests()
+  - check_start_conditions() now handles: min_month, requires_complete,
+    min_hive_count, min_queen_sightings
+  scripts/autoloads/QuestManager.gd:
+  - Added counter system (counters dict) for tracking attendance/sightings:
+    increment_counter(), get_counter(), set_counter(), reset_counter()
+  - Auto-increments counters on: queen_spotted, market_attended,
+    cvba_meeting_attended, diner_visited events
+  - Added _check_side_quest_activation() -- scans all Y1 quests each day
+    and after quest completions, activates side chains when conditions met
+  - _init_all_chain_quests() replaces _init_year1_chain_quests() to cover
+    all chains, not just Bob's
+  - _retry_inactive_chain_quests() now covers all Y1 quests
+  - Counters included in save/load (collect_save_data / apply_save_data)
+  scripts/npc/darlene_kowalski.gd: (NEW)
+  - Full NPC script: 5-priority dialogue system (first visit, debrief,
+    quest-aware, seasonal, fallback)
+  - First visit starts Over the Fence quest
+  - Debrief for Over the Fence includes "Telling the Bees" foreshadowing
+    (Story Bible: loaded gun for Year 5 conclusion)
+  - Knowledge Log unlocks: healthy_hive, queen_marking
+  scripts/npc/silas_crenshaw.gd: (NEW)
+  - Full NPC script: 5-priority dialogue, Honey House restoration chain
+  - First visit starts Old Honey House quest
+  - Debriefs for all 3 construction quests
+  - Knowledge Log unlocks: honey_house_history, honey_house_restored
+  scripts/npc/carl_tanner.gd: (NEW)
+  - Full NPC script: 5-priority dialogue, supply line + bulletin board
+  - First visit fires carl_first_visit event (completes New Customer quest)
+  - Debriefs for New Customer and Bulletin Board
+  scripts/npc/rose_delacroix.gd: (NEW)
+  - Full NPC script: plate-without-asking first visit (Story Bible moment)
+  - Honey tasting debrief, seasonal rotation referencing town life
+  scripts/npc/june_wellman.gd: (NEW)
+  - Full NPC script: bee package pickup chain
+  - Buzzing Box debrief with grandmother's queen-listening detail
+  scripts/npc/ellen_harwick.gd: (REBUILT)
+  - Was truncated at line 117. Full rebuild with 5-priority dialogue system
+  - Added quest integration: first visit, debrief, quest-aware lines
+  - Ellen M1/M2/M3 milestone quest support
+  - Knowledge Log unlocks: science_of_smoke, colony_dynamics, varroa_monitoring
+  scripts/npc/frank_fischbach.gd: (REBUILT)
+  - Was truncated at line 117. Full rebuild with 5-priority dialogue system
+  - Added quest integration: first visit, debrief, quest-aware lines
+  - Frank Q1/Q2 market quest support
+  Note: NPC scripts are code-complete but not yet placed in world scenes.
+  Scene placement and event trigger hookups are Wave 2+ work.
+
+[2026-04-04 CDT] Year 1 quest chain completion: start day, frame tracking, GDD update
+  scripts/world/home_property.gd:
+  - Dev bypass now starts player at day 43 (Greening 15, mid-dandelion bloom)
+  - Dev inventory override removed: player starts with empty hotbar
+  - All tools learned via Uncle Bob onboarding + chest interaction
+  scripts/core/player.gd:
+  - Removed feeder_bucket from starting chest (now a Fall purchase from Tanner's)
+  - Chest stocks: hive tool, smoker, gloves, axe, hammer, bucket grip,
+    comb scraper, wash kit + hive components
+  scripts/ui/InspectionOverlay.gd:
+  - Added quest completion event firing in _record_current_side():
+    "first_inspection_3_frames" fires when 3+ unique frames viewed
+    "full_inspection_complete" fires when 8+ unique frame sides viewed
+  - Tracks unique frames via frame_key dictionary (box:frame pairs)
+  Smoke_and_Honey_GDD.html:
+  - Updated Uncle Bob quest chain table (S8.4) with new 8-quest flow:
+    Q0 Meet Uncle Bob (gatekeeper) -> Q1 First Light -> Q2 Reading the Room
+    -> Q3 The Girls Are Building -> Q4 First Pull -> Q5 Battening Down
+    -> Q6 Lloyd's Lot -> Q7 Spring Count
+  - Removed Sugar Water Days (Q3 old); feeding now taught in Fall (Q5)
+  - Added arrival timing note (day 43, Greening 15) and pacing design note
+  - Added return-to-Bob debrief descriptions for each quest
+  - Q5 Battening Down now teaches both fall feeding (2:1) and spring feeding (1:1)
+
+[2026-04-04 CDT] Rename barrel_feeder to feeder_bucket (player-facing only)
+  scripts/autoloads/GameData.gd:
+  - Constant renamed: ITEM_BARREL_FEEDER -> ITEM_FEEDER_BUCKET
+  - String value changed: "barrel_feeder" -> "feeder_bucket"
+  scripts/core/player.gd:
+  - All references to GameData.ITEM_BARREL_FEEDER updated to ITEM_FEEDER_BUCKET
+  - Group reference changed: "barrel_feeder" -> "feeder_bucket"
+  scripts/ui/chest_storage.gd:
+  - Sprite map entry updated to use new constant
+  - Added LONG_NAME entry: "Feeder Bucket"
+  scripts/ui/hud.gd:
+  - Sprite map entry updated to use new constant
+  scripts/world/barrel_feeder.gd:
+  - Group name changed from "barrel_feeder" to "feeder_bucket"
+  resources/data/item_registry.json:
+  - Key renamed: "barrel_feeder" -> "feeder_bucket"
+  - Display name updated: "Barrel Feeder" -> "Feeder Bucket"
+  - Description updated to reference "feeder bucket" instead of "barrel feeder"
+  Note: Script file (barrel_feeder.gd) and sprite file (barrel_feeder.png) remain unchanged
+
+[2026-04-04 CDT] Journal during inspection + smoker pre-inspection + sting system
+  scripts/core/player.gd:
+  - J key now works during inspection (moved above _is_ui_blocking gate)
+  - Smoker is a separate pre-inspection action: select smoker, press E on hive
+    to smoke it, then switch to hive tool and press E to inspect
+  - Smoker state passed to InspectionOverlay via set_smoker_state()
+  - Dead smoker code removed (was unreachable behind hive tool check)
+  scripts/ui/InspectionOverlay.gd:
+  - New sting probability system per GDD S6.1:
+    Base chance per step: 7% (calm) / 15% (normal) / 22% (defensive)
+    Modifiers: bee suit x0.20, smoker x0.85, evening x1.25, weather mult
+    Each sting costs 5-8 energy, stacks during inspection
+  - Sting rolls on: open, navigate frame (A/D), switch box (W/S), flip (F)
+  - Header shows SMOKED/NO SMOKE status + sting count (color-coded)
+  - set_smoker_state() public API for player.gd
+  scripts/npc/uncle_bob.gd:
+  - Onboarding now teaches smoke-then-inspect flow explicitly
+  - first_light quest dialogue updated to mention smoking first
+
+[2026-04-04 CDT] Empty starting inventory + chest-first onboarding
+  scripts/core/player.gd:
+  - Player now starts with empty inventory (no gloves/bucket grip/comb scraper)
+  - All tools moved to storage chest: hive tool, smoker, gloves, axe, hammer,
+    bucket grip, comb scraper, barrel feeder, wash kit
+  - Chest also stocks: deep body x5, super box x5, frames x20, queen excluder x1
+  - Every item needed for Year 1 quest chain is now in the starting chest
+  scripts/npc/uncle_bob.gd:
+  - Onboarding rewritten: teaches drag-from-chest-to-toolbar flow
+  - Now mentions mouse wheel to scroll toolbar slots (not just number keys)
+  - Tells player to grab hive tool AND smoker as first items
+  - Quest-aware dialogue updated: each quest references dragging items from
+    chest to toolbar and using mouse wheel to select
+  - battening_down quest lines now mention wash kit in chest
+
+[2026-04-04 CDT] Fix startup quest notification spam
+  scripts/autoloads/QuestManager.gd:
+  - Restored truncated file (was cut off at line 167, missing 7+ functions)
+  - Rebuilt: _start_next_in_chain, _init_quest_definitions, _init_year1_chain_quests,
+    _reset_daily_quests_if_needed, _on_day_advanced, _check_winter_ready,
+    _get_quest_title, collect_save_data, apply_save_data
+  - Added _suppress_notifications flag to prevent toast spam on game start
+  - Daily quests and first_light auto-start silently (no notification toasts)
+  - Quest notifications only appear for quests started during gameplay
+
+[2026-04-04 CDT] Onboarding polish: spring start, actionable dialogue, quest log tab
+  scripts/world/home_property.gd:
+  - Fixed dev bypass: day 1 spring start (was day 113 fall)
+  - new_game_mode = 0 (spring overwintered hive, not fall harvest)
+  scripts/npc/uncle_bob.gd:
+  - Rewrote onboarding to teach correct flow: storage chest -> hive tool -> equip -> inspect
+  - Mentions journal quest log tab and controls page
+  - Rewrote all 5 quest-aware dialogue sets with actionable instructions
+  - Fixed quest key "the_girls_are_building" -> "girls_are_building" (matches quest_defs.gd)
+  scripts/ui/knowledge_log_overlay.gd:
+  - Added Quest Log as third tab (Notebook / Hive Records / Quest Log)
+  - Tab bar now 3-wide, Tab key cycles through all three
+  - Quest list shows active quests first, then completed
+  - ACTIVE/DONE status tags, E to view quest detail (description + objective)
+  - Reads from QuestManager.active_quests and completed_quests + QuestDefs
+  scripts/core/player.gd:
+  - Removed debug print statements from J key handler and _open_journal()
+
+[2026-04-04 CDT] Onboarding rework: single toast + Uncle Bob walkthrough
+  scripts/world/home_property.gd:
+  - Replaced 6-toast guidance sequence with single toast:
+    "Go talk to Uncle Bob -- he'll get you started."
+  scripts/npc/uncle_bob.gd:
+  - Full rebuild (file was truncated, missing interact() and everything below)
+  - First-visit onboarding: 10-line walkthrough covering WASD, hive inspection
+    (W/S/A/D/F), journal (J), market, TAB info, ESC controls page
+  - Unlocks bee_biology and hive_components journal entries on first chat
+  - Priority system: onboarding > quest-aware > seasonal > fallback
+  - Quest-aware lines for all 5 Year 1 quests
+  - Seasonal pools (Spring/Summer/Fall/Winter, 2 rotations each)
+  - Fallback static lines when no quest/season match
+  - XP award (5) per conversation
+  - Async dialogue close polling (avoids signal dependency)
+
+[2026-04-04 CDT] Knowledge Journal overlay rewrite
+  scripts/ui/knowledge_log_overlay.gd:
+  - Full rewrite matching PauseMenu visual style (warm palette, borders)
+  - Proper root Control node inside CanvasLayer (fixes anchor/sizing)
+  - Solid opaque background (no more game world bleeding through)
+  - Title bar "KNOWLEDGE JOURNAL" + tab bar + content + footer
+  - Selection highlight with W/S navigation and scroll tracking
+  - Category tags (BASICS, DISEASE, etc.) on notebook entries
+  - Separate detail panel for entry body text (E to view, Backspace back)
+  - Clickable tab buttons + keyboard Tab switching
+  - Scroll position indicator (1/16 etc.) when list overflows
+  - Footer hint bar with all keybinds
+  - Layer 25 (above HUD, below PauseMenu)
+
+[2026-04-04 CDT] Fix journal open/close race condition
+  scripts/core/player.gd:
+  - Added set_input_as_handled() after creating journal overlay
+  - Prevents the same J keypress from creating AND destroying the overlay
+  - Root cause: player._input (creates) fires before overlay._unhandled_key_input
+    (which matched J -> queue_free), so overlay was destroyed same frame
+
+[2026-04-04 CDT] Fix player.gd parse error + harvestable_tree.gd signal error
+  scripts/core/player.gd:
+  - Added missing _on_inspection_closed() method (resets smoker state)
+  - Was causing entire player script to fail to load (parse error at line 628)
+  - This was why J key (journal) and other player inputs were not working
+  scripts/world/harvestable_tree.gd:
+  - Fixed _exit_tree() crash: added is_instance_valid() check + @tool guard
+  - Prevents "Invalid access to 'day_advanced'" error spam on scene unload
+
+[2026-04-04 CDT] Controls panel v2: tighter layout for 320x180 viewport
+  scripts/ui/PauseMenu.gd:
+  - Rewrote controls panel with font_size 4, row height 7px
+  - _ctrl_row() helper for cleaner row generation
+  - Panel 190x176, nearly full-viewport, all 4 sections + back button fit
+  - Added M (Map) keybind to Menus section
+  scripts/core/player.gd:
+  - Added debug prints for J key press and _open_journal() path
+  - Tracks: paused state, inspection_overlay, blocking, script load, overlay add
+
+[2026-04-04 CDT] New player guidance: first-day hints + controls reference
+  scripts/world/home_property.gd:
+  - First-day guidance sequence: 6 timed notification toasts on new game
+  - Covers movement (WASD/Shift), interaction (E), journal (J), pause (ESC),
+    and Uncle Bob as mentor -- spaced over 20 seconds, non-blocking
+  - Uses PlayerData persistent flag so hints only fire once per save
+  scripts/ui/PauseMenu.gd:
+  - Added "Controls" button to main pause menu (between Save and Settings)
+  - New Controls panel with full keybinding reference in 4 sections:
+    Movement, Interaction, Menus, Hive Inspection
+  - Panel height increased from 138 to 155 to accommodate 5th button
+  - ESC/Back navigation works consistently across all sub-panels
+
 [2026-04-03 CDT] WP9: Bee acquisition polish + winter pre-ordering
   scripts/world/feed_supply_interior.gd:
   - Winter pre-order items: Bee Package ($165) and Nuc ($220)
@@ -1918,103 +2300,4 @@
   Button fix: Reduced font_size from 7 to 6, BTN_H from 14 to 12, added
   set_content_margin_all(1) to all StyleBoxFlat overrides so Godot does not
   expand buttons beyond their assigned size. custom_minimum_size set explicitly.
-  Removed corner radius. Thinned borders. Cleaner visual hierarchy.
-  Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
-
-[2026-03-31 11:47:14 CDT] DOCS: Testing Guide updated to v2. Rewrote Section 1 (Main Menu) to match new MainMenu.gd layout (logo loading, 4-button layout, dark background). Added new Section 21: ESC/Pause Menu covering music volume slider, mute checkbox, bidirectional sync, Resume/Save/Settings/Quit. Updated Quick Controls reference (ESC key). Added row 21 to Test Results Checklist. 77,000 bytes. Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
-
-[2026-03-31 21:19:09 CDT] DOCS: Testing Guide recreated from scratch as v3.
-  Full code audit of all game scripts, GDD, and DevPlan performed before writing.
-  Comprehensive 66,539-byte HTML guide covering all 21 implemented systems:
-  Main Menu (3-button layout, logo loading), Character Creator, Player Movement,
-  HUD, Pause Menu (exit confirmation, music controls), Time/Calendar, Weather,
-  Hive Management, Forage System, Harvest Loop, Inventory, Economy/Merchants,
-  Quest System, NPC/Dialogue, Save/Load, Music/Audio, Notifications, Scene
-  Transitions, Seasonal Content, Keyboard Controls, and Performance.
-  Includes QR code link to feedback form, test results checklist, and
-  GDD gap analysis. Saved to research/reports/Testing_Guide_2026-03-31.html.
-  Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
-
-[2026-03-31 21:23:45 CDT] DOCS: Testing Guide converted to PDF format.
-  Built 21-page styled PDF (56,249 bytes) from HTML source using reportlab.
-  Amber/honey themed: section circles, colored prerequisite/expected/edge-case
-  boxes, controls reference table with alternating rows, test results checklist.
-  Saved to research/reports/Testing_Guide_2026-03-31.pdf alongside HTML version.
-  Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
-
-[2026-03-31 22:45:00 CDT] DOCS: Playtester feedback form and PDF QR code.
-  Created Google Form "Smoke & Honey - Playtester Feedback" in Five Cats
-  Gmail workspace with 7 questions: Name/Tester ID (short answer), Systems
-  tested (checkboxes, 16 options + Other), Overall rating (1-5 linear scale),
-  Bugs encountered (paragraph), What enjoyed most (paragraph), Suggestions
-  for improvement (paragraph), Additional comments (paragraph).
-  Form URL: https://docs.google.com/forms/d/1eefNpvpHW6dEfcLv4hu2XpeNgOsY27avnfmcHZ-1oaI/viewform
-  Generated amber-colored QR code (450x450px) linking to the form.
-  Rebuilt Testing Guide PDF (66,749 bytes) with embedded QR code on page 1.
-  Updated to research/reports/Testing_Guide_2026-03-31.pdf.
-  Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
-
-## 2026-03-31 -- Flower Scale Reduction
-- Reduced wildflower scatter scale from 0.7-1.1 to 0.32-0.48 (scripts/world/wildflower_scatter.gd)
-- Reduced lifecycle manager flower scale from 0.42-0.58 to 0.22-0.30 (scripts/world/flower_lifecycle_manager.gd)
-- Flowers were appearing too large relative to the player and environment
-- Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
-
-## 2026-03-31 -- Flower Scale Reduction (Round 2)
-- Reduced wildflower scatter scale from 0.32-0.48 to 0.08-0.12 (25% of previous)
-- Reduced lifecycle manager flower scale from 0.22-0.30 to 0.055-0.075 (25% of previous)
-- Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
-
-## 2026-03-31 -- Fix: Flowers rendered as TileMap tiles, not Sprite2D
-- ROOT CAUSE: Flowers were baked as 32x32 TileMap tiles on Layer 3 (flowers_forage),
-  rendered at full tile size regardless of Sprite2D scale changes.
-- FIX: FlowerLifecycleManager now clears TileMap Layer 3 on _ready, since it handles
-  all flowers dynamically via Sprite2D nodes.
-- Reset Sprite2D scales to reasonable values: lifecycle manager 0.4-0.55, scatter 0.35-0.55
-  (roughly half a tile, ~14-18px on screen from 32px textures).
-- Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
-
-## 2026-04-02 -- Fix Workbench Craft Button Overlap
-- Craft buttons were overlapping vertically because Godot Button nodes enforce
-  a minimum internal height larger than the 10px we set
-- Increased ROW_H from 18 to 20, PANEL_H from 162 to 176, PANEL_Y from 6 to 2
-  to give recipe rows enough vertical space
-- Changed RECIPE_START_Y from 68 to 62 to reclaim space
-- Increased button dimensions (BTN_W=40, BTN_H=14) for all buttons
-- Added set_deferred("size", ...) after add_child on all buttons to force
-  Godot to respect our intended size after layout pass
-- Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
-
-## 2026-04-02 -- Fix County Road Tree Sprites
-- Replaced all broken Cainos sprite fragments with complete tree sprites
-  across all 30 harvestable trees in county_road.tscn
-- Broken fragments (02, 03, 04, 05, 08, 09, 10) were partial canopy pieces
-  from incorrectly split sprite sheet -- showed as visual mess in-game
-- Reassigned tree species to complete sprites:
-  Oak -> cainos_tree_13 (large broad canopy, light bark)
-  Walnut -> cainos_tree_12 (tall deciduous, medium canopy)
-  Maple -> cainos_tree_01 (bushy dense green, already correct)
-  Elm -> cainos_tree_07 (tall slender trunk, already correct)
-  Hickory -> cainos_tree_07 (tall slender)
-  Pine -> cainos_tree_01 (bushy dense green)
-  Ash -> cainos_tree_06 (small-medium with visible trunk)
-- Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
-
-## 2026-03-31 -- County Road Rebuilt with Forest
-- Expanded county_road scene from 640x200 to 3200x2400 pixels
-- Added dense forest zone (upper 2/3 of scene) with 120+ decorative trees
-  using extracted Cainos Village Pack tree sprites + existing oak/pine sprites
-- Extracted 18 tree/bush sprites from Cainos TX Village Plant.png spritesheet
-  into assets/sprites/environment/cainos_trees/
-- Road now runs left-right at y=330-420 with ditches on both sides
-- Harmon farm field visible in bottom-left section
-- Harvestable trees expanded from 8 to 20, spread throughout the forest
-  (14 in deep forest, 6 near the road for easy access)
-- Updated ExitHelper to support custom scene bounds via optional Rect2 parameter
-  (backward compatible - default bounds match original 1400x500 scenes)
-- Updated ExitHelper.position_player_from_spawn_side() to use bounds-relative
-  positioning with 80px margin
-- Background scenery: grain elevator silhouette, water tower (distant right)
-- 60 undergrowth bushes from Cainos bush sprites for forest floor detail
-- All GDScript ASCII-verified, no non-ASCII characters
-- Protected files verified: GDD 603,634 bytes, DevPlan 139,726 bytes.
+  Removed corner radius. Thinned borders. Cl

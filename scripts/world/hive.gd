@@ -1142,24 +1142,4 @@ func open_inspection() -> void:
 
 ## Check if current month is a winter month (Deepcold or Kindlemonth).
 func _is_winter_month() -> bool:
-	if not TimeManager or not TimeManager.has_method("current_month_index"):
-		return false
-	return TimeManager.current_month_index() >= 6
-
-## Open the winter observation overlay (passive monitoring).
-func _open_winter_observation() -> void:
-	var script: GDScript = load("res://scripts/ui/winter_observation.gd") as GDScript
-	if script == null:
-		push_warning("Hive: could not load winter_observation.gd")
-		return
-	var overlay: CanvasLayer = CanvasLayer.new()
-	overlay.set_script(script)
-	overlay.add_to_group("inspection_overlay")
-	get_tree().current_scene.add_child(overlay)
-	overlay.open(self)
-
-# -- Click interaction ---------------------------------------------------------
-func _on_area_2d_input_event(_viewport, event: InputEvent, _shape_idx: int) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if build_state == BuildState.COMPLETE:
-			open_inspection()
+	if not TimeManager or not 

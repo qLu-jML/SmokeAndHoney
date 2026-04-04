@@ -26,20 +26,17 @@ func _ready() -> void:
 		GameData.player_level = 1
 		GameData.xp           = 0
 		GameData.reputation   = 0.0
-		# Dev inventory: give player essential tools for testing all systems.
-		# The player script will use this array instead of its starting defaults.
+		# Empty inventory: player learns to grab tools from the chest via
+		# Uncle Bob's onboarding (bob_intro quest).
 		GameData.player_inventory = []
 		GameData.player_inventory.resize(10)
 		GameData.player_inventory.fill(null)
-		GameData.player_inventory[0] = {"item": GameData.ITEM_AXE, "count": 1}
-		GameData.player_inventory[1] = {"item": GameData.ITEM_GLOVES, "count": 1}
-		GameData.player_inventory[2] = {"item": GameData.ITEM_HAMMER, "count": 1}
-		GameData.player_inventory[3] = {"item": GameData.ITEM_HIVE_TOOL, "count": 1}
-		GameData.player_inventory[4] = {"item": GameData.ITEM_SUPER_BOX, "count": 5}
 		GameData.player_inventory_valid = true
 		TimeManager.current_hour = 6.0
 		GameData.new_game_mode = 0
-		TimeManager.current_day = 1
+		# Player arrives mid-Greening (day 43 = Greening 15) when
+		# dandelions are blooming. Prevents dead time in early Spring.
+		TimeManager.current_day = 43
 		PlayerData.player_name = "Beekeeper"
 		PlayerData.backstory_tag = "newcomer"
 		PlayerData.character_created = true
@@ -110,9 +107,18 @@ func _ready() -> void:
 	# Position player based on which direction they came from
 	ExitHelper.position_player_from_spawn_side(self)
 
+	# Holiday event trigger -- Long Table happens at home; others in town
+	if HolidayManager and HolidayManager.is_holiday_pending():
+		var hk: String = HolidayManager.current_holiday_key()
+		if hk == "long_table":
+			call_deferred("_trigger_holiday_event")
+
 	# -- Workbench: find the editor-placed node and build its visuals ----------
 	_init_workbench()
 	# Trees and HarvestYard are editor-placed in the .tscn -- no spawn needed.
+
+	# -- First-day guidance: show orientation hints for new players -------------
+	_try_first_day_guidance()
 
 
 ## Disconnect signals when exiting tree.
@@ -202,6 +208,13 @@ func _has_scene_door(door_name: String) -> bool:
 	if farmhouse and farmhouse.get_node_or_null(door_name):
 		return true
 	return false
+
+func _trigger_holiday_event() -> void:
+	await get_tree().create_timer(0.8).timeout
+	if not is_inside_tree():
+		return
+	if HolidayManager:
+		HolidayManager.try_trigger_holiday_event()
 
 func _setup_building_triggers() -> void:
 	_building_triggers = {
@@ -352,6 +365,29 @@ func _setup_exits() -> void:
 	# Right edge -> County Road (pushed further right to make room for harvest yard)
 	ExitHelper.create_exit(self, "right", "res://scenes/world/county_road.tscn",
 		"-> County Road", 600.0)
+
+# -- First-Day Guidance --------------------------------------------------------
+# Shows a short sequence of timed notification toasts on the player's very first
+# day to orient them. Only fires once (tracked by PlayerData persistent flag).
+# Non-blocking -- the player can move freely while hints appear.
+
+func _try_first_day_guidance() -> void:
+	if PlayerData.has_flag("first_day_guidance_shown"):
+		return
+	# Only show on a fresh game, not on loads
+	if SaveManager.has_pending_load:
+		return
+	PlayerData.set_flag("first_day_guidance_shown")
+	call_deferred("_run_guidance_sequence")
+
+func _run_guidance_sequence() -> void:
+	# Brief pause to let the scene settle, then one clear directive
+	await get_tree().create_timer(1.5).timeout
+	if not is_inside_tree():
+		return
+	NotificationManager.notify(
+		"Go talk to Uncle Bob -- he'll get you started.",
+		NotificationManager.T_GOOD, 6.0)
 
 func _setup_weather() -> void:
 	if get_node_or_null("WeatherOverlay") == null:

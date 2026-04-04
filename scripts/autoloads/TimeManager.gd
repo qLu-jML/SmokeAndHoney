@@ -29,6 +29,39 @@ const MONTH_NAMES: Array = [
 
 const SEASON_NAMES: Array = ["Spring", "Summer", "Fall", "Winter"]
 
+# -- Holidays ------------------------------------------------------------------
+# GDD S5.1: Four seasonal holidays, one per peak month.
+# Each entry: { "month_index": int, "day": int, "name": String, "desc": String }
+# Names inspired by Stephen King's Dark Tower series with real-world echoes.
+const HOLIDAYS: Array = [
+	{
+		"month_index": 1,  # Greening (Spring peak)
+		"day": 12,
+		"name": "The Quickening Morn",
+		"desc": "A spring celebration of renewal. The whole town gathers at sunrise for a communal meal in the square -- welcoming the return of life to the fields after the long dark."
+	},
+	{
+		"month_index": 3,  # High-Sun (Summer peak)
+		"day": 19,
+		"name": "Founder's Beam",
+		"desc": "Cedar Bend's midsummer festival of heritage and civic pride. Named for the founding pillar of the community. Fireworks at dusk, pie contests at the diner, flags on every porch."
+	},
+	{
+		"month_index": 4,  # Full-Earth (Fall peak)
+		"day": 7,
+		"name": "The Reaping Fire",
+		"desc": "The harvest bonfire night. Families stack a great pyre in the town square and burn corn-husk effigies to mark the turning of the season. Children carry lanterns; elders tell stories until the embers die."
+	},
+	{
+		"month_index": 6,  # Deepcold (Winter peak)
+		"day": 21,
+		"name": "The Long Table",
+		"desc": "The longest night of winter. Families gather for a candlelit feast at one long communal table. Gifts are exchanged, debts forgiven, and a single lantern is hung in every window to guide the lost home."
+	},
+]
+
+signal holiday_started(holiday_name: String)
+
 # -- State ---------------------------------------------------------------------
 var current_day:  int   = 1
 var current_hour: float = 6.0   # 0.0-24.0, starts at 6 AM
@@ -44,6 +77,66 @@ var exterior_flowers:   Array   = []
 var next_scene:         String  = ""
 var previous_scene:     String  = ""
 var current_scene_id:   String  = "home"   # used by zone minimap
+
+# -- Month Skip (X key, non-dev mode) -----------------------------------------
+
+## When dev mode is OFF and no UI overlay is open, pressing X skips to the
+## first day of the next month.  Uses _input (not _unhandled_input) because
+## focused HUD Controls can absorb key events before _unhandled_input fires.
+## Overlay scenes that also bind X (hive management, interiors) are checked
+## first so we don't steal their close action.
+func _input(event: InputEvent) -> void:
+	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+	if event.keycode != KEY_X:
+		return
+	if GameData.dev_labels_visible:
+		return
+	# Don't steal X from UI overlays that use it to close
+	if _is_overlay_open():
+		return
+	skip_to_next_month()
+	get_viewport().set_input_as_handled()
+
+## Returns true if a UI overlay or interior scene that uses X-to-close is open.
+## The inspection overlay is NOT blocked -- X is free there for month skip.
+func _is_overlay_open() -> bool:
+	if get_tree().paused:
+		return true
+	if get_tree().get_first_node_in_group("hive_management_overlay"):
+		return true
+	if get_tree().get_first_node_in_group("chest_storage_overlay"):
+		return true
+	# Interior scenes use X to close menus/exit
+	if current_scene_id.ends_with("_interior"):
+		return true
+	return false
+
+## Advances current_day to the first day of the next month and fires all
+## relevant day/month/season signals along the way.
+func skip_to_next_month() -> void:
+	var day_in_year: int = (current_day - 1) % YEAR_LENGTH
+	@warning_ignore("INTEGER_DIVISION")
+	var current_month_idx: int = day_in_year / MONTH_LENGTH
+	var next_month_start: int = (current_month_idx + 1) * MONTH_LENGTH
+	# How many days to jump
+	var days_to_skip: int
+	if next_month_start >= YEAR_LENGTH:
+		# Wrap to day 1 of next year's Quickening
+		days_to_skip = YEAR_LENGTH - day_in_year
+	else:
+		days_to_skip = next_month_start - day_in_year
+	# Advance day-by-day so all signals (day, month, season, holiday) fire
+	for i in range(days_to_skip):
+		advance_day()
+	# Reset clock to morning
+	current_hour = 6.0
+	_midnight_pending = false
+	# Roll weather for the new day
+	if WeatherManager and WeatherManager.has_method("roll_daily_weather"):
+		WeatherManager.roll_daily_weather()
+	print(">> Month skipped! Now day %d -- %s, %s (Year %d)" % [
+		current_day, current_month_name(), current_season_name(), current_year()])
 
 # -- Time Progression ----------------------------------------------------------
 
@@ -119,6 +212,28 @@ func is_winter() -> bool:
 func is_spring() -> bool:
 	return current_month_index() <= 1
 
+# -- Holiday Helpers -----------------------------------------------------------
+
+## Returns the holiday dictionary for today, or null if today is not a holiday.
+func get_todays_holiday() -> Variant:
+	var mi: int = current_month_index()
+	var dom: int = current_day_of_month()
+	for h in HOLIDAYS:
+		if h["month_index"] == mi and h["day"] == dom:
+			return h
+	return null
+
+## Returns the holiday name for today, or "" if none.
+func get_holiday_name() -> String:
+	var h: Variant = get_todays_holiday()
+	if h != null:
+		return h["name"]
+	return ""
+
+## Returns true if today is a holiday.
+func is_holiday() -> bool:
+	return get_todays_holiday() != null
+
 ## Returns true if the current month is in summer.
 func is_summer() -> bool:
 	var m := current_month_index()
@@ -177,3 +292,9 @@ func advance_day() -> void:
 	if current_season_name() != old_season:
 		season_changed.emit(current_season_name())
 		print("? New season: %s" % current_season_name())
+
+	# Holiday check
+	var holiday_name: String = get_holiday_name()
+	if holiday_name != "":
+		holiday_started.emit(holiday_name)
+		print("** Holiday: %s **" % holiday_name)

@@ -1,6 +1,7 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/feed_supply_interior.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/npc/carl_tanner.gd" id="carl_script"]
 [ext_resource type="PackedScene" uid="uid://d3qdbfmsmyqoa" path="res://scenes/player/player.tscn" id="10"]
 [ext_resource type="Texture2D" path="res://assets/sprites/interiors/supply_shelves.png" id="2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/interiors/bulletin_board.png" id="3"]
@@ -159,6 +160,9 @@ theme_override_font_sizes/font_size = 6
 theme_override_colors/font_color = Color(0.9, 0.82, 0.6, 1)
 horizontal_alignment = 1
 visible = false
+
+[node name="CarlScript" type="Node2D" parent="World/NPCs/CarlTanner"]
+script = ExtResource("carl_script")
 
 [node name="CarlLabel" type="Label" parent="World/NPCs/CarlTanner"]
 offset_left = -30.0

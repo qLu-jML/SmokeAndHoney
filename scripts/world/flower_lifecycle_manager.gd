@@ -51,8 +51,15 @@ const PHASE_NAMES := ["seed", "sprout", "growing", "mature", "withered"]
 # Calibrated so B-rank wildflowers alone produce ~35-43 NU at peak summer,
 # supporting 1-2 hives (20 NU/week demand per hive). Player-planted gardens
 # and trees push toward the GDD's 80-100 NU "fully developed" target.
-# Scaled up from 250 to 940 to match the expanded grass area (~3.76x bigger).
-const NU_SCALE := 940
+const NU_SCALE := 250
+
+# -- Area Normalization -------------------------------------------------------
+# The grass area was expanded ~4x (1600x900 -> 2960x1824) so there are ~4x
+# more flower tiles at any given density. Global totals (get_total_zone_nectar,
+# get_total_zone_pollen) are divided by AREA_SCALE so HiveSimulation and HUD
+# see the same aggregate NU as the original smaller area.
+# Local sampling (get_forage_at) is unaffected -- same density per 5x5 sample.
+const AREA_SCALE := 4
 
 # Withered phase duration range (days)
 const WITHER_MIN_DAYS := 4
@@ -61,14 +68,16 @@ const WITHER_MAX_DAYS := 6
 # -- Season Ranking Constants -------------------------------------------------
 const RANKS := ["S", "A", "B", "C", "D", "F"]
 
-# Probability weights for each rank (B is most common)
+# Probability weights for each rank -- symmetric bell curve centered on B.
+# Equal distances from B have equal probability (A=C at 1 step, S=D at 2 steps).
+# F (3 steps worse, no positive counterpart) is the rare tail.
 const RANK_WEIGHTS := {
-	"S": 0.05,   # 5%  -- exceptional year
-	"A": 0.15,   # 15% -- good year
-	"B": 0.35,   # 35% -- average year
-	"C": 0.25,   # 25% -- below average
-	"D": 0.15,   # 15% -- poor year
-	"F": 0.05,   # 5%  -- total failure
+	"S": 0.10,   # 10% -- exceptional year (2 steps better than B)
+	"A": 0.20,   # 20% -- good year        (1 step better)
+	"B": 0.35,   # 35% -- average year      (center)
+	"C": 0.20,   # 20% -- below average     (1 step worse)
+	"D": 0.10,   # 10% -- poor year         (2 steps worse)
+	"F": 0.05,   # 5%  -- total failure     (extreme tail)
 }
 
 # -- Density & Spread Parameters by Rank --------------------------------------
@@ -409,20 +418,18 @@ func _roll_season_ranking(season_name: String) -> void:
 	elif key in ["deepcold", "kindlemonth"]:
 		key = "winter"
 
-	# DEV DEFAULT: Force S-rank for all seasons during tuning.
-	# TODO: Restore random roll once honey production is balanced.
-	var rank := "S"
-	#var roll := _rng.randf()
-	#var cumulative := 0.0
-	#var rank := "B"
-	#for r in RANKS:
-	#	cumulative += RANK_WEIGHTS[r]
-	#	if roll <= cumulative:
-	#		rank = r
-	#		break
+	# Roll a random rank using the weighted bell curve (centered on B).
+	var roll := _rng.randf()
+	var cumulative := 0.0
+	var rank := "B"
+	for r in RANKS:
+		cumulative += RANK_WEIGHTS[r]
+		if roll <= cumulative:
+			rank = r
+			break
 
 	season_rankings[key] = rank
-	print("[Season] Rank for %s: %s (dev default)" % [key, rank])
+	print("[Season] Rank for %s: %s (roll=%.3f)" % [key, rank, roll])
 	season_ranked.emit(key, rank)
 
 ## Current rank.
@@ -830,8 +837,8 @@ func get_forage_at(world_pos: Vector2) -> Dictionary:
 
 ## Returns the total raw nectar points available in the current zone.
 ## Only counts MATURE tiles. Formula: sum(mature_tiles x species_nectar_points).
-## This is the map-wide total of all individual plant nectar values combined.
-## To convert to GDD-scale NU for hive demand comparisons, divide by NU_SCALE.
+## Divided by AREA_SCALE so the expanded grass area produces the same aggregate
+## NU that the original smaller area did (HiveSimulation depends on this).
 func get_total_zone_nectar() -> int:
 	var total_points := 0
 
@@ -850,12 +857,13 @@ func get_total_zone_nectar() -> int:
 		if mature_count > 0:
 			total_points += def["nu_nectar"] * mature_count
 
-	return total_points
+	@warning_ignore("INTEGER_DIVISION")
+	return total_points / AREA_SCALE
 
 ## Returns the total raw pollen points available in the current zone.
 ## Only counts MATURE tiles. Formula: sum(mature_tiles x species_pollen_points).
-## This is the map-wide total of all individual plant pollen values combined.
-## To convert to GDD-scale PU for hive demand comparisons, divide by NU_SCALE.
+## Divided by AREA_SCALE so the expanded grass area produces the same aggregate
+## PU that the original smaller area did (HiveSimulation depends on this).
 func get_total_zone_pollen() -> int:
 	var total_points := 0
 
@@ -874,7 +882,8 @@ func get_total_zone_pollen() -> int:
 		if mature_count > 0:
 			total_points += def["nu_pollen"] * mature_count
 
-	return total_points
+	@warning_ignore("INTEGER_DIVISION")
+	return total_points / AREA_SCALE
 
 ## Convenience: returns GDD-scale NU (raw points / NU_SCALE) for hive demand math.
 func get_zone_nectar_gdd_scale() -> float:

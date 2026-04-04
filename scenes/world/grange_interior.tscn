@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3]
 
-[ext_resource type="Script" path="res://scripts/world/generic_interior.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/world/grange_interior.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://d3qdbfmsmyqoa" path="res://scenes/player/player.tscn" id="2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/npc/darlene_kowalski.png" id="3"]
 
