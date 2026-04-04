@@ -132,9 +132,9 @@ func notify_placed() -> void:
 func try_refill(player: Node2D) -> bool:
 	if days_remaining > 0:
 		return false  # still has syrup
-	if not player or not player.has_method("has_item"):
+	if not player or not player.has_method("count_item"):
 		return false
-	if not player.has_item(GameData.ITEM_SUGAR_SYRUP):
+	if player.count_item(GameData.ITEM_SUGAR_SYRUP) <= 0:
 		if NotificationManager and NotificationManager.has_method("show_notification"):
 			NotificationManager.show_notification("Need sugar syrup to refill the feeder.")
 		return false

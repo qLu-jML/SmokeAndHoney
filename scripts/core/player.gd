@@ -448,7 +448,7 @@ func _perform_action() -> void:
 	var nearby_feeder := _closest_in_group("barrel_feeder", INTERACT_RADIUS)
 	if nearby_feeder and nearby_feeder.has_method("try_pickup") and nearby_feeder.try_pickup():
 		# Try refill first if player has sugar syrup
-		if has_item(GameData.ITEM_SUGAR_SYRUP) and nearby_feeder.has_method("try_refill"):
+		if count_item(GameData.ITEM_SUGAR_SYRUP) > 0 and nearby_feeder.has_method("try_refill"):
 			nearby_feeder.try_refill(self)
 			return
 		add_item(GameData.ITEM_BARREL_FEEDER, 1)

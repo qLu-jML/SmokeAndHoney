@@ -472,10 +472,10 @@ func _build_tool_buttons(bg: Control) -> void:
 	var player: Node2D = null
 	if get_tree():
 		player = get_tree().get_first_node_in_group("player") as Node2D
-	var has_wash: bool = player != null and player.has_method("has_item") and player.has_item(GameData.ITEM_WASH_KIT)
+	var has_wash: bool = player != null and player.has_method("count_item") and player.count_item(GameData.ITEM_WASH_KIT) > 0
 
-	var has_oxalic: bool = player != null and player.has_method("has_item") and player.has_item(GameData.ITEM_TREATMENT_OXALIC)
-	var has_formic: bool = player != null and player.has_method("has_item") and player.has_item(GameData.ITEM_TREATMENT_FORMIC)
+	var has_oxalic: bool = player != null and player.has_method("count_item") and player.count_item(GameData.ITEM_TREATMENT_OXALIC) > 0
+	var has_formic: bool = player != null and player.has_method("count_item") and player.count_item(GameData.ITEM_TREATMENT_FORMIC) > 0
 
 	# Stack buttons vertically in top-right of grid area
 	var btn_y: int = HEADER_H + 2
@@ -588,9 +588,9 @@ func _apply_treatment(item_id: String, reduction: float, label: String) -> void:
 	if _sim == null:
 		return
 	var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
-	if player == null or not player.has_method("has_item"):
+	if player == null or not player.has_method("count_item"):
 		return
-	if not player.has_item(item_id):
+	if player.count_item(item_id) <= 0:
 		return
 	player.remove_item(item_id, 1)
 	if player.has_method("update_hud_inventory"):
