@@ -1,3 +1,12 @@
+[2026-04-03 CDT] WP4: Disease treatment application (item-based)
+  scripts/ui/InspectionOverlay.gd:
+  - Added "Oxalic" and "Formic" treatment buttons (item-gated)
+  - Oxalic: 90% mite reduction (best broodless/winter)
+  - Formic: 70% reduction (50-85F optimal), 40% outside range
+  - Consumes treatment item from inventory on use
+  - Shows before/after mite count notification
+  - Emits treatment_applied quest event
+
 [2026-04-03 CDT] WP3: Alcohol wash mite monitoring mini-game
   scripts/ui/alcohol_wash_overlay.gd (new):
   - 5-step mini-game: Select Frame -> Queen Check -> Scoop -> Shake -> Count

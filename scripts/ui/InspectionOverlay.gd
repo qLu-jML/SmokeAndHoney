@@ -126,6 +126,8 @@ var _is_super_display: bool      = false   # tracks current display mode
 
 # -- Tool action buttons (visible when player has item) -----------------------
 var _wash_btn:      Button = null
+var _treat_oxalic_btn: Button = null
+var _treat_formic_btn: Button = null
 
 # -- Dev advance buttons (visible only in dev mode) ----------------------------
 var _dev_day_btn:   Button = null
@@ -458,23 +460,45 @@ func _build_tool_buttons(bg: Control) -> void:
 		player = get_tree().get_first_node_in_group("player") as Node2D
 	var has_wash: bool = player != null and player.has_method("has_item") and player.has_item(GameData.ITEM_WASH_KIT)
 
+	var has_oxalic: bool = player != null and player.has_method("has_item") and player.has_item(GameData.ITEM_TREATMENT_OXALIC)
+	var has_formic: bool = player != null and player.has_method("has_item") and player.has_item(GameData.ITEM_TREATMENT_FORMIC)
+
+	# Stack buttons vertically in top-right of grid area
+	var btn_y: int = HEADER_H + 2
 	if has_wash:
-		_wash_btn = Button.new()
-		_wash_btn.text = "Wash Kit"
-		_wash_btn.add_theme_font_size_override("font_size", 5)
-		var sb := StyleBoxFlat.new()
-		sb.bg_color = Color(0.20, 0.35, 0.55, 0.90)
-		sb.set_corner_radius_all(2)
-		_wash_btn.add_theme_stylebox_override("normal", sb)
-		var sb_h := StyleBoxFlat.new()
-		sb_h.bg_color = Color(0.30, 0.50, 0.70, 0.95)
-		sb_h.set_corner_radius_all(2)
-		_wash_btn.add_theme_stylebox_override("hover", sb_h)
-		_wash_btn.add_theme_color_override("font_color", Color(0.95, 0.92, 0.85))
-		_wash_btn.position = Vector2(VP_W - 52, HEADER_H + 2)
-		_wash_btn.size = Vector2(50, 12)
+		_wash_btn = _make_tool_btn("Wash Kit", Color(0.20, 0.35, 0.55, 0.90), Color(0.30, 0.50, 0.70, 0.95))
+		_wash_btn.position = Vector2(VP_W - 52, btn_y)
 		_wash_btn.pressed.connect(_on_wash_kit_pressed)
 		bg.add_child(_wash_btn)
+		btn_y += 14
+	if has_oxalic:
+		_treat_oxalic_btn = _make_tool_btn("Oxalic", Color(0.45, 0.20, 0.20, 0.90), Color(0.60, 0.30, 0.30, 0.95))
+		_treat_oxalic_btn.position = Vector2(VP_W - 52, btn_y)
+		_treat_oxalic_btn.pressed.connect(_on_treat_oxalic_pressed)
+		bg.add_child(_treat_oxalic_btn)
+		btn_y += 14
+	if has_formic:
+		_treat_formic_btn = _make_tool_btn("Formic", Color(0.20, 0.40, 0.25, 0.90), Color(0.30, 0.55, 0.35, 0.95))
+		_treat_formic_btn.position = Vector2(VP_W - 52, btn_y)
+		_treat_formic_btn.pressed.connect(_on_treat_formic_pressed)
+		bg.add_child(_treat_formic_btn)
+
+## Create a styled tool button for the inspection overlay.
+func _make_tool_btn(label: String, bg_col: Color, hover_col: Color) -> Button:
+	var btn := Button.new()
+	btn.text = label
+	btn.add_theme_font_size_override("font_size", 5)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = bg_col
+	sb.set_corner_radius_all(2)
+	btn.add_theme_stylebox_override("normal", sb)
+	var sb_h := StyleBoxFlat.new()
+	sb_h.bg_color = hover_col
+	sb_h.set_corner_radius_all(2)
+	btn.add_theme_stylebox_override("hover", sb_h)
+	btn.add_theme_color_override("font_color", Color(0.95, 0.92, 0.85))
+	btn.size = Vector2(50, 12)
+	return btn
 
 ## Open the alcohol wash mini-game overlay.
 func _on_wash_kit_pressed() -> void:
@@ -500,6 +524,49 @@ func _on_wash_complete(mites_per_100: float) -> void:
 
 func _on_wash_cancelled() -> void:
 	pass  # nothing to clean up
+
+## Apply oxalic acid treatment: 90% mite reduction, best when broodless.
+func _on_treat_oxalic_pressed() -> void:
+	_apply_treatment(GameData.ITEM_TREATMENT_OXALIC, 0.90, "Oxalic acid")
+
+## Apply formic acid treatment: 70% mite reduction, penetrates capped brood.
+## Effectiveness is temperature-dependent (50-85F optimal).
+func _on_treat_formic_pressed() -> void:
+	var reduction: float = 0.70
+	# Temperature check: formic is less effective outside 50-85F
+	if WeatherManager and "current_temp_f" in WeatherManager:
+		var temp_f: float = WeatherManager.current_temp_f
+		if temp_f < 50.0 or temp_f > 85.0:
+			reduction = 0.40
+			if NotificationManager and NotificationManager.has_method("show_notification"):
+				NotificationManager.show_notification("Temperature outside 50-85F -- formic acid less effective.")
+	_apply_treatment(GameData.ITEM_TREATMENT_FORMIC, reduction, "Formic acid")
+
+## Common treatment logic: consume item, apply mite reduction, notify.
+func _apply_treatment(item_id: String, reduction: float, label: String) -> void:
+	if _sim == null:
+		return
+	var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
+	if player == null or not player.has_method("has_item"):
+		return
+	if not player.has_item(item_id):
+		return
+	player.remove_item(item_id, 1)
+	if player.has_method("update_hud_inventory"):
+		player.update_hud_inventory()
+	var before: float = _sim.mite_count
+	_sim.treat_mites(reduction)
+	var after: float = _sim.mite_count
+	if NotificationManager and NotificationManager.has_method("show_notification"):
+		NotificationManager.show_notification("%s applied. Mites: %.0f -> %.0f (%.0f%% reduction)" % [label, before, after, reduction * 100.0])
+	QuestManager.notify_event("treatment_applied", {
+		"type": item_id,
+		"reduction": reduction,
+		"mites_before": before,
+		"mites_after": after
+	})
+	# Refresh stats display
+	_refresh_stats()
 
 ## Builds the development mode day/month advance buttons.
 func _build_dev_advance_buttons(bg: Control) -> void:
