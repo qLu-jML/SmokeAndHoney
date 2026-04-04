@@ -117,6 +117,18 @@ func save() -> bool:
 		"coffee_until_hour":  GameData.coffee_until_hour,
 		"xp_buff_until_day":  GameData.xp_buff_until_day,
 		"pending_deliveries": GameData.pending_deliveries.duplicate(true),
+		# Safety net state (Winter Workshop S5)
+		"harwick_nuc_offered":   GameData.harwick_nuc_offered,
+		"harwick_nuc_accepted":  GameData.harwick_nuc_accepted,
+		"harwick_visit_count":   GameData.harwick_visit_count,
+		"carls_tab_active":      GameData.carls_tab_active,
+		"carls_tab_amount":      GameData.carls_tab_amount,
+		"carls_tab_deadline_day": GameData.carls_tab_deadline_day,
+		# Catalogue state (Winter Workshop S6)
+		"catalogue_delivered":       GameData.catalogue_delivered,
+		"catalogue_delivery_day":    GameData.catalogue_delivery_day,
+		"catalogue_orders":          GameData.catalogue_orders.duplicate(true),
+		"catalogue_year_delivered":  GameData.catalogue_year_delivered,
 	}
 
 	# -- Player node (world position + inventory slots) ------------------------
@@ -384,6 +396,9 @@ func _collect_hives() -> Array:
 			"has_lid":            hive_node.has_lid,
 			"colony_installed":   hive_node.colony_installed,
 			"colony_install_day": hive_node.colony_install_day,
+			# Winterization state (Winter Workshop S4)
+			"winterization":      hive_node.winterization.duplicate(),
+			"spring_damage":      hive_node.spring_damage.duplicate(),
 		}
 		# tile_coords is set by player.gd on hives placed via HIVE mode.
 		# It's needed for the 5x5 spacing check when the player places new hives.
@@ -511,6 +526,21 @@ func _apply_game_data(gd: Dictionary) -> void:
 	if gd.has("pending_deliveries"):
 		GameData.pending_deliveries = (gd["pending_deliveries"] as Array).duplicate(true)
 
+	# Safety net state (Winter Workshop S5)
+	GameData.harwick_nuc_offered    = bool(gd.get("harwick_nuc_offered", false))
+	GameData.harwick_nuc_accepted   = bool(gd.get("harwick_nuc_accepted", false))
+	GameData.harwick_visit_count    = int(gd.get("harwick_visit_count", 0))
+	GameData.carls_tab_active       = bool(gd.get("carls_tab_active", false))
+	GameData.carls_tab_amount       = float(gd.get("carls_tab_amount", 0.0))
+	GameData.carls_tab_deadline_day = int(gd.get("carls_tab_deadline_day", -1))
+
+	# Catalogue state (Winter Workshop S6)
+	GameData.catalogue_delivered      = bool(gd.get("catalogue_delivered", false))
+	GameData.catalogue_delivery_day   = int(gd.get("catalogue_delivery_day", -1))
+	GameData.catalogue_year_delivered = int(gd.get("catalogue_year_delivered", -1))
+	if gd.has("catalogue_orders"):
+		GameData.catalogue_orders = (gd["catalogue_orders"] as Array).duplicate(true)
+
 	# Fire signals so the HUD and any other connected UI refresh immediately.
 	GameData.money_changed.emit(GameData.money)
 	GameData.energy_changed.emit(GameData.energy)
@@ -541,6 +571,15 @@ func _apply_hives(hive_data: Array, world: Node) -> void:
 		hive_node.has_lid            = bool(entry.get("has_lid", true))
 		hive_node.colony_installed   = bool(entry.get("colony_installed", true))
 		hive_node.colony_install_day = int(entry.get("colony_install_day", 0))
+		# Restore winterization state (Winter Workshop S4)
+		if entry.has("winterization"):
+			var wdata: Dictionary = entry["winterization"] as Dictionary
+			for key in hive_node.winterization:
+				hive_node.winterization[key] = bool(wdata.get(key, false))
+		if entry.has("spring_damage"):
+			hive_node.spring_damage = []
+			for dmg in entry["spring_damage"]:
+				hive_node.spring_damage.append(str(dmg))
 
 		if entry.has("sim"):
 			var sim: HiveSimulation = hive_node.get_node_or_null("HiveSimulation")

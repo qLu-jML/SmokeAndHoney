@@ -128,6 +128,7 @@ func _init_color_maps() -> void:
 		GameData.ITEM_HONEY_BULK: "Bulk Honey (5lb)",
 		GameData.ITEM_FERMENTED_HONEY: "Fermented Honey",
 		GameData.ITEM_CHEST: "Storage Chest",
+		GameData.ITEM_FEEDER_BUCKET: "Feeder Bucket",
 	}
 
 # -- Lifecycle ----------------------------------------------------------------
@@ -178,7 +179,7 @@ func _load_item_textures() -> void:
 		GameData.ITEM_SMOKER: "smoker.png",
 		GameData.ITEM_SWARM_TRAP: "swarm_trap.png",
 		GameData.ITEM_SCRAPED_SUPER: "scraped_super.png",
-		GameData.ITEM_BARREL_FEEDER: "barrel_feeder.png",
+		GameData.ITEM_FEEDER_BUCKET: "barrel_feeder.png",
 		GameData.ITEM_LOGS: "logs.png",
 		GameData.ITEM_LUMBER: "lumber.png",
 		GameData.ITEM_AXE: "axe.png",
@@ -835,5 +836,4 @@ func _make_label(text_val: String, fsize: int, col: Color) -> Label:
 	l.text = text_val
 	l.add_theme_font_size_override("font_size", fsize)
 	l.add_theme_color_override("font_color", col)
-	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return l
+	l.mouse_filte

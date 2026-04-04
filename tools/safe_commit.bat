@@ -43,7 +43,7 @@ if %ERRORLEVEL% EQU 0 (
     for /f "tokens=2" %%p in ('tasklist /FI "IMAGENAME eq Godot*" /NH 2^>NUL') do (
         taskkill /PID %%p /T 2>NUL
     )
-    echo      Godot process(es) terminated.
+    echo      Godot processes terminated.
     REM Wait a moment for file handles to release
     timeout /t 2 /nobreak >NUL
 ) else (

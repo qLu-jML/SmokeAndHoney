@@ -100,8 +100,8 @@ const QUESTS: Dictionary = {
 	# -- Q5: Battening Down (winterize + feeding education) -- Fall ---------
 	"battening_down": {
 		"title": "Battening Down",
-		"hint": "Prepare for winter: treat mites, check stores, feed if needed.",
-		"description": "Winter is coming. Do an alcohol wash to check mite levels. Treat if the count is high. Then weigh the hive -- if stores are below 60 lbs, buy sugar from Tanner's and install a feeder bucket with 2:1 syrup. This is the real work of beekeeping.",
+		"hint": "Prepare for winter: treat mites, check stores, winterize the hive.",
+		"description": "Winter is coming. Do an alcohol wash to check mite levels. Treat if the count is high. Then weigh the hive -- if stores are below 60 lbs, install a feeder bucket with 2:1 syrup. Finally, winterize the hive: at minimum, install an entrance reducer, mouse guard, and top insulation board. Bob will walk you through each component.",
 		"season": "Fall",
 		"xp_reward": 100,
 		"completion_event": "winter_ready",
@@ -111,6 +111,8 @@ const QUESTS: Dictionary = {
 		"start_conditions": {
 			"min_month": 4,
 		},
+		# Winter Workshop S4: Bob teaches winterization component system
+		"winterization_teaching": true,
 	},
 
 	# =========================================================================

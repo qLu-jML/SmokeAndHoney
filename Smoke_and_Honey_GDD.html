@@ -955,8 +955,8 @@
 <p>Basic equipment: hive tool, smoker, veil and gloves, one super, one uncapping knife. Manual harvest equipment (comb scraper, hand spinner, bottling kit) available for purchase from the Tanner's Supply catalogue.</p>
 <p>A small cash reserve sufficient for one season of basic operations</p>
 <p>Access to the mentor NPC and the local farmers market</p>
-<p>A dilapidated Honey House on the home property -- Uncle Bob's old extraction facility, now in disrepair. Inaccessible until restored through the Carpenter NPC quest chain (see Section 8.4). Visible from game start as a progression goal.</p>
-<div class="pitch-block"><p><em>Design Note: The single starting hive is intentional. It forces the player to understand one colony deeply before managing many. The dilapidated Honey House serves a similar purpose -- it is a visible, aspirational structure that the player earns through investment, not a menu unlock. The manual equipment bridge (comb scraper, hand spinner, bottling kit) ensures the player can still harvest honey before the Honey House is restored, but the contrast in quality and efficiency makes the restoration feel genuinely rewarding.</em></p></div>
+<p>Uncle Bob's Honey House on the home property -- a functional inherited workshop with hand-crank 2-frame extractor, bottling station, scraping/uncapping station, workbench for lumber crafting, craft table for candles and infusions, space for mead crocks, finished goods shelf, and a goal board. Old but working. Accessible from game start with no quest gate. Upgradeable through future Silas Crenshaw quest chain (being redesigned).</p>
+<div class="pitch-block"><p><em>Design Note: The single starting hive is intentional. It forces the player to understand one colony deeply before managing many. The Honey House is functional from day one because extraction is a core loop -- gating it behind a quest chain would delay the harvest experience too long. The Honey House starts humble (Tier 0: no moisture bonus, no moisture penalty, hand-crank equipment) and can be upgraded through Silas's craftsmanship in later years. The upgrade path provides the progression reward; the base house provides the foundation for learning.</em></p></div>
 <h4 id="Reputation_Standing_System">Reputation — Standing System</h4>
 <p>Reputation is tracked as a single numeric score from 0–1,000, displayed to the player as a named tier. It affects market prices, NPC dialogue, event invitations, and access to rare queens and apiary locations. The score is called <strong>Community Standing</strong> in-game.</p>
 <table class="data-table">
@@ -1028,13 +1028,14 @@
 <table class="data-table">
 <tr><td>#</td><td>Task / Goal</td><td>Mechanic / Notes</td></tr>
 <tr><td>1</td><td>Harvest honey</td><td></td></tr>
-<tr><td>2</td><td>Prepare hives for winter</td><td></td></tr>
-<tr><td>3</td><td>Evaluate hives for feeding requirements</td><td></td></tr>
-<tr><td>4</td><td>Plant trees if possible</td><td></td></tr>
+<tr><td>2</td><td>Prepare hives for winter</td><td>Apply winterization components per hive (see Winterization Equipment System below)</td></tr>
+<tr><td>3</td><td>Evaluate hives for feeding requirements</td><td>Weigh hives; install feeder bucket if stores &lt; 60 lbs</td></tr>
+<tr><td>4</td><td>Winterize each hive</td><td>Apply entrance reducer, mouse guard, top insulation, moisture quilt, vent shim, hive wrap, and candy board as needed. At minimum: reducer + guard + top insulation.</td></tr>
+<tr><td>5</td><td>Plant trees if possible</td><td></td></tr>
 </tbody></table>
 <div class="pitch-block"><p>Fall Design Notes</p></div>
-<div class="pitch-block"><p><em>Design Note: Harvest timing matters. Harvesting too early means uncapped (under-ripened) honey with high moisture content — it will ferment. Players must check frame cappings before pulling. A refractometer tool unlocks at a mid-game progression point.</em></p></div>
-<div class="pitch-block"><p><em>Design Note: Winter prep is a multi-step process: reduce the entrance, add insulation or a moisture quilt, ensure adequate honey stores (a minimum weight threshold), check for a laying queen, and optionally wrap the hive for cold climates. Each step is a discrete player action.</em></p></div>
+<div class="pitch-block"><p><em>Design Note: Harvest timing matters. Harvesting too early means uncapped (under-ripened) honey with high moisture content -- it will ferment. Players must check frame cappings before pulling. A refractometer tool unlocks at a mid-game progression point.</em></p></div>
+<div class="pitch-block"><p><em>Design Note: Winter prep uses the Winterization Equipment System (see below). Each component is a discrete item the player applies individually per hive. The full protection package costs ~$42-50 and 20 energy per hive, but even basic protection (reducer + guard + top insulation at ~$21, 6 energy) gives +10% survival. Bob teaches this system in Year 1 as part of the "Battening Down" quest.</em></p></div>
 <div class="pitch-block"><p><em>Design Note: Tree planting is a long-horizon investment. Trees take multiple in-game seasons to mature. Early-game players who plant willows, lindens, or fruit trees will benefit significantly in later seasons — rewarding long-term thinking.</em></p></div>
 <h3 id="h2_2_4_Winter">2.4 Winter</h3>
 <p>Winter is the slow season. Direct hive intervention is minimal, but it is the best time to build, plan, and craft.</p>
@@ -1058,7 +1059,36 @@
 <tr><td>Cluster Activity</td><td>Active (bees visible on sunny side — strong cluster), Quiet but alive (tapping produces audible hum), No response (unclear — may be normal in extreme cold, or dead)</td></tr>
 <tr><td>Entrance Condition</td><td>Normal (few dead bees — expected winter attrition), Pile building (higher than normal mortality — investigate when warm), Clear (sealed tight — normal in very cold weather)</td></tr>
 </tbody></table>
-<div class="pitch-block"><p><em>Design Note: Results are always presented as flavor text descriptions, never raw numbers. This preserves the observational learning loop — the player builds intuition about what "light" means through experience, not a readout. A Knowledge Log entry unlocks after the first check: "Winter Check Basics."</em></p></div>
+<div class="pitch-block"><p><em>Design Note: Results are always presented as flavor text descriptions, never raw numbers. This preserves the observational learning loop -- the player builds intuition about what "light" means through experience, not a readout. A Knowledge Log entry unlocks after the first check: "Winter Check Basics."</em></p></div>
+<h4 id="Winterization_Equipment_System">Winterization Equipment System</h4>
+<p>During Deepcold (transition month, Days 169-196), the player should apply winterization components to each hive. Each component is a discrete item -- purchased from Tanner's or crafted at the workbench -- that the player applies individually via the Winterization UI (hold a winterization item and interact with a colonized hive during winter).</p>
+<table class="data-table">
+<tr><td>Component</td><td>Source</td><td>Cost</td><td>Energy</td><td>Effect</td><td>Risk if Skipped</td></tr>
+<tr><td>Entrance reducer</td><td>Tanner's</td><td>$5</td><td>2</td><td>Reduces cold air intrusion. Required for mouse guard.</td><td>+5% winter loss probability</td></tr>
+<tr><td>Mouse guard</td><td>Tanner's OR craft</td><td>$8 buy / free craft</td><td>2</td><td>Blocks mice from entering</td><td>Mice nest in hive: -15 health, destroyed comb, contaminated stores</td></tr>
+<tr><td>Moisture quilt box</td><td>Craft (shavings + box)</td><td>~$5 materials</td><td>4</td><td>Absorbs condensation. Prevents moisture drip.</td><td>+10% winter loss probability</td></tr>
+<tr><td>Hive wrap / insulation</td><td>Tanner's</td><td>$12-20</td><td>5</td><td>Reduces heat loss from walls</td><td>+8% winter loss in harsh winters</td></tr>
+<tr><td>Top insulation board</td><td>Tanner's</td><td>$8</td><td>2</td><td>Insulates above cluster. Most important single item.</td><td>+5% winter loss probability</td></tr>
+<tr><td>Candy board / fondant</td><td>Craft (sugar + water)</td><td>~$4 materials</td><td>4</td><td>Emergency feed on top bars</td><td>High starvation risk if stores &lt; 50 lbs</td></tr>
+<tr><td>Ventilation shim</td><td>Craft (scrap wood)</td><td>Free</td><td>1</td><td>Upper entrance for moisture escape</td><td>Reduced quilt effectiveness</td></tr>
+</tbody></table>
+<p>Winterization Tier System</p>
+<table class="data-table">
+<tr><td>Approach</td><td>Components</td><td>Cost/hive</td><td>Energy/hive</td><td>Survival Modifier</td></tr>
+<tr><td>Bare minimum</td><td>Entrance reducer only</td><td>$5</td><td>2</td><td>Base (no bonus)</td></tr>
+<tr><td>Basic</td><td>Reducer + mouse guard + top insulation</td><td>$21</td><td>6</td><td>+10% survival</td></tr>
+<tr><td>Standard</td><td>Basic + moisture quilt + vent shim</td><td>~$26</td><td>11</td><td>+20% survival</td></tr>
+<tr><td>Full protection</td><td>Standard + wrap + candy board</td><td>~$42-50</td><td>20</td><td>+28% survival</td></tr>
+</tbody></table>
+<p>Spring Damage Assessment</p>
+<p>On Quickening Day 1, each surviving hive is checked for winter damage based on which winterization components were applied:</p>
+<table class="data-table">
+<tr><td>Missing Component</td><td>Damage Type</td><td>Probability</td><td>Consequence</td></tr>
+<tr><td>Mouse guard</td><td>Mouse nesting</td><td>60%</td><td>-15 health, -5 lbs honey, destroyed comb</td></tr>
+<tr><td>Moisture quilt</td><td>Moisture drip</td><td>40%</td><td>-10 health</td></tr>
+<tr><td>Candy board (stores &lt; 10 lbs)</td><td>Starvation</td><td>50%</td><td>Stores depleted, -20 health</td></tr>
+</tbody></table>
+<div class="pitch-block"><p><em>Design Note: Winterization is the first system where the player invests money and time into something they cannot immediately observe the result of. The payoff comes in spring. This mirrors real beekeeping -- you winterize in faith and hope, and spring tells you the truth.</em></p></div>
 <h3 id="h2_2_5_All_Season_Ongoing_Tasks">2.5 All-Season Ongoing Tasks</h3>
 <p>These tasks apply every season and form the backbone of weekly gameplay. They are always present in the player's action queue.</p>
 <table class="data-table">
@@ -1090,28 +1120,31 @@
 <tr><td>Frame Count</td><td>Frames per box. Affects comb space and colony expansion rate.</td></tr>
 <tr><td>Entrance Size</td><td>Full, reduced, or mouse-guard. Affects ventilation and pest access.</td></tr>
 <tr><td>Insulation</td><td>None, winter wrap, moisture quilt. Affects overwinter survival probability.</td></tr>
+<tr><td>Winterization State</td><td>Dictionary tracking which winterization components are currently applied (entrance reducer, mouse guard, moisture quilt, hive wrap, top insulation, candy board, vent shim). Reset each spring. See Winterization Equipment System (S2.4).</td></tr>
 <tr><td>Equipment Condition</td><td>0–100. Degrades over time. Below 50 begins affecting colony performance.</td></tr>
 <tr><td>Overall Health Score</td><td>Hidden composite 0–100. Player never sees this number directly.</td></tr>
 </tbody></table>
-<h4 id="Equipment_Condition_Degradation_and_Impact">Equipment Condition — Degradation and Impact</h4>
-<p>Equipment condition degrades weekly from UV exposure, moisture, propolis accumulation, and physical use. The rate varies based on storage and care.</p>
+<h4 id="Equipment_Condition_Degradation_and_Impact">Equipment Condition -- Degradation and Impact</h4>
+<p>Equipment condition degrades weekly from UV exposure, moisture, propolis accumulation, and physical use. The rate varies based on storage and care. <strong>Condition minimum is 5</strong> -- equipment is never destroyed by neglect alone and is always repairable (Winter Workshop S5/S7).</p>
+<p>Degradation Rates</p>
 <table class="data-table">
-<tr><td>Situation</td><td>Condition Lost per Week</td></tr>
-<tr><td>Equipment stored in shed, painted and maintained</td><td>−1</td></tr>
-<tr><td>Equipment in active use, maintained but unsheltered</td><td>−2</td></tr>
-<tr><td>Equipment without protective paint or treatment</td><td>−4</td></tr>
-<tr><td>Equipment stored near standing water or high humidity</td><td>−3</td></tr>
-<tr><td>Equipment in shed passively restores at +1/week (while not in use)</td><td>+1</td></tr>
+<tr><td>Situation</td><td>Condition Change per Week</td></tr>
+<tr><td>Active use, maintained</td><td>-1</td></tr>
+<tr><td>Active use, unsheltered</td><td>-2</td></tr>
+<tr><td>No protective paint</td><td>-4</td></tr>
+<tr><td>Stored in shed</td><td>+1</td></tr>
+<tr><td>Furniture polish applied</td><td>+10 immediate, +2% waterproof</td></tr>
 </tbody></table>
+<p>Condition Impact Table</p>
 <table class="data-table">
-<tr><td>Condition Range</td><td>Visual</td><td>Colony Impact</td></tr>
-<tr><td>100–80</td><td>No visible wear</td><td>None</td></tr>
-<tr><td>79–50</td><td>Weathered, minor paint loss</td><td>Cosmetic only — warning indicator appears at 60</td></tr>
-<tr><td>49–30</td><td>Warped wood, gaps visible</td><td>−10% honey production; +5% small hive beetle entry risk</td></tr>
-<tr><td>29–15</td><td>Significant structural wear</td><td>−20% honey production; +10% pest risk; −5% overwinter survival probability</td></tr>
-<tr><td>14–0</td><td>Visibly failing</td><td>−35% honey production; +20% pest risk; colony_stress_modifier penalty −0.10</td></tr>
+<tr><td>Condition</td><td>Visual</td><td>Production</td><td>Pest Risk</td><td>Winter Survival</td><td>Repair</td></tr>
+<tr><td>100-80</td><td>Clean</td><td>None</td><td>None</td><td>None</td><td>Not needed</td></tr>
+<tr><td>79-60</td><td>Minor wear</td><td>None</td><td>None</td><td>None</td><td>Optional polish</td></tr>
+<tr><td>59-40</td><td>Weathered, gaps</td><td>-10%</td><td>+5% SHB</td><td>-3%</td><td>Basic repair ($25, +20)</td></tr>
+<tr><td>39-20</td><td>Warped wood</td><td>-20%</td><td>+10%</td><td>-8%</td><td>Full refurb ($60, to 75)</td></tr>
+<tr><td>19-5</td><td>Failing</td><td>-35%</td><td>+20%</td><td>-15%</td><td>Full refurb required</td></tr>
 </tbody></table>
-<p>Repair options: <strong>Basic repair kit</strong> ($25, 3 energy, restores +20 condition). <strong>Full refurbishment</strong> ($60, 8 energy, restores to 75 condition). <strong>Craftable repair pack</strong> (beeswax + wood scraps, Level 3 unlock, free materials cost, 5 energy, restores to 65 condition).</p>
+<p>Repair options: <strong>Basic repair</strong> ($25, 3 energy, restores +20 condition). <strong>Full refurbishment</strong> ($60, 8 energy, restores to 75 condition). <strong>Furniture polish</strong> (beeswax-based, applies +10 condition immediately and +2% waterproofing; available as craftable item or purchasable from Tanner's).</p>
 <h3 id="h2_3_2_The_Queen">3.2 The Queen</h3>
 <p>The queen is the biological engine of the hive. Every measurable colony outcome traces back to her quality.</p>
 <p>Queen Properties</p>
@@ -1939,16 +1972,25 @@ Action: verify the weight threshold for winter stores is met. If yes, harvest ca
 <tr><td>Nap (partial rest)</td><td>The player can lie down during the day for a short nap (2–3 in-game hours). Restores approximately 25–30% of the energy bar. Costs time. Useful if the player runs low early but has important evening tasks remaining.</td></tr>
 <tr><td>Time skip</td><td>From the pause menu, the player can skip forward to a chosen hour (morning, midday, evening) without sleeping. Energy does not restore. The world advances. Used to skip nighttime quickly without sleeping — useful for players who want to start the next morning immediately.</td></tr>
 </tbody></table>
-<h3 id="h2_5_4_Player_Energy_System">5.4 Player Energy System</h3>
-<p>The energy bar is the player's daily resource. It represents the physical stamina of the beekeeper — a real constraint that prevents the player from cramming unlimited tasks into a single day and forces prioritization. It is not a punishment mechanic; it is the game's pacing layer.</p>
-<p>Energy Bar Properties</p>
+<h3 id="h2_5_4_Player_Energy_System">5.4 Fatigue System</h3>
+<p>Energy is an invisible internal value that represents the physical stamina of the beekeeper. There is no visible energy bar on the HUD. Instead, the player reads their fatigue through their character's behavior: walk speed, idle animations, posture, and qualitative self-assessment available from the pause menu. The underlying math (100/day, task costs, restoration from food/sleep) is unchanged. This is the game's pacing layer, communicated through observation rather than UI.</p>
+<p>Fatigue Properties</p>
 <table class="data-table">
-<tr><td>Maximum capacity</td><td>100 energy. Displayed as a simple bar in the HUD. No numerical readout — just the bar, which the player learns to read intuitively.</td></tr>
+<tr><td>Maximum capacity</td><td>100 energy (internal). No bar, no numerical readout. The player learns to read fatigue through character behavior.</td></tr>
 <tr><td>Starting state</td><td>Full (100) at the start of every day after a full night's sleep. Partially restored after eating. Not restored by any other means.</td></tr>
 <tr><td>Depletion rate</td><td>Each player action costs energy proportional to its physical demand. Light tasks (reviewing notes, talking to NPCs) cost very little. Heavy tasks (full hive inspection, extracting honey, building frames) cost significantly more.</td></tr>
-<tr><td>Depletion over time</td><td>Standing around or traveling costs a small passive energy drain — about 1–2 energy per in-game hour. A player who stays active all day without sleeping will deplete their bar even between tasks.</td></tr>
-<tr><td>Warning states</td><td>Bar color shifts: green (full) → yellow (50%) → orange (25%) → red (10%). At red, the player moves slightly slower and a visual fatigue effect (subtle screen edge softening) appears. Tasks can still be performed.</td></tr>
-<tr><td>Empty bar</td><td>When the energy bar reaches 0, the player cannot perform any active task. They can still walk, talk to NPCs, and review menus — but no physical work is possible. The game gently prompts: 'You're exhausted. Time to rest.' The player can still choose to go to bed or eat to partially recover.</td></tr>
+<tr><td>Depletion over time</td><td>Standing around or traveling costs a small passive energy drain, about 1-2 energy per in-game hour. A player who stays active all day without sleeping will deplete their bar even between tasks.</td></tr>
+<tr><td>Self-assessment</td><td>Available from the pause menu ("How am I feeling?"). Returns a qualitative description: "Feeling good" (70-100), "Getting tired" (50-69), "Pretty worn out" (25-49), "Exhausted" (10-24), "Need to rest" (0-9). No numbers shown.</td></tr>
+<tr><td>Empty state</td><td>When energy reaches 0, the player cannot perform any active task. They can still walk, talk to NPCs, and access menus. The character sits down automatically. Dialogue: "You're exhausted. Time to rest."</td></tr>
+</tbody></table>
+<p>Fatigue Animation Thresholds</p>
+<table class="data-table">
+<tr><td>Energy Range</td><td>Character Behavior</td></tr>
+<tr><td>100-70</td><td>Normal animation. Full speed. Upright posture.</td></tr>
+<tr><td>69-50</td><td>Slightly slower walk speed (-10%). Occasional stretch animation when idle.</td></tr>
+<tr><td>49-25</td><td>Noticeably slower (-20%). Yawning animation when idle. Slightly hunched posture. Subtle screen edge softening.</td></tr>
+<tr><td>24-10</td><td>Slow walk (-30%). Rubbing eyes when idle. Sits down after 5 seconds of idle. Dialogue prompt when attempting heavy tasks: "You're worn out. Maybe call it a day?" (player can still proceed).</td></tr>
+<tr><td>9-0</td><td>Cannot perform active tasks. Character sits down automatically. Can still walk (very slow, -50%), talk to NPCs, access menus.</td></tr>
 </tbody></table>
 <p>Energy Costs by Task</p>
 <table class="data-table">
@@ -1977,6 +2019,15 @@ Action: verify the weight threshold for winter stores is met. If yes, harvest ca
 <tr><td>Coffee (morning only)</td><td>A cup of coffee from the diner or the kitchen adds a temporary 15-energy burst and prevents the passive drain for 2 in-game hours. Only effective before 10:00. No effect if taken later in the day.</td></tr>
 <tr><td>Nap</td><td>Lying down for 2–3 in-game hours restores ~25 energy. Costs time. Can be done at home or in the truck (parked at a remote location).</td></tr>
 </tbody></table>
+<h4 id="Safety_Net_Systems">Safety Net Systems</h4>
+<p>Three safety net mechanisms prevent the player from reaching an unrecoverable game state. These are not handouts -- they are character-driven acts of community support that reinforce Cedar Bend's identity while keeping the game playable.</p>
+<table class="data-table">
+<tr><td>Safety Net</td><td>Trigger</td><td>What Happens</td><td>Consequence</td></tr>
+<tr><td>Dr. Harwick Research Nuc</td><td>Spring Day 1-7, 0-1 surviving colonized hives</td><td>Dr. Harwick offers a subsidized nuc from her extension program at $80 (vs. $130). She visits 3-4 times per year to inspect it for research data.</td><td>Fires once per game. Creates natural NPC presence at the apiary.</td></tr>
+<tr><td>Carl's Tab</td><td>Spring (Days 1-56), cash below $50</td><td>Carl offers $150 credit at Tanner's: "Your uncle was good for it."</td><td>Repay by end of High-Sun (Day 112) or lose 5 Standing (-50 reputation).</td></tr>
+<tr><td>Equipment Floor</td><td>Always active</td><td>Equipment condition can never drop below 5. Neglect damages but never destroys.</td><td>Equipment is always repairable. No permanent loss from inattention.</td></tr>
+</table>
+<div class="pitch-block"><p><em>Design Note: These safety nets exist because real beekeeping has safety nets. Extension programs subsidize struggling beekeepers. Feed stores extend credit to farmers they trust. Equipment lasts decades even when neglected. The game mirrors reality: failure is possible, but catastrophic, unrecoverable failure requires active malice or extraordinary bad luck.</em></p></div>
 <h3 id="h2_5_5_The_Crossroads_Diner">5.5 The Crossroads Diner</h3>
 <p>The diner is a functional location in Cedar Bend (the game's fictional Midwest town — see Section 13.3) that serves as the player's primary mid-day energy recovery option and a social hub. It is not a complex system — it is a simple but atmospheric stop that makes going to town feel like a real part of the day rather than just a commercial transaction.</p>
 <table class="data-table">
@@ -2129,7 +2180,30 @@ Action: verify the weight threshold for winter stores is met. If yes, harvest ca
 <tr><td>Cedar Bend Feed & Supply (local)</td><td>$185</td><td>$245</td><td>D 0% / C 10% / B 50% / A 35% / S 5%</td><td>Year 1 (Cedar Bend unlocked)</td></tr>
 <tr><td>Hartley's Apiary (specialty breeder)</td><td>$215</td><td>$285</td><td>C 0% / B 15% / A 55% / S 30%. Also sells mated queens individually at $50 each.</td><td>Level 2 + Darlene friendship (she provides the introduction)</td></tr>
 </tbody></table>
-<div class="pitch-block"><p><em>Design Note: The cheapest option isn't always a mistake — a budget B-grade Italian queen in a new beekeepers's first hive is perfectly workable. But a D-grade queen arriving in a package the player paid $155 for is a hard lesson. The lesson is real: cheaper suppliers exist because they don't cull as aggressively. Experienced beekeepers pay more to remove the variance.</em></p></div>
+<div class="pitch-block"><p><em>Design Note: The cheapest option isn't always a mistake -- a budget B-grade Italian queen in a new beekeeper's first hive is perfectly workable. But a D-grade queen arriving in a package the player paid $155 for is a hard lesson. The lesson is real: cheaper suppliers exist because they don't cull as aggressively. Experienced beekeepers pay more to remove the variance.</em></p></div>
+
+<h4 id="Annual_Beekeeping_Catalogue">Annual Beekeeping Catalogue (Winter Workshop S6)</h4>
+<p>Every Kindlemonth, June Wellman delivers the annual beekeeping catalogue. The player has 7 days to browse and order. Items arrive at the Post Office on Quickening Day 1.</p>
+<table class="data-table">
+<tr><td>Trigger</td><td>Kindlemonth Day 5-7 (Day 201-203). June delivers with notification.</td></tr>
+<tr><td>Window</td><td>7 days to browse and order (Day 201-210).</td></tr>
+<tr><td>Early order bonus</td><td>First 3 days: A and B grade queens available. After day 3: B and C only.</td></tr>
+<tr><td>Payment</td><td>Full at order time. No credit.</td></tr>
+<tr><td>Delivery</td><td>All orders arrive at the Post Office on Quickening Day 1.</td></tr>
+<tr><td>Y1 Teaching</td><td>Bob teaches the player about the catalogue during his first winter mentorship visit.</td></tr>
+</table>
+<p>Catalogue Items</p>
+<table class="data-table">
+<tr><td>Item</td><td>Year Available</td><td>Price</td><td>Notes</td></tr>
+<tr><td>Package Bees (3 lb)</td><td>Y1+</td><td>$130</td><td>Quality depends on timing</td></tr>
+<tr><td>Nuc Colony (5-frame)</td><td>Y1+</td><td>$180</td><td>Better start than package</td></tr>
+<tr><td>Premium Queen (A-grade)</td><td>Y2+</td><td>$45</td><td>Only in first 3 days</td></tr>
+<tr><td>Electric Uncapping Knife</td><td>Y2+</td><td>$75</td><td>Speeds up uncapping</td></tr>
+<tr><td>4-Frame Radial Extractor</td><td>Y3+</td><td>$200</td><td>Honey House upgrade</td></tr>
+<tr><td>Roller Uncapper</td><td>Y3+</td><td>$435</td><td>Both sides at once, no heat</td></tr>
+<tr><td>Motorized Chain Uncapper</td><td>Y5+</td><td>$2,000+</td><td>Endgame aspiration</td></tr>
+</table>
+<div class="pitch-block"><p><em>Design Note: The catalogue is the player's annual planning ritual. The early-order bonus creates a decision point: order early for best queen quality, or wait to see how the budget looks after fall. The 7-day window prevents indefinite procrastination. Catalogue-exclusive items create aspirational goals that pull the player through years of gameplay.</em></p></div>
 
 <h4 id="h3_6_3_1_Colony_Installation_Mechanic">6.3.1 Colony Installation Mechanic (Implemented)</h4>
 <p>Hives placed in the world start structurally complete but biologically empty. The player must install bees to start the simulation. This creates a deliberate two-phase setup: build the hive, then populate it.</p>
@@ -2392,60 +2466,37 @@ total_honey_lbs = sum of all extracted frames</code></pre>
 <p><strong>Timing:</strong> Warnings activate during Reaping month (month 6, late fall) — the last harvest window. During earlier months, low stores are less alarming because bees are still foraging. If player harvests during Reaping and stores drop below 60 lbs, one-time dialog: "Uncle Bob's voice echoes in your mind: ‘A dead hive makes no honey next year. Leave 'em at least 60 pounds, maybe 80 if it's a cold winter.’"</p>
 <p><strong>Harvest gate:</strong> When player marks frames for harvest and post-harvest stores would drop below 40 lbs, show strong warning (but do not block — player choice is sacred): "Harvesting this frame will leave your colony with only XX lbs of honey. This is below the safe winter minimum of 60 lbs. Continue?"</p>
 <h4 id="Extraction_Facilities">Extraction Facilities</h4>
-<p>Honey extraction follows a three-tier progression that mirrors the real experience of scaling up a beekeeping operation. The player starts with basic hand tools, graduates to the restored Honey House, and can eventually upgrade it with temperature-controlled curing. Each tier is faster, less energy-intensive, and produces higher-quality results.</p>
+<p>Honey extraction follows a tiered progression that mirrors the real experience of scaling up a beekeeping operation. The player starts with Bob's inherited Honey House (Tier 0) and can upgrade it through Silas Crenshaw's craftsmanship. Each tier is faster, less energy-intensive, and produces higher-quality results.</p>
 <table class="data-table">
 <tr><td>Facility</td><td>Unlock</td><td>Capacity</td><td>Energy Cost</td><td>Curing Bonus</td></tr>
-<tr><td>Manual Equipment (Tier 0)</td><td>Available from start (purchased from catalogue)</td><td>1 frame at a time. Comb scraper + hand spinner + bottling kit.</td><td>3 energy per frame (scraping: 1, spinning: 1.5, bottling: 0.5)</td><td>None (0%). +1.5% moisture penalty (outdoor processing, no climate control)</td></tr>
-<tr><td>Honey House (Tier 1)</td><td>Silas Crenshaw quest chain (mid-summer Y1). Rebuild the dilapidated Honey House.</td><td>2 frames at a time, hand-crank extractor, indoor settling bucket, bottling station.</td><td>2 energy per frame</td><td>None (0%)</td></tr>
-<tr><td>Honey House + Curing Room (Tier 2)</td><td>Silas Q4 (Year 2, Level 2, $300 + materials)</td><td>4 frames at a time, upgraded extractor, temperature-controlled curing room, proper bottling line.</td><td>1 energy per frame</td><td>-0.8% moisture reduction</td></tr>
+<tr><td>Bob's Honey House (Tier 0)</td><td>Functional from game start (inherited). Hand-crank 2-frame extractor, bottling station, scraping/uncapping station, workbench, craft table.</td><td>2 frames at a time.</td><td>2 energy per frame (scraping: 1, spinning: 0.75, bottling: 0.25)</td><td>None (0%). No moisture penalty, no moisture bonus -- neutral baseline.</td></tr>
+<tr><td>Honey House Upgraded (Tier 1-4)</td><td>PENDING -- Silas Crenshaw upgrade chain (being redesigned). Future tiers add capacity, equipment upgrades, temperature-controlled curing, and moisture bonuses.</td><td>TBD per tier</td><td>TBD per tier</td><td>TBD per tier (up to -0.8% moisture reduction)</td></tr>
 </tbody></table>
 
-<h4 id="Manual_Harvest_Equipment">Manual Harvest Equipment (Tier 0) -- Outdoor Harvest Yard</h4>
-<p>Before the Honey House is restored, the player processes honey outdoors in a dedicated <strong>Harvest Yard</strong> on the home property. Five stations are arranged in a logical flow: Super Pallet, Scraping/De-capping area, Scraped Frame Pallet, Honey Extractor, and Bottling Table (with a white honey bucket between extractor and bottling table). This is deliberately physical and time-consuming -- the motivational pressure that drives the player toward the Honey House upgrade.</p>
-<h5>Harvest Yard Station Layout</h5>
+<h4 id="Honey_House_Stations">Honey House Interior -- Station Layout</h4>
+<p>All extraction and crafting happens inside the Honey House, which is functional from game start. The interior contains stations organized into two wings:</p>
+<h5>Extraction Wing (Left)</h5>
 <table class="data-table">
-<tr><td>Station</td><td>Position</td><td>Function</td></tr>
-<tr><td>Super Pallet</td><td>Left side of yard</td><td>Player places ITEM_FULL_SUPER here. Breaks super into 10 individual frames. Returns empty ITEM_SUPER_BOX to inventory.</td></tr>
-<tr><td>Scraping Station</td><td>At Super Pallet</td><td>Player equips ITEM_COMB_SCRAPER and interacts to start the Scraping Minigame. One frame at a time, both sides.</td></tr>
-<tr><td>Scraped Frame Pallet</td><td>Right of Super Pallet</td><td>Completed scraped frames accumulate here. When 10 frames fill a super box, player picks it up to take to extractor.</td></tr>
-<tr><td>Honey Extractor</td><td>Far right, above center</td><td>Batch extractor holds all frames from a scraped super. Player plays the Extractor Minigame (tap-E with speed gauge).</td></tr>
-<tr><td>White Honey Bucket</td><td>Below extractor</td><td>Collects raw honey after extraction. Visual fill level shown. Capacity: 40+ lbs.</td></tr>
-<tr><td>Bottling Table</td><td>Bottom right of yard</td><td>Player brings empty ITEM_JARs (40 max per session). Plays the Bottling Minigame to fill jars. Filled jars stack in groups of 10.</td></tr>
+<tr><td>Station</td><td>Function</td></tr>
+<tr><td>Super Prep</td><td>Player places ITEM_FULL_SUPER here. Breaks super into 10 individual frames.</td></tr>
+<tr><td>Frame Holder</td><td>Holds frames ready for uncapping.</td></tr>
+<tr><td>Uncapping Station</td><td>Scraping/uncapping minigame with cold knife and capping scratcher. One frame at a time, both sides.</td></tr>
+<tr><td>Honey Spinner</td><td>Hand-crank 2-frame extractor. Tap-E gauge minigame to extract honey.</td></tr>
+<tr><td>Canning Table</td><td>Bottling station. Fill jars from honey bucket.</td></tr>
+<tr><td>Honey Storage Shelf</td><td>Displays filled jars and honey reserves.</td></tr>
 </tbody></table>
-<h5>Scraping Minigame (De-capping)</h5>
+<h5>Workshop Wing (Right)</h5>
 <table class="data-table">
-<tr><td>Display</td><td>Full-screen overlay showing one side of a honeycomb frame as a 24x14 cell grid (336 cells per side). Capped cells are golden wax; uncapped cells are lighter honey color.</td></tr>
-<tr><td>Interaction</td><td>Player clicks and drags the scraper tool across the comb surface. The scraper has a 3-cell-wide brush -- passing over cells attempts to uncap them.</td></tr>
-<tr><td>Probability</td><td>Each capped cell has a 95% chance of being uncapped when the scraper passes over. Once the side is 90% uncapped, the chance drops to 80% for remaining stubborn cells.</td></tr>
-<tr><td>Completion</td><td>A side is complete when 95%+ cells are uncapped. After Side A, the frame flips to Side B automatically. Both sides must be completed.</td></tr>
-<tr><td>Energy Cost</td><td>2 energy per frame (both sides).</td></tr>
-<tr><td>Beeswax</td><td>~0.735 lbs per frame (4,900 cells x 0.00015 lbs/cell).</td></tr>
+<tr><td>Station</td><td>Function</td></tr>
+<tr><td>Workbench</td><td>Lumber crafting -- frames, boxes, lids, hive stands.</td></tr>
+<tr><td>Craft Table</td><td>Candles, infused honey, polish, propolis items.</td></tr>
+<tr><td>Mead Corner</td><td>Space for mead crocks (purchased separately from Tanner's).</td></tr>
+<tr><td>Finished Goods Shelf</td><td>Displays crafted products. Fills as player crafts.</td></tr>
+<tr><td>Goal Board</td><td>Wall-mounted board. Empty at start, populates as player sets goals.</td></tr>
 </tbody></table>
-<h5>Extractor Minigame (Tap-E Gauge)</h5>
-<table class="data-table">
-<tr><td>Display</td><td>Full-screen overlay with extractor visual, vertical speed gauge (right side), and horizontal extraction progress bar (bottom).</td></tr>
-<tr><td>Interaction</td><td>Player taps [E] repeatedly. Each tap adds 0.15 to the speed gauge (max 1.0). Gauge decays at 1.8/sec.</td></tr>
-<tr><td>Threshold</td><td>Speed gauge must stay above 60% (marked red line) to accumulate extraction progress. Below 60% = no progress.</td></tr>
-<tr><td>Duration</td><td>~20 seconds of sustained 60%+ effort to complete. Progress rate: 0.055/sec when above threshold.</td></tr>
-<tr><td>Energy Cost</td><td>1.5 energy per frame (deducted upfront).</td></tr>
-<tr><td>Output</td><td>4.0 lbs honey per frame, deposited into the white honey bucket.</td></tr>
-</tbody></table>
-<h5>Bottling Minigame (Jar Filling)</h5>
-<table class="data-table">
-<tr><td>Display</td><td>Full-screen overlay showing a jar with honey gate above, and a table with filled jar stacks on the right.</td></tr>
-<tr><td>Interaction</td><td>Press [E] to toggle honey gate open/closed. When open, honey fills the jar visually from bottom to top (0.6 jar/sec).</td></tr>
-<tr><td>Auto-Stop</td><td>When jar is full, gate auto-closes, jar is placed on table, next empty jar positioned.</td></tr>
-<tr><td>Stacking</td><td>Filled jars stack on table in columns of 10. Maximum 40 jars per session (1 lb each).</td></tr>
-<tr><td>Collection</td><td>After session, jars go to player inventory as ITEM_HONEY_JAR. Unused jars returned to inventory.</td></tr>
-</tbody></table>
-<h5>Manual Equipment Items</h5>
-<table class="data-table">
-<tr><td>Item</td><td>Price</td><td>Source</td><td>Function</td></tr>
-<tr><td>ITEM_COMB_SCRAPER</td><td>$12.00</td><td>Tanner's Supply</td><td>Flat-bladed scraping tool. Required to start Scraping Minigame. Reusable -- equip in active hotbar slot.</td></tr>
-<tr><td>ITEM_JAR (empty)</td><td>$0.50 each</td><td>Feed & Supply</td><td>Empty 1-lb glass jars. Required for bottling. Max stack 99.</td></tr>
-</tbody></table>
-<p><strong>Manual Processing Flow (Updated):</strong> 1. Inspect hive, mark super for harvest, remove as ITEM_FULL_SUPER. 2. Walk to Super Pallet in Harvest Yard, press [E] to place. Opens into 10 frames. 3. Equip ITEM_COMB_SCRAPER, press [E] to start Scraping Minigame. Click+drag across comb cells to de-cap both sides. 4. Scraped frame moves to Scraped Frame Pallet. Repeat all 10 frames. 5. When 10 frames fill a super box on Scraped Pallet, pick it up. 6. Walk to Extractor, press [E]. Keep tap-E gauge above 60% for ~20 seconds. 7. Honey drains into white bucket. 8. Walk to Bottling Table, press [E]. Toggle gate open to fill jars, auto-stops when full. 9. Collect filled jars from table as ITEM_HONEY_JAR. 10. Take jars to market (Frank at Saturday Market) to sell.</p>
-<div class="pitch-block"><p><em>Design Note: The outdoor Harvest Yard is the Level 1 experience -- deliberately physical and hands-on with three distinct minigames teaching real beekeeping extraction steps. The Honey House (Tier 1) upgrade streamlines the process: faster uncapping, larger extractor, indoor climate control for better moisture, reduced energy costs. The contrast makes the restoration quest genuinely rewarding.</em></p></div>
+<h5>Harvest Processing Flow</h5>
+<p>1. Inspect hive, mark super for harvest, remove as ITEM_FULL_SUPER. 2. Enter the Honey House, walk to Super Prep, press [E] to place. Opens into 10 frames. 3. Interact with Uncapping Station to start the Scraping Minigame. Click+drag across comb cells to de-cap both sides. 4. Uncapped frame moves to Frame Holder. Repeat all 10 frames. 5. Load frames into Honey Spinner. Keep tap-E gauge above threshold for ~20 seconds. 6. Honey drains into bucket. 7. Walk to Canning Table, press [E]. Toggle gate open to fill jars, auto-stops when full. 8. Collect filled jars as ITEM_HONEY_JAR. 9. Take jars to market (Frank at Saturday Market) to sell.</p>
+<div class="pitch-block"><p><em>Design Note: The outdoor Harvest Yard has been removed. All extraction now happens inside the Honey House from game start. This consolidation simplifies the player's spatial workflow and eliminates the gap between "starting the game" and "being able to extract honey properly." The Honey House upgrade tiers (PENDING) provide the progression motivation that the old restoration quest chain provided.</em></p></div>
 <h3 id="h2_6_7_Resource_Economy_System">6.7 Resource & Economy System</h3>
 <p>The player's financial health is managed across income streams and expense categories. The economy scales with apiary size — early game is tight; late game involves managing significant output.</p>
 <p>Income Sources</p>
@@ -2515,6 +2566,18 @@ total_honey_lbs = sum of all extracted frames</code></pre>
 <tr><td>Candle wicks (25-pack)</td><td>$8</td></tr>
 <tr><td>Axe</td><td>$15</td></tr>
 <tr><td>Hammer</td><td>$10</td></tr>
+<tr><td colspan="2"><strong>Winterization Supplies</strong></td></tr>
+<tr><td>Entrance Reducer</td><td>$5</td></tr>
+<tr><td>Mouse Guard</td><td>$8 (or craft free)</td></tr>
+<tr><td>Hive Wrap / Insulation</td><td>$15</td></tr>
+<tr><td>Top Insulation Board</td><td>$8</td></tr>
+<tr><td colspan="2"><strong>Catalogue-Exclusive Items (Annual Catalogue)</strong></td></tr>
+<tr><td>Nuc Colony (5-frame)</td><td>$180 (Y1+)</td></tr>
+<tr><td>Premium Queen (A-grade)</td><td>$45 (Y2+, early order only)</td></tr>
+<tr><td>Electric Uncapping Knife</td><td>$75 (Y2+)</td></tr>
+<tr><td>4-Frame Radial Extractor</td><td>$200 (Y3+)</td></tr>
+<tr><td>Roller Uncapper</td><td>$435 (Y3+)</td></tr>
+<tr><td>Motorized Chain Uncapper</td><td>$2,000+ (Y5+)</td></tr>
 </tbody></table>
 <div class="pitch-block"><p><em>Design Note: Starting cash is $500. A new player's first spring requires: one package at $185 (if they lose the starting hive), one super at $28, one round of varroa treatment at $8, and a bag of sugar for spring feeding at $8. That leaves plenty of margin for the first harvest investment. The economy is intentionally forgiving in Year 1 and progressively tighter as the player expands.</em></p></div>
 <h3 id="h2_6_8_Crafting_System">6.8 Crafting System</h3>
@@ -2838,10 +2901,8 @@ total_honey_lbs = sum of all extracted frames</code></pre>
 <tr><td>Basic Shed</td><td>Stores equipment and tools. Protects equipment from weather degradation.</td><td>Available from start</td></tr>
 <tr><td>Shed Workbench</td><td>Lumber crafting station inside the shed. Converts logs to lumber and crafts hive equipment (frames, super boxes, deep bodies, hive stands, lids). Cheaper alternative to purchasing finished equipment at Tanner's -- costs energy and harvested lumber instead of money. See Section 6.8 Lumber Crafting for full recipe table.</td><td>Available from start (requires lumber from County Road trees)</td></tr>
 <tr><td>Crafting Station</td><td>Required for all crafting beyond raw honey jarring.</td><td>Year 1, Level 2</td></tr>
-<tr><td>Manual Extraction Area</td><td>Outdoor processing spot near the shed. Player uses hand tools (comb scraper, hand spinner, bottling kit) purchased from catalogue. Slow, energy-intensive, +1.5% moisture penalty. The authentic first-year experience.</td><td>Available from start (tools purchased separately)</td></tr>
-<tr><td>Honey House (Dilapidated)</td><td>Uncle Bob's old honey house. Visible on the home property from game start but inaccessible -- broken windows, sagging roof, rusted equipment inside. A visual promise of what's to come. Examining it triggers Silas Crenshaw's quest chain.</td><td>Visible from start (non-functional)</td></tr>
-<tr><td>Honey House (Restored)</td><td>Full indoor extraction facility with hand-crank 2-frame extractor, settling bucket, bottling station. Faster processing, lower energy cost, no moisture penalty. Restored through Silas Q1-Q3.</td><td>Mid-summer Y1 (Silas quest chain + ~$230 in materials/labor)</td></tr>
-<tr><td>Honey House (Upgraded)</td><td>Temperature-controlled curing room added. 4-frame extractor, proper bottling line. Curing bonus: -0.8% moisture. The full professional setup.</td><td>Year 2, Level 2 (Silas Q4 + ~$375 in materials/labor)</td></tr>
+<tr><td>Honey House (Bob's Inherited, Tier 0)</td><td>Functional workshop inherited from Uncle Bob. Hand-crank 2-frame extractor, bottling station, scraping/uncapping station, workbench, craft table, mead corner, finished goods shelf, goal board. No moisture penalty, no moisture bonus. Upgradeable through Silas Crenshaw (chain being redesigned).</td><td>Functional from game start</td></tr>
+<tr><td>Honey House (Upgraded, Tiers 1-4)</td><td>PENDING -- upgrade tiers add capacity, equipment, temperature-controlled curing, moisture bonuses. Silas's quest chain is being redesigned from "gatekeeper who unlocks the house" to "craftsman who helps you upgrade it."</td><td>PENDING -- Silas upgrade chain redesign</td></tr>
 <tr><td>Fermentation Room</td><td>Required for mead production. Stable temperature environment.</td><td>Year 2, Level 3</td></tr>
 <tr><td>Queen Rearing Area</td><td>Allows player to raise queens from their own best stock.</td><td>Year 3, Level 4</td></tr>
 <tr><td>Observation Hive</td><td>Glass-sided hive. Provides continuous passive health data on one colony.</td><td>Year 3, Level 4</td></tr>
@@ -2980,7 +3041,7 @@ total_honey_lbs = sum of all extracted frames</code></pre>
 <tr><td>Dr. Ellen Harwick</td><td>10 (milestone-based) + lab services</td><td>1&ndash;5+</td><td>Year 1&ndash;Year 5</td><td>Science track, hive count milestones, Master Beekeeper certification</td></tr>
 <tr><td>Paul &amp; Kacey Rowland</td><td>6 (chain through Kacey)</td><td>2&ndash;4</td><td>Year 2&ndash;Year 4</td><td>Rowland Farm / Orchard apiary location</td></tr>
 <tr><td>Cedar Valley BKA</td><td>4 (chain) + monthly meetings</td><td>2&ndash;4</td><td>Year 2&ndash;Year 4</td><td>River Bottom location (Level 3 + Standing 500)</td></tr>
-<tr><td>Silas Crenshaw (Carpenter)</td><td>4 (chain)</td><td>1&ndash;2</td><td>Year 1&ndash;Year 2</td><td>Honey House restoration, structural upgrades</td></tr>
+<tr><td>Silas Crenshaw (Carpenter)</td><td>Q1-Q3 DEPRECATED, chain being redesigned</td><td>TBD</td><td>TBD</td><td>Honey House upgrades (Tiers 1-4). Original restoration quests removed -- Honey House functional from start.</td></tr>
 <tr><td>Carl Tanner (Feed &amp; Supply)</td><td>10 (chain) + weekly store</td><td>1&ndash;4</td><td>Year 1&ndash;Year 4</td><td>Wholesale supply account, shelf space, equipment repair, permanent honey corner</td></tr>
 <tr><td>Rose Delacroix (Diner Owner)</td><td>10 (chain) + diner social</td><td>2&ndash;4</td><td>Year 1&ndash;Year 4</td><td>Honey menu partnership, candle crafting, honey wall display, community anchor</td></tr>
 <tr><td>June Wellman (Postmaster)</td><td>10 (chain) + recurring mail</td><td>1&ndash;4</td><td>Year 1&ndash;Year 4</td><td>Mail-order logistics, swarm capture, post office garden, town identity</td></tr>
@@ -3118,6 +3179,8 @@ total_honey_lbs = sum of all extracted frames</code></pre>
 <tr><td><strong>M10: The Beekeeper's Journal</strong></td><td>5</td><td>10th colonized hive</td><td>After M9 + 10 active hives + full year of complete inspection records</td><td>Dr. Harwick presents her personal field journal, dating to 1994 &mdash; every colony she has managed, every loss, every discovery. She asks the player to add the first new entry. Then she administers the Master Beekeeper certification: written knowledge check (15 questions from the Knowledge Log), practical inspection (identify 5 specific conditions), and a season management plan for a 15+ hive operation. "I don't recommend people lightly. You've earned this."</td><td>+200 XP, +75 Standing. Chain complete. Title: "Certified Master Beekeeper". Dr. Harwick's journal (permanent item). Advanced diagnostic detail permanently in all inspections. Knowledge Log: "Master Certification &amp; The Beekeeper's Journal".</td></tr>
 </table>
 
+<div class="pitch-block"><strong>Safety Net -- Dr. Harwick Research Nuc (Winter Workshop S5):</strong> If the player begins spring (Quickening Day 1-7) with 0-1 surviving colonized hives, Dr. Harwick offers a subsidized research nuc from her county extension program at $80 (vs. normal $130). She visits the apiary 3-4 times per year to inspect it for research data. Fires once per game. Her periodic visits create natural NPC presence at the apiary and maintain the science relationship even when milestone quests are not active.</div>
+
 <h4 id="quest_harmon_chain">Paul &amp; Kacey Rowland &mdash; Quest Chain (6 Quests)</h4>
 <p>The Rowland chain runs primarily through Kacey, who bridges agriculture and beekeeping. This chain unlocks the Rowland Farm / Orchard apiary &mdash; a major forage zone expansion &mdash; and explores the tension between conventional farming and pollinator-friendly practices.</p>
 
@@ -3144,21 +3207,22 @@ total_honey_lbs = sum of all extracted frames</code></pre>
 
 <div class="pitch-block"><strong>Design Note &mdash; CVBA Recurring Content:</strong> Beyond the quest chain, CVBA monthly meetings continue indefinitely (+30 XP each, unique speaker topics). Meetings serve as a social hub where other NPCs occasionally appear with one-off dialogue.</div>
 
-<h4 id="quest_silas_chain">Silas Crenshaw (Carpenter) &mdash; Quest Chain (4 Quests)</h4>
-<p>Silas is the practical infrastructure NPC. His quest chain gates the player's transition from manual honey processing to the fully restored Honey House &mdash; the single biggest quality-of-life upgrade in the game. He is introduced through the dilapidated Honey House that sits on the home property from the start: a visible, tantalizing structure the player cannot use until they earn it.</p>
+<h4 id="quest_silas_chain">Silas Crenshaw (Carpenter) &mdash; Quest Chain (BEING REDESIGNED)</h4>
+<p>Silas is the practical infrastructure NPC. The Honey House is now functional from game start (inherited from Uncle Bob), so Silas's original Q1-Q3 (restoration quests) are <strong>deprecated</strong>. His chain is being redesigned from "gatekeeper who unlocks the Honey House" to "craftsman who helps you upgrade it." Q4 (The Upgrade) remains as a template for the new chain direction.</p>
 
 <table class="data-table">
-<tr><td>Quest</td><td>Level</td><td>Season</td><td>Prerequisites</td><td>Objective</td><td>Rewards</td></tr>
-<tr><td><strong>Q1: The Old Honey House</strong></td><td>1</td><td>Spring Y1</td><td>First inspection complete (Bob Q1)</td><td>Examine the dilapidated Honey House on the home property. Eli peers through the broken windows and sees rusted extraction equipment inside. A notification suggests asking around town about getting it fixed. Visit Cedar Bend and find Silas at his workshop behind the hardware store. He'll walk back to the property to assess the damage. Silas: "Your uncle kept bees for forty years out of this building. The bones are good &mdash; framing's solid, roof needs work, floor's got some rot. I can fix it, but it ain't free and it ain't fast."</td><td>+50 XP, +20 Standing. Knowledge Log: "The Honey House &mdash; What It Was". Silas added to NPC roster. He provides a materials list and cost estimate.</td></tr>
-<tr><td><strong>Q2: Gathering Materials</strong></td><td>1</td><td>Summer Y1</td><td>After Q1 + $150 cash + gather materials</td><td>Silas needs: 20 boards of lumber (harvest from Timber area or purchase from Tanner's Supply at $3/board), 5 lbs of nails ($8 from hardware store), 2 rolls of roofing felt ($12 each from hardware store), and $150 cash for his labor. Deliver all materials to the Honey House site. The player can gather lumber by hand from the back field (fallen branches, 2 energy per board, 1-2 boards per tree) or buy it outright. Silas: "I don't start until everything's on site. No point tearing into walls if I don't have what I need to close 'em back up."</td><td>+75 XP, +25 Standing. Construction begins. Silas appears at the Honey House daily for the next 7 in-game days working on the structure (visible progress each day).</td></tr>
-<tr><td><strong>Q3: Raising the Roof</strong></td><td>1</td><td>Summer Y1</td><td>After Q2 + 7 days elapsed</td><td>Silas calls Eli over to help with the final day of work. The player assists with 3 tasks: hold a beam steady (timing mini-game), hand up roofing materials (inventory interaction), and help hang the new door (placement puzzle). After the work is done, Silas hands Eli the key. Silas: "She's weathertight now. Floor's level, walls are plumb, roof won't leak. The rest &mdash; the extraction setup, the bottling line &mdash; that's your department. I build buildings, not bee gadgets."</td><td>+100 XP, +35 Standing. <strong>UNLOCKS: Honey House (Tier 2 extraction facility)</strong>. The Honey House interior becomes accessible. Player can now install purchased extraction equipment inside. Knowledge Log: "Raising a Honey House". Silas available for future structural upgrades.</td></tr>
-<tr><td><strong>Q4: The Upgrade</strong></td><td>2</td><td>Y2</td><td>After Q3 + Level 2 + $300 cash</td><td>Silas offers to add a temperature-controlled curing room and a concrete floor to the Honey House. Requires: $300 labor + 10 boards lumber + 5 bags of concrete mix ($15 each from hardware store). The curing room provides the &minus;0.8% moisture bonus and allows honey to be stored in optimal conditions. Silas: "Temperature control ain't complicated &mdash; it's just insulation and a vent fan. But it makes the difference between good honey and great honey."</td><td>+200 XP, +75 Standing. <strong>UNLOCKS: Honey House curing bonus (&minus;0.8% moisture)</strong>. Interior visually updated with curing room addition. Knowledge Log: "Temperature and Honey Quality". Chain complete. Silas remains available for cosmetic/structural projects.</td></tr>
+<tr><td>Quest</td><td>Status</td><td>Notes</td></tr>
+<tr><td><strong>Q1: The Old Honey House</strong></td><td>DEPRECATED</td><td>Honey House is functional from game start. No restoration needed.</td></tr>
+<tr><td><strong>Q2: Gathering Materials</strong></td><td>DEPRECATED</td><td>Honey House is functional from game start. No restoration needed.</td></tr>
+<tr><td><strong>Q3: Raising the Roof</strong></td><td>DEPRECATED</td><td>Honey House is functional from game start. No restoration needed.</td></tr>
+<tr><td><strong>Q4: The Upgrade</strong></td><td>PENDING REDESIGN</td><td>Will be part of the new upgrade-focused chain. Original concept (curing room, -0.8% moisture bonus) is still valid but needs integration with the new tier system.</td></tr>
 </table>
 
-<div class="pitch-block"><strong>Design Note &mdash; Silas and Pacing:</strong> The Honey House restoration is designed to complete by mid-summer Year 1, just in time for the first major honey harvest. Players who delay the quest chain can still harvest using manual equipment (comb scraper, hand spinner, bottling kit purchased from the catalogue), but the process is slower, uses more energy, and produces slightly lower-quality results. The Honey House is the carrot; manual processing is the stick.</div>
+<div class="pitch-block"><strong>Design Note &mdash; Silas Redesign:</strong> Silas's relationship arc is being reworked. Instead of gating access to the Honey House, he becomes the craftsman who helps you improve it. The emotional core remains: Silas built the original for Bob, and now he helps the player make it their own. His bench for Bob (built without being asked, never acknowledged) anchors the character. The new chain will focus on upgrades (Tiers 1-4) rather than restoration.</div>
 
 <h4 id="quest_carl_chain">Carl Tanner (Feed &amp; Supply) &mdash; Quest Chain (10 Quests)</h4>
 <p>Carl is the supply backbone. His quests build the player's relationship from walk-in customer to permanent retail partner. He is the first NPC the player interacts with commercially outside of Frank's market, and his store is both the primary source of equipment and a community information hub through the bulletin board.</p>
+<div class="pitch-block"><strong>Safety Net -- Carl's Tab (Winter Workshop S5):</strong> If the player's cash drops below $50 during spring (Quickening through Greening), Carl offers $150 credit at Tanner's: "Your uncle was good for it." Repay by end of High-Sun (Day 112) or take -5 Standing. This prevents soft-locking when a player survives winter with no cash and needs supplies to restart. Carl's gesture is both gameplay safety net and character moment -- he is extending trust the way small-town shopkeepers do.</div>
 
 <table class="data-table">
 <tr><td>Quest</td><td>Level</td><td>Season</td><td>Prerequisites</td><td>Objective</td><td>Rewards</td></tr>

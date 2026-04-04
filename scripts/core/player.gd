@@ -309,8 +309,11 @@ func sync_inventory_to_gamedata() -> void:
 
 # -- Movement ------------------------------------------------------------------
 
-@export var speed: float = 120.0
-@export var run_speed: float = 210.0
+@export var base_speed: float = 120.0
+@export var base_run_speed: float = 210.0
+# Winter Workshop S3: Effective speed is modulated by fatigue.
+var speed: float = 120.0
+var run_speed: float = 210.0
 @onready var animated_sprite = $PlayerAnimatedSprite
 @onready var player_sprite: Sprite2D = $PlayerSprite
 
@@ -330,6 +333,32 @@ const _SHEET_COLS := 8
 var _current_dir_name: String = "south"
 var _is_moving: bool = false
 var _is_running: bool = false
+
+# -- Fatigue System (Winter Workshop S3) --------------------------------------
+# Tracks idle time for fatigue idle animations (stretch, yawn, sit).
+var _idle_timer: float = 0.0
+var _fatigue_idle_played: bool = false  # True if a fatigue idle has fired this idle period
+
+## Updates walk/run speed based on current energy level.
+## Called each physics frame -- cheap branch, no allocation.
+func _update_fatigue_speed() -> void:
+	var pct: float = GameData.energy / GameData.max_energy
+	var modifier: float = 1.0
+	if pct < 0.10:
+		modifier = 0.0  # Cannot perform active tasks; can still walk slowly
+		speed = base_speed * 0.5
+		run_speed = base_speed * 0.5  # no running when exhausted
+		return
+	elif pct < 0.25:
+		modifier = 0.70  # -30% speed
+	elif pct < 0.50:
+		modifier = 0.80  # -20% speed
+	elif pct < 0.70:
+		modifier = 0.90  # -10% speed
+	else:
+		modifier = 1.0
+	speed = base_speed * modifier
+	run_speed = base_run_speed * modifier
 
 const HIVE_SCENE   = preload("res://scenes/hive.tscn")
 const FLOWER_SCENE = preload("res://scenes/flowers/flowers.tscn")
@@ -525,6 +554,22 @@ func _perform_action() -> void:
 						nm.notify("Queen excluder placed -- queen confined to brood boxes")
 				else:
 					print("No queen excluder in inventory!")
+				return
+
+			# Winterization during Deepcold (Winter Workshop S4)
+			# Any winterization item held near a colonized hive opens the UI
+			var _winter_items := [
+				GameData.ITEM_ENTRANCE_REDUCER, GameData.ITEM_MOUSE_GUARD,
+				GameData.ITEM_MOISTURE_QUILT, GameData.ITEM_HIVE_WRAP,
+				GameData.ITEM_TOP_INSULATION, GameData.ITEM_CANDY_BOARD,
+				GameData.ITEM_VENT_SHIM]
+			if has_colony and held in _winter_items:
+				if TimeManager and TimeManager.current_season_name() == "Winter":
+					_open_winterization(nearby_hive)
+				else:
+					var nm_wz = get_tree().root.get_node_or_null("NotificationManager")
+					if nm_wz and nm_wz.has_method("notify"):
+						nm_wz.notify("Winterization is done during Deepcold or Kindlemonth.")
 				return
 
 			# Install colony if no bees yet
@@ -757,6 +802,20 @@ func _open_hive_management(hive_node: Node) -> void:
 	get_tree().root.add_child(overlay)
 	print("[Player] Hive management overlay opened successfully")
 
+## Open the Winterization UI overlay (Winter Workshop S4).
+func _open_winterization(hive_node: Node) -> void:
+	if get_tree().get_first_node_in_group("winterization_overlay"):
+		return
+	var wui_script: GDScript = load("res://scripts/ui/winterization_ui.gd") as GDScript
+	if wui_script == null:
+		push_error("[Player] Could not load winterization_ui.gd!")
+		return
+	var overlay: Node = CanvasLayer.new()
+	overlay.set_script(wui_script)
+	overlay.set("target_hive", hive_node)
+	overlay.add_to_group("winterization_overlay")
+	get_tree().root.add_child(overlay)
+
 ## Place a storage chest at the player's facing tile.
 func _action_place_chest() -> void:
 	if not tilemap:
@@ -931,6 +990,9 @@ func _physics_process(delta):
 		velocity = Vector2.ZERO
 		return
 
+	# Winter Workshop S3: Update speed based on fatigue each frame
+	_update_fatigue_speed()
+
 	var input_vector = Vector2.ZERO
 	if Input.is_key_pressed(KEY_A): input_vector.x -= 1
 	if Input.is_key_pressed(KEY_D): input_vector.x += 1
@@ -942,8 +1004,13 @@ func _physics_process(delta):
 		input_vector = input_vector.normalized()
 		velocity = input_vector * (run_speed if is_running else speed)
 		play_animation(input_vector, is_running)
+		_idle_timer = 0.0
+		_fatigue_idle_played = false
 	else:
 		velocity = Vector2.ZERO
+		_idle_timer += delta
+		# Winter Workshop S3: Fatigue idle behaviors based on energy
+		_check_fatigue_idle()
 		_play_idle()
 
 	_advance_anim_timer(delta)
@@ -973,6 +1040,57 @@ func play_animation(direction: Vector2, running: bool = false) -> void:
 		_anim_frame_index = 0
 		_anim_frame_timer = 0.0
 	_update_sprite_frame()
+
+## Winter Workshop S3: Fatigue idle behavior check.
+## Fires stretch/yawn/sit-down animations based on energy + idle time.
+## Animation states are placeholders using print() until art is created.
+func _check_fatigue_idle() -> void:
+	if _fatigue_idle_played:
+		return
+	var pct: float = GameData.energy / GameData.max_energy
+	# 10-24 energy: sit down after 5 seconds idle
+	if pct < 0.25 and pct >= 0.10 and _idle_timer >= 5.0:
+		_fatigue_idle_played = true
+		# TODO: Play sit-down animation when art is ready
+		print("[Fatigue] Player sits down (energy %d%%)" % int(pct * 100))
+	# 25-49 energy: yawn after 3 seconds idle
+	elif pct < 0.50 and pct >= 0.25 and _idle_timer >= 3.0:
+		_fatigue_idle_played = true
+		# TODO: Play yawning animation when art is ready
+		print("[Fatigue] Player yawns (energy %d%%)" % int(pct * 100))
+	# 50-69 energy: stretch after 4 seconds idle
+	elif pct < 0.70 and pct >= 0.50 and _idle_timer >= 4.0:
+		_fatigue_idle_played = true
+		# TODO: Play stretch animation when art is ready
+		print("[Fatigue] Player stretches (energy %d%%)" % int(pct * 100))
+	# 0-9 energy: immediate sit-down
+	elif pct < 0.10 and _idle_timer >= 1.0:
+		_fatigue_idle_played = true
+		print("[Fatigue] Player exhausted -- sits down")
+
+## Winter Workshop S3: Check if the player should be warned before a heavy task.
+## Returns true if the task should proceed; false if blocked (energy 0-9).
+## For energy 10-24, shows a dialogue prompt but still returns true.
+func check_fatigue_for_task(task_name: String, energy_cost: float) -> bool:
+	var pct: float = GameData.energy / GameData.max_energy
+	if pct < 0.10:
+		# Cannot perform active tasks at 0-9 energy
+		var dialogue_ui: Node = get_tree().root.get_node_or_null("DialogueUI")
+		if dialogue_ui and dialogue_ui.has_method("show_dialogue"):
+			dialogue_ui.show_dialogue("", [
+				"You're exhausted. Time to rest.",
+				"You can still walk around and talk to people, but no heavy work."
+			])
+		return false
+	elif pct < 0.25:
+		# Warn but allow
+		var dialogue_ui: Node = get_tree().root.get_node_or_null("DialogueUI")
+		if dialogue_ui and dialogue_ui.has_method("show_dialogue"):
+			dialogue_ui.show_dialogue("", [
+				"You're worn out. Maybe call it a day?",
+				"(%s will cost %d energy)" % [task_name, int(energy_cost)]
+			])
+	return true
 
 func _play_idle() -> void:
 	_is_moving = false

@@ -1,0 +1,219 @@
+Context
+The first full in-game year (8 months, 224 days) needs to be playable spring-to-spring. The simulation engine, harvest pipeline, economy, weather, and core UI all work. What's missing is the connective tissue: quest spine, disease monitoring/treatment, knowledge journal, seasonal dialogue, and winter activities.
+North star: A cozy sim fan plays Quickening to Kindlemonth, feels the seasonal rhythm, harvests honey, sells it at market, prepares for winter, and understands why their hive survived or didn't.
+Core interaction model: Item-based, not keybind-based. Players must carry the right tools in inventory to perform actions. This creates meaningful inventory management decisions (what do I bring to the apiary today?).
+
+WP1: Quest Definitions & Engine
+Why: Quests are the spine of Year 1 -- no guidance, no progression arc without them.
+Files to modify: scripts/autoloads/QuestManager.gd
+Files to create: scripts/quests/quest_defs.gd
+5 Year 1 quests:
+Quest IDTitleStart TriggerCompletionXPfirst_lightFirst LightAuto day 1Open inspection overlay25sugar_water_daysSugar Water DaysQ1 donePlace feeder bucket with syrup25girls_are_buildingThe Girls Are BuildingQ2 doneAdd first super via hive management30first_pullFirst PullQ3 done + month >= 3Complete a harvest50battening_downBattening DownQ4 done + month >= 6Hive has >= 60 lbs honey AND last alcohol wash < 3 mites/10075
+QuestManager additions:
+
+notify_event(event_id, data) -- event bus
+_process_event() -- checks active quests against event
+_check_day_conditions() -- connected to TimeManager.day_advanced
+get_active_hint() -> String -- returns current quest hint (replaces stub)
+
+
+WP2: Scene-Wide Feeder System
+Why: Feeding is a scene-level survival tool, NOT per-hive. All hives draw from a shared bucket daily.
+Files to create: scripts/world/feeder_bucket.gd + scenes/world/feeder_bucket.tscn
+Design:
+
+Player places from inventory (uses ITEM_SYRUP_FEEDER item)
+syrup_remaining: float starts at 5.0 liters when filled with ITEM_SUGAR_SYRUP
+Daily: all hives on scene draw proportionally. When empty, stops. Player must refill.
+Bees store feed as feed_stores (new field in HiveSimulation), NOT as sellable honey
+Harvest pipeline flags/rejects frames with feed-honey content
+Useful in spring (weak colony) and fall (winter prep). Not useful when nectar flows.
+
+Files to modify:
+
+scripts/core/HiveSimulation.gd -- feed_stores field, consumption priority
+scripts/simulation/ForagerSystem.gd -- Draw from scene feeder
+scripts/ui/harvest_overlay.gd -- Flag feed-honey frames
+
+
+WP3: Alcohol Wash Mite Monitoring Mini-Game
+Why: Real-world alcohol wash procedure as a mini-game, taught by mentor NPC.
+Item-based trigger: Player must have "Alcohol Wash Kit" item in inventory. During inspection, if kit is present, an "Use Wash Kit" option appears in the inspection UI (button, not keybind). Bought at feed supply after Ellen teaches the technique.
+Tutorial moment (FIRST TIME ONLY):
+During the player's first wash (guided by mentor), Step 1 is scripted:
+
+Player selects a brood frame. The queen happens to be on it.
+Player proceeds to scoop bees into the jar
+The mentor STOPS them: "Hold on! See that bee with the painted dot? That's your queen. You almost killed her. ALWAYS check for the queen before you scoop."
+This teaches the lesson through consequence, not a tooltip
+All subsequent washes have a "Check for Queen" step where player must visually scan the frame
+
+Mini-game steps (after tutorial):
+
+Frame Selection -- Pick brood frame. Must pass queen check (scan frame, confirm queen absent)
+Scoop Bees -- Fill jar to ~300 bees (press E, fill gauge)
+The Wash -- Add alcohol, shake (hold E, progress bar, ~5 real seconds)
+Count -- Mites appear on white background. Player clicks/counts them.
+Results -- Math shown: "X / 300 = Y per 100". Color-coded threshold.
+
+Files to create: scripts/ui/alcohol_wash_overlay.gd
+Files to modify:
+
+scripts/ui/InspectionOverlay.gd -- Show "Use Wash Kit" button when item in inventory
+scripts/core/HiveSimulation.gd -- get_sample_mite_count(sample_size) function
+scripts/world/feed_supply_interior.gd -- Add wash kit to shop (available after Ellen teaches)
+
+
+WP4: Disease Treatment Application
+Why: After monitoring, player needs to treat. Item-based, not keybind.
+Item-based trigger: During inspection, if player has oxalic or formic acid in inventory, a "Use Treatment" button appears.
+Treatment flow:
+
+Player clicks "Use Treatment" button during inspection
+If multiple treatments available, show selection
+Apply: oxalic = 90% mite reduction (best broodless), formic = 70% (penetrates capped brood, temp-dependent 50-85F)
+Consume item, update simulation, notification
+Post-treatment: re-test in 2-3 weeks (Ellen reminds via dialogue)
+
+Files to modify:
+
+scripts/ui/InspectionOverlay.gd -- Treatment button (shown when item present)
+scripts/core/HiveSimulation.gd -- Verify/add treat_mites(reduction) method
+
+
+WP5: AFB System (Rare, High-Consequence)
+Why: AFB is extremely rare but devastating. Triggered by specific events, not random.
+Two-State Model:
+
+State 1 (Sub-clinical): Spores present, invisible. Triggered by: robbing dead hive, contaminated equipment, feeding non-apiary honey. Strong colony can clear (15%/week). Weak colony progresses in 4-6 weeks.
+State 2 (Clinical): Visible during inspection. Sunken cappings, dark cells, foul smell notification on hive open. Scattered brood.
+
+Rope test: Item-based. Player needs a "matchstick" or small tool item. During inspection, if AFB cells visible, "Test Suspicious Cell" button appears. Positive result = ropy, stringy pull animation.
+Player response:
+
+"Destroy Hive" button in hive_management (correct: burn hive, lose everything, protect apiary)
+Do nothing = disease spreads, colony dies, robbing spreads to other hives
+Talk to Ellen = diagnosis confirmation + guidance
+
+Base probability: 1% per hive per year. Multiplied by: high varroa (2x), dead hive nearby (5x), weak colony (2x).
+Files to modify:
+
+scripts/core/HiveSimulation.gd -- AFB two-state model, spore tracking
+scripts/simulation/CellStateTransition.gd -- AFB progression
+scripts/ui/InspectionOverlay.gd -- Rope test button (item-gated)
+scripts/ui/hive_management.gd -- "Destroy Hive" button
+
+
+WP6: Custom Hive Naming + Knowledge Journal
+Hive Naming
+
+Player can name hives via hive_management overlay (text input field at top)
+Default name: "Hive #1", "Hive #2", etc.
+Custom name appears in: inspection header, hive_management title, journal records, map overlay
+Stored in hive node and saved/loaded with game state
+
+Files to modify:
+
+scripts/world/hive.gd -- hive_name: String field, rename method
+scripts/ui/hive_management.gd -- Name input field at top of panel
+scripts/ui/InspectionOverlay.gd -- Display custom name in header
+scripts/autoloads/SaveManager.gd -- Save/load hive names
+
+Knowledge Journal (Two-Tab System)
+Tab 1: "Beekeeper's Notebook" (Skills & Knowledge)
+
+Entries unlock through gameplay discovery (16+ entries)
+Read-only, game teaches the player
+Certain entries unlock new abilities/shop items
+
+Tab 2: "Hive Records" (Management Log)
+
+Organized by apiary -> hive (using custom hive names!)
+Auto-logged entries for every action (inspection, harvest, treatment, wash, super added, etc.)
+Player observation field: Text input after each auto-entry where player writes their own notes
+"Keen Observer" reward: Writing observations on 80%+ of inspections unlocks +10% queen-spotting and +1 disease detection tier
+
+Files to create:
+
+scripts/autoloads/KnowledgeLog.gd -- Autoload for both tabs
+scripts/ui/knowledge_log_overlay.gd -- Overlay with tabs, scrolling, text input
+
+Files to modify:
+
+project.godot -- Register KnowledgeLog autoload
+scripts/core/player.gd -- [J] to open journal (this is a UI toggle, not an item-based action)
+scripts/autoloads/SaveManager.gd -- Save/load entries + player notes
+All inspection/harvest/management overlays -- Auto-log on action completion
+
+
+WP7: Seasonal NPC Dialogue
+Why: NPCs should give season-appropriate advice and be quest-aware.
+Files to modify:
+
+scripts/npc/uncle_bob.gd -- Seasonal + quest-aware dialogue
+scripts/npc/frank_fischbach.gd -- Seasonal market advice
+scripts/npc/ellen_harwick.gd -- Seasonal disease warnings, teaches alcohol wash (gates wash kit availability)
+
+Ellen's alcohol wash teaching: First conversation with Ellen in late spring/summer triggers:
+
+Knowledge entry: "The Mite Problem"
+Wash kit becomes purchasable at feed supply
+Ellen explains the procedure through dialogue
+
+
+WP8: Winter Activities
+Why: 56 winter days need meaningful activities.
+Create: scripts/ui/winter_observation.gd
+Winter observation (item: "hive stethoscope" or just approach hive):
+
+Weight: Heavy/Medium/Light (mapped from honey_stores)
+Sound: Strong hum/Faint buzz/Silence (mapped from population)
+Entrance: Cleansing flights (warm day) / None
+Auto-logged to hive records with custom name
+
+Indoor activities:
+
+Workbench in house: assemble frames, render wax
+Review journal, plan spring
+Pre-order at feed supply
+
+Modify:
+
+scripts/world/hive.gd -- Winter routes to observation, not full inspection
+scripts/world/house_interior.gd -- Workbench interaction
+
+
+WP9: Bee Acquisition Polish
+Modify:
+
+scripts/core/player.gd -- Verify package bee installation
+scripts/world/feed_supply_interior.gd -- Winter pre-ordering
+
+
+Build Order
+WP1 (Quest Engine) -----> WP2 (Feeder System) -----> WP3 (Alcohol Wash)
+                                                  \-> WP4 (Treatment)
+                                                  \-> WP5 (AFB System)
+WP6 (Hive Naming + Journal) -- after WP2, benefits from all hooks
+WP7 (Seasonal Dialogue) -- independent
+WP8 (Winter Activities) -- independent
+WP9 (Bee Acquisition)   -- lowest priority
+Verification Strategy
+After each WP:
+
+godot_analyze_script on every modified .gd file
+godot_get_diagnostics project-wide
+Grep all .gd files for non-ASCII bytes
+wc -c Smoke_and_Honey_GDD.html BeeKeeper_Pro_DevPlan.html
+godot_run_project + godot_screenshot
+Commit after each passing WP
+
+Final: simulated full-year playthrough across all 8 months.
+Scope Excluded
+
+Super management (already works)
+NPC friendship scores
+Swarm mechanics (deferred)
+Queen rearing (Phase 4)
+Diseases beyond Varroa/AFB (Phase 4)
+Deep crafting beyond basic winter activities (Phase 4)

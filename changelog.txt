@@ -1,3 +1,180 @@
+[2026-04-04 CDT] Winter Workshop S7: Equipment degradation consequences
+  scripts/autoloads/GameData.gd:
+  - Added ITEM_FURNITURE_POLISH constant ("furniture_polish")
+  scripts/ui/shop_screen.gd:
+  - Added furniture polish to Tanner's CATALOGUE ($6, max 10)
+  resources/data/item_registry.json:
+  - Added furniture_polish item entry (supply, +10 condition, +2% waterproof)
+  Smoke_and_Honey_GDD.html:
+  - S3.1: Updated Equipment Condition table ranges (100-80, 79-60, 59-40, 39-20, 19-5)
+  - S3.1: Added condition floor of 5
+  - S3.1: Added furniture polish to degradation rates and repair options
+  - S3.1: Updated Condition Impact Table with Production, Pest Risk, Winter Survival, Repair columns
+  Smoke_and_Honey_Art_Assets.xlsx:
+  - Added 5 equipment condition art assets: 4 hive overworld condition states
+    (clean, weathered, warped, failing) + furniture polish item sprite
+  All files: ASCII-verified, protected docs intact (704823 + 154172 bytes)
+
+[2026-04-04 CDT] Winter Workshop S6: Annual Beekeeping Catalogue
+  scripts/autoloads/GameData.gd:
+  - Added catalogue state vars (delivered, delivery_day, orders, year_delivered)
+  - Added CATALOGUE_ITEMS constant with 7 items (package bees through motorized uncapper)
+  - Added is_catalogue_open(), is_catalogue_early(), get_game_year() helpers
+  scripts/ui/catalogue_ui.gd (NEW):
+  - Full catalogue browsing/ordering overlay UI
+  - Year-gated item filtering, early-order queen quality bonus
+  - Qty adjustment (A/D keys), keyboard navigation (W/S/E/Esc)
+  - Places orders into pending_deliveries for Quickening Day 1 pickup
+  scripts/autoloads/HiveManager.gd:
+  - Added _check_catalogue_delivery() triggered on Kindlemonth Day 5
+  - Notifies player when catalogue arrives and when window closes
+  scripts/autoloads/SaveManager.gd:
+  - Save/load all catalogue state
+  resources/data/item_registry.json:
+  - Added 6 catalogue-exclusive items: nuc_colony, premium_queen,
+    electric_uncapping_knife, radial_extractor_4, roller_uncapper, motorized_uncapper
+  Smoke_and_Honey_GDD.html:
+  - S6.3: Added Annual Beekeeping Catalogue subsection with full item table,
+    trigger timing, ordering window, early-order bonus
+  - S6.7: Added catalogue-exclusive items to Purchase Prices table
+  - S8.4: Added Bob's Y1 catalogue teaching note
+  story_bible.html:
+  - June Wellman: Added annual catalogue delivery as recurring Kindlemonth event
+  - Uncle Bob: Added Y1 catalogue teaching moment
+  Smoke_and_Honey_Art_Assets.xlsx:
+  - Added 6 catalogue art assets (page layout, 4 item thumbnails,
+    June delivery notification icon)
+  All files: ASCII-verified, protected docs intact (704749 + 154172 bytes)
+
+[2026-04-04 CDT] Winter Workshop S5: Safety net systems
+  scripts/autoloads/GameData.gd:
+  - Added safety net state vars: harwick_nuc_offered/accepted, harwick_visit_count,
+    carls_tab_active/amount/deadline_day
+  - Added EQUIPMENT_CONDITION_FLOOR constant (5)
+  - Added accept_carls_tab() and repay_carls_tab() functions
+  scripts/autoloads/HiveManager.gd:
+  - Added _check_safety_nets() called each day tick
+  - Dr. Harwick research nuc: triggers Spring Day 1-7 if 0-1 colonized hives
+  - Harwick periodic visits: quarterly after nuc accepted (3-4/year)
+  - Carl's tab: auto-offers $150 credit if cash < $50 during spring
+  - Tab deadline: end of High-Sun, -50 rep if unpaid
+  - Added _count_colonized_hives(), _offer_harwick_nuc(), _offer_carls_tab()
+  scripts/autoloads/SaveManager.gd:
+  - Save/load all safety net state (harwick + carl's tab)
+  Smoke_and_Honey_GDD.html:
+  - Added Safety Net Systems subsection (S5.4): research nuc, Carl's tab,
+    equipment floor -- with trigger table and design note
+  - S8.4: Added Dr. Harwick research nuc note after milestone chain
+  - S8.4: Added Carl's Tab design note before Carl's quest chain
+  story_bible.html:
+  - Dr. Harwick: Added research nuc safety net paragraph
+  - Carl Tanner: Added credit tab safety net paragraph
+  All files: ASCII-verified, protected docs intact (702195 + 154172 bytes)
+
+[2026-04-04 CDT] Winter Workshop S4: Winterization equipment system
+  scripts/autoloads/GameData.gd:
+  - Added 7 winterization item constants (ITEM_ENTRANCE_REDUCER through ITEM_VENT_SHIM)
+  - Added 4 craftable winterization recipes to WORKBENCH_RECIPES
+    (mouse guard, moisture quilt, candy board, vent shim)
+  scripts/ui/shop_screen.gd:
+  - Added 4 winterization items to Tanner's CATALOGUE
+    (entrance reducer $5, mouse guard $8, hive wrap $15, top insulation $8)
+  scripts/world/hive.gd:
+  - Added winterization state dict (7 components, all default false)
+  - Added spring_damage array for damage tracking
+  - Added get_winterization_bonus(), get_winterization_tier(), reset_winterization()
+  scripts/autoloads/HiveManager.gd:
+  - Added _spring_damage_check() on Quickening Day 1
+  - Assesses mouse damage (60%), moisture damage (40%), starvation risk (50%)
+  - Calculates winter loss probability from missing components
+  - Sends player notifications for damage/colony death
+  - Resets winterization state for new year
+  scripts/ui/winterization_ui.gd (NEW):
+  - Full winterization overlay UI with 7-component checklist
+  - Shows applied/available/missing status per component
+  - Applies components: consumes item + energy, marks hive
+  - Keyboard navigation (W/S/E/Esc)
+  scripts/core/player.gd:
+  - Added winterization interaction: hold winterization item + E near hive in winter
+  - Added _open_winterization() function
+  scripts/autoloads/SaveManager.gd:
+  - Persists winterization dict and spring_damage per hive in save/load
+  scripts/quests/quest_defs.gd:
+  - Updated battening_down description to include winterization component teaching
+  resources/data/item_registry.json:
+  - Added 7 winterization item entries with descriptions and pricing
+  Smoke_and_Honey_GDD.html:
+  - S2.3: Added winterization task to Fall table
+  - S2.4: Added full Winterization Equipment System subsection
+    (component table, tier system, spring damage assessment)
+  - S3.1: Added Winterization State to Hive-Level Properties
+  - S6.7: Added winterization supplies to Purchase Prices table
+  story_bible.html:
+  - Bob Q6 Battening Down: updated to teach winterization component system
+  - Year 1 active quests: updated with winterization Deepcold beat
+  Smoke_and_Honey_Art_Assets.xlsx:
+  - Added 10 winterization art assets (7 item sprites, winterized hive,
+    mouse-damaged frames, moisture-damaged inner cover)
+  All files: ASCII-verified, protected docs intact (699535 + 154172 bytes)
+
+[2026-04-04 CDT] Winter Workshop S3: Invisible fatigue system (energy bar removal)
+  scripts/ui/hud.gd:
+  - Hidden honey energy bar and bottom bar energy fill
+  - Replaced _refresh_energy() with qualitative fatigue descriptions
+  - Info panel shows "Feeling good" / "Getting tired" / etc. instead of %
+  - Removed energy percentage from resource_label
+  scripts/core/player.gd:
+  - Changed speed/run_speed from @export to computed vars with base_speed/base_run_speed
+  - Added _update_fatigue_speed() with 5 tiers: 1.0x/0.9x/0.8x/0.7x/0.5x walk-only
+  - Added idle timer + _check_fatigue_idle() for stretch/yawn/sit behaviors
+  - Added check_fatigue_for_task() dialogue prompt at low energy
+  scripts/ui/PauseMenu.gd:
+  - Added "How am I feeling?" button with 5-tier qualitative self-assessment
+  Smoke_and_Honey_GDD.html (Section 5.4):
+  - Renamed "Player Energy System" -> "Fatigue System"
+  - Rewrote Energy Bar Properties to describe invisible fatigue system
+  - Added Fatigue Animation Thresholds table (5 energy ranges + behaviors)
+  - Kept energy cost tables and restoration tables unchanged
+  Smoke_and_Honey_Art_Assets.xlsx:
+  - Added 6 new art assets: stretch idle, yawn idle, rubbing eyes idle,
+    sit-down idle, hunched walk cycle, screen edge softening overlay
+  All files: ASCII-verified, protected docs intact (695088 + 154172 bytes)
+
+[2026-04-04 CDT] Winter Workshop S2: Honey House starts open (no quest gate)
+  scripts/quests/quest_defs.gd:
+  - Silas Q1-Q3 marked deprecated with "deprecated: true" flag
+  - check_start_conditions() now rejects deprecated quests
+  scripts/world/honey_house_ruin.gd:
+  - Replaced with no-op (hides ruin node -- house is functional)
+  scripts/world/home_property.gd:
+  - Removed all HarvestYard references and POI registration
+  - Updated comments to note extraction is now in Honey House
+  scripts/core/player.gd:
+  - Removed harvest_yard interaction check from _perform_action()
+  scripts/autoloads/GameData.gd:
+  - Added honey_house_tier (int, starts at 0) for upgrade tracking
+  - Updated harvest data comment (removed "harvest yard" reference)
+  scripts/world/honey_house.gd:
+  - Expanded room from 12x10 to 16x12 tiles
+  - Added 5 new stations: WORKBENCH, CRAFT_TABLE, MEAD_CORNER,
+    GOODS_SHELF, GOAL_BOARD (enum, rects, areas, labels, drawing)
+  - Left wing: extraction pipeline (unchanged)
+  - Right wing: workshop + crafting stations (new)
+  - South wall: finished goods shelf + goal board (new)
+  Smoke_and_Honey_GDD.html:
+  - S1.3: Replaced "dilapidated" with functional Honey House description
+  - S6.6: Replaced Tier 0-2 extraction table with Tier 0 (inherited, neutral)
+  - S6.6: Replaced outdoor Harvest Yard section with Honey House Station Layout
+  - S7.2: Replaced dilapidated/restored/upgraded entries with Tier 0 + PENDING
+  - S8.4: Marked Silas Q1-Q3 as DEPRECATED, noted chain redesign
+  story_bible.html:
+  - Silas quest section: Q1-Q3 marked DEPRECATED, Q4 marked PENDING REDESIGN
+  - Updated Silas's arc description: gatekeeper -> craftsman who upgrades
+  Smoke_and_Honey_Art_Assets.xlsx:
+  - Added 6 new art assets to "Required - Not Created": workbench, craft table,
+    finished goods shelf (empty + states), goal board, mead corner
+  All files: ASCII-verified, protected docs intact (694161 + 154172 bytes)
+
 [2026-04-04 CDT] Winter Workshop S1: Transition month clarification
   scripts/autoloads/TimeManager.gd:
   - Added is_transition_month() -> bool helper (returns true for M1 of each season)

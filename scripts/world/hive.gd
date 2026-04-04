@@ -22,6 +22,63 @@ var colony_installed: bool = false
 var colony_install_day: int = -1
 const COLONY_LOCKOUT_DAYS: int = 7
 
+# -- Winterization State (Winter Workshop S4) ----------------------------------
+# Tracks which winterization components have been applied this year.
+# Reset each spring (Quickening Day 1) by HiveManager.
+var winterization: Dictionary = {
+	"entrance_reducer": false,
+	"mouse_guard": false,
+	"moisture_quilt": false,
+	"hive_wrap": false,
+	"top_insulation": false,
+	"candy_board": false,
+	"vent_shim": false,
+}
+
+# Spring damage flags -- set by HiveManager spring check, cleared after display
+var spring_damage: Array[String] = []
+
+## Returns winterization survival bonus as a float (0.0 to 0.28).
+func get_winterization_bonus() -> float:
+	var bonus: float = 0.0
+	if winterization.get("entrance_reducer", false):
+		bonus += 0.05
+	if winterization.get("mouse_guard", false):
+		bonus += 0.05
+	if winterization.get("top_insulation", false):
+		bonus += 0.05
+	if winterization.get("moisture_quilt", false):
+		bonus += 0.08
+	if winterization.get("vent_shim", false):
+		bonus += 0.02
+	if winterization.get("hive_wrap", false):
+		bonus += 0.08
+	# Candy board does not add survival %, it prevents starvation directly
+	return bonus
+
+## Returns the winterization tier name for display.
+func get_winterization_tier() -> String:
+	var count: int = 0
+	for key in winterization:
+		if winterization[key]:
+			count += 1
+	if count == 0:
+		return "None"
+	elif count <= 2:
+		return "Bare minimum"
+	elif count <= 4:
+		return "Basic"
+	elif count <= 5:
+		return "Standard"
+	else:
+		return "Full protection"
+
+## Resets winterization state for a new year (called at spring start).
+func reset_winterization() -> void:
+	for key in winterization:
+		winterization[key] = false
+	spring_damage.clear()
+
 # -- Node references -----------------------------------------------------------
 @onready var simulation: HiveSimulation = $HiveSimulation
 @onready var stat_label: Label          = $Label

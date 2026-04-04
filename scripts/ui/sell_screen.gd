@@ -137,6 +137,19 @@ func _try_sell() -> void:
 	_show_err("Sold %d jars for $%d!" % [_qty, int(earnings)])
 	player.update_hud_inventory()
 
+	# Quest events: market sale + attendance tracking
+	QuestManager.notify_event("first_market_sale", {
+		"qty": _qty,
+		"earnings": int(earnings),
+		"buyer": buyer_name,
+	})
+	# Saturday Regulars: track product type and earnings for compound objective
+	QuestManager.notify_event("market_sale_tracked", {
+		"earnings": int(earnings),
+		"product": "honey",
+	})
+	QuestManager.notify_event("market_attended", {})
+
 	# Reset state
 	_max_jars = _get_jar_count()
 	_qty = _max_jars if _max_jars > 0 else 0

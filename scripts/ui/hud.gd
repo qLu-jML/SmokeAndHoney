@@ -241,13 +241,16 @@ func _build_top_bar() -> void:
 # =============================================================================
 
 func _build_honey_energy_bar() -> void:
-	# Container for the entire energy bar widget
+	# Winter Workshop S3: Energy bar HIDDEN (invisible fatigue system).
+	# The bar is built but immediately hidden. Energy tracking continues
+	# internally -- the player reads fatigue through character behavior.
 	_honey_energy_bar = Control.new()
 	_honey_energy_bar.name = "HoneyEnergyBar"
 	_honey_energy_bar.position = Vector2(3, 3)
 	_honey_energy_bar.size = Vector2(52, 10)
 	_honey_energy_bar.z_index = 5
 	_honey_energy_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_honey_energy_bar.visible = false  # HIDDEN -- invisible fatigue system
 	add_child(_honey_energy_bar)
 
 	# Outer border -- dark honey comb edge
@@ -467,8 +470,8 @@ func _refresh_info_panel() -> void:
 			cnt += player.get_item_count(GameData.ITEM_HONEY_JAR)
 		_info_honey_lbl.text = "%d lbs honey" % cnt
 	if _info_energy_lbl:
-		var pct_val = int(clampf(GameData.energy / GameData.max_energy, 0.0, 1.0) * 100.0)
-		_info_energy_lbl.text = "Energy: %d%%" % pct_val
+		# Winter Workshop S3: Qualitative fatigue description, no numbers.
+		_info_energy_lbl.text = _get_fatigue_description()
 	if _info_level_lbl:
 		_info_level_lbl.text = "Lvl %d %s" % [GameData.player_level, GameData.get_level_title()]
 	if _info_xp_fill:
@@ -1092,7 +1095,7 @@ func _load_item_textures() -> void:
 		GameData.ITEM_SMOKER: "smoker.png",
 		GameData.ITEM_SWARM_TRAP: "swarm_trap.png",
 		GameData.ITEM_SCRAPED_SUPER: "scraped_super.png",
-		GameData.ITEM_BARREL_FEEDER: "barrel_feeder.png",
+		GameData.ITEM_FEEDER_BUCKET: "barrel_feeder.png",
 		GameData.ITEM_LOGS: "logs.png",
 		GameData.ITEM_LUMBER: "lumber.png",
 		GameData.ITEM_AXE: "axe.png",
@@ -1326,21 +1329,33 @@ func _refresh_money() -> void:
 		else:
 			_money_lbl.text = "$%.1fk" % (m / 1000.0)
 	if resource_label:
-		resource_label.text = "$%.2f  E%d%%" % [GameData.money, int(GameData.energy)]
+		# Winter Workshop S3: No energy percentage in resource label
+		resource_label.text = "$%.2f" % GameData.money
 
 
 func _refresh_energy() -> void:
-	var pct = clampf(GameData.energy / GameData.max_energy, 0.0, 1.0)
+	# Winter Workshop S3: Energy bar hidden (invisible fatigue system).
+	# Bottom bar energy fill is hidden -- player reads fatigue via character.
 	if _energy_fill:
-		_energy_fill.size.x = pct * EBAR_W
-		if pct < 0.25:
-			_energy_fill.modulate = C_DANGER
-		elif pct < 0.50:
-			_energy_fill.modulate = Color(0.85, 0.45, 0.10, 1.0)
-		else:
-			_energy_fill.modulate = Color(1.0, 1.0, 1.0, 1.0)
-	_refresh_honey_energy()
+		_energy_fill.visible = false
+	# Honey energy bar stays hidden (set in _build_honey_energy_bar)
 	_refresh_info_panel()
+
+
+## Winter Workshop S3: Qualitative fatigue description for info panel.
+## Maps energy percentage to a human-readable self-assessment string.
+func _get_fatigue_description() -> String:
+	var pct: float = clampf(GameData.energy / GameData.max_energy, 0.0, 1.0)
+	if pct >= 0.70:
+		return "Feeling good"
+	elif pct >= 0.50:
+		return "Getting tired"
+	elif pct >= 0.25:
+		return "Pretty worn out"
+	elif pct >= 0.10:
+		return "Exhausted"
+	else:
+		return "Need to rest"
 
 
 func _refresh_xp() -> void:
@@ -1776,6 +1791,4 @@ func update_player_inventory(inv_array: Array = []) -> void:
 	if _active_item_lbl:
 		var active_inv = inv_array[_active_slot_idx] if _active_slot_idx < inv_array.size() else null
 		if active_inv != null:
-			_active_item_lbl.text = LONG_NAME.get(active_inv["item"], active_inv["item"].capitalize())
-		else:
-			_active_item_lbl.text = ""
+			_active_item_lbl.text = LONG_NAME.get(active_inv["item"], active_inv["item"].capitalize

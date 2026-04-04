@@ -213,5 +213,8 @@ func is_player_in_range(player_pos: Vector2) -> bool:
 
 ## Disconnect TimeManager signals when leaving the scene tree.
 func _exit_tree() -> void:
-	if TimeManager:
-		TimeManager.day_advanced.disconnect(_on_day_advanced)
+	if Engine.is_editor_hint():
+		return
+	if TimeManager and is_instance_valid(TimeManager):
+		if TimeManager.day_advanced.is_connected(_on_day_advanced):
+			TimeManager.day_advanced.disconnect(_on_day_advanced)

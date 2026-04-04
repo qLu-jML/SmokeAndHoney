@@ -150,6 +150,53 @@ var xp_buff_until_day: int = -1
 # Tracked here so save/load persists the upgrade state.
 var honey_house_tier: int = 0
 
+# -- Safety Net Systems (Winter Workshop S5) -----------------------------------
+# Dr. Harwick research nuc: fires once per game if 0-1 hives survive spring.
+var harwick_nuc_offered: bool = false   # true after the offer has been made (once per game)
+var harwick_nuc_accepted: bool = false  # true if player accepted the subsidized nuc
+var harwick_visit_count: int = 0        # 3-4 visits per year after nuc accepted
+
+# Carl's tab: if cash < $50 during spring, Carl offers $150 credit.
+var carls_tab_active: bool = false      # true if player has an active credit tab
+var carls_tab_amount: float = 0.0       # remaining balance owed
+var carls_tab_deadline_day: int = -1    # game day by which repayment is due (end of High-Sun)
+
+# Equipment condition floor: condition can never drop below 5.
+const EQUIPMENT_CONDITION_FLOOR: int = 5
+
+## Apply Carl's tab credit to player money.
+func accept_carls_tab() -> void:
+	carls_tab_active = true
+	carls_tab_amount = 150.0
+	money += 150.0
+	money_changed.emit(money)
+	# Deadline: end of High-Sun (day 112)
+	# Calculate current year start and add 112
+	var year_start: int = (TimeManager.current_day / 224) * 224
+	carls_tab_deadline_day = year_start + 112
+	if NotificationManager:
+		NotificationManager.notify(
+			"Carl's Tab: $150 credit. Repay by end of High-Sun.",
+			NotificationManager.T_INFO, 5.0)
+
+## Repay Carl's tab (partial or full).
+func repay_carls_tab(amount: float) -> float:
+	var payment: float = minf(amount, carls_tab_amount)
+	payment = minf(payment, money)
+	if payment <= 0.0:
+		return 0.0
+	money -= payment
+	money_changed.emit(money)
+	carls_tab_amount -= payment
+	if carls_tab_amount <= 0.01:
+		carls_tab_active = false
+		carls_tab_amount = 0.0
+		if NotificationManager:
+			NotificationManager.notify(
+				"Carl's Tab paid off. Good standing maintained.",
+				NotificationManager.T_INFO, 3.0)
+	return payment
+
 # -- Persistent Player Inventory -----------------------------------------------
 # Mirrors the player node's inventory array so it survives scene changes.
 # Each entry is null or {"item": String, "count": int}.
@@ -171,6 +218,52 @@ var harvested_super_frames: Array = []
 # -- Pending Deliveries --------------------------------------------------------
 # Array of { "item": String, "count": int } -- checked by mailbox in county_road.gd
 var pending_deliveries: Array = []
+
+# -- Annual Beekeeping Catalogue (Winter Workshop S6) --------------------------
+# Arrives Kindlemonth Day 5-7 (Day 201-203). 7-day ordering window.
+# Early order bonus: first 3 days = A+B grade queens. After day 3, B+C only.
+# Payment: full at order time. Orders arrive Quickening Day 1.
+var catalogue_delivered: bool = false     # true once catalogue arrives this year
+var catalogue_delivery_day: int = -1      # game day catalogue was delivered
+var catalogue_orders: Array = []          # Array of {item, count, price, quality}
+var catalogue_year_delivered: int = -1    # which game-year the catalogue was last delivered
+
+# Catalogue item definitions (year_available is game-year minimum)
+const CATALOGUE_ITEMS: Array = [
+	{"id": "package_bees", "label": "Package Bees (3 lb)", "price": 130,
+	 "year": 1, "desc": "Standard 3-lb package with mated queen."},
+	{"id": "nuc_colony", "label": "Nuc Colony (5-frame)", "price": 180,
+	 "year": 1, "desc": "5-frame nucleus colony. Better start than a package."},
+	{"id": "premium_queen", "label": "Premium Queen (A-grade)", "price": 45,
+	 "year": 2, "desc": "A-grade mated queen. Only available in first 3 days.",
+	 "early_only": true},
+	{"id": "electric_uncapping_knife", "label": "Electric Uncapping Knife", "price": 75,
+	 "year": 2, "desc": "Heated knife for faster, cleaner uncapping."},
+	{"id": "radial_extractor_4", "label": "4-Frame Radial Extractor", "price": 200,
+	 "year": 3, "desc": "Extracts 4 frames at once. Honey House upgrade."},
+	{"id": "roller_uncapper", "label": "Roller Uncapper", "price": 435,
+	 "year": 3, "desc": "Uncaps both sides at once. No heat needed."},
+	{"id": "motorized_uncapper", "label": "Motorized Chain Uncapper", "price": 2000,
+	 "year": 5, "desc": "Commercial-grade automated uncapping. Endgame aspiration."},
+]
+
+## Returns true if the catalogue ordering window is currently open.
+func is_catalogue_open() -> bool:
+	if not catalogue_delivered:
+		return false
+	var day_in_year: int = ((TimeManager.current_day - 1) % 224) + 1
+	return day_in_year >= 201 and day_in_year <= 210
+
+## Returns true if we are in the early-order window (first 3 days).
+func is_catalogue_early() -> bool:
+	if not catalogue_delivered:
+		return false
+	var day_in_year: int = ((TimeManager.current_day - 1) % 224) + 1
+	return day_in_year >= 201 and day_in_year <= 203
+
+## Get the current game year (1-indexed).
+func get_game_year() -> int:
+	return (TimeManager.current_day / 224) + 1
 
 # -- Item Type Constants --------------------------------------------------------
 # Use these string constants when calling add_item / consume_item on the player
@@ -214,6 +307,16 @@ const ITEM_SMOKER            := "smoker"           # Tool: reduces bee defensive
 const ITEM_BEE_SUIT          := "bee_suit"         # Protective gear: reduces sting energy damage
 const ITEM_PROPOLIS          := "propolis"         # Collected during inspection, used in crafting
 const ITEM_WASH_KIT          := "wash_kit"         # Alcohol wash kit for mite monitoring
+# -- Winterization items (Section 4 - Winter Workshop) -------------------------
+const ITEM_ENTRANCE_REDUCER  := "entrance_reducer"  # Reduces cold air intrusion
+const ITEM_MOUSE_GUARD       := "mouse_guard"       # Blocks mice from entering hive
+const ITEM_MOISTURE_QUILT    := "moisture_quilt"     # Absorbs condensation above cluster
+const ITEM_HIVE_WRAP         := "hive_wrap"          # Insulates hive walls
+const ITEM_TOP_INSULATION    := "top_insulation"     # Insulates above cluster (most important)
+const ITEM_CANDY_BOARD       := "candy_board"        # Emergency winter feed on top bars
+const ITEM_VENT_SHIM         := "vent_shim"          # Upper entrance for moisture escape
+# -- Equipment maintenance items (Section 7 - Winter Workshop) ------------------
+const ITEM_FURNITURE_POLISH  := "furniture_polish"   # +10 condition, +2% waterproof
 
 # -- Crafting Recipes (lumber costs) -----------------------------------------
 # Each recipe: {"result": item_id, "result_count": N, "lumber_cost": N, "label": "..."}
@@ -228,6 +331,17 @@ const WORKBENCH_RECIPES: Array = [
 	 "label": "Hive Stand", "desc": "Wooden stand to elevate a hive off the ground"},
 	{"result": "hive_lid", "result_count": 1, "lumber_cost": 2, "energy_cost": 8.0,
 	 "label": "Hive Lid", "desc": "Telescoping outer cover for a hive"},
+	# Winterization crafts (Winter Workshop S4)
+	{"result": "mouse_guard", "result_count": 1, "lumber_cost": 1, "energy_cost": 4.0,
+	 "label": "Mouse Guard", "desc": "Wire mesh guard to keep mice out of the hive"},
+	{"result": "moisture_quilt", "result_count": 1, "lumber_cost": 1, "energy_cost": 4.0,
+	 "label": "Moisture Quilt Box", "desc": "Shallow box filled with shavings to absorb condensation",
+	 "extra_items": {"seeds": 0}},
+	{"result": "candy_board", "result_count": 1, "lumber_cost": 0, "energy_cost": 4.0,
+	 "label": "Candy Board", "desc": "Sugar fondant on a board for emergency winter feed",
+	 "sugar_cost": 4.0},
+	{"result": "vent_shim", "result_count": 1, "lumber_cost": 1, "energy_cost": 1.0,
+	 "label": "Ventilation Shim", "desc": "Small wedge creating an upper entrance for moisture escape"},
 ]
 
 # -- Tree Regrowth Tracking --------------------------------------------------

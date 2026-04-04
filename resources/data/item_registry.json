@@ -312,9 +312,9 @@
       "_note": "Intermediate harvest pipeline item. Not sold directly -- fill jars at canning table."
     },
 
-    "barrel_feeder": {
-      "display_name": "Barrel Feeder",
-      "description": "A sugar syrup barrel feeder. Place near hives to supply 100 NU per day for 10 days. Essential for early spring feeding before natural forage is available.",
+    "feeder_bucket": {
+      "display_name": "Feeder Bucket",
+      "description": "A sugar syrup feeder bucket. Place near hives to supply 100 NU per day for 10 days. Essential for early spring feeding before natural forage is available.",
       "sprite": "res://assets/sprites/items/barrel_feeder.png",
       "sprite_size": [32, 32],
       "category": "equipment",
@@ -323,6 +323,188 @@
       "base_sell_price": 0.0,
       "base_buy_price": 25.0,
       "_note": "Placeable world item. 100 NU/day for 10 days. Helps colonies survive the spring dearth before dandelions bloom."
+    },
+
+    "entrance_reducer": {
+      "display_name": "Entrance Reducer",
+      "description": "A metal strip that narrows the hive entrance, reducing cold air intrusion and making the hive easier to defend. Required before a mouse guard can be installed.",
+      "sprite": "res://assets/sprites/items/entrance_reducer.png",
+      "sprite_size": [32, 32],
+      "category": "supply",
+      "stackable": true,
+      "max_stack": 10,
+      "base_sell_price": 0.0,
+      "base_buy_price": 5.0,
+      "_note": "Winterization component. +5% winter survival. Buy at Tanner's."
+    },
+
+    "mouse_guard": {
+      "display_name": "Mouse Guard",
+      "description": "Wire mesh guard that blocks mice from entering the hive while allowing bees to pass. Requires entrance reducer to be installed first.",
+      "sprite": "res://assets/sprites/items/mouse_guard.png",
+      "sprite_size": [32, 32],
+      "category": "supply",
+      "stackable": true,
+      "max_stack": 10,
+      "base_sell_price": 0.0,
+      "base_buy_price": 8.0,
+      "_note": "Winterization component. Prevents mouse nesting damage. Buy or craft."
+    },
+
+    "moisture_quilt": {
+      "display_name": "Moisture Quilt Box",
+      "description": "A shallow box filled with wood shavings that sits on top of the hive to absorb condensation. Prevents cold moisture from dripping onto the winter cluster.",
+      "sprite": "res://assets/sprites/items/moisture_quilt.png",
+      "sprite_size": [32, 32],
+      "category": "supply",
+      "stackable": true,
+      "max_stack": 10,
+      "base_sell_price": 0.0,
+      "base_buy_price": 0.0,
+      "_note": "Winterization component. Craft only (1 lumber + shavings). +8% survival."
+    },
+
+    "hive_wrap": {
+      "display_name": "Hive Wrap",
+      "description": "Insulation wrap for the outside of the hive. Reduces heat loss through the walls during the coldest months.",
+      "sprite": "res://assets/sprites/items/hive_wrap.png",
+      "sprite_size": [32, 32],
+      "category": "supply",
+      "stackable": true,
+      "max_stack": 10,
+      "base_sell_price": 0.0,
+      "base_buy_price": 15.0,
+      "_note": "Winterization component. +8% survival in harsh winters. Buy at Tanner's."
+    },
+
+    "top_insulation": {
+      "display_name": "Top Insulation Board",
+      "description": "Rigid foam board that insulates above the cluster. The single most important winterization component for preventing heat loss upward.",
+      "sprite": "res://assets/sprites/items/top_insulation.png",
+      "sprite_size": [32, 32],
+      "category": "supply",
+      "stackable": true,
+      "max_stack": 10,
+      "base_sell_price": 0.0,
+      "base_buy_price": 8.0,
+      "_note": "Winterization component. +5% survival. Buy at Tanner's."
+    },
+
+    "candy_board": {
+      "display_name": "Candy Board",
+      "description": "A board of hardened sugar fondant placed on the top bars as emergency winter feed. Prevents starvation if honey stores run low.",
+      "sprite": "res://assets/sprites/items/candy_board.png",
+      "sprite_size": [32, 32],
+      "category": "supply",
+      "stackable": true,
+      "max_stack": 10,
+      "base_sell_price": 0.0,
+      "base_buy_price": 0.0,
+      "_note": "Winterization component. Craft only (sugar + water). Prevents starvation."
+    },
+
+    "vent_shim": {
+      "display_name": "Ventilation Shim",
+      "description": "A small wooden wedge that creates an upper entrance for moisture to escape. Improves the effectiveness of the moisture quilt.",
+      "sprite": "res://assets/sprites/items/vent_shim.png",
+      "sprite_size": [32, 32],
+      "category": "supply",
+      "stackable": true,
+      "max_stack": 10,
+      "base_sell_price": 0.0,
+      "base_buy_price": 0.0,
+      "_note": "Winterization component. Craft only (scrap wood, free). +2% survival."
+    },
+
+    "nuc_colony": {
+      "display_name": "Nuc Colony (5-frame)",
+      "description": "A 5-frame nucleus colony with an established queen and brood. Better start than a package -- arrives with drawn comb, stored honey, and a laying queen.",
+      "sprite": "res://assets/sprites/items/nuc_colony.png",
+      "sprite_size": [32, 32],
+      "category": "supply",
+      "stackable": false,
+      "max_stack": 1,
+      "base_sell_price": 0.0,
+      "base_buy_price": 180.0,
+      "_note": "Catalogue-exclusive item (Y1+). Better colony start than package bees."
+    },
+
+    "premium_queen": {
+      "display_name": "Premium Queen (A-grade)",
+      "description": "A-grade mated queen from certified stock. Only available during the early ordering window of the annual catalogue.",
+      "sprite": "res://assets/sprites/items/premium_queen.png",
+      "sprite_size": [32, 32],
+      "category": "supply",
+      "stackable": false,
+      "max_stack": 1,
+      "base_sell_price": 0.0,
+      "base_buy_price": 45.0,
+      "_note": "Catalogue-exclusive (Y2+, early order only). A-grade queen."
+    },
+
+    "electric_uncapping_knife": {
+      "display_name": "Electric Uncapping Knife",
+      "description": "A heated knife that makes uncapping faster and cleaner. Reduces uncapping time and improves wax recovery.",
+      "sprite": "res://assets/sprites/items/electric_uncapping_knife.png",
+      "sprite_size": [32, 32],
+      "category": "equipment",
+      "stackable": false,
+      "max_stack": 1,
+      "base_sell_price": 0.0,
+      "base_buy_price": 75.0,
+      "_note": "Catalogue-exclusive (Y2+). Honey House uncapping upgrade."
+    },
+
+    "radial_extractor_4": {
+      "display_name": "4-Frame Radial Extractor",
+      "description": "A radial extractor that processes four frames simultaneously. Major Honey House upgrade from the hand-crank 2-frame extractor.",
+      "sprite": "res://assets/sprites/items/radial_extractor.png",
+      "sprite_size": [32, 32],
+      "category": "equipment",
+      "stackable": false,
+      "max_stack": 1,
+      "base_sell_price": 0.0,
+      "base_buy_price": 200.0,
+      "_note": "Catalogue-exclusive (Y3+). Honey House extraction upgrade."
+    },
+
+    "roller_uncapper": {
+      "display_name": "Roller Uncapper",
+      "description": "Uncaps both sides of a frame at once without heat. Faster and gentler on wax than knife uncapping.",
+      "sprite": "res://assets/sprites/items/roller_uncapper.png",
+      "sprite_size": [32, 32],
+      "category": "equipment",
+      "stackable": false,
+      "max_stack": 1,
+      "base_sell_price": 0.0,
+      "base_buy_price": 435.0,
+      "_note": "Catalogue-exclusive (Y3+). Premium uncapping upgrade."
+    },
+
+    "motorized_uncapper": {
+      "display_name": "Motorized Chain Uncapper",
+      "description": "Commercial-grade automated uncapping machine. The endgame aspiration for serious honey operations.",
+      "sprite": "res://assets/sprites/items/motorized_uncapper.png",
+      "sprite_size": [32, 32],
+      "category": "equipment",
+      "stackable": false,
+      "max_stack": 1,
+      "base_sell_price": 0.0,
+      "base_buy_price": 2000.0,
+      "_note": "Catalogue-exclusive (Y5+). Endgame uncapping."
+    },
+
+    "furniture_polish": {
+      "display_name": "Furniture Polish",
+      "description": "Beeswax-based wood polish. Apply to hive equipment to restore 10 condition points and add a thin waterproof layer (+2%). Keeps wooden hive bodies looking clean and lasting longer.",
+      "sprite": "res://assets/sprites/items/furniture_polish.png",
+      "sprite_size": [32, 32],
+      "category": "supply",
+      "stackable": true,
+      "max_stack": 10,
+      "base_sell_price": 0.0,
+      "base_buy_price": 6.0,
+      "_note": "Equipment maintenance item (Winter Workshop S7). +10 condition immediate, +2% waterproof."
     },
 
     "chest": {

@@ -1,0 +1,2243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smoke &amp; Honey -- Story Bible</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --wd-darkest: #261206;
+    --wd-dark: #46260C;
+    --wd-mid: #6C4016;
+    --wd-light: #94602A;
+    --wd-pale: #BA8A48;
+    --amber-dark: #985808;
+    --amber-mid: #C8820C;
+    --amber-light: #E6A220;
+    --honey-pale: #F4CC6E;
+    --wax-cream: #F2E4B2;
+    --wax-white: #FCF5D7;
+    --cell-empty: #E4D498;
+    --cell-honey: #D49E28;
+    --cell-wall: #B48430;
+    --bg: #0F0A04;
+    --bg-warm: #1A1208;
+    --text: #F2E4B2;
+    --text-dim: rgba(242,228,178,0.55);
+    --text-faint: rgba(242,228,178,0.3);
+    --border: rgba(108,64,22,0.3);
+    --glow: rgba(230,162,32,0.08);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* SIDEBAR */
+  #sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: 280px;
+    height: 100vh;
+    overflow-y: auto;
+    background: rgba(14,11,5,0.97);
+    border-right: 1px solid rgba(108,64,22,0.2);
+    padding: 32px 0 60px;
+    z-index: 100;
+  }
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-thumb { background: var(--wd-mid); border-radius: 2px; }
+
+  .sidebar-brand {
+    padding: 0 24px 20px;
+    border-bottom: 1px solid rgba(108,64,22,0.2);
+    margin-bottom: 16px;
+  }
+  .sidebar-brand h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 18px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--honey-pale) 0%, var(--amber-light) 50%, var(--amber-mid) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.5px;
+  }
+  .sidebar-brand .sub {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-top: 2px;
+  }
+  #sidebar nav ul { list-style: none; }
+  #sidebar nav ul li a {
+    display: block;
+    padding: 5px 24px;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.15s, background 0.15s;
+    line-height: 1.5;
+  }
+  #sidebar nav ul li a:hover {
+    color: var(--amber-light);
+    background: rgba(230,162,32,0.06);
+  }
+  #sidebar nav ul li.section > a {
+    color: var(--amber-light);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding-top: 14px;
+    padding-bottom: 4px;
+  }
+  #sidebar nav ul li.sub > a {
+    padding-left: 36px;
+    font-size: 12px;
+  }
+  #sidebar nav ul li.subsub > a {
+    padding-left: 48px;
+    font-size: 11px;
+    opacity: 0.7;
+  }
+
+  /* MAIN CONTENT */
+  #content {
+    margin-left: 280px;
+    max-width: 840px;
+    padding: 0 64px 120px;
+  }
+  @media (max-width: 900px) {
+    #sidebar { display: none; }
+    #content { margin-left: 0; padding: 0 24px 80px; max-width: 100%; }
+  }
+
+  /* HERO */
+  .hero {
+    padding: 100px 0 80px;
+    text-align: center;
+    position: relative;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--amber-mid), transparent);
+    opacity: 0.3;
+  }
+  .hero-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--amber-mid);
+    margin-bottom: 24px;
+  }
+  .hero-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(42px, 6vw, 64px);
+    font-weight: 900;
+    background: linear-gradient(160deg, var(--wax-white) 0%, var(--honey-pale) 20%, var(--amber-light) 45%, var(--amber-mid) 70%, var(--wd-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+  .hero-tagline {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 20px;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--text);
+    opacity: 0.5;
+    margin-bottom: 36px;
+  }
+  .hero-meta {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .hero-meta-item {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .hero-meta-item strong { color: var(--text-dim); }
+
+  /* SECTIONS */
+  .section { padding: 64px 0 0; }
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--amber-mid);
+    margin-bottom: 12px;
+  }
+  h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 700;
+    color: var(--wax-cream);
+    line-height: 1.2;
+    margin-bottom: 24px;
+  }
+  h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--amber-light);
+    margin: 40px 0 12px;
+  }
+  h4 {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--amber-light);
+    letter-spacing: 0.5px;
+    margin: 28px 0 8px;
+  }
+  p {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text);
+    opacity: 0.75;
+    margin-bottom: 14px;
+  }
+  p strong { color: var(--amber-light); font-weight: 600; opacity: 1; }
+  p em { color: var(--text); opacity: 0.6; }
+
+  /* CALLOUT */
+  .callout {
+    background: linear-gradient(135deg, rgba(152,88,8,0.08) 0%, rgba(108,64,22,0.04) 100%);
+    border-left: 3px solid var(--amber-mid);
+    border-radius: 0 12px 12px 0;
+    padding: 28px 32px;
+    margin: 28px 0;
+  }
+  .callout p { font-size: 16px; line-height: 1.85; opacity: 0.85; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* HOSPICE CALLOUT - special warm variant */
+  .callout-warm {
+    background: linear-gradient(135deg, rgba(180,132,48,0.10) 0%, rgba(244,204,110,0.04) 100%);
+    border-left: 3px solid var(--honey-pale);
+    border-radius: 0 12px 12px 0;
+    padding: 28px 32px;
+    margin: 28px 0;
+  }
+  .callout-warm p { font-size: 16px; line-height: 1.85; opacity: 0.85; }
+  .callout-warm p:last-child { margin-bottom: 0; }
+
+  /* VIBE QUOTE */
+  .vibe {
+    text-align: center;
+    padding: 48px 32px;
+    margin: 40px 0;
+    position: relative;
+  }
+  .vibe::before, .vibe::after {
+    content: '';
+    position: absolute;
+    left: 15%; right: 15%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--amber-mid), transparent);
+    opacity: 0.15;
+  }
+  .vibe::before { top: 0; }
+  .vibe::after { bottom: 0; }
+  .vibe p {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(18px, 2.5vw, 24px);
+    font-style: italic;
+    line-height: 1.6;
+    color: var(--text);
+    opacity: 0.65;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* BEAT (screenplay style) */
+  .beat {
+    background: rgba(14,11,5,0.5);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin: 24px 0;
+  }
+  .beat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--amber-mid);
+    margin-bottom: 12px;
+  }
+  .beat p { font-size: 14px; line-height: 1.8; }
+  .beat .dialogue {
+    font-style: italic;
+    opacity: 0.7;
+    padding-left: 20px;
+    border-left: 2px solid rgba(108,64,22,0.2);
+    margin: 12px 0;
+  }
+  .beat .direction {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+    margin: 8px 0;
+  }
+
+  /* CHARACTER CARDS */
+  .char-card {
+    background: rgba(26,18,8,0.5);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin: 20px 0;
+  }
+  .char-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--amber-light);
+    margin-bottom: 4px;
+  }
+  .char-role {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 10px;
+  }
+
+  /* RELATIONSHIP WEB */
+  .rel-card {
+    background: rgba(26,18,8,0.4);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 12px 0;
+  }
+  .rel-card .rel-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--amber-light);
+    margin-bottom: 6px;
+  }
+  .rel-card p { font-size: 13px; line-height: 1.7; margin: 0; }
+
+  /* QUEST CARDS */
+  .quest-card {
+    background: rgba(26,18,8,0.5);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin: 16px 0;
+  }
+  .quest-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--amber-light);
+    margin-bottom: 2px;
+  }
+  .quest-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 10px;
+  }
+  .quest-card p { font-size: 13px; line-height: 1.7; }
+
+  /* TIMELINE */
+  .timeline-year {
+    border-left: 2px solid var(--amber-mid);
+    padding-left: 28px;
+    margin: 32px 0;
+    position: relative;
+  }
+  .timeline-year::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--amber-mid);
+  }
+  .timeline-year h4 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--honey-pale);
+    margin: 0 0 8px;
+  }
+
+  /* DATA TABLE */
+  .data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 24px 0;
+    font-size: 13px;
+  }
+  .data-table thead th {
+    background: rgba(108,64,22,0.25);
+    padding: 12px 16px;
+    text-align: left;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--amber-mid);
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table tbody td {
+    padding: 11px 16px;
+    border-bottom: 1px solid rgba(108,64,22,0.1);
+    color: var(--text);
+    opacity: 0.7;
+    background: rgba(14,11,5,0.4);
+    line-height: 1.6;
+  }
+  .data-table tbody td:first-child {
+    font-weight: 600;
+    color: var(--amber-light);
+    opacity: 1;
+    white-space: nowrap;
+  }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 56px 0;
+  }
+
+  /* DRAMA CARD - for small town drama sections */
+  .drama-card {
+    background: linear-gradient(135deg, rgba(152,88,8,0.06) 0%, rgba(26,18,8,0.5) 100%);
+    border: 1px solid rgba(108,64,22,0.25);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin: 16px 0;
+  }
+  .drama-card .drama-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--honey-pale);
+    margin-bottom: 8px;
+  }
+  .drama-card p { font-size: 13px; line-height: 1.75; }
+
+  /* HOLIDAY CARD */
+  .holiday-card {
+    background: rgba(26,18,8,0.5);
+    border: 1px solid rgba(244,204,110,0.15);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin: 16px 0;
+  }
+  .holiday-card .holiday-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--honey-pale);
+    margin-bottom: 2px;
+  }
+  .holiday-card .holiday-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 10px;
+  }
+  .holiday-card p { font-size: 13px; line-height: 1.75; }
+
+  /* FOOTER */
+  .doc-footer {
+    margin-top: 80px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+  .doc-footer p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-faint);
+  }
+
+  /* Lists */
+  ul, ol { margin: 8px 0 16px 24px; line-height: 1.7; }
+  li { font-size: 14px; color: var(--text); opacity: 0.75; margin-bottom: 4px; line-height: 1.7; }
+  li strong { color: var(--amber-light); opacity: 1; }
+
+  /* Scroll to top */
+  #scroll-top {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--amber-mid);
+    color: var(--wax-white);
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+  #scroll-top.visible { opacity: 1; }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    .hero-meta { flex-direction: column; align-items: center; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar Navigation -->
+<aside id="sidebar">
+  <div class="sidebar-brand">
+    <h1>Smoke &amp; Honey</h1>
+    <p class="sub">Story Bible</p>
+  </div>
+  <nav>
+    <ul>
+      <li class="section"><a href="#part1">I. The World</a></li>
+      <li class="sub"><a href="#cedar-bend">Cedar Bend, Iowa</a></li>
+      <li class="sub"><a href="#midwest-soul">The Midwest Soul</a></li>
+      <li class="sub"><a href="#holidays">The Four Holidays</a></li>
+
+      <li class="section"><a href="#part2">II. The People</a></li>
+      <li class="sub"><a href="#eli">The Player -- The Kid</a></li>
+      <li class="sub"><a href="#uncle-bob">Uncle Bob -- The Anchor</a></li>
+      <li class="sub"><a href="#darlene">Darlene Kowalski</a></li>
+      <li class="sub"><a href="#frank">Frank Fischbach</a></li>
+      <li class="sub"><a href="#dr-harwick">Dr. Ellen Harwick</a></li>
+      <li class="sub"><a href="#paul-kacey">Paul &amp; Kacey Rowland</a></li>
+      <li class="sub"><a href="#silas">Silas Crenshaw</a></li>
+      <li class="sub"><a href="#carl">Carl Tanner</a></li>
+      <li class="sub"><a href="#rose">Rose Delacroix</a></li>
+      <li class="sub"><a href="#june">June Wellman</a></li>
+      <li class="sub"><a href="#lloyd">Lloyd Petersen</a></li>
+      <li class="sub"><a href="#relationship-web">The Relationship Web</a></li>
+
+      <li class="section"><a href="#part3">III. Small-Town Drama</a></li>
+      <li class="sub"><a href="#drama-feuds">Old Feuds &amp; Simmering Tension</a></li>
+      <li class="sub"><a href="#drama-gossip">The Gossip Network</a></li>
+      <li class="sub"><a href="#drama-romances">Quiet Romances</a></li>
+
+      <li class="section"><a href="#part4">IV. The Story Arc</a></li>
+      <li class="sub"><a href="#year1">Year 1 -- Quickening</a></li>
+      <li class="sub"><a href="#year2">Year 2 -- Rooting</a></li>
+      <li class="sub"><a href="#year3">Year 3 -- Belonging</a></li>
+      <li class="sub"><a href="#year4">Year 4 -- Stewardship</a></li>
+      <li class="sub"><a href="#year5">Year 5 -- The Passing</a></li>
+      <li class="sub"><a href="#year5-after">After Year 5 -- The Apiary Stands</a></li>
+
+      <li class="section"><a href="#part5">V. The Hospice Arc</a></li>
+      <li class="sub"><a href="#hospice-philosophy">A Good Death</a></li>
+      <li class="sub"><a href="#hospice-timeline">The Slow Goodbye</a></li>
+      <li class="sub"><a href="#hospice-quests">Bob's Final Quests</a></li>
+      <li class="sub"><a href="#hospice-death">The Last Smoke</a></li>
+      <li class="sub"><a href="#hospice-after">After Bob</a></li>
+
+      <li class="section"><a href="#part6">VI. Quest Chains -- Full</a></li>
+      <li class="sub"><a href="#q-bob">Uncle Bob (12)</a></li>
+      <li class="sub"><a href="#q-darlene">Darlene Kowalski (10)</a></li>
+      <li class="sub"><a href="#q-frank">Frank Fischbach (5)</a></li>
+      <li class="sub"><a href="#q-harwick">Dr. Ellen Harwick (10)</a></li>
+      <li class="sub"><a href="#q-harmon">Paul &amp; Kacey Rowland (6)</a></li>
+      <li class="sub"><a href="#q-cvba">Cedar Valley BKA (4)</a></li>
+      <li class="sub"><a href="#q-silas">Silas Crenshaw (4)</a></li>
+      <li class="sub"><a href="#q-carl">Carl Tanner (10)</a></li>
+      <li class="sub"><a href="#q-rose">Rose Delacroix (10)</a></li>
+      <li class="sub"><a href="#q-june">June Wellman (10)</a></li>
+      <li class="sub"><a href="#q-lloyd">Lloyd Petersen (4)</a></li>
+      <li class="sub"><a href="#q-holiday">Holiday Quests (4)</a></li>
+      <li class="sub"><a href="#q-community">Community Quests (6)</a></li>
+
+      <li class="section"><a href="#part7">VII. Themes &amp; Threads</a></li>
+      <li class="sub"><a href="#thread-grief">Grief &amp; Continuation</a></li>
+      <li class="sub"><a href="#thread-legacy">Legacy &amp; Mentorship</a></li>
+      <li class="sub"><a href="#thread-community">Community &amp; Belonging</a></li>
+      <li class="sub"><a href="#thread-midwest">Midwestern Identity</a></li>
+
+      <li class="section"><a href="#part8">VIII. Confirmed Additions</a></li>
+      <li class="sub"><a href="#part8">Family Visits, Agnes, Church, Mead, Bandit, Journal</a></li>
+
+      <li class="section"><a href="#part9">IX. Things to Consider</a></li>
+      <li class="sub"><a href="#part9">Rival Beekeeper, Winter Content, Endgame</a></li>
+    </ul>
+  </nav>
+</aside>
+
+<!-- Main Content -->
+<div id="content">
+
+<!-- HERO -->
+<header class="hero">
+  <p class="hero-label">Story Bible</p>
+  <h1 class="hero-title">Smoke &amp; Honey<br>Story Bible</h1>
+  <p class="hero-tagline">The definitive narrative reference for Cedar Bend</p>
+  <div class="hero-meta">
+    <span class="hero-meta-item"><strong>11</strong> Named Characters</span>
+    <span class="hero-meta-item"><strong>65+</strong> Quests</span>
+    <span class="hero-meta-item"><strong>5</strong> Years</span>
+    <span class="hero-meta-item"><strong>1</strong> Good Death</span>
+    <span class="hero-meta-item"><strong>Any</strong> Player Character</span>
+  </div>
+</header>
+
+<!-- ====================================================================
+     PART I: THE WORLD
+     ==================================================================== -->
+<div class="section" id="part1">
+  <p class="section-label">Part I</p>
+  <h2>The World</h2>
+</div>
+
+<div id="cedar-bend">
+  <h3>Cedar Bend, Iowa</h3>
+
+  <p>Millhaven County, Iowa. Population 1,847, if you count the farms. The kind of place where the gas station closes at 8 PM and nobody thinks that's unusual. Where the grain elevator is the tallest structure for twelve miles and the water tower says CEDAR BEND in letters that were repainted in 2003 and are already peeling again.</p>
+
+  <p>The town sits in a shallow bend of Cedar Creek, which is why people sixty years ago named it that and nobody since has seen reason to argue. Main Street runs east-west for six blocks. There is one stoplight, and it blinks yellow after 10 PM. The nearest ShopMart is forty-five minutes in Albion. People drive there on Saturdays when they need something Tanner's doesn't carry, which isn't often, because Carl Tanner carries everything a person in Millhaven County actually needs.</p>
+
+  <p>Cedar Bend is not dying. People who don't live here say it is, because they measure life in growth metrics and new construction permits. Cedar Bend measures life differently: <strong>Did the diner open this morning? Is the post office still running? Did the corn come in?</strong> By those measures, Cedar Bend is alive and stubborn and deeply, quietly proud of itself.</p>
+
+  <div class="callout">
+    <p>This is the kind of town where people wave at every truck, where casseroles appear on your porch when you're sick and nobody claims credit, where the biggest news of the week is whose beans got in first, and where a kid from the suburbs will learn that community is not something you join -- it's something that <strong>absorbs you</strong> whether you ask it to or not.</p>
+  </div>
+
+  <div class="callout">
+    <p><strong>A note on "the player" vs. character names:</strong> Throughout this document, the player character is referred to as "the player" or "the kid." The game features a character creator -- the player chooses their name, appearance, and gender at the start. All NPC dialogue adapts accordingly. The emotional arc and story beats are universal regardless of who the player creates. Uncle Bob is always Uncle Bob. The bees don't care what you look like.</p>
+  </div>
+</div>
+
+<div id="midwest-soul">
+  <h3>The Midwest Soul</h3>
+
+  <p>Cedar Bend runs on an unwritten social code that the player will absorb slowly, the way you absorb an accent. These are things nobody teaches because everybody already knows them:</p>
+
+  <p><strong>The casserole economy.</strong> When someone is sick, there are casseroles. When someone dies, there are casseroles. When someone moves in, there are casseroles. Rose Delacroix keeps a mental ledger of who brought what to whom and when, and she is never wrong. The casserole is not about food. It is about showing up without being asked and leaving before you overstay. The player's first casserole arrives the week after they move in -- a green bean from a woman he has never met, left on the porch in a dish with her name taped to the bottom, because <em>you always return the dish.</em></p>
+
+  <p><strong>Midwestern Nice.</strong> People in Cedar Bend are unfailingly polite and will hold a thirty-minute conversation about gas prices before asking the question they actually came to ask. "You see what they're charging at the Casey's?" is not small talk. It is the opening ceremony. Carl Tanner can tell you the five-day forecast from memory and considers this normal -- gas prices and weather, the two shared currencies of Iowa conversation. Arguments are conducted through aggressively cheerful indirection -- "Well, that's one way to do it!" means "You are dead wrong and I am judging you." The player will learn to decode this language as part of the Cedar Bend experience.</p>
+
+  <p><strong>The potluck imperative.</strong> Every gathering of more than six people requires a table of covered dishes. This is not optional. Showing up empty-handed to a potluck is a social offense roughly equivalent to a misdemeanor. Rose's diner hosts the big ones. The Grange Hall handles the overflow. By Year 3, the player brings honey cornbread and people save them a spot.</p>
+
+  <p><strong>Minding your own business (while knowing everyone else's).</strong> Cedar Bend respects privacy the way a river respects a levee -- in principle, with occasional overflows. June Wellman sees every package that comes and goes. Rose hears every conversation at the counter. Carl reads the bulletin board postings before he pins them up. Nobody gossips maliciously, but everybody <em>knows things</em>, and the knowing is its own currency.</p>
+
+  <p><strong>The church question.</strong> "Where do you go on Sundays?" is Cedar Bend's way of asking where you fit in the social map. There's the Lutheran church (most of the old farming families), the Methodist church (the town professionals), and the Catholic church twelve miles down Route 9 (the Delacroix family and a handful of others). Uncle Bob doesn't go to any of them. He goes to his bees on Sunday mornings. Nobody asks him about it anymore. They used to.</p>
+</div>
+
+<div id="holidays">
+  <h3>The Four Holidays of Cedar Bend</h3>
+
+  <p>Cedar Bend's holidays are not borrowed from the outside calendar. They belong to this place and these people -- named in an older language, carried forward by habit, celebrated because the rhythm of the year demands marking. Each holiday is a story moment, a community event, and a window into who these people are when they stop working and start remembering.</p>
+
+  <div class="holiday-card">
+    <p class="holiday-name">The Quickening Morn</p>
+    <p class="holiday-date">Greening 12 -- Spring</p>
+    <p>The whole town gathers at sunrise for a communal breakfast in the square. Flower garlands hang from every porch. Children hunt for painted wooden eggs hidden in the clover fields. Rose starts cooking at 3 AM and doesn't sit down until noon. Carl opens the store late and nobody complains. Uncle Bob always brings a frame of fresh comb to the breakfast -- cuts pieces for anyone who wants to taste the first honey of the year. The bees are humming with new brood. The name comes from the old agricultural sense: the first stirring of life in the ground.</p>
+    <p><strong>Story moment:</strong> In Year 1, this is the player's introduction to the community as a person, not just "Bob's kid." Darlene introduces them around. They are awkward and quiet and Rose puts a plate in front of them without asking. In Year 5, this is the last Quickening Morn that Bob attends. He is in a wheelchair. He still brings the comb.</p>
+  </div>
+
+  <div class="holiday-card">
+    <p class="holiday-name">Founder's Beam</p>
+    <p class="holiday-date">High-Sun 19 -- Summer</p>
+    <p>Cedar Bend's midsummer festival. Named for the first timber raised when the original settlers built the town hall in 1887. Fireworks over the fairgrounds at dusk. Pie contests at the diner. Flags on every porch and bunting across Main Street. The Saturday Market runs a special all-day session regardless of the day of the week. Carl Tanner gives a short speech every year about the history of Main Street and always tears up at the same part -- when he talks about his grandfather opening the store. The hottest, loudest, proudest day of the year.</p>
+    <p><strong>Story moment:</strong> The Founder's Beam pie contest is where Rose and Darlene's annual rivalry plays out -- Rose enters her honey pie (using the player's honey by Year 2) and Darlene enters her grandmother's sour cream raisin pie. They have split the wins for a decade. The whole town takes sides, lovingly.</p>
+  </div>
+
+  <div class="holiday-card">
+    <p class="holiday-name">The Reaping Fire</p>
+    <p class="holiday-date">Full-Earth 7 -- Fall</p>
+    <p>The harvest bonfire. Families build a great pyre in the town square from deadfall and dried corn stalks. At dusk, corn-husk effigies are placed on top and the fire is lit. Children carry gourd lanterns. Elders tell stories until the embers die. Lloyd Petersen always tells the same story about the cedar tree that fell across the creek in the storm of 1994 and how the town rebuilt the bridge in one weekend. Silas interrupts him at the same point every year -- "It was two weekends, Lloyd, and I was there." Everyone laughs. Every year.</p>
+    <p><strong>Story moment:</strong> The Reaping Fire is where the Rowland family tension surfaces publicly. In Year 2, after the pesticide kill event, Paul Rowland is conspicuously absent from the fire for the first time in thirty years. Kacey comes alone. The town notices. By Year 4, when Paul comes around, he's back at the fire, and he sits next to the player. That's the apology nobody needed to say out loud.</p>
+  </div>
+
+  <div class="holiday-card">
+    <p class="holiday-name">The Long Table</p>
+    <p class="holiday-date">Deepcold 21 -- Winter</p>
+    <p>The longest night. Every household sets one long table and invites whoever will come. Gifts are exchanged, old debts are forgiven, and a single lantern is hung in every window to guide the lost home through the dark. Rose serves a free meal to anyone who walks into the diner alone. The Grange Hall opens for community potluck. Outside, the hives are silent under snow. Inside, the world is warm.</p>
+    <p><strong>Story moment:</strong> In Year 1, the player helps Bob set his table -- just the two of them, and it's enough. By Year 3, that table seats eight: the player, Bob, Darlene, Lloyd, Rose (who brings pie), Silas, and whoever else wanders in from the cold. In Year 5, the table is set with Bob's empty chair and a jar of honey where his plate would be. Nobody explains it. Everybody understands.</p>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ====================================================================
+     PART II: THE PEOPLE
+     ==================================================================== -->
+<div class="section" id="part2">
+  <p class="section-label">Part II</p>
+  <h2>The People of Cedar Bend</h2>
+
+  <p>Every character in Cedar Bend exists in relationship to every other character. This is a small town. These people have been in each other's lives for decades. They have histories, grudges, kindnesses, and debts that predate the player's arrival by generations. When the player walks into Cedar Bend, they are walking into the middle of a story that started long before them.</p>
+</div>
+
+<div id="eli">
+  <h3>The Player -- The Kid Who Showed Up</h3>
+
+  <div class="char-card">
+    <p class="char-name">The Player Character</p>
+    <p class="char-role">Created by the Player -- Uncle Bob's Niece or Nephew</p>
+    <p>The player creates their character at the start: name, appearance, gender. What remains constant is the emotional core -- a kid from the suburbs, good family, nothing broken, nobody cruel. But this kid carries the ambient dread of a generation raised on algorithmic anxiety. Not one specific fear but the <strong>feeling that the future is unsettled</strong> -- that the adults are improvising and the ground is shifting. They don't have the vocabulary for existential crisis. They just know that homework feels pointless when an AI can do it better and planning feels like drawing on water.</p>
+    <p>They say yes to Uncle Bob's invitation before their brain can talk them out of it, because someone asked them for <strong>something real</strong>. A hive. A living thing. A problem that doesn't need Wi-Fi to solve.</p>
+    <p><strong>Design note on the character creator:</strong> All NPC dialogue uses the player's chosen name. Relationship terms adapt: "niece/nephew," "kid," "young one," "the new beekeeper." Bob calls them "kid" regardless. Rose calls them "honey" regardless. The story works whether the player is a boy, a girl, or nonbinary -- because the emotional arc is universal: a young person who feels powerless discovers that attention is a form of power.</p>
+    <p><strong>Midwestern transformation:</strong> By Year 3, the player character has absorbed Cedar Bend into their bones. They say "ope" when they bump into things. They wave at every truck on the county road. They bring a covered dish to the potluck without being asked. They have become, without noticing, a Midwesterner -- not by birth but by the accumulation of small courtesies, borrowed tools, returned dishes, and mornings spent doing work that matters alongside people who noticed.</p>
+  </div>
+
+  <div class="callout">
+    <p><strong>Why the creator matters:</strong> Letting the player build their own character deepens identification. They are not watching someone else's story -- they are living their own. When Uncle Bob dies, it is <em>their</em> uncle who is gone. When the town rallies, it rallies around <em>them</em>. The character creator transforms the narrative from "a story about a kid" into "a story about you." Every cozy game benefits from this, but Smoke &amp; Honey's emotional depth makes it essential.</p>
+  </div>
+</div>
+
+<div id="uncle-bob">
+  <h3>Uncle Bob -- The Man Who Called</h3>
+
+  <div class="char-card">
+    <p class="char-name">Robert "Bob" Baker</p>
+    <p class="char-role">Uncle / Mentor / Beekeeper / Vietnam Veteran -- 20 years experience -- Early 60s</p>
+    <p>The player's uncle. A man who has lived alone since his wife Sandy passed eight years ago and filled the silence with bees. He is not sad -- he is settled. He chose this life deliberately. A small property, a workshop, a dozen hives, a truck that starts on the third try, and a conviction that the world makes more sense at the pace of seasons.</p>
+    <p><strong>The war he carried home:</strong> Bob was drafted in 1970 at nineteen. Served thirteen months in-country. He doesn't talk about it much, but the evidence is everywhere if you know how to look: the military corners on his bed, the way he rises at the same time every morning regardless of season, the faded unit patch pinned above his workbench, the way he goes quiet when helicopters pass over. He was exposed to Agent Orange in the Mekong Delta -- walked through defoliated jungle for weeks. The VA didn't acknowledge the connection for decades. By the time they did, the damage to his liver was already deep and slow and irreversible.</p>
+    <p>When he came home, he couldn't sit still and couldn't be indoors. A neighbor kept bees. Bob watched from the fence for a week, then walked over and said "Teach me." The bees gave him the thing the war took away: a reason to be quiet and pay attention to something alive. He has kept bees ever since. Twenty years of mornings in the apiary is Bob's real therapy -- the VA appointments are just paperwork.</p>
+    <p>His liver has been failing slowly for years. He manages it the way he manages everything -- pills with morning coffee, doctor visits he doesn't discuss, a diet he mostly follows when Rose isn't putting pie in front of him. He had a serious episode in December -- jaundice, fluid retention, a hospital stay in Albion he didn't tell the family about until afterward. He spent three weeks recovering while the temperature dropped to negative fifteen. When he got to the apiary, eleven of twelve hives were dead. One survived.</p>
+    <p>Bob is a man of few words and precise habits. He drinks his coffee black and starts at the same time every morning. He reads the Albion paper and ignores the national news. He tells the same three jokes and they're funnier every time because the delivery gets drier. He calls the bees "the girls" and the queen "Her Majesty" and once cried standing in the apiary at sunset and will never tell anyone about it.</p>
+    <p><strong>Bandit.</strong> Bob has a cat. A gray tabby with a black mask across his eyes -- hence the name. Bob is a cat person, not a dog person, and will tell you so if asked: "Dogs need you. Cats choose you. That's different." Bandit sleeps on the porch in summer and on Bob's lap in winter. He does not care about bees. He cares about the warm spot behind Bob's knees and the sound of the coffee grinder at 5 AM. As Bob gets sicker, Bandit gravitates toward him more -- finds his lap more often, curls closer, stays longer. Cats know. They always know. By Year 5, Bandit is on Bob's lap every evening, a warm soft weight right when Bob needs one most. After Bob dies, Bandit sleeps on Bob's empty chair for three days. Then he follows the player to the apiary one morning and sits on the bench next to Bob's hat. He stays.</p>
+    <p><strong>What Cedar Bend knows about Bob:</strong> That he served in Vietnam and doesn't talk about it. That he was the best dancer at the Grange Hall before Sandy died. That he and Lloyd Petersen hunted mushrooms every fall for thirty years. That he argued with Paul Rowland about pesticides in 2019 and neither man has mentioned it since. That he built Darlene Kowalski's first nuc box when she was starting out and she still has it. That Rose Delacroix sets aside a slice of pecan pie for him every Tuesday because Sandy used to order it and Rose just never stopped. That the VA sends him letters he doesn't open and pills he doesn't always take.</p>
+    <p><strong>His philosophy, delivered through bees:</strong> "Eleven hives died. One made it. We start from the one." Bob never lectures. He hands you a hive tool and says "let's see what the girls are up to." Everything he teaches about bees is also, quietly, about living -- and about surviving things that should have killed you and choosing to build instead of break. Everything about his death will be, quietly, about what it means to leave something behind that continues. The war took forty years to finish what it started. But in those forty years, Bob built a life that outlasted the damage.</p>
+  </div>
+</div>
+
+<div id="darlene">
+  <h3>Darlene Kowalski -- The Standard</h3>
+
+  <div class="char-card">
+    <p class="char-name">Darlene Kowalski</p>
+    <p class="char-role">Retired Master Beekeeper -- Late 60s -- Adjacent Property</p>
+    <p>Third-generation Cedar Bend beekeeper. Warm, practical, absolutely no-nonsense. Her grandmother ran bees during the Depression and Darlene's queen line traces back to stock her grandmother brought from Poland in 1928. She keeps six hives -- not because she can't manage more, but because six is enough to keep her hands busy and her standards high.</p>
+    <p>She lost her husband Teddy to a tractor accident seventeen years ago. She does not talk about it often, but when she does, it is with the matter-of-factness of someone who has carried grief long enough that it became furniture -- always there, not always noticed, part of the room. When Teddy died, she walked out to her hives at dawn the next morning and told them. Knocked on every box. Said the words her grandmother taught her. It is the oldest tradition in beekeeping and the only time Darlene cried that week. She understands Bob's condition in a way the younger characters cannot, because she already knows what it is to watch someone's body fail faster than their spirit.</p>
+    <p><strong>What Cedar Bend knows about Darlene:</strong> That she and Rose Delacroix have competed in the Founder's Beam pie contest for eleven years and the score is Rose 6, Darlene 5. That she taught June Wellman's grandmother Mae how to pickle beets. That she thinks Paul Rowland is "pig-headed but not stupid" and said so to his face at the 2020 Grange Hall meeting. That she brings sour cream raisin pie to every funeral and has never missed one in forty years.</p>
+    <p><strong>Her role in the hospice arc:</strong> Darlene is the one who sees Bob declining before anyone else does. She is the one who brings casseroles to his porch and doesn't ring the doorbell. She is the one who sits with the player after Bob's death and says: "Honey, the bees don't stop. And neither do you. That's not cold. That's the deal."</p>
+  </div>
+</div>
+
+<div id="frank">
+  <h3>Frank Fischbach -- The Market Man</h3>
+
+  <div class="char-card">
+    <p class="char-name">Frank Fischbach</p>
+    <p class="char-role">Saturday Market Vendor -- Mid-50s -- Primary Buyer</p>
+    <p>Runs the Cedar Bend Saturday Market with the cheerful ruthlessness of a man who has been selling sweet corn and pickles for thirty years. German-American, stocky, ruddy-faced, always wearing a Cedar Bend Corn Festival cap that is older than some of his customers. His handshake could crack a walnut.</p>
+    <p>Frank is the first person in Cedar Bend who treats the player like a business partner rather than a kid. He doesn't coddle. He tells them their first labels look "like a school project" and means it as actionable feedback. When the player's honey starts winning repeat customers, Frank says "People are asking for you -- that's worth more than the honey." He is the economic realist in a cast of romantics, and his approval means something because he doesn't give it cheaply.</p>
+    <p><strong>What Cedar Bend knows about Frank:</strong> That he and Carl Tanner play cribbage every Wednesday night at the diner and have for fifteen years. That his wife Patty runs the church choir and has a better singing voice than she lets on. That he almost moved to Des Moines in 1998 and Patty talked him out of it over one conversation at the Crossroads Diner counter. That he donates unsold produce to the Methodist food bank every Saturday afternoon without telling anyone.</p>
+  </div>
+</div>
+
+<div id="dr-harwick">
+  <h3>Dr. Ellen Harwick -- The Scientist</h3>
+
+  <div class="char-card">
+    <p class="char-name">Dr. Ellen Harwick</p>
+    <p class="char-role">Extension Agent -- Early 40s -- Cedar Bend State University</p>
+    <p>The county extension agent for Millhaven County. PhD in entomology from the University of Iowa. Expert in integrated pest management. She speaks in data and citations and occasionally forgets that not everyone finds varroa mite reproductive cycles as fascinating as she does. She is the only NPC who will never sugarcoat bad news -- "Your mite count is above threshold. Let's talk about what that means." She will also remind anyone who assumes otherwise that her degree is from Iowa, not Iowa State: "Everyone hears 'agriculture' and thinks Ames. Iowa has an entomology department, thank you very much. We just don't put corn on everything."</p>
+    <p>Ellen moved to Cedar Bend five years ago from Iowa City and still gets called "the new girl" by Lloyd Petersen, who considers anyone who arrived after 1990 to be provisional. She doesn't mind. She understands that trust in a small town is earned in decades, not diplomas.</p>
+    <p><strong>What Cedar Bend knows about Dr. Harwick:</strong> That she once corrected Paul Rowland's spray timing at a Grange Hall meeting and he didn't speak to her for a month. That she keeps a small experimental garden outside her office and grows varieties nobody in the county has seen before. That she and Kacey Rowland are quietly collaborating on a pollinator-friendly farming paper -- and that they rib each other constantly about Iowa vs. Iowa State, since Kacey got her agronomy degree from Ames. That she owns more books than furniture.</p>
+    <p><strong>Safety Net -- Research Nuc (Winter Workshop S5):</strong> If the player begins any spring with 0-1 surviving colonized hives, Dr. Harwick offers a subsidized research nuc ($80 vs. $130) from her county extension program. She visits the apiary 3-4 times per year to inspect it for research data. Fires once per game. Her visits create natural presence even outside the milestone chain -- she is the kind of person who shows up because the data matters, and the data matters because the bees matter.</p>
+  </div>
+</div>
+
+<div id="paul-kacey">
+  <h3>Paul &amp; Kacey Rowland -- The Farm</h3>
+
+  <div class="char-card">
+    <p class="char-name">Paul Rowland</p>
+    <p class="char-role">Farmer -- Late 50s -- Rowland Farm (Corn/Soybean)</p>
+    <p>Fourth-generation corn and soybean operation. Paul Rowland is the kind of man who scares people. Not on purpose -- he's just six-two, sun-baked, rarely smiling, and speaks in a register that sounds like a warning even when he's ordering coffee. Half of Millhaven County would rather drive to Albion than ask Paul for a favor. He measures a good year in bushels and a bad year in what he can't control. He is not a villain. He is a man who farms the way his father farmed, and his father before that, and who has watched the margins get thinner every decade. He sprays when the agronomist says to spray. He plants what the market says to plant. The idea that his spray schedule killed bees on Bob's property is not something he can absorb quickly, because absorbing it means questioning the way three generations of Rowlands did business.</p>
+    <p>But Paul Rowland is also the man who, when the pastor at the Methodist church mentioned offhandedly that the church toilet had been broken for two months and the congregation was using a portable unit, drove to Albion the next morning, bought a commercial-grade toilet and all the fittings, and had Silas Crenshaw install it over a weekend. He never told a single soul. The pastor found out three years later from Silas's wife Marge, who mentioned it at a church dinner without thinking. Paul still denies it. The town knows. This is the thing about Paul Rowland: the man who intimidates everyone is also the man who fixes things in the dark and pretends he didn't.</p>
+    <p>He comes around. Slowly. Through his daughter, who speaks his language but asks better questions.</p>
+  </div>
+
+  <div class="char-card">
+    <p class="char-name">Kacey Rowland</p>
+    <p class="char-role">Agronomist -- Late 20s -- Paul's Daughter</p>
+    <p>Studied agronomy at Iowa State -- the Rowland family has sent someone to Ames every generation since 1961. Came back to the farm because she loves the land and believes it can be worked differently. She and Ellen Harwick have a running (mostly playful) rivalry about their alma maters that surfaces at every CVBA meeting and Grange Hall event. "At least we learned on actual dirt," Kacey says. "At least we learned from actual research," Ellen replies. The town finds this endlessly entertaining. She is the bridge between Paul's generation and the future. She doesn't argue with her father -- she shows him data. She is smart, patient, and carries the specific Midwestern burden of a daughter who loves her father and disagrees with him about almost everything that matters.</p>
+    <p><strong>What Cedar Bend knows about the Rowlands:</strong> That Paul and Bob Baker had a shouting match about neonicotinoids at Tanner's Supply in 2019 and Carl Tanner had to stand between them. That Kacey dated a boy from Albion who her father didn't approve of and the relationship ended but nobody talks about why. That Paul's wife Gloria makes the best scalloped corn in the county but won't enter it in any contest because "competitions are for people with something to prove." That Paul skipped the Reaping Fire the year his bees killed Bob's -- the only year he's missed since 1988.</p>
+  </div>
+</div>
+
+<div id="silas">
+  <h3>Silas Crenshaw -- The Builder</h3>
+
+  <div class="char-card">
+    <p class="char-name">Silas Crenshaw</p>
+    <p class="char-role">Semi-Retired Carpenter -- Early 70s</p>
+    <p>Built half the barns in Millhaven County. Runs a workshop behind the hardware store. Quiet, precise, opinionated about lumber quality in the way that other people are opinionated about politics. He knew Uncle Bob well -- built the original Honey House for him decades ago. His wife Marge passed three years ago and he tells people he's fine. He is fine. He just works more hours than a retired man should and doesn't always eat dinner.</p>
+    <p><strong>What Cedar Bend knows about Silas:</strong> That he built the Grange Hall stage in 1979 and it hasn't needed a single repair. That he and Lloyd Petersen argue about lumber quality every time they're in the same room and have been doing so since the Carter administration. That Marge used to bring his lunch to the workshop every day and since she passed he sometimes forgets. That Rose saves him a booth at the diner and puts his coffee on before he sits down.</p>
+    <p><strong>Silas and Bob:</strong> These two men have been friends for forty years. They don't talk about feelings. They talk about grain direction and wood moisture and the right angle for a hive stand. But when Bob's health started failing, Silas built him a bench for the apiary without being asked. Set it where Bob could watch the hives without standing. Never mentioned it. Bob never thanked him. Both of them understood the bench was an act of love spoken in the only language they shared.</p>
+  </div>
+</div>
+
+<div id="carl">
+  <h3>Carl Tanner -- The Supply Line</h3>
+
+  <div class="char-card">
+    <p class="char-name">Carl Tanner</p>
+    <p class="char-role">Feed &amp; Supply Owner -- Early 50s</p>
+    <p>Third-generation store owner. His grandfather opened Tanner's in 1952, one of the first Black-owned businesses in Millhaven County. Carl carries that legacy with quiet pride and a practical stubbornness that has kept the store open through every economic downturn, big-box incursion, and cultural shift that has closed a hundred stores like his across Iowa.</p>
+    <p>He knows every farmer in the county by name and what they ordered last spring. His winter catalog is legendary -- hand-annotated with recommendations that are worth more than the products. He keeps a well-organized bulletin board by the front door that is Cedar Bend's unofficial nervous system.</p>
+    <p><strong>What Cedar Bend knows about Carl:</strong> That his wife Linda teaches fourth grade and is beloved by every kid who's passed through that classroom in twenty years. That Carl coaches Little League in the summer and has never had a losing season. That he and Frank Fischbach play cribbage on Wednesday nights and Carl has a 60-40 lifetime advantage but Frank disputes this. That when Bob Baker was recovering from his liver episode, Carl delivered feed to the property every week for two months and put it on a tab he never collected.</p>
+    <p><strong>Safety Net -- Carl's Tab (Winter Workshop S5):</strong> If the player's cash drops below $50 during spring, Carl offers $150 credit: "Your uncle was good for it." Repay by end of High-Sun or take -5 Standing. This is who Carl is -- the man who carried Bob's tab without asking, doing the same for the kid Bob sent. It is not a loan. It is a vote of confidence disguised as commerce.</p>
+  </div>
+</div>
+
+<div id="rose">
+  <h3>Rose Delacroix -- The Heart</h3>
+
+  <div class="char-card">
+    <p class="char-name">Rose Delacroix</p>
+    <p class="char-role">Diner Owner &amp; Head Cook -- Late 40s -- Crossroads Diner</p>
+    <p>Born in Cedar Bend, left for culinary school in Winston-Salem, North Carolina -- the only person in Cedar Bend who has ever lived south of the Missouri border and come back voluntarily. Came home when her mother got sick and never left again. The Crossroads Diner is her life's work and Cedar Bend's living room. She employs Agnes Pfeiffer as her waitress and keeps the place running 6 AM to 9 PM, six days a week. Closed Sundays -- "Even the Lord rested."</p>
+    <p>Rose is the social switchboard of Cedar Bend. Everything passes through the diner counter. She knows whose marriage is struggling before they do. She knows when Carl Tanner is worried about the store because he orders decaf instead of regular. She knows Bob Baker's health better than his doctor does because she watches how much pie he leaves on the plate.</p>
+    <p><strong>What Cedar Bend knows about Rose:</strong> That she was engaged once, to a man from Marion, and called it off three weeks before the wedding because "he wanted me to close the diner and I wanted him to understand why I couldn't." That she and Darlene Kowalski are the closest thing Cedar Bend has to best friends, though neither would use that word -- they just show up for each other, year after year, casserole after casserole. That she makes a free Long Table meal every Deepcold 21 for anyone who walks in alone, and she has done this for fifteen years, and the town considers it sacred.</p>
+    <p><strong>Rose and Bob:</strong> Rose sets aside a slice of pecan pie for Bob every Tuesday. She started doing this for Sandy, Bob's wife, who always ordered it. After Sandy died, Rose just kept setting it aside. She doesn't charge him. He doesn't ask why. It has been eight years. This is the purest expression of Midwestern grief and love in the entire game -- <em>a ritual that nobody started and nobody will end and nobody needs to explain.</em></p>
+  </div>
+</div>
+
+<div id="june">
+  <h3>June Wellman -- The Keeper</h3>
+
+  <div class="char-card">
+    <p class="char-name">June Wellman</p>
+    <p class="char-role">Postmaster -- Late 20s -- Asian American</p>
+    <p>Took over the Cedar Bend post office two years ago from her grandmother Mae, who ran it for thirty-one years. June grew up sorting mail after school and knows every address in the county by heart -- not from decades of service, but from a childhood spent in the back room while Grandma Mae worked the counter. Quiet, observant, unexpectedly dry-humored.</p>
+    <p>She is the youngest adult NPC and the one the player relates to most naturally. She understands what it means to inherit something from someone you love and feel the weight of keeping it alive. Some of the older farmers still call her "little Mae." She doesn't correct them anymore.</p>
+    <p><strong>What Cedar Bend knows about June:</strong> That her grandmother Mae was born in a Japanese internment camp in 1943 and came to Iowa after the war and never talked about it. That June's mother married a man from Waterloo and June grew up splitting time between the city and Cedar Bend. That she reads a book a week at the post office counter and has opinions about everything she reads. That she and Kacey Rowland are the only people under thirty who stayed, and they eat lunch together at the diner on Fridays.</p>
+    <p><strong>June and the letter:</strong> Uncle Bob left a letter with Mae Wellman eight years ago, to be delivered "when the new beekeeper was ready." Mae passed it to June when she retired. June has been holding it the entire game. She knows what it says. She has read it, because she is June and of course she read it. She waits for the right time, which turns out to be Year 3 -- after the player has proven they're not visiting, they're staying.</p>
+    <p><strong>June and the catalogue (Winter Workshop S6):</strong> Every Kindlemonth, June delivers the annual beekeeping catalogue to the player. It is a recurring event that anchors her role as the mail system and gives her a natural presence in the winter months. She arrives with the catalogue, mentions which items are popular this year, and leaves. The early-order bonus is her doing -- "If you order in the first three days, I can flag it priority. After that, you get what's left."</p>
+  </div>
+</div>
+
+<div id="lloyd">
+  <h3>Lloyd Petersen -- The Land</h3>
+
+  <div class="char-card">
+    <p class="char-name">Lloyd Petersen</p>
+    <p class="char-role">Woodlot Manager -- Late 60s -- 80 Acres of Mixed Hardwood</p>
+    <p>Lifelong woodsman and former county forester. Retired early to manage his own land on his own terms. Wears the same canvas jacket year-round. Deliberate in speech and movement. The kind of man who will stand in a forest for twenty minutes without saying a word and then point at a tree and tell you its entire life history.</p>
+    <p>His land contains the linden grove that makes the Timber the most valuable mid-game apiary location. He is protective of his trees in the way that parents are protective of children -- fiercely, without apology, and with the assumption that anyone who doesn't understand is simply not paying attention.</p>
+    <p><strong>What Cedar Bend knows about Lloyd:</strong> That he and Bob Baker hunted mushrooms together every fall for thirty years. That he and Silas Crenshaw have argued about the proper use of black walnut lumber since at least 1982. That he voted against the county's proposal to widen Route 9 because it would have taken out a stand of century-old oaks, and he stood up at the county board meeting and said "those trees were here before the road and they'll be here after it's gone" and the proposal was tabled. That his wife lives in Albion now -- they're not divorced, they just "needed different amounts of quiet" and everyone in Cedar Bend accepts this without judgment because Lloyd's amount of quiet is approximately infinite.</p>
+    <p><strong>Lloyd and Bob:</strong> Mushroom hunting buddies for three decades. Two quiet men walking through trees in October, not speaking, occasionally pointing at something on a fallen log. This is the deepest male friendship in the game and it is conducted almost entirely in silence. When Bob dies, Lloyd walks the timber alone for the first time in thirty years and does not speak to anyone for three days. When he comes back, he tells the player: "Your uncle understood that a forest is a conversation you listen to. Most people just hear noise." This is the closest Lloyd will ever come to a eulogy.</p>
+  </div>
+</div>
+
+<div id="relationship-web">
+  <h3>The Relationship Web</h3>
+
+  <p>Cedar Bend's NPCs are not quest-givers who exist in isolation. They are people who have been in each other's lives for years. Here is how they connect:</p>
+
+  <div class="rel-card">
+    <p class="rel-title">Bob &amp; Darlene -- The Old Guard</p>
+    <p>Bob built Darlene's first nuc box. They trade queens. Darlene is the first person Bob calls when a hive has trouble. They disagree about treatment philosophy -- Bob is more hands-off, Darlene is more interventionist -- but they trust each other absolutely. When Bob's health declines, Darlene becomes his quiet caretaker, the person who checks on him when the player isn't there.</p>
+  </div>
+
+  <div class="rel-card">
+    <p class="rel-title">Bob &amp; Lloyd -- The Mushroom Walk</p>
+    <p>Thirty years of fall mornings in the timber. Two men who communicate primarily through pointing at things and grunting approvingly. Lloyd is the one who told Bob about the linden grove's potential. Bob is the one who convinced Lloyd to let someone else onto the timber. Their friendship is the foundation of the Timber apiary access.</p>
+  </div>
+
+  <div class="rel-card">
+    <p class="rel-title">Bob &amp; Paul -- The Unresolved Argument</p>
+    <p>The 2019 shouting match at Tanner's Supply about neonicotinoids. Carl Tanner stood between them. Neither man apologized. They nod at each other at the diner now. The pesticide kill event in Year 2 reopens this wound through the player, and the resolution comes not through the two older men but through the next generation -- the player and Kacey.</p>
+  </div>
+
+  <div class="rel-card">
+    <p class="rel-title">Rose &amp; Darlene -- The Best Friends Who Don't Say So</p>
+    <p>The pie contest rivalry is the public face. Behind it: forty years of friendship built on showing up. When Teddy Kowalski died, Rose closed the diner for a day -- the only time she has ever closed for anything other than a holiday. When Rose's mother was dying, Darlene brought food every night for three months. Neither woman discusses this. They just continue.</p>
+  </div>
+
+  <div class="rel-card">
+    <p class="rel-title">Carl &amp; Frank -- The Wednesday Night Game</p>
+    <p>Cribbage at the diner, every Wednesday, for fifteen years. Carl leads the lifetime score. Frank disputes this. Agnes brings them coffee without being asked. This is Cedar Bend's most stable institution, more reliable than the weather. The player occasionally watches them play and Carl teaches them the basics -- "A man ought to know cards."</p>
+  </div>
+
+  <div class="rel-card">
+    <p class="rel-title">Silas &amp; Lloyd -- The Lumber Argument</p>
+    <p>Running disagreement about the proper use of black walnut: Silas thinks it's for furniture, Lloyd thinks cutting walnut for furniture is wasteful when the tree produces food for wildlife. They have had this argument at every Grange Hall meeting since 1982. It is Cedar Bend's longest-running performance piece. Everyone else mouths along.</p>
+  </div>
+
+  <div class="rel-card">
+    <p class="rel-title">June &amp; Kacey -- The Young Ones</p>
+    <p>The only two people under thirty who stayed in Cedar Bend. Friday lunches at the diner. They don't talk about whether they'll leave -- they talk about what staying means. June inherited the post office; Kacey inherited the farm. Both carry the weight of legacy and the guilt of occasionally wanting something different. Their friendship gives the game a generational counterpoint to the older characters.</p>
+  </div>
+
+  <div class="rel-card">
+    <p class="rel-title">Dr. Harwick &amp; Kacey -- The Collaborators</p>
+    <p>Quietly writing a paper on pollinator-friendly farming practices using Rowland Farm data. Ellen provides the science; Kacey provides the field experience. Paul doesn't know about the paper. This subplot gives the player's pollination work at Rowland Farm a larger significance -- the data they collect contributes to research that could change farming practices across the county.</p>
+  </div>
+
+  <div class="rel-card">
+    <p class="rel-title">Rose &amp; Bob -- The Pecan Pie</p>
+    <p>Tuesday mornings. A slice set aside. Eight years running. The longest unspoken conversation in Cedar Bend. After Bob dies, Rose still sets the slice aside for one more Tuesday. Then she stops. And the space where the pie used to be becomes the thing she won't talk about, the way Bob never talked about Sandy.</p>
+  </div>
+
+  <div class="rel-card">
+    <p class="rel-title">Carl &amp; Bob -- The Tab</p>
+    <p>When Bob was recovering from his liver episode, Carl delivered feed to the property every week for two months. The tab was never collected. When the player takes over the operation, Carl quietly transfers the tab to their account -- zeroed out. "Your uncle was good for it" is all he says. This small gesture tells the player everything about the kind of town they are in.</p>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ====================================================================
+     PART III: SMALL-TOWN DRAMA
+     ==================================================================== -->
+<div class="section" id="part3">
+  <p class="section-label">Part III</p>
+  <h2>Small-Town Drama</h2>
+
+  <p>Cedar Bend is warm. Cedar Bend is kind. Cedar Bend is also a place where 1,847 people have been watching each other for decades, and the accumulated weight of all that watching produces its own kind of tension. Not melodrama. Not soap opera. Just the ordinary friction of people who can't avoid each other, who remember everything, and who express conflict through casserole protocol violations and conspicuous silence.</p>
+</div>
+
+<div id="drama-feuds">
+  <h3>Old Feuds &amp; Simmering Tension</h3>
+
+  <div class="drama-card">
+    <p class="drama-title">The Rowland-Baker Pesticide Rift</p>
+    <p>The biggest unresolved conflict in Cedar Bend. Bob Baker and Paul Rowland had it out at Tanner's Supply in 2019 over neonicotinoids. Carl stood between them -- literally, hands on both chests. The argument was about science on the surface and about <strong>respect</strong> underneath. Bob felt Paul didn't care about his bees. Paul felt Bob was calling him a bad farmer. Neither was entirely wrong. The rift didn't heal because neither man would make the first move. The pesticide kill event in Year 2 forces the issue through the next generation -- the player and Kacey resolve what their elders couldn't.</p>
+    <p><strong>The drama beat:</strong> When Paul finally comes around (Year 4), he doesn't apologize to the player. He shows up at the Reaping Fire and sits next to them. He says: "Kacey's numbers are up 12% on the soybean fields where your girls are working." That is Paul's language of reconciliation. The player's response -- a nod, a handshake -- is Bob's language passed forward. The whole town sees it happen. Nobody says a word. Everybody knows.</p>
+  </div>
+
+  <div class="drama-card">
+    <p class="drama-title">The Post Office Fight</p>
+    <p>The USPS wants to close Cedar Bend's branch. June is fighting it. The town is divided -- not about whether they want the post office, but about <strong>how hard to fight</strong>. Some people (Paul, pragmatically) think the battle is lost and they should accept a PO Box in Albion. Others (Rose, Darlene, Carl) think losing the post office means losing a piece of Cedar Bend's identity. The petition quest forces the player to navigate this divide and learn that small-town solidarity is not automatic -- it has to be argued for, name by name.</p>
+    <p><strong>The drama beat:</strong> When the post office survives, partly because of increased package volume from the player's growing mail-order business, June doesn't celebrate. She just opens the next morning, same as always. But she pins a note on the door that says "Still Here" -- two words that become Cedar Bend's unofficial motto.</p>
+  </div>
+
+  <div class="drama-card">
+    <p class="drama-title">Lloyd and the County Road</p>
+    <p>Lloyd's single act of public rebellion: standing up at the county board meeting to oppose widening Route 9. "Those trees were here before the road." The proposal was tabled. Some farmers were angry -- the wider road would have made hauling easier. Lloyd never apologized. Silas, who agreed with Lloyd about the trees but disagreed about everything else, backed him publicly and then gave him grief about it privately for a year. This backstory gives Lloyd's protectiveness of the timber a civic history and shows the player that environmentalism in a farming community is not simple -- it requires relationships strong enough to survive disagreement.</p>
+  </div>
+
+  <div class="drama-card">
+    <p class="drama-title">The Diner's Quiet Crisis</p>
+    <p>Rose doesn't talk about money, but the diner runs on margins thinner than her pie crust. The Long Table meal she serves every Deepcold 21 costs her a week's profit. She doesn't care. But there are months, especially in Deepcold and Kindlemonth, when the diner is empty enough to make her wonder. Carl notices -- he sees the supply orders shrinking. He mentions it to Frank, not as gossip but as concern. Frank starts routing more Saturday Market traffic past the diner. Rose never finds out this is coordinated. <strong>This is how small towns work: help that is offered without being seen, because being seen would require acknowledging the need, and acknowledging the need would be unkind.</strong></p>
+  </div>
+</div>
+
+<div id="drama-gossip">
+  <h3>The Gossip Network</h3>
+
+  <p>Information in Cedar Bend travels through three channels, each with its own speed and reliability:</p>
+
+  <div class="drama-card">
+    <p class="drama-title">The Diner Counter (Speed: Immediate / Accuracy: High)</p>
+    <p>Rose hears everything. She doesn't spread what she hears -- she processes it. If something is important enough, she'll mention it once, to the right person, at the right time. "Bob looked tired this morning" delivered to Darlene over a coffee refill is not gossip. It is a medical referral delivered in the local idiom.</p>
+  </div>
+
+  <div class="drama-card">
+    <p class="drama-title">The Bulletin Board (Speed: Weekly / Accuracy: Variable)</p>
+    <p>Carl's bulletin board at Tanner's Supply is the town's official nervous system. Everything from bee package availability to church bake sale announcements gets pinned there. Carl reads everything before he pins it, which gives him a curator's power over what the town officially "knows." He has twice declined to post notices he considered divisive. Nobody knows this except Carl.</p>
+  </div>
+
+  <div class="drama-card">
+    <p class="drama-title">The Post Office Window (Speed: Slow / Accuracy: Absolute)</p>
+    <p>June sees every package, every letter, every catalogue. She knows who is ordering what from where. She knows that Bob started getting prescriptions delivered in October. She knows that Kacey subscribes to a sustainable agriculture journal. She knows that Paul has never once received a piece of mail from his daughter that wasn't addressed in her handwriting -- Kacey doesn't email her father, she writes him letters, because Paul "doesn't trust the internet." June keeps all of this to herself. But when the story needs a keeper of secrets, she is the one who has them.</p>
+  </div>
+</div>
+
+<div id="drama-romances">
+  <h3>Quiet Romances</h3>
+
+  <p>Cedar Bend is not a dating sim. But it is a place where people have hearts, and hearts in small towns are on permanent display whether their owners like it or not.</p>
+
+  <div class="drama-card">
+    <p class="drama-title">Rose's Past -- The Engagement</p>
+    <p>She was engaged once. A man from Marion. She called it off three weeks before the wedding. The story that Cedar Bend tells is that he wanted her to close the diner. The story Rose tells, to no one, is simpler: she loved the diner more than she loved him, and she was honest enough to admit it before she married him. She has not been seriously involved with anyone since. She is not lonely. She is complete. The diner is her great love and she made her peace with that a long time ago.</p>
+  </div>
+
+  <div class="drama-card">
+    <p class="drama-title">Kacey &amp; the Boy from Albion</p>
+    <p>It ended. Nobody talks about why. Paul was not pleased about the relationship. Kacey came home. She threw herself into the farm. Some people in Cedar Bend think Paul interfered. Kacey has never confirmed this, which in Cedar Bend means it's probably true. This gives Kacey a layer of unspoken resentment toward her father that complicates their working relationship in the Rowland quest chain -- she loves him, she is angry at him, and both things are true at the same time.</p>
+  </div>
+
+  <div class="drama-card">
+    <p class="drama-title">Lloyd &amp; His Wife in Albion</p>
+    <p>They are married. They do not live together. They "needed different amounts of quiet." Nobody in Cedar Bend judges this, which tells you everything about Cedar Bend. She visits once a month. He drives to Albion for her birthday and Christmas. They are, by all accounts, content. Lloyd's arrangement is the game's quiet argument that love does not require proximity -- only consistency.</p>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ====================================================================
+     PART IV: THE STORY ARC
+     ==================================================================== -->
+<div class="section" id="part4">
+  <p class="section-label">Part IV</p>
+  <h2>The Story Arc -- Five Years in Cedar Bend</h2>
+
+  <p>The story of Smoke &amp; Honey is told through five years, each with its own emotional register, its own challenges, and its own answer to the question the player carries from the suburbs: <strong>Does anything I do matter?</strong></p>
+</div>
+
+<div id="year1">
+  <h3>Year 1 -- Quickening</h3>
+  <p class="section-label">Theme: Arrival / Learning / First Roots</p>
+
+  <div class="timeline-year">
+    <h4>The Player's Arc</h4>
+    <p>Anxious. Uncertain. Present only because Uncle Bob asked. Still checking their phone in the evenings. Still carrying the ambient dread. The bees are terrifying and fascinating. The work is harder than anything they've ever done. They go to bed exhausted and sleep better than they have in a year.</p>
+    <p>By the end of Year 1, they have kept the surviving hive alive through its first summer. They have their first harvest -- five jars of honey with handwritten labels. They have stood at the Saturday Market and sold something they made with their hands. They have been absorbed into Cedar Bend's social fabric without noticing, because that's how small towns work.</p>
+  </div>
+
+  <div class="timeline-year">
+    <h4>The Community</h4>
+    <p>The town is curious about the kid on Bob's place. Rose puts a plate in front of them at the diner without asking what they want -- a gesture that means they belong. Carl remembers their name after the first visit and starts setting aside supplies Bob mentioned they'd need. Darlene watches from across the fence, assessing, waiting to see if this one's serious. Frank gives them a market spot and immediately critiques their labels. June hands them a buzzing bee package and tries not to smile.</p>
+    <p><strong>Holiday markers:</strong> The Quickening Morn is the player's first public appearance in Cedar Bend. The Long Table is just them and Bob, and a green bean casserole from a neighbor they haven't met.</p>
+    <p><strong>Foreshadowing -- "Telling the Bees" (1 of 3):</strong> During Darlene Q1 (Over the Fence), while the player is watching Darlene inspect a hive, she mentions offhandedly: "My grandmother talked to her bees every morning. Not in words -- just sounds, you know? She said they knew her voice. She said when a beekeeper dies, someone has to tell the bees, or they'll leave." She laughs. "Old Polish superstition. But I still talk to mine." The player hears this and moves on. It is a flavor line. It is also a loaded gun placed on the mantelpiece.</p>
+  </div>
+
+  <div class="timeline-year">
+    <h4>Active Quests</h4>
+    <p>Bob Q1-Q6 (the full tutorial backbone; Q6 Battening Down teaches winterization component system). Darlene Q1-Q2. Frank Q1-Q2. Silas chain (PENDING REDESIGN -- see Silas section). Carl Q1-Q2. Rose Q1. June Q1. First CVBA meeting attendance. <em>Key Deepcold beat: first winterization of the hive -- entrance reducer, mouse guard, top insulation at minimum.</em></p>
+  </div>
+</div>
+
+<div id="year2">
+  <h3>Year 2 -- Rooting</h3>
+  <p class="section-label">Theme: Confidence / Conflict / Expansion</p>
+
+  <div class="timeline-year">
+    <h4>The Player's Arc</h4>
+    <p>Growing confidence. They notice things before Bob tells them. The phone stays in the pocket longer. They have calluses and knowledge that no screen can replicate -- they can <em>smell</em> American Foulbrood before they see it. They start making decisions without asking permission. They disagree with Bob once and are right. This is the year they become a beekeeper, not just someone keeping bees.</p>
+  </div>
+
+  <div class="timeline-year">
+    <h4>The Community</h4>
+    <p>The pesticide kill event (Rowland farm) is the major conflict. Dead bees at the hive entrance. Bob says "Don't go angry. Go informed." This is where the generational fault lines of Cedar Bend surface -- the old argument between Bob and Paul, replayed through their successors. Kacey becomes the player's ally. Dr. Harwick enters the story through crisis. Lloyd is introduced through Bob, and the timber opens as a new apiary.</p>
+    <p>The CVBA recognizes the player at meetings. They give their first presentation. Still the youngest person in the room by decades, but they listen now.</p>
+    <p><strong>Holiday markers:</strong> At the Reaping Fire, Paul Rowland is conspicuously absent. The town notices. Kacey comes alone and stands next to the player by the bonfire. At The Long Table, the player and Bob host four people: Darlene, Lloyd, and two neighbors. The table is fuller.</p>
+    <p><strong>Foreshadowing -- "Telling the Bees" (2 of 3):</strong> One evening after the pesticide kill event, while the player and Bob are sitting on the porch looking at the hives, Bob says something unprompted: "When Sandy died, the first thing I did the next morning was walk out to the hives. Knocked on every box. Told them she was gone." He takes a sip of coffee. "Old tradition. You tell the bees when someone dies. My neighbor taught me that -- the man who taught me beekeeping. He said the bees need to know. I think he was right, but not for the reason he thought. The bees don't understand death. But the beekeeper needs to say it out loud to something that's alive." He doesn't say anything else. The player files this away. The player does not yet understand why Bob is telling them this.</p>
+  </div>
+
+  <div class="timeline-year">
+    <h4>Active Quests</h4>
+    <p>Bob Q7 (Lloyd's Lot). Darlene Q3-Q4. Frank Q3 (Label and Shelf). Dr. Harwick Q1-Q2. Rowland Q1-Q3 (pesticide event through test strip). CVBA Q2. Silas Q4. Carl Q3 (wholesale). Rose Q2-Q3. June Q2 (the petition). Lloyd Q1-Q2.</p>
+  </div>
+</div>
+
+<div id="year3">
+  <h3>Year 3 -- Belonging</h3>
+  <p class="section-label">Theme: Ownership / Teaching / Community</p>
+
+  <div class="timeline-year">
+    <h4>The Player's Arc</h4>
+    <p>This is the player's apiary now -- not Bob's. They make decisions without asking. They disagree with Bob and are right more often than not. They teach a younger sibling to hold a smoker during a summer visit. The honey on the shelf has their handwriting on the labels. When a younger sibling asks if they're scared about the future, they say: "Yeah. But I've got work to do in the morning."</p>
+    <p>The phone stays on the nightstand more often than not. The existential dread hasn't disappeared -- the world didn't get less scary. But the player holds it differently now. It's weather, not the whole sky.</p>
+  </div>
+
+  <div class="timeline-year">
+    <h4>The Community</h4>
+    <p>Rose's potluck speech quest is the emotional midpoint of the game. Rose asks the player to speak at the Grange Hall potluck. They bring honey. They stand up in front of the people who watched them arrive as a scared kid and say something about what this place taught them. Rose introduces them: "This is the person keeping bees on Bob's old place. And this is their honey. Taste it and tell me this town doesn't still make something worth having."</p>
+    <p>After this, the player is no longer "the new beekeeper." They are a member of Cedar Bend.</p>
+    <p>June delivers Uncle Bob's letter -- the one he left with Mae Wellman eight years ago. It recontextualizes everything. Bob chose the player before they knew they were being chosen. The letter is one of the most emotionally resonant moments in the game.</p>
+    <p><strong>Holiday markers:</strong> The player brings honey cornbread to the Quickening Morn and people save them a spot. At the Founder's Beam pie contest, Rose enters her honey pie (made with the player's honey) and wins. Darlene demands a recount. The Long Table now seats eight.</p>
+    <p><strong>Bob's health:</strong> Subtle decline begins. He sits on the tailgate more. Some weeks he's great. Other weeks he's slower. His skin has a yellow tinge on bad days. No health bar. The player just notices.</p>
+    <p><strong>Foreshadowing -- "Telling the Bees" (3 of 3):</strong> Uncle Bob's letter -- the one June delivers in Year 3 -- contains a line near the end that the player reads and might not fully register: "If anything happens to me, do two things. First, tell the bees. Knock on every box. They'll listen. Second, don't stop. The hives don't need grief. They need a keeper. Be the keeper." The letter is rich with emotion and wisdom, so this line lands as one of many. But the player will remember it later. When they are standing in the apiary, knocking on the first box, they will remember that Bob wrote these words years ago and left them with a postmaster's grandmother and waited for the right kid to need them. He planned this. He planned all of it. Even the goodbye.</p>
+  </div>
+
+  <div class="timeline-year">
+    <h4>Active Quests</h4>
+    <p>Bob Q8 (Spring Count -- chain capstone). Darlene Q5 (The Old Way). Frank Q4 (Bulk Order). Dr. Harwick Q3 (IPM Protocol). Rowland Q4-Q5 (pollination deal, cover crop season). CVBA Q3-Q4 (equipment swap, River Bottom). Carl Q4 (Tanner's Shelf). Rose Q4 (Potluck Speech). June Q3 (Uncle Bob's Letter). Lloyd Q3 (clearing and planting).</p>
+  </div>
+</div>
+
+<div id="year4">
+  <h3>Year 4 -- Stewardship</h3>
+  <p class="section-label">Theme: Mastery / Reconciliation / Preparing</p>
+
+  <div class="timeline-year">
+    <h4>The Player's Arc</h4>
+    <p>Breeding queens. Managing multiple apiaries. The dread is still there -- the world didn't get better. But the player has something to do with their hands while they carry it. They have become the person Bob saw in them. Mastery doesn't mean the fear goes away. It means you have a craft to practice while the storm passes.</p>
+  </div>
+
+  <div class="timeline-year">
+    <h4>The Community</h4>
+    <p>Paul Rowland comes around. He shows up at the Saturday Market and says: "I'm not going to pretend I understand it. But I understand 12%." He returns to the Reaping Fire and sits next to the player. The thirty-year rift between the Rowland farm and the beekeepers of Cedar Bend quietly closes -- not through argument but through evidence, patience, and a daughter who knew how to translate.</p>
+    <p>Lloyd offers the co-stewardship of the timber. Darlene asks the player to graft queen cells from her grandmother's line. Dr. Harwick begins the Sentinel Hive research. The game's mastery track opens fully.</p>
+    <p><strong>Holiday markers:</strong> The Founder's Beam speech is given by Carl this year, and he talks about the town's history and tears up at the same part he always does -- when he mentions his grandfather. The player understands now what that tear means. At The Long Table, Bob is present but quieter. He watches more than he talks. The table is full.</p>
+    <p><strong>Bob's health:</strong> More visible decline. He takes his pills with morning coffee and waves off questions. He sits on the bench Silas built and watches the player work the hives. He forgets things he said last week. He is tired in a way that rest doesn't fix. The player notices because they have been paying attention for four years.</p>
+  </div>
+
+  <div class="timeline-year">
+    <h4>Active Quests</h4>
+    <p>Darlene Q6 (Passing It Forward). Frank Q5 (County Fair). Dr. Harwick Q4 (Sentinel Hive). Rowland Q6 (Paul Comes Around). Lloyd Q4 (Co-Steward). Hospice arc begins (Bob's Farewell quests Q1-Q2).</p>
+  </div>
+</div>
+
+<div id="year5">
+  <h3>Year 5 -- The Passing</h3>
+  <p class="section-label">Theme: Legacy / Loss / Continuation</p>
+
+  <div class="timeline-year">
+    <h4>The Player's Arc</h4>
+    <p>Seventeen years old. The apiary has fifteen hives across three locations. They are breeding queens and teaching at CVBA meetings and selling honey at two venues and managing a pollination contract. They are, by any measure, a beekeeper. Not a kid who keeps bees. A beekeeper.</p>
+    <p>And Uncle Bob is dying.</p>
+    <p>The player knows it the way you know weather is changing -- not because someone told them, but because they have been paying attention. Bob is slower. Quieter. His skin is yellowed more days than not. The jokes still land but the pauses between them are longer. He goes to the VA more often and says less about what they say. He watches the player work the hives with an expression that isn't pride exactly -- it's <strong>peace</strong>. The look of a man who has finished something and knows it is finished.</p>
+  </div>
+
+  <div class="timeline-year">
+    <h4>The Community</h4>
+    <p>The town rallies around Bob without making a production of it. Rose makes sure his Tuesday pie is his favorite -- pecan, not whatever's left. Carl delivers supplies to the property himself instead of having the player pick them up. Darlene checks on Bob when the player is in the field. Lloyd visits more often and stays longer. Silas repairs the porch railing without being asked.</p>
+    <p>Nobody says "Bob is dying." Everybody acts like they know. This is the Midwestern way: the help arrives before the need is stated, and the grief is shared before the loss.</p>
+    <p><strong>Holiday markers:</strong> The Quickening Morn -- Bob is in a wheelchair but he brings the comb. He always brings the comb. The Long Table -- Bob's chair is at the head of the table. He eats less than he used to. He tells the story of Sandy and the first swarm and the whole table goes quiet and then laughs and then goes quiet again. This is the last Long Table.</p>
+  </div>
+
+  <div class="timeline-year">
+    <h4>Active Quests</h4>
+    <p>Dr. Harwick Q5 (Master Certification). Hospice arc Q3-Q4 (Bob's final quests). The death event. Community memorial quests.</p>
+  </div>
+</div>
+
+<div id="year5-after">
+  <h3>After Year 5 -- The Apiary Stands</h3>
+
+  <div class="callout-warm">
+    <p>Uncle Bob dies in his sleep on a spring night in Year 5+, after the last frost but before the dandelions open. The surviving hive -- the one that started it all -- is humming when the player walks out to check the apiary the next morning. They check the hive first, because that's what Bob would do. Then they go inside and make the phone call.</p>
+    <p>The war took forty years to finish what it started. But in those forty years, Bob built everything that matters. The bees don't stop. And neither does the player. That's not cold. That's the deal.</p>
+  </div>
+
+  <p>The game continues after Bob's death. The seasons turn. The hives need tending. The market needs honey. Cedar Bend continues. The absence of Bob is not a hole in the world -- it is a <strong>shape that the world grew around</strong>, the way a tree grows around a fence post. He is gone and he is everywhere. His bench is in the apiary. His tools are in the player's hands. His queen line is in the hives. His letter is in the journal. His unit patch is still pinned above the workbench. His philosophy -- "we start from the one" -- is the foundation of everything the player built.</p>
+
+  <p>The community memorial quests provide closure: Rose hosts the reception at the diner (pecan pie, no charge). Lloyd walks the timber and comes back with something to say. Darlene brings sour cream raisin pie, as she has to every funeral for forty years. Carl puts a notice on the bulletin board: "Robert Baker. Beekeeper. Vietnam Veteran. 1951-2031. The hives are still humming." June delivers one more thing from her desk drawer -- a photograph of Bob and Sandy standing in the apiary, young, holding a frame between them, laughing at something the camera didn't catch.</p>
+
+  <p>The game's final narrative beat is simple: the player opens the surviving hive on the first day of the next Quickening. The colony is strong. The queen is laying. The bees are building. And the player does what they have done every spring since that first year with Uncle Bob.</p>
+
+  <p>They light the smoker -- Sandy's smoker. They lift the lid. And they get to work.</p>
+</div>
+
+<div class="divider"></div>
+
+<!-- ====================================================================
+     PART V: THE HOSPICE ARC
+     ==================================================================== -->
+<div class="section" id="part5">
+  <p class="section-label">Part V</p>
+  <h2>The Hospice Arc -- Uncle Bob's Final Chapter</h2>
+
+  <div class="callout-warm">
+    <p>This section is the emotional spine of Smoke &amp; Honey's endgame. It is designed with the perspective of hospice care: <strong>a good death is not a tragedy. It is the completion of a life well-lived, surrounded by the people and things that mattered.</strong> Bob's dying is not the end of the story. It is the proof that the story worked.</p>
+  </div>
+</div>
+
+<div id="hospice-philosophy">
+  <h3>A Good Death</h3>
+
+  <p>The hospice philosophy that underpins Bob's arc is simple: <strong>dying is not failing. Death is a comma, not a period.</strong> Bob's liver failure -- the slow legacy of Agent Orange exposure in Vietnam -- is not a narrative punishment. It is the natural conclusion of a body that carried a war for forty years and is ready to rest. The game treats this with absolute honesty and zero sentimentality.</p>
+
+  <p>Bob does not "fight" his condition. He manages it. He takes his pills. He avoids the things the doctor tells him to avoid (mostly). He keeps doing the things that give his life meaning -- the bees, the porch, the coffee, the Tuesday pie -- for as long as he can, and then he gracefully, gradually, lets them go. The letting-go is not defeat. It is wisdom. It is a man who survived a war and a wife's death and eleven dead hives, who knows that the work continues because he did it well enough that it doesn't need him anymore.</p>
+
+  <p>The player is not asked to save Bob. There is no hidden cure, no quest reward that extends his life, no gameplay mechanic that lets you avoid the death. What the player is asked to do is <strong>be present.</strong> To notice. To sit with. To keep showing up even when showing up is hard. This is the work of hospice: not fixing, but accompanying.</p>
+
+  <div class="vibe">
+    <p>The game's message is not "death is sad." The message is: "A life that leaves something behind was a life that mattered. And the proof is in the hive, still humming."</p>
+  </div>
+</div>
+
+<div id="hospice-timeline">
+  <h3>The Slow Goodbye -- Bob's Decline by Year</h3>
+
+  <p>Bob's health is communicated entirely through observation. There is no health meter. No quest tracker. No doctor's visit cutscene. The player learns to read Bob the way Bob taught them to read a hive: by paying attention to the small things.</p>
+
+  <table class="data-table">
+    <thead>
+      <tr><th>Year</th><th>What the player sees</th><th>What it means</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Year 1</td>
+        <td>Bob is active but careful. He tires faster than he lets on. He takes his pills with morning coffee -- the player sees the pill bottles on the kitchen counter. He drinks water instead of beer. He waves off questions. On some mornings his eyes look faintly yellow in the light, but only if you're looking.</td>
+        <td>The December episode was real. Bob's liver is failing slowly, the long tail of Agent Orange. The player is being trained to notice small things -- the same skill Bob teaches about bees.</td>
+      </tr>
+      <tr>
+        <td>Year 2</td>
+        <td>Bob stays home more. He sends the player to the timber alone. He is present at most events but leaves early. His appetite is smaller -- Rose notices he leaves more pie on the plate. "My back says I'm sixty. My liver says maybe not even that." He has a VA appointment in Albion and doesn't talk about it.</td>
+        <td>Slow decline. The liver damage is progressive. Bob is pulling back from physical work but staying sharp mentally. The shift in workload to the player is gradual and organic. The VA visit is a quiet signal -- the system that sent him to war is now managing the consequences.</td>
+      </tr>
+      <tr>
+        <td>Year 3</td>
+        <td>Bob sits on the bench Silas built. He watches the player inspect and nods. He tells longer stories -- some of them about Vietnam, told in fragments, never the whole picture. One evening he mentions a friend named Danny who didn't come home. He watches sunsets from the porch in a way he didn't use to. His skin has a faint yellowish cast on bad weeks. He itches. He doesn't complain.</td>
+        <td>The decline is visible now. Jaundice comes and goes. Bob is becoming an observer rather than a participant. The war stories are new -- a man who kept Vietnam locked up for forty years is starting to let pieces out, not because he wants to process them but because he's running out of time to tell someone. The sunset-watching is a man saying goodbye to things without saying the word.</td>
+      </tr>
+      <tr>
+        <td>Year 4</td>
+        <td>Bob has doctor's appointments he doesn't discuss. He naps after lunch -- real naps, not dozing. His abdomen is slightly swollen (ascites). The jokes still come but the pauses are longer. He asks the player to drive to the diner instead of driving himself. He puts things in order -- gives the player the workshop key, shows where the deed is, mentions the lawyer in Albion. One night the player finds him looking at his unit photo from Vietnam. He doesn't hide it. He just says: "Good men. Most of them."</td>
+        <td>Preparation. The liver failure is advancing -- fluid retention, fatigue, the body slowly losing its ability to filter the damage of forty years. Bob is getting his affairs in order with the quiet efficiency of a soldier who has always known how to pack. He is not scared. He is organized. The Vietnam photo is the crack in the wall -- the first time Bob allows the player to see the full weight of what he carried home.</td>
+      </tr>
+      <tr>
+        <td>Year 5</td>
+        <td>Bob is in a wheelchair some days. He still makes it to the apiary on good days -- the good days are fewer now. He talks less but what he says lands harder. His skin is jaundiced more than not. He watches the player with the expression of a man who has finished something. On his last good day, he asks the player to open the surviving hive and describe what they see, frame by frame, the way he taught them on the first day.</td>
+        <td>Peace. Not resignation -- peace. The war took forty years to finish what it started, but in those forty years Bob built an apiary, loved a wife, mentored a kid, and earned a place in a community that will remember him. The body is failing but the man is complete. He can rest now.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div id="hospice-quests">
+  <h3>Bob's Farewell Quest Chain -- 4 Quests</h3>
+
+  <p>These quests begin in late Year 4 and run through Year 5. They are not marked as "dying" quests. They are framed as Bob getting organized, passing things along, and making sure the people he cares about are taken care of. The player may not realize what these quests are until they're finished. That realization is part of the emotional design.</p>
+
+  <div class="quest-card">
+    <p class="quest-title">Bob Q9: The Workshop Key</p>
+    <p class="quest-meta">Year 4 -- Late Fall -- Level 3+</p>
+    <p>Bob gives the player the key to his workshop and the combination to the tool cabinet. He walks them through every piece of equipment: what it does, how to maintain it, where the replacement parts are. "I've been collecting this stuff for twenty years. You'll need it longer than that."</p>
+    <p>He gives the player the original smoker -- the one Sandy gave him as a gift when he started keeping bees. It is old and dented and works perfectly. Bob says nothing about why he's giving it now. The player doesn't ask. Both of them know.</p>
+    <p><strong>Rewards:</strong> +75 XP, +30 Standing, Sandy's Smoker (unique equipment, +5% inspection calm), Access to workshop crafting station permanently, Knowledge Log: "The Workshop -- Everything in Its Place"</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Bob Q10: The Deed and the Lawyer</p>
+    <p class="quest-meta">Year 4-5 -- Winter -- Level 3+</p>
+    <p>Bob asks the player to drive him to the lawyer in Albion. During the drive, Bob talks. About Sandy -- how they met at a dance at the Grange Hall. How she hated the bees at first and then one spring she sat and watched an inspection and said "Oh. I understand now." How she died of cancer eight years ago and the bees were the only thing that made the house feel occupied after. And about Vietnam -- in fragments, the way he always tells it. A friend named Danny. A jungle that smelled like chemicals. Coming home to a country that didn't want to look at him. Finding the bees. "The bees didn't care where I'd been. They just needed me to show up and be still."</p>
+    <p>At the lawyer's office, Bob updates his will. The property, the hives, and the equipment go to the player. Bob says: "The lawyer wanted me to explain why I'm leaving a farm to a teenager. I told him you're the only person who earned it."</p>
+    <p><strong>Rewards:</strong> +100 XP, +40 Standing, Property ownership secured (end-game unlock), Knowledge Log: "The Deed -- What Is Left Behind"</p>
+    <p><strong>Design note:</strong> The car ride dialogue is the most sustained personal conversation Bob has with the player in the entire game. It reveals the Sandy backstory in full and explains why Bob chose them. This is earned emotional payoff -- five years of laconic mentorship suddenly opens into vulnerability. The player has waited for this. The wait is what makes it hit.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Bob Q11: The Rounds</p>
+    <p class="quest-meta">Year 5 -- Spring -- Level 4+</p>
+    <p>Bob asks the player to drive him into town one last time. He visits every person who mattered. He doesn't say goodbye -- he says the thing he should have said years ago.</p>
+    <p>At the diner, he tells Rose: "You kept this town fed and you kept me company and I never said thank you properly. So. Thank you." Rose doesn't cry. She cuts him a double slice of pecan pie and sits down across from him and they talk about Sandy for the first time in eight years.</p>
+    <p>At Tanner's Supply, he tells Carl: "Your grandfather would be proud of this store. And he'd be proud of you." Carl closes his eyes for a second and nods.</p>
+    <p>At the timber, he stands with Lloyd and they don't say anything. They just stand in the trees for fifteen minutes. When they leave, Lloyd says: "Same time next fall?" Bob says: "I hope so." They both know. Two old soldiers -- one who fought a war, one who fought a county road proposal -- standing in the trees they saved, saying nothing, because the trees say it better.</p>
+    <p>At Darlene's fence, he says: "Take care of the kid when I can't." Darlene says: "I already am."</p>
+    <p><strong>Rewards:</strong> +150 XP, +50 Standing, All visited NPCs gain special memorial dialogue, Knowledge Log: "The Rounds -- A Man Says What He Means"</p>
+    <p><strong>Design note:</strong> This quest is the game's most emotionally intense sequence. Each visit is brief. Each conversation is specific to the relationship. None of them say "I'm dying." All of them say goodbye in the language of people who don't say goodbye -- they say thank you, they say something overdue, they stand in silence and let the silence do the work.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Bob Q12: The Last Inspection</p>
+    <p class="quest-meta">Year 5 -- Late Spring -- Level 4+</p>
+    <p>Bob asks the player to help him to the apiary one more time. It is a good day -- warm, clear, the kind of day that bees work hard and the air smells like clover. Bob sits in his wheelchair next to the surviving hive -- the original hive, the one that started everything.</p>
+    <p>He asks the player to open it. Slowly. Frame by frame. "Tell me what you see."</p>
+    <p>The player describes each frame the way Bob taught them five years ago: brood pattern, queen status, population estimate, stores, temperament. Bob listens with his eyes closed. When the player finishes, Bob says:</p>
+    <p><strong>"That's a healthy hive. And you're a real beekeeper. And I think that's all I needed to know."</strong></p>
+    <p>He asks the player to close the hive. They do. They sit together in the apiary until the sun gets low. Bob points at the treeline where the light is going amber through the leaves and says: "Sandy loved this time of day."</p>
+    <p>They go inside. Bob has his coffee. He goes to bed early.</p>
+    <p><strong>Rewards:</strong> +200 XP, +75 Standing, Knowledge Log: "The Last Inspection -- One Hive, One Beekeeper, One Life", Chain complete.</p>
+    <p><strong>Design note:</strong> This quest has no mechanical challenge. The player simply inspects a hive -- something they have done hundreds of times. The mastery is in the repetition. The emotion is in the context. The five-year payoff is this: the tutorial action (open a hive, tell me what you see) is repeated as the final action. The hive is the same hive. The kid is not the same kid. The man who taught him will not be here for the next inspection. And the inspection is perfect.</p>
+  </div>
+</div>
+
+<div id="hospice-death">
+  <h3>The Last Smoke</h3>
+
+  <div class="callout-warm">
+    <p>Bob dies in his sleep on a spring night. After the last frost, before the dandelions. Peacefully. The game does not show the death. There is no cutscene. There is no dramatic music.</p>
+    <p>The player wakes up to a new day. The calendar says it is a morning in Quickening. The light comes through the window. The daily summary does not say "Uncle Bob has died." It says:</p>
+    <p><strong>"The house is quiet this morning."</strong></p>
+  </div>
+
+  <p>The player walks to Bob's room. The door is open. The bed is made, the way Bob always left it -- military corners, a habit from a lifetime of precision. His coffee cup is washed and on the counter. His boots are by the door.</p>
+
+  <p>Bob is gone. Not in the house. Not in the workshop. Not on the porch.</p>
+
+  <p>When the player walks to the apiary, they find Bob's hat on the bench that Silas built. Nothing else. No note. No quest marker. Just the hat, and the hives humming, and the morning sun.</p>
+
+  <p>The phone rings. It is Darlene. "Honey. I need you to come to the porch."</p>
+
+  <p>At the porch, Darlene and Rose are already there. Rose has brought coffee. Darlene has brought a casserole. They don't explain. They don't need to. Rose says: "He went in his sleep. The way he wanted." Darlene says: "The bees are fine. I checked." This is the order of information in Cedar Bend: the practical first, the grief after, and the casserole already on the counter.</p>
+
+  <p>Then Darlene puts her hand on the player's arm and says something they don't expect:</p>
+
+  <div class="beat">
+    <p class="beat-label">Telling the Bees</p>
+    <p class="dialogue">"There's something you need to do before anything else. You need to go tell the bees."</p>
+    <p class="direction">The player looks at her. Rose is quiet. Darlene's voice is steady -- the voice of a woman who has done this herself.</p>
+    <p class="dialogue">"It's the oldest tradition in beekeeping. When a keeper dies, someone has to go to the hives and tell them. You knock on each box, and you say the words: your keeper has died, but you have a new keeper now, and you are not to leave."</p>
+    <p class="direction">A pause.</p>
+    <p class="dialogue">"My grandmother told her bees when my grandfather died. I told mine when Teddy died. It's... it sounds like superstition. It's not. It's for you as much as it's for them. The bees need to know someone's still coming. And you need to say it out loud so you believe it too."</p>
+  </div>
+
+  <p>The player walks to the apiary alone. Bob's hat is still on the bench. The morning sun is hitting the hives. The bees are flying -- it is a normal morning for them. They don't know. That's the thing about bees. They don't know.</p>
+
+  <p>The player approaches the first hive -- the surviving hive. The original hive. The one that started everything five years ago. They knock on the side of the box, gently, the way you knock on a door when you're not sure anyone is home.</p>
+
+  <div class="beat">
+    <p class="beat-label">The Telling -- At Each Hive</p>
+    <p class="direction">The player moves from hive to hive across every apiary -- the home yard, the timber, every location where they have kept bees. At each hive, they knock and speak the words. The game gives three dialogue options for how the player tells the bees, but all three contain the same essential message:</p>
+    <p class="dialogue">"Your keeper has died. His name was Robert Baker, and he loved you, and he was the best man I ever knew. I'm your keeper now. I'm not going anywhere. And neither are you."</p>
+    <p class="direction">The bees hum. The boxes are warm in the sun. The player moves to the next hive, and the next, and the next. By the last hive, their hands are shaking. Not from the bees. From the saying of it. From making it real by speaking it to something alive.</p>
+  </div>
+
+  <div class="callout-warm">
+    <p><strong>Design note -- Why this is the emotional climax, not the death itself:</strong> Bob's death happens offscreen, in sleep, the way he wanted. The grief lands not when the player learns he's gone, but when they have to <strong>say it out loud, hive by hive, across the apiary they built together.</strong> The repetition is the point. Each knock is a goodbye. Each hive is a memory. By the time the player reaches the last box, they have walked the entire geography of their five years with Bob, and they have said the words fifteen times, and every time it gets harder, and every time it gets more true.</p>
+    <p>This is the game's single most powerful mechanic-as-metaphor moment. The player performs a real beekeeping tradition. The tradition is about making sure the bees stay. But the real function is making sure the <strong>beekeeper</strong> stays. You tell the bees so that the grief has a shape. You knock on the box so your hands have something to do. You say the words so that the silence doesn't swallow you. This is the oldest form of hospice care there is: a ritual that gives the living something to do with their hands while their heart catches up.</p>
+  </div>
+
+  <div class="vibe">
+    <p>A hat on a bench. A knock on every box. A casserole on the counter. A hive still humming. This is how Cedar Bend says goodbye.</p>
+  </div>
+</div>
+
+<div id="hospice-after">
+  <h3>After Bob -- The Community Holds</h3>
+
+  <p>The days after Bob's death are not empty. They are full -- full of the specific, practical, Midwestern ritual of taking care of business and taking care of each other.</p>
+
+  <div class="beat">
+    <p class="beat-label">The Reception -- Rose's Diner</p>
+    <p>Rose closes the diner for the afternoon -- only the third time she has ever closed for anything other than a holiday. She sets the tables with Bob's favorite: pecan pie, black coffee, and a jar of the player's honey at every seat. The whole town comes. People tell Bob stories. Frank talks about the time Bob tried to sell honey at the market and forgot to bring jars -- just showed up with a bucket and a ladle. Carl talks about the uncollected tab. Lloyd doesn't talk. He sits in the back booth and drinks coffee and after an hour he stands up and says one sentence: "He understood that quiet things outlast loud ones." Then he sits back down.</p>
+    <p class="dialogue">Darlene brings sour cream raisin pie. She has brought it to every funeral in Cedar Bend for forty years. She has never missed one.</p>
+  </div>
+
+  <div class="beat">
+    <p class="beat-label">The Bulletin Board</p>
+    <p>Carl pins a notice: "Robert Baker. Beekeeper. Vietnam Veteran. 1951-2031. The hives are still humming." The notice stays up for a month. When it finally comes down, Carl puts it in a frame and gives it to the player. It hangs in the Honey House.</p>
+  </div>
+
+  <div class="beat">
+    <p class="beat-label">The Tuesday After</p>
+    <p>Rose sets out a slice of pecan pie at Bob's usual spot. She does this one more time. Then she stops. The empty space on the counter where the plate used to be is, for a few weeks, the saddest spot in Cedar Bend. Then one Tuesday the player sits in Bob's spot and orders pecan pie. Rose doesn't say anything. She just puts the plate down. And the ritual continues, changed but unbroken.</p>
+  </div>
+
+  <div class="beat">
+    <p class="beat-label">The Photo</p>
+    <p>June brings one more thing from her desk drawer -- a photograph that Bob left with her grandmother Mae years ago. Bob and Sandy, young, standing in the apiary. They're holding a frame of honey between them and laughing at something the camera didn't catch. On the back, in Bob's handwriting: "The bees don't care about the news. That's why I love them."</p>
+  </div>
+
+  <div class="beat">
+    <p class="beat-label">The Next Inspection</p>
+    <p>The player opens the surviving hive on the first day of the next Quickening. The colony is strong. The queen is laying. The bees are building. And the player does what they have done every spring since that first year with Uncle Bob. They light the smoker -- Sandy's smoker, now theirs. They lift the lid. And they get to work.</p>
+    <p class="direction">The game continues. The seasons turn. The bees don't stop. And neither does the player.</p>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ====================================================================
+     PART VI: QUEST CHAINS -- COMPLETE REFERENCE
+     ==================================================================== -->
+<div class="section" id="part6">
+  <p class="section-label">Part VI</p>
+  <h2>Quest Chains -- Complete Reference</h2>
+
+  <p>This section catalogs every quest in the game, organized by NPC. Each chain is listed with brief summaries. Full quest descriptions, objectives, and reward tables are in the GDD and Quest Design documents.</p>
+</div>
+
+<div id="q-bob">
+  <h3>Uncle Bob -- Full Chain (12 Quests + Recurring)</h3>
+
+  <p>Bob's chain is the backbone of the entire game. Q1-Q8 serve as Year 1-3's extended tutorial. After Q8, Bob transitions to bi-weekly mentorship visits. The Farewell Arc (Q9-Q12) begins in late Year 4 as Bob's health declines.</p>
+
+  <h4>Core Chain (Q1-Q8)</h4>
+
+  <div class="quest-card">
+    <p class="quest-title">Q1: First Light</p>
+    <p class="quest-meta">Level 1 -- Early Spring Y1 -- Tutorial</p>
+    <p>Learn to light the smoker, open the hive, pull and inspect frames, and identify the queen -- the first hands-on lesson with Bob at the player's side.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q2: Reading the Room</p>
+    <p class="quest-meta">Level 1 -- Spring Y1 -- Tutorial</p>
+    <p>Complete a full 10-frame inspection solo. Assess brood pattern quality, population health, and identify any anomalies without Bob's prompting.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q3: Sugar Water Days</p>
+    <p class="quest-meta">Level 1 -- Spring Y1 -- Tutorial</p>
+    <p>Mix sugar syrup, install a feeder, and maintain it through early spring -- teaching the player that beekeeping means showing up even when there's no honey to harvest.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q4: The Girls Are Building</p>
+    <p class="quest-meta">Level 1 -- Late Spring Y1</p>
+    <p>Clean and prep a dead hive super, install it on the growing colony, and verify the bees are drawing comb within a week. The first expansion decision.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q5: First Pull</p>
+    <p class="quest-meta">Level 1 -- Summer Y1</p>
+    <p>Select capped frames, uncap, extract, and strain at least 5 lbs of honey. The first tangible reward for months of care. Unlocks the Saturday Market via Frank.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q6: Battening Down</p>
+    <p class="quest-meta">Level 1 -- Fall Y1</p>
+    <p>Complete varroa treatment, then winterize the hive using the component system. Bob walks the player through each step: install entrance reducer, mouse guard, and top insulation board (minimum), then optionally moisture quilt, vent shim, hive wrap, and candy board. Verify winter stores are above 60 lbs and install feeder if needed. The first lesson in seasonal stewardship -- keeping bees alive matters more than harvesting honey. <em>(Winter Workshop S4: Bob teaches the full winterization equipment system.)</em></p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q7: Lloyd's Lot</p>
+    <p class="quest-meta">Level 2 -- Spring Y2</p>
+    <p>Bob introduces the player to Lloyd Petersen. Visit the timber, pay the clearing fee, prep the site, and place the first hive at the Timber and Woodlot apiary.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q8: Spring Count</p>
+    <p class="quest-meta">Level 2-3 -- Spring Y3</p>
+    <p>Inspect all hives across both apiaries in one week and report winter survival rate to Bob. The last task Bob gives as a mentor -- after this, the teaching is done.</p>
+  </div>
+
+  <h4>Farewell Arc (Q9-Q12)</h4>
+
+  <div class="quest-card">
+    <p class="quest-title">Q9: The Workshop Key</p>
+    <p class="quest-meta">Year 4 -- Late Fall</p>
+    <p>Bob passes along his workshop, tools, and Sandy's original smoker. The beginning of getting affairs in order. Framed as practical, not sentimental -- "You'll need it longer than I have."</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q10: The Deed and the Lawyer</p>
+    <p class="quest-meta">Year 4-5 -- Winter</p>
+    <p>A drive to Albion. The Sandy backstory in full. The will is updated. Property goes to the player. The most sustained personal conversation in the game.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q11: The Rounds</p>
+    <p class="quest-meta">Year 5 -- Spring</p>
+    <p>Bob visits every person who mattered and says the thing he should have said years ago. Rose, Carl, Lloyd, Darlene. No one says goodbye. Everyone says thank you.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q12: The Last Inspection</p>
+    <p class="quest-meta">Year 5 -- Late Spring</p>
+    <p>The tutorial repeated as eulogy. Open the surviving hive. Tell me what you see. The same action, five years later, everything changed. No mechanical challenge -- only meaning.</p>
+  </div>
+
+  <p><strong>Bob and the Catalogue (Winter Workshop S6):</strong> In Year 1, when the annual beekeeping catalogue arrives during Kindlemonth, Bob teaches the player about it during a mentorship visit. "This is how you plan your spring. Order early if you want good queens. Wait too long and you get what's left." He walks through the items, explains what's worth buying and what can wait, and tells the player about the time he ordered a premium queen that turned out to be the best layer he ever had. "Forty-five dollars. Best money I ever spent on this operation."</p>
+
+  <p><strong>Total Bob Quests:</strong> 12 (8 core + 4 farewell) + recurring mentorship visits</p>
+</div>
+
+<div id="q-darlene">
+  <h3>Darlene Kowalski (10 Quests)</h3>
+
+  <p>Darlene's chain spans Years 1-5 and focuses on queen management, craft, and generational legacy. Her final quests transform her from teacher to peer -- the quiet recognition that the player has become a Cedar Bend beekeeper in their own right.</p>
+  <p><strong>Hospice connection:</strong> After Bob's death, Darlene gains special dialogue: "Your uncle and I disagreed about almost everything in beekeeping. Treatment timing, feeding schedules, when to split. But we agreed about you."</p>
+
+  <div class="quest-card">
+    <p class="quest-title">Q1: Over the Fence</p>
+    <p class="quest-meta">Level 1 -- Spring Y1</p>
+    <p>Visit Darlene's property and observe her inspect a hive. Answer three observation questions correctly to prove the player is paying attention.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q2: The Marked Queen</p>
+    <p class="quest-meta">Level 1-2 -- Summer Y1</p>
+    <p>Find and mark the queen using the international year-color convention. Must be completed within a single inspection window.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q3: When Good Queens Go Bad</p>
+    <p class="quest-meta">Level 2 -- Year 2</p>
+    <p>Identify a failing or missing queen, order a replacement, install her using proper requeening technique, and verify acceptance after three days.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q4: Three Hive Walk</p>
+    <p class="quest-meta">Level 2-3 -- Spring Y2-Y3</p>
+    <p>Inspect all three of Darlene's hives, record detailed status for each, and correctly identify the best split candidate.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q5: The Old Way</p>
+    <p class="quest-meta">Level 3-4 -- Year 3-4</p>
+    <p>Over four inspections across two months, evaluate queen performance using observational criteria taught by Darlene's grandmother -- no tools, just eyes and experience.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q6: Passing It Forward</p>
+    <p class="quest-meta">Level 4 -- Year 4+</p>
+    <p>Graft queen cells from Darlene's best colony, raise a mated queen, and install her in one of Darlene's hives. A quiet act of generational continuity.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q7: Darlene's Story</p>
+    <p class="quest-meta">Level 4 -- Year 4+</p>
+    <p>Invite Darlene to coffee at the diner and listen to her story about learning beekeeping from her grandmother in 1976. The first time she shares her full history.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q8: The Third Generation</p>
+    <p class="quest-meta">Level 4-5 -- Year 4-5</p>
+    <p>View Darlene's family photo album spanning three generations of Cedar Bend beekeepers. Help her caption and document the equipment in the photographs.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q9: The Last Stand</p>
+    <p class="quest-meta">Level 5 -- Year 5</p>
+    <p>Help Darlene assess which hives to keep and which to pass on. Accept the colonies she transfers to the player -- her genetic line continuing under new care.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q10: A Cedar Bend Beekeeper</p>
+    <p class="quest-meta">Level 5+ -- Year 5+</p>
+    <p>Walk the player's apiary with Darlene for a final evaluation. Answer three knowledge questions. Receive her approval as a peer -- not a student, not a neighbor, a beekeeper.</p>
+  </div>
+</div>
+
+<div id="q-frank">
+  <h3>Frank Fischbach (5 Quests)</h3>
+
+  <p>Frank's chain is the economic education: presentation, consistency, scaling, competition. He treats the player like an adult from the start. His approval unlocks premium pricing and county fair access.</p>
+  <p><strong>Holiday connection:</strong> The Founder's Beam special market session is tied to Frank Q2 -- attending four consecutive markets includes the holiday special session, which has 2x foot traffic and premium pricing.</p>
+
+  <div class="quest-card">
+    <p class="quest-title">Q1: First Jar</p>
+    <p class="quest-meta">Level 1 -- Summer Y1</p>
+    <p>Bring jars of honey to the Saturday Market and sell at least one. Frank gives honest feedback on presentation and grants a regular spot.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q2: The Saturday Regulars</p>
+    <p class="quest-meta">Level 1-2 -- Late Summer Y1</p>
+    <p>Attend four consecutive Saturday Markets, sell at least two different products, and earn $50+ total. Frank teaches why consistency matters more than perfection.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q3: Label and Shelf</p>
+    <p class="quest-meta">Level 2 -- Year 2</p>
+    <p>Earn a permanent shelf spot at the market by maintaining six or more jars stocked for six consecutive weeks. Products now sell even when the player doesn't attend.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q4: Bulk Order</p>
+    <p class="quest-meta">Level 3 -- Year 3</p>
+    <p>Fulfill a wholesale contract: 20 lbs of honey per month for three consecutive months at 18% moisture or less. The first real business relationship.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q5: County Fair</p>
+    <p class="quest-meta">Level 3-4 -- Summer Y3-Y4</p>
+    <p>Frank sponsors an entry in the Millhaven County Fair honey competition. Judged on clarity, moisture, flavor, and presentation. First place earns a rare queen voucher.</p>
+  </div>
+</div>
+
+<div id="q-harwick">
+  <h3>Dr. Ellen Harwick (10 Milestone Quests)</h3>
+
+  <p>Ellen's chain is the science track, triggered by hive count milestones rather than time or events. Each milestone deepens the player's understanding of bee biology, colony health, and research methodology. The final milestone grants the Master Beekeeper certification.</p>
+  <p><strong>Cross-chain connection:</strong> Ellen and Kacey's research paper uses data from the Rowland pollination quests. When the paper is published (Year 4+), it generates a passive Standing bonus and county-wide recognition.</p>
+
+  <div class="quest-card">
+    <p class="quest-title">M1: The First Hive</p>
+    <p class="quest-meta">Milestone: 1st colonized hive</p>
+    <p>Visit the extension office. Learn proper smoker technique and the science behind why smoke calms bees.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">M2: Colony Dynamics</p>
+    <p class="quest-meta">Milestone: 2nd colonized hive</p>
+    <p>Inspect both hives, identify differences in growth rate and behavior, and present comparison findings to Dr. Harwick.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">M3: Health Monitoring</p>
+    <p class="quest-meta">Milestone: 3rd colonized hive</p>
+    <p>Learn the alcohol wash mite counting method. Perform the test on all three hives and record whether each is above or below treatment threshold.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">M4: Something Personal</p>
+    <p class="quest-meta">Milestone: 4th hive + all inspected in one week</p>
+    <p>Learn American Foulbrood detection and the ropiness test. Dr. Harwick shares her own AFB outbreak story -- the first time the science track gets personal.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">M5: The Special Technique</p>
+    <p class="quest-meta">Milestone: 5th hive + first harvest completed</p>
+    <p>Learn split-harvest technique by apiary location and bloom timing. Compare honey colors, aromas, and crystallization rates across sites.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">M6: The Mentor Gift</p>
+    <p class="quest-meta">Milestone: 6th hive + full season with no losses</p>
+    <p>Receive an heirloom Zeiss refractometer from Dr. Harwick's graduate advisor. Learn precision moisture measurement for harvest quality control.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">M7: Bee Genetics</p>
+    <p class="quest-meta">Milestone: 7th hive + marked a queen unassisted</p>
+    <p>One-hour genetics session covering Carniolan, Italian, and Buckfast traits. Agree to contribute data to Dr. Harwick's county research database.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">M8: Colony Collapse Warning</p>
+    <p class="quest-meta">Milestone: 8th hive + completed varroa treatment cycle</p>
+    <p>Review a 15-year county colony loss map. Compare the player's mite data against regional trends. Designate a sentinel colony for ongoing monitoring.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">M9: Life's Research</p>
+    <p class="quest-meta">Milestone: 9th hive + 50+ lbs honey in a season</p>
+    <p>Spend a morning at the extension office reviewing 30-year county data binders. Become a named contributor to Dr. Harwick's unpublished manuscript.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">M10: The Beekeeper's Journal</p>
+    <p class="quest-meta">Milestone: 10th hive + full year of complete inspection records</p>
+    <p>Receive Dr. Harwick's field journal dating to 1994. Add the first new entry. Complete the Master Beekeeper certification -- the game's formal acknowledgment of expertise.</p>
+  </div>
+</div>
+
+<div id="q-harmon">
+  <h3>Paul &amp; Kacey Rowland (6 Quests)</h3>
+
+  <p>The Rowland chain is the conflict resolution track -- generational tension between conventional farming and pollinator-friendly practices. The resolution comes through evidence, patience, and a daughter who speaks both languages.</p>
+  <p><strong>Drama connection:</strong> The 2019 Bob-Paul argument is the buried backstory. The pesticide kill event in Year 2 reopens it. Paul's absence from the Reaping Fire is the public marker. His return in Year 4 is the resolution -- told through body language (sitting next to the player), not words.</p>
+
+  <div class="quest-card">
+    <p class="quest-title">Q1: The Dead Bees</p>
+    <p class="quest-meta">Level 2 -- Summer Y2</p>
+    <p>Find dead bees after the Rowland Farm sprays during bloom. Document the kill, visit the farm, meet Kacey. The first time the player confronts the reality that bees don't exist in isolation.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q2: Kacey's Idea</p>
+    <p class="quest-meta">Level 2 -- Fall Y2</p>
+    <p>Meet with Kacey to review the spray schedule and propose a modified timing plan -- spray at dusk, avoid bloom windows. Present it to Paul, who agrees to one season.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q3: The Test Strip</p>
+    <p class="quest-meta">Level 2-3 -- Spring Y3</p>
+    <p>Help Kacey plant a cover crop test strip -- clover and buckwheat between the corn rows. Monitor bee activity for two months and report the findings.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q4: Pollination Deal</p>
+    <p class="quest-meta">Level 2-3 -- Late Spring Y3</p>
+    <p>Negotiate a service swap: place hives on the Rowland Farm for pollination in exchange for forage access. No money changes hands. Unlocks the Rowland Farm apiary.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q5: Cover Crop Season</p>
+    <p class="quest-meta">Level 3 -- Year 3-4</p>
+    <p>Maintain hives at the farm for a full growing season, track production separately, and provide Kacey with a summary proving the pollination-yield connection.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q6: Paul Comes Around</p>
+    <p class="quest-meta">Level 3-4 -- Year 4</p>
+    <p>Paul seeks the player out at the market. "Kacey's crop numbers are up 12%. I don't understand it. But I understand 12%." He offers to expand the apiary to full capacity at his own cost.</p>
+  </div>
+</div>
+
+<div id="q-cvba">
+  <h3>Cedar Valley Beekeepers Association (4 Quests + Recurring)</h3>
+
+  <p>The CVBA chain builds community standing and unlocks the premium River Bottom apiary. Monthly meetings continue indefinitely as a social hub with unique speaker topics.</p>
+  <p><strong>Holiday connection:</strong> CVBA meetings occasionally fall on or near holidays, with holiday-themed discussions (spring management at Quickening, winterization at Reaping).</p>
+
+  <div class="quest-card">
+    <p class="quest-title">Q1: The New Kid</p>
+    <p class="quest-meta">Level 1-2 -- Any season</p>
+    <p>Attend three monthly CVBA meetings at the Grange Hall. Listen to speakers, introduce yourself at the first, and share an observation at the third.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q2: Show and Tell</p>
+    <p class="quest-meta">Level 2-3 -- Year 2-3</p>
+    <p>Prepare and deliver a presentation at a CVBA meeting using three Knowledge Log topics. Answer two questions from members. Public speaking as a beekeeping skill.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q3: The Equipment Swap</p>
+    <p class="quest-meta">Level 3 -- Year 3</p>
+    <p>Participate in the annual equipment swap and honey tasting. Donate or trade at least two items and network with three members to build the support needed for River Bottom.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q4: River Bottom</p>
+    <p class="quest-meta">Level 3 -- Year 3-4</p>
+    <p>The CVBA votes to offer the player the River Bottom site -- premium bottomland forage with willow, sycamore, and wildflower meadow. Pay $500 for site prep, place hives, and unlock the best varietal honey location in the game.</p>
+  </div>
+</div>
+
+<div id="q-silas">
+  <h3>Silas Crenshaw (Chain Being Redesigned)</h3>
+
+  <p><strong>STATUS: Q1-Q3 DEPRECATED.</strong> The Honey House is now functional from game start -- inherited from Uncle Bob, old but working. Silas's relationship arc is being reworked from "gatekeeper who unlocks the Honey House" to "craftsman who helps you upgrade it." His craftsman's philosophy ("I build buildings, not bee gadgets") still grounds the infrastructure progression in character.</p>
+  <p><strong>Character depth:</strong> Silas's bench for Bob (built without being asked, never acknowledged) is one of the game's purest expressions of Midwestern love. After Bob's death, Silas weathers-seals the bench and adds a small brass plate: "R.W." Two initials. That's all. That's everything.</p>
+
+  <div class="quest-card" style="opacity: 0.5;">
+    <p class="quest-title">Q1: The Old Honey House -- DEPRECATED</p>
+    <p class="quest-meta">Removed -- Honey House functional from game start</p>
+  </div>
+
+  <div class="quest-card" style="opacity: 0.5;">
+    <p class="quest-title">Q2: Gathering Materials -- DEPRECATED</p>
+    <p class="quest-meta">Removed -- Honey House functional from game start</p>
+  </div>
+
+  <div class="quest-card" style="opacity: 0.5;">
+    <p class="quest-title">Q3: Raising the Roof -- DEPRECATED</p>
+    <p class="quest-meta">Removed -- Honey House functional from game start</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q4: The Upgrade (PENDING REDESIGN)</p>
+    <p class="quest-meta">Level 2 -- Year 2</p>
+    <p>Will be part of the new upgrade-focused chain. Original concept (curing room, -0.8% moisture bonus) still valid. Silas helps the player make the inherited Honey House their own -- upgrading it tier by tier rather than restoring it from ruin.</p>
+  </div>
+</div>
+
+<div id="q-carl">
+  <h3>Carl Tanner (10 Quests)</h3>
+
+  <p>Carl's chain builds the supply-side business relationship. His store is both a commerce hub and a community information center. The bulletin board surfaces events and seasonal tips; the back corner becomes the player's permanent retail presence.</p>
+  <p><strong>Midwestern depth:</strong> Carl's uncollected tab for Bob's feed deliveries is transferred to the player's account, zeroed out. "Your uncle was good for it." This tells the player everything about the kind of economy Cedar Bend runs on -- trust, not invoices.</p>
+
+  <div class="quest-card">
+    <p class="quest-title">Q1: New Customer</p>
+    <p class="quest-meta">Level 1 -- Any season</p>
+    <p>Visit Tanner's Supply, discover the beekeeping section, and sign up for spring bee package notifications.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q2: The Bulletin Board</p>
+    <p class="quest-meta">Level 1-2 -- Any season</p>
+    <p>Post a swarm-removal notice on the store bulletin board and respond when the first swarm call comes in. The board becomes a recurring information source.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q3: Stock the Shelf</p>
+    <p class="quest-meta">Level 1-2 -- Any season</p>
+    <p>Agree to sell honey on consignment at Tanner's and deliver the initial batch of six or more jars.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q4: The Backorder</p>
+    <p class="quest-meta">Level 2 -- Any season</p>
+    <p>Oxalic acid treatments are backordered mid-season. Work with Carl to source an alternative from the Columbus distributor.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q5: Custom Order</p>
+    <p class="quest-meta">Level 2 -- Any season</p>
+    <p>Use Carl's custom order system for specialty equipment. After three orders, the items get permanently stocked.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q6: The Broken Extractor</p>
+    <p class="quest-meta">Level 2-3 -- Any season</p>
+    <p>Carl offers a broken 9-frame radial extractor from back storage. Diagnose the motor fault and install the replacement part.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q7: Bee Package Day</p>
+    <p class="quest-meta">Level 1 -- Spring</p>
+    <p>42 bee packages arrive Thursday at 7 AM. Help Carl coordinate distribution to 16 customers and answer their beekeeping questions.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q8: The Seasonal Display</p>
+    <p class="quest-meta">Level 2-3 -- Spring</p>
+    <p>Help Carl create a beekeeping equipment display in the front store window using authentic gear from the player's collection.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q9: The Old Supply Ledger</p>
+    <p class="quest-meta">Level 3-4 -- Any season</p>
+    <p>Carl discovers his grandfather's 1952 beekeeping supply ledger. Review it together and identify how equipment has evolved over seventy years.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q10: Tanner's Honey Corner</p>
+    <p class="quest-meta">Level 3-4 -- Any season</p>
+    <p>Carl permanently assigns the back-left corner for the player's beekeeping equipment and honey display. The store becomes an extension of the business.</p>
+  </div>
+</div>
+
+<div id="q-rose">
+  <h3>Rose Delacroix (10 Quests)</h3>
+
+  <p>Rose's chain is the emotional midpoint of the game. Her quests transform the diner from a gameplay pitstop into the player's social anchor. The later quests make the player a permanent fixture in Cedar Bend's daily life.</p>
+  <p><strong>Holiday connection:</strong> Rose's holiday involvement is constant -- she cooks the Quickening Morn breakfast, hosts the Founder's Beam pie contest, provides food for the Reaping Fire, and serves the free Long Table meal. Her presence at every celebration grounds the holidays in character.</p>
+
+  <div class="quest-card">
+    <p class="quest-title">Q1: Honey in the Coffee</p>
+    <p class="quest-meta">Level 2 -- Any season</p>
+    <p>Bring honey to the diner and offer Rose a taste. She samples it for kitchen use -- the beginning of a business relationship built on breakfast.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q2: The Daily Special</p>
+    <p class="quest-meta">Level 2 -- Any season</p>
+    <p>Rose needs 8 jars of consistent honey before Friday for a menu feature. A time-pressure quest that teaches reliability.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q3: Honey Butter</p>
+    <p class="quest-meta">Level 2-3 -- Any season</p>
+    <p>Rose requests buckwheat honey for her grandmother's honey butter recipe. The first varietal-specific order -- flavor matters, not just quantity.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q4: The Chalkboard</p>
+    <p class="quest-meta">Level 2-3 -- Any season</p>
+    <p>Rose creates a chalkboard feature for local honey on the menu. The player designs a proper brand name and description.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q5: The Short-Handed Morning</p>
+    <p class="quest-meta">Level 2-3 -- Any season</p>
+    <p>The busser is absent. Rose asks the player to help with the breakfast rush -- a timing minigame that builds the player's place in the diner's daily rhythm.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q6: The Wildflower Order</p>
+    <p class="quest-meta">Level 3 -- Any season</p>
+    <p>Rose requests light, floral honey that "tastes of Iowa fields." A quality-focused quest requiring the right apiary site and harvest timing.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q7: The Beeswax Candles</p>
+    <p class="quest-meta">Level 3 -- Any season</p>
+    <p>Rose orders real beeswax candles for the diner's Christmas table settings. A crafting quest that expands the player's product line beyond honey.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q8: Cedar Bend Honey Pie</p>
+    <p class="quest-meta">Level 3-4 -- Any season</p>
+    <p>Rose develops a signature recipe requiring both light and dark honey simultaneously. The player must provide two distinct batches from different apiary sites.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q9: The County Food Festival</p>
+    <p class="quest-meta">Level 3-4 -- Summer</p>
+    <p>Rose enters her honey pie in the county food festival. The player gets credit if it wins -- recognition that the honey is as much a part of the recipe as the baking.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q10: The Honey Wall</p>
+    <p class="quest-meta">Level 4 -- Any season</p>
+    <p>Rose displays one jar of every honey varietal the player has produced on the diner's back wall -- a permanent record of seasons, sites, and blooms.</p>
+  </div>
+</div>
+
+<div id="q-june">
+  <h3>June Wellman (10 Quests)</h3>
+
+  <p>June's chain runs through the post office -- the literal point of connection between Cedar Bend and the outside world. Her quests range from practical (shipping bees, ordering supplies) to deeply emotional (Bob's letter, the photograph). She is the quiet archivist of Cedar Bend's most important moments.</p>
+  <p><strong>Hospice connection:</strong> After Bob's death, June delivers the photograph -- the final item Bob left in her care. This makes June the keeper of three artifacts: the letter (delivered Year 3), the knowledge that the letter existed (held for years), and the photograph (delivered post-death).</p>
+
+  <div class="quest-card">
+    <p class="quest-title">Q1: The Buzzing Box</p>
+    <p class="quest-meta">Level 1-2 -- Any season</p>
+    <p>Collect a shipment of live bees from the post office. The package arrives buzzing and warm -- June has been keeping them safe behind the counter.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q2: Handle With Care</p>
+    <p class="quest-meta">Level 1-2 -- Any season</p>
+    <p>A bee package arrives damaged from the distribution center. Perform emergency assessment and installation of the surviving colony.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q3: Catalog Season</p>
+    <p class="quest-meta">Level 1-2 -- Any season</p>
+    <p>Unlock mail-order equipment suppliers through June's catalog system. Learn about Dadant and Mann Lake -- the supply chains behind the hobby.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q4: The Lost Order</p>
+    <p class="quest-meta">Level 1-2 -- Any season</p>
+    <p>A queen shipment goes missing. Track it across multiple NPCs before it arrives at the post office. June investigates on the player's behalf.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q5: Rural Route 4</p>
+    <p class="quest-meta">Level 2 -- Any season</p>
+    <p>June discovers abandoned hives on Rural Route 4 and alerts the player. Investigate the legacy of a deceased beekeeper and salvage what remains.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q6: The Sticky Letter</p>
+    <p class="quest-meta">Level 2 -- Any season</p>
+    <p>A honey jar breaks in the mail and someone complains. Learn postal shipping limitations and send a replacement properly.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q7: Swarm in the Mailbox</p>
+    <p class="quest-meta">Level 2 -- Any season</p>
+    <p>A swarm clusters in the post office mailbox. Capture and relocate it to the player's apiary -- beekeeping as community service.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q8: Special Delivery</p>
+    <p class="quest-meta">Level 2 -- Any season</p>
+    <p>Collect Dr. Harwick's rare queen specimen box from the post office and deliver it within two hours. Connects June's chain to the Harwick milestone track.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q9: June's Garden</p>
+    <p class="quest-meta">Level 2-3 -- Any season</p>
+    <p>Help June plant a pollinator garden behind the post office. Observe the bloom throughout the season -- a small, quiet investment in the town's ecology.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q10: The Annual Report</p>
+    <p class="quest-meta">Level 3-4 -- Any season</p>
+    <p>Review four years of shipping history with June. Provide honey varietals for her desk display. A record of how far the operation has come.</p>
+  </div>
+</div>
+
+<div id="q-lloyd">
+  <h3>Lloyd Petersen (4 Quests)</h3>
+
+  <p>Lloyd's chain is the most patient in the game -- the trees planted in Q3 don't produce until Year 5. The co-stewardship in Q4 is the game's clearest statement about legacy. "I need someone who'll walk it when I can't."</p>
+  <p><strong>Hospice connection:</strong> Lloyd's grief for Bob is the most understated in the game. He walks the timber alone for three days. When he comes back, he tells the player: "Your uncle understood that a forest is a conversation you listen to. Most people just hear noise." This is Lloyd's eulogy. It is one sentence long and it is perfect.</p>
+
+  <div class="quest-card">
+    <p class="quest-title">Q1: The Walk</p>
+    <p class="quest-meta">Level 2 -- Year 2</p>
+    <p>Walk Lloyd's timber with him. Learn the land -- where the lindens grow, where the creek bends, what the soil says. Lloyd decides whether the player is someone worth trusting with the property.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q2: The Linden Season</p>
+    <p class="quest-meta">Level 2-3 -- Year 2-3</p>
+    <p>Harvest during the linden bloom on Lloyd's land. The honey is pale, fragrant, and distinctive -- the timber's signature varietal and a reward for patience.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q3: Clearing and Planting</p>
+    <p class="quest-meta">Level 3 -- Year 3</p>
+    <p>Help Lloyd clear a new section and plant trees that won't produce for years. An investment in a future the player may never fully see -- but someone will.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Q4: Co-Steward</p>
+    <p class="quest-meta">Level 3-4 -- Year 4+</p>
+    <p>Lloyd offers co-stewardship of the timber. "I need someone who'll walk it when I can't." The game's purest expression of legacy -- not ownership, but care that outlasts a single life.</p>
+  </div>
+</div>
+
+<div id="q-holiday">
+  <h3>Holiday Quests (4 Seasonal)</h3>
+
+  <p>Each of Cedar Bend's four holidays has an associated quest that unlocks after the player has attended the holiday once. These quests deepen the holiday from a passive event into an active community moment.</p>
+
+  <div class="quest-card">
+    <p class="quest-title">The Quickening Gift</p>
+    <p class="quest-meta">Greening 12 -- Year 2+ -- Spring</p>
+    <p>Rose asks the player to provide a comb of spring honey for the Quickening Morn breakfast -- continuing the tradition Bob started. Bring a frame of fresh comb to the town square at dawn. Help Rose set up the communal table. The whole town tastes the first honey of the year from the player's hive.</p>
+    <p><strong>Rewards:</strong> +50 XP, +25 Standing, "Keeper of the Comb" reputation title, Annual recurring (simplified version each year).</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">The Beam Day Booth</p>
+    <p class="quest-meta">High-Sun 19 -- Year 2+ -- Summer</p>
+    <p>Frank offers the player a premium booth at the Founder's Beam all-day market. Set up a display with at least 5 products, including at least one specialty item (infused honey, candles, or lip balm). Engage with 10 customers. Highest single-day sales opportunity in the game.</p>
+    <p><strong>Rewards:</strong> +75 XP, +30 Standing, 2x market day revenue, Summer specialty item demand boost for one month.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">The Fire Keeper</p>
+    <p class="quest-meta">Full-Earth 7 -- Year 2+ -- Fall</p>
+    <p>Lloyd asks the player to help gather deadfall from the timber for the Reaping Fire pyre. Spend one day in the timber collecting fallen branches (10 bundles). Deliver to the town square. Help light the fire at dusk. Stay for the stories. Lloyd tells the 1994 storm story. Silas interrupts at the usual point. The player adds a story of their own -- about the surviving hive.</p>
+    <p><strong>Rewards:</strong> +50 XP, +25 Standing, +15 lumber from gathering, The player's story becomes part of the annual tradition.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">A Place at the Table</p>
+    <p class="quest-meta">Deepcold 21 -- Year 2+ -- Winter</p>
+    <p>Help Bob (Years 2-4) or host independently (Year 5+) the Long Table dinner. Set the table, prepare food (honey-glazed ham recipe from Rose, honey cornbread, mead if available). Invite at least 4 NPCs. Each invited NPC has unique Long Table dialogue that reveals something personal they don't share at other times.</p>
+    <p><strong>Rewards:</strong> +75 XP, +40 Standing, All attending NPCs gain +10 relationship, Unique holiday-only Knowledge Log entries from each guest's conversation.</p>
+  </div>
+</div>
+
+<div id="q-community">
+  <h3>Community Quests (4 Town-Wide)</h3>
+
+  <p>These quests emerge from the web of NPC relationships and small-town dynamics. They involve multiple characters and cannot be completed through a single NPC chain.</p>
+
+  <div class="quest-card">
+    <p class="quest-title">The Cribbage Lesson</p>
+    <p class="quest-meta">Year 1-2 -- Any Wednesday Evening</p>
+    <p>Visit the diner on Wednesday night and watch Carl and Frank play cribbage. After the third visit, Carl offers to teach the player. Learn the basics over 3 sessions. On the 4th session, play a full game against Frank (he lets you win, but doesn't admit it). Agnes serves coffee without being asked.</p>
+    <p><strong>Rewards:</strong> +25 XP, +10 Standing with Carl, +10 Standing with Frank, Knowledge Log: "Wednesday Nights" -- a meditation on ritual, reliability, and the value of showing up at the same place at the same time.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">The Casserole Circuit</p>
+    <p class="quest-meta">Year 2 -- After any NPC mentions a neighbor in need</p>
+    <p>Someone in Cedar Bend is having a hard time (rotating: a farmer's wife is sick, the church roof leaks, someone's barn caught fire). Rose coordinates the casserole response. Help deliver 3 casseroles to the affected family. Each delivery involves a brief conversation. Return the dishes to their owners (you always return the dish). Learn the unwritten rules of the casserole economy.</p>
+    <p><strong>Rewards:</strong> +50 XP, +20 Standing, All involved NPCs gain +5 relationship, Knowledge Log: "The Casserole Economy -- How Cedar Bend Takes Care of Its Own"</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">The County Fair Day</p>
+    <p class="quest-meta">Year 3+ -- High-Sun (tied to Frank Q5)</p>
+    <p>The Millhaven County Fair is a full-day event that involves multiple NPCs. Enter honey in the competition (Frank), watch the bee beard contest (spectator), help Kacey run the agriculture booth (cross-chain), buy a pie from Rose's stand, visit the livestock barn where Carl is judging the 4-H animal husbandry entries. The fair is Cedar Bend at its most public and its most proud.</p>
+    <p><strong>Rewards:</strong> Variable (competition results), +30 Standing, 5+ Knowledge Log entries from fair events, Social connections with NPCs from outside Cedar Bend.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Telling the Bees</p>
+    <p class="quest-meta">Year 5+ -- Immediately after Bob's death -- REQUIRED</p>
+    <p>Darlene sends the player to the apiary to perform the oldest tradition in beekeeping. Visit every hive across every apiary location. At each hive, knock on the box and speak the words. The game offers three dialogue tone options (grieving, steady, or Bob's-own-words from the letter), but all deliver the same message: the keeper has died, you have a new keeper, you are not to leave. The player walks the full geography of their five years with Bob, hive by hive, saying the words at each one. This is the emotional climax of the entire game.</p>
+    <p><strong>Design note:</strong> Foreshadowed three times -- Darlene's "old Polish superstition" in Year 1, Bob's porch confession about telling the bees when Sandy died in Year 2, and the line in Bob's letter delivered by June in Year 3. By the time this quest triggers, every player who was paying attention will remember. Every player who wasn't will feel the weight anyway, because the ritual itself carries the emotion. You don't need the foreshadowing to cry. But if you have it, you understand that Bob spent years making sure someone would know what to do.</p>
+    <p><strong>Rewards:</strong> +100 XP, +50 Standing, Knowledge Log: "Telling the Bees -- The Oldest Tradition", All hives gain a subtle visual shimmer for 3 days (the bees heard), Unlocks Bob's Memorial Service quest.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Bob's Memorial Service</p>
+    <p class="quest-meta">Year 5+ -- After Telling the Bees</p>
+    <p>Attend the reception at Rose's diner. Speak with every NPC. Each one shares a Bob memory the player has never heard. Decide what to do with Bob's hat (keep it, hang it in the Honey House, or place it on the surviving hive's stand). Visit the apiary afterward. The surviving hive is humming. Place a jar of honey on the bench next to Bob's initials.</p>
+    <p><strong>Rewards:</strong> +200 XP, +100 Standing, Bob's Memorial Photo (permanent decoration), Choice determines a small visual detail that persists in the game world forever, Knowledge Log: "The Man Who Called"</p>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ====================================================================
+     PART VII: THEMES & THREADS
+     ==================================================================== -->
+<div class="section" id="part7">
+  <p class="section-label">Part VII</p>
+  <h2>Themes &amp; Narrative Threads</h2>
+</div>
+
+<div id="thread-grief">
+  <h3>Grief &amp; Continuation</h3>
+
+  <p>Death is present in Smoke &amp; Honey from the first frame -- eleven dead hives, a man recovering from liver failure, a kid who feels the world is ending. The game does not avoid grief. It metabolizes it. Every character carries loss:</p>
+
+  <p><strong>Bob</strong> lost Sandy eight years ago and eleven hives last winter. <strong>Darlene</strong> lost Teddy to a tractor accident seventeen years ago. <strong>Silas</strong> lost Marge three years ago. <strong>Rose</strong> lost the life she planned when she called off her engagement. <strong>Lloyd</strong> lost daily contact with his wife. <strong>June</strong> inherited a legacy she didn't ask for. <strong>Carl</strong> carries the weight of three generations of a business that the modern economy is trying to erase.</p>
+
+  <p>None of these losses are the point of these characters. They are the foundation. The game's argument is that loss is not the end of the story -- it is the ground from which the story grows. The bees teach this literally: a colony can lose 80% of its population over winter and rebuild to full strength by summer. Death is part of the deal. Continuation is the craft.</p>
+
+  <p>Bob's death is the culmination of this theme. It is not a surprise. It is not a tragedy. It is <strong>the natural conclusion of a life that accomplished what it set out to accomplish.</strong> Bob rebuilt his apiary through the player. He passed on everything he knew. He got his affairs in order. He said goodbye in his own way. And then he rested. The bees kept humming. The kid kept working. The story continued.</p>
+</div>
+
+<div id="thread-legacy">
+  <h3>Legacy &amp; Mentorship</h3>
+
+  <p>The legacy chain in Smoke &amp; Honey runs deep and connects every generation:</p>
+
+  <p>Darlene's grandmother brought queen stock from Poland in 1928. Darlene maintained the line for forty years. In Year 4, the player grafts from that line into their own hives. The genetics of bees that survived the Depression are now part of an apiary built by a kid who was born in the age of AI. <strong>Legacy is not abstract. It is alive. It is buzzing.</strong></p>
+
+  <p>Carl's grandfather opened a feed store in 1952 as one of the first Black-owned businesses in the county. Carl still runs it. The bulletin board his grandfather installed is still the town's information hub. When Carl tears up at the Founder's Beam speech, he is crying for a man he barely remembers whose work he carries every day.</p>
+
+  <p>June inherited the post office from Mae, who survived internment and built a thirty-one-year career in Cedar Bend. June holds Bob's letter for years, waiting for the right moment. The keeping is the legacy -- not the letter itself, but the judgment of <em>when</em>.</p>
+
+  <p>And Bob's mentorship of the player is the central legacy: a Vietnam veteran who lost his wife and nearly lost his bees, who made one phone call, who asked for help from a kid who needed to be asked. The apiary the player builds is Bob's legacy. But the player -- the beekeeper Bob made -- is Bob's gift to Cedar Bend.</p>
+</div>
+
+<div id="thread-community">
+  <h3>Community &amp; Belonging</h3>
+
+  <p>The player does not join Cedar Bend. Cedar Bend absorbs them. This is the Midwestern model: belonging is not an application process. It is the result of being present long enough that people start saving you a seat.</p>
+
+  <p>The milestones of belonging are not dramatic. They are <strong>quiet escalations of assumption:</strong> Rose puts a plate down without asking what you want. Carl remembers your name and your order. Frank gives you a market spot. Darlene starts criticizing your beekeeping, which means she thinks you're worth criticizing. Lloyd lets you onto the timber, which is the highest compliment Lloyd has paid anyone in twenty years.</p>
+
+  <p>The potluck speech (Rose Q4) is the formal marker: the moment the community acknowledges the player publicly. But the real belonging happened earlier, in a hundred small gestures that nobody tracked and everybody noticed.</p>
+
+  <p>After Bob dies, the community holds the player. Not through grand gestures but through the same infrastructure that held Bob: casseroles, silence, showing up, and the assumption that work continues. Darlene checks the hives. Carl delivers supplies. Rose saves the booth at the diner. Lloyd walks the timber. June holds one more artifact. The community that Bob built around the player is Bob's final gift -- a safety net so well-woven that you don't know it's there until you need it.</p>
+</div>
+
+<div id="thread-midwest">
+  <h3>Midwestern Identity</h3>
+
+  <p>Smoke &amp; Honey is unapologetically Midwestern. Not in a caricature way -- no overalls, no "aw shucks," no "simple country folk" condescension. In the real way: the way people talk around feelings instead of about them. The way help arrives before you ask for it. The way disputes are conducted through casserole protocol and conspicuous silence. The way a man builds a bench for his dying friend and neither of them mentions it.</p>
+
+  <p>The Midwest in this game is:</p>
+
+  <p><strong>Gas prices as language.</strong> "You see what they're charging at the Casey's?" is the opening ceremony of every conversation. Gas prices and weather -- the two things every person in a farming county has in common. Carl can recite the five-day forecast from memory and the current price per gallon at three different stations. These aren't small talk. They are the shared experience that connects every person in a farming community.</p>
+
+  <p><strong>Food as currency.</strong> Casseroles are not food. They are declarations of care delivered in 9x13 Pyrex. You always return the dish. You never show up empty-handed. Rose's diner is not a restaurant -- it is the town's living room, where the coffee is always on and the pie is always somebody's grandmother's recipe.</p>
+
+  <p><strong>Silence as intimacy.</strong> The deepest relationships in Cedar Bend are the quietest. Bob and Lloyd in the timber. Silas and his bench. Rose and the Tuesday pie. These are people who have been in each other's lives so long that words are redundant. The Midwest understands that love is not something you say. It is something you do, repeatedly, without commentary, until it becomes invisible. And invisible love is the strongest kind, because nobody can take it away when they stop looking.</p>
+
+  <p><strong>Stubbornness as virtue.</strong> Cedar Bend is still here because its people refused to leave. The post office is still here because June refused to let it close. The feed store is still here because three generations of Tanners refused to be outcompeted. The bees are still here because Bob refused to give up on the one that survived. Stubbornness is the Midwestern superpower, and Smoke &amp; Honey celebrates it without irony.</p>
+</div>
+
+<div class="divider"></div>
+
+<!-- ====================================================================
+     PART VIII: WHAT MIGHT BE MISSING
+     ==================================================================== -->
+<div class="section" id="part8">
+  <p class="section-label">Part VIII</p>
+  <h2>Confirmed Additions -- Documented Here, Needs GDD Integration</h2>
+
+  <p>The following features have been approved and are part of the game design. They require full GDD documentation, asset lists, and implementation planning.</p>
+
+  <div class="quest-card">
+    <p class="quest-title">Family Visits (CONFIRMED)</p>
+    <p>The player's parents and younger siblings visit periodically. 1-2 family visit events per year: a summer weekend where a sibling visits and the player teaches them to hold a smoker (Year 3 arc). A younger sibling visiting in Year 4 and asking about the bees. Parents visiting and seeing who their kid has become. These provide emotional contrast -- a reminder of where the player came from and how far they've traveled. <strong>Requires:</strong> Family member sprites (parent pair, 2 siblings), visit event scripting, family-specific dialogue trees, guest bedroom art for Bob's house.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Agnes Pfeiffer -- Quest Chain (CONFIRMED)</p>
+    <p>Agnes Pfeiffer, Rose's waitress, gets a 3-quest chain. She's present every time the player visits the diner -- always there, always pouring coffee, always quiet. Agnes is taking night classes at the community college in Waterloo. She drives forty-five minutes each way, three nights a week, after a full shift at the diner. She's studying business administration because she wants to open her own place someday -- not in Cedar Bend, maybe not even in Iowa, but somewhere.</p>
+    <p><strong>Quest 1: The Study Break (Year 2).</strong> Agnes is studying at the counter after close. The player notices her textbook. She's embarrassed -- "Don't tell Rose." She asks the player if they've ever felt stuck between loving where you are and wanting something else. This is the generational mirror to the player's own journey: the player came to Cedar Bend and found purpose; Agnes was born here and is looking for hers. The quest triggers by visiting the diner 3 times after 8 PM.</p>
+    <p><strong>Quest 2: The Ride to Waterloo (Year 3).</strong> Agnes's car breaks down on a Wednesday night -- class night. The player drives her to Waterloo. During the drive, Agnes talks about her life: grew up in Cedar Bend, father left when she was ten, mother works at the grain elevator. Rose hired her at sixteen and Agnes has been at the diner ever since. She loves Rose. She loves the diner. She also knows that if she doesn't leave, she'll be pouring coffee at sixty-five. The drive is the game's second sustained car-ride conversation (the first is the Deed and the Lawyer with Bob).</p>
+    <p><strong>Quest 3: The Application (Year 4).</strong> Agnes asks the player to look over her scholarship application. She's applying for a full ride at the University of Northern Iowa. The player helps her with the essay. Rose finds out Agnes is leaving. There is a scene at the diner counter -- Rose says nothing for a long time, then: "You go. You go and you do it right. And when you're done, there's a booth here with your name on it. That's not an offer. That's a fact." Agnes cries. Rose doesn't. This is Rose passing forward the same grace that Cedar Bend gave the player.</p>
+    <p><strong>Rewards:</strong> +25/+50/+75 XP across the chain. Agnes-specific Knowledge Logs. If Agnes leaves (Year 5), Rose hires a new waitress and the diner feels slightly different -- a tiny, true detail about how towns change even as they stay the same.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">The Church -- Bob's Memorial and Grief (CONFIRMED)</p>
+    <p>Cedar Bend's three churches (Lutheran, Methodist, Catholic) appear in the social code. Bob was not religious -- he went to his bees on Sunday mornings. Nobody asked him about it anymore. But grief doesn't check your membership card. When Bob dies, the Methodist minister -- Pastor Jim Henning, a quiet man who has buried half the town over thirty years -- stops by the property. He doesn't preach. He doesn't quote scripture. He brings a pound cake his wife baked and sits on the porch and says: "I didn't come to talk about God. I came because your uncle built the pews in that church thirty years ago and never set foot inside to sit in them, and I always thought that was the most honest thing I'd ever seen." They sit. They don't talk about heaven. They talk about wood grain and pew construction and whether Bob ever sanded the armrests. It is the most pastoral care the game offers, and it comes without a single word of theology.</p>
+    <p><strong>Design note:</strong> Bob was not a churchgoer, and the game respects that. But grief doesn't recognize religious boundaries -- it shows up everywhere, in everyone, in its own language. Pastor Jim's visit is not about converting anyone. It is about a small-town clergyman doing the only thing he knows how to do when someone dies: show up with food and sit until it's time to leave. <strong>Requires:</strong> Pastor Jim NPC sprite, pound cake item, porch scene, short dialogue tree.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Mead Making -- Winter Crafting Chain (CONFIRMED)</p>
+    <p>Winter in Cedar Bend is quiet. Mead-making fills the gap with a meaningful crafting progression that ties directly to the honey economy and gives winter months their own identity.</p>
+    <p><strong>Year 2 (Winter):</strong> Bob teaches the player the basics. "Your grandmother used to make this. Sandy made it better. I'll show you what I remember." The player learns to mix honey, water, and yeast in a carboy. First batch takes 6 in-game weeks to ferment. Bob's recipe is simple -- wildflower honey, nothing fancy. "Fancy mead is for people who don't trust their honey."</p>
+    <p><strong>Year 3 (Winter):</strong> The player brings mead to The Long Table dinner. Lloyd tastes it and says nothing for a long time, then: "This is better than your uncle's." (It isn't. Lloyd is being kind. But it's close.) The player unlocks fruit-infused mead recipes (apple from Rowland Farm, berry from the timber).</p>
+    <p><strong>Year 4+ (Winter):</strong> Mead becomes a product line. Frank gives it a market spot. "This is the kind of thing that gets people to drive forty-five minutes." Premium pricing. Seasonal specialty batches. Rose adds honey mead to the diner's winter menu -- "Hot mead toddy, $4, while it lasts."</p>
+    <p><strong>Requires:</strong> Mead crafting station (workshop or Honey House), carboy/fermenter art assets, mead bottle product sprites, 6-week fermentation timer mechanic, recipe unlock system, Rose's diner menu update, Frank's market booth update. GDD integration needed for crafting system, economy balance, and recipe progression.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Bandit the Cat (CONFIRMED)</p>
+    <p>Bob's gray tabby with a black mask across his eyes. Bob is a cat person, not a dog person. Bandit sleeps on the porch in summer, on Bob's lap in winter. As Bob gets sicker, Bandit gravitates closer -- finds his lap more often, stays longer. Cats know. After Bob dies, Bandit sleeps on Bob's empty chair for three days, then follows the player to the apiary and stays. <strong>Requires:</strong> Cat sprite (idle, sleeping, walking, lap-sitting), porch position, apiary bench position, lap animation for Bob's chair, transition behavior after Bob's death. Minimal quest involvement -- Bandit is ambient, not interactive. He exists. He purrs. He stays.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Player's Journal (CONFIRMED)</p>
+    <p>Supplements the mechanical Knowledge Log with the player character's personal thoughts. Year 1: short, anxious entries -- "Opened a hive today. Hands wouldn't stop shaking. Bob didn't mention it." Year 2: longer, more observant -- "Noticed the queen has a different walk than the workers. Heavier. More deliberate. Like she knows." Year 3: confident, specific, sometimes funny -- "Frank said my labels look professional now. Didn't tell him I designed them at 2 AM while eating Rose's leftover pie." Year 5: entries about Bob that the player will read through tears -- "Bob sat in his chair today and didn't say anything for an hour. I worked the hives. He watched. When I came back, he said: 'Good. That's good.' I think that's what peace looks like."</p>
+    <p>The journal is the player's mirror -- it reflects how they have changed without ever saying "character development happened." <strong>Requires:</strong> Journal UI panel (notebook-style, handwritten font), 50-80 journal entries written across 5 years, journal entry trigger system tied to quest completion and seasonal events, optional "read past entries" function for players who want to see how their character has grown.</p>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ====================================================================
+     PART IX: THINGS TO CONSIDER
+     ==================================================================== -->
+<div class="section" id="part9">
+  <p class="section-label">Part IX</p>
+  <h2>Things to Consider</h2>
+
+  <p>Open questions and ideas that need Nathan's decision before they can be designed and documented.</p>
+
+  <div class="quest-card">
+    <p class="quest-title">A Rival Beekeeper / County Drama</p>
+    <p>All of Cedar Bend loves the player. That's warm, but it could use one character who doesn't. Consider a rival beekeeper from a neighboring county who competes at the fair, questions the player's methods at CVBA meetings, or undercuts their market prices. Not a villain -- just a friction character who makes the player earn it outside of Cedar Bend's protective bubble. This could be a Year 3-4 subplot tied to the County Fair and CVBA.</p>
+    <p><strong>Open questions:</strong> Male or female rival? From which county? Is this a single quest or a recurring presence? Does the rivalry resolve (mutual respect) or persist (ongoing competition)? Does the rival attend Bob's memorial -- and does that moment humanize them?</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Expanded Winter Content</p>
+    <p>Beyond mead-making (confirmed), winter is still the quietest season. Consider: candle-making from beeswax, lip balm crafting, holiday gift baskets as a seasonal product line, winter bee biology study sessions with Dr. Harwick, or a snowstorm survival event that tests the player's winterization prep.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Bob's Vietnam Flashback Moment</p>
+    <p>Bob tells fragments of Vietnam throughout the game. Consider whether there should be one sustained moment -- perhaps during The Rounds or The Deed and the Lawyer -- where he tells a complete story for the first and only time. The risk: it could feel heavy-handed. The reward: it could be the most powerful scene in the game. Needs careful calibration.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Post-Bob Endgame Structure</p>
+    <p>After Bob's death, what keeps the player engaged mechanically? The emotional arc is complete. The bees need tending. But is there a Year 6+ progression? A new mentee? A community challenge? Or is the design intentionally open-ended -- the game continues as long as the player wants to keep showing up, with no further narrative pressure? This is a significant design decision.</p>
+  </div>
+
+  <div class="quest-card">
+    <p class="quest-title">Sandy's Backstory Depth</p>
+    <p>Sandy Baker (Bob's late wife) is mentioned throughout but never fully realized. The photo June delivers, the smoker she gave Bob, the pecan pie Rose saves -- these are all Sandy echoes. Consider whether Sandy deserves a more complete backstory (delivered through Bob's dialogue, the letter, or found objects) or whether her power is in being felt but never fully seen.</p>
+  </div>
+</div>
+
+<div class="vibe" style="margin-top: 64px;">
+  <p>The world got loud. The bees got quiet. A kid showed up. A town absorbed them. A veteran taught them everything and then rested. And one surviving hive became an apiary, a livelihood, a community, and a life.</p>
+</div>
+
+<div class="vibe">
+  <p>We start from the one.</p>
+</div>
+
+<!-- FOOTER -->
+<div class="doc-footer">
+  <p>Smoke &amp; Honey -- Story Bible -- April 2026</p>
+  <p style="margin-top: 8px;">Five Cats Studios LLC</p>
+</div>
+
+</div><!-- /content -->
+
+<!-- Scroll to top button -->
+<button id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
+
+<script>
+  // Scroll-to-top visibility
+  window.addEventListener('scroll', () => {
+    const btn = document.getElementById('scroll-top');
+    if (window.scrollY > 400) {
+      btn.classList.add('visible');
+    } else {
+      btn.classList.remove('visible');
+    }
+  });
+
+  // Active sidebar link highlighting
+  const sections = document.querySelectorAll('[id]');
+  const navLinks = document.querySelectorAll('#sidebar a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => {
+          link.style.color = '';
+          link.style.background = '';
+        });
+        const activeLink = document.querySelector(`#sidebar a[href="#${entry.target.id}"]`);
+        if (activeLink && !activeLink.parentElement.classList.contains('section')) {
+          activeLink.style.color = '#E6A220';
+          activeLink.style.background = 'rgba(230,162,32,0.06)';
+        }
+      }
+    });
+  }, { threshold: 0.3, rootMargin: '-100px 0px -60% 0px' });
+
+  sections.forEach(section => observer.observe(section));
+</script>
+
+</body>
+</html>

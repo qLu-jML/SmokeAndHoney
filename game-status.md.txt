@@ -1,0 +1,61 @@
+# Smoke & Honey — Current Game Status
+## Last Updated: April 4, 2026
+
+## What The Game Is
+Smoke & Honey is a cozy-but-deep beekeeping farm sim built in Godot 4. 
+The player inherits a single Langstroth hive on a quiet Iowa homestead 
+and learns real beekeeping through observation, seasonal rhythms, and 
+consequence. Set in Cedar Bend, a fictional small town in Iowa, the game 
+spans five in-game years with a full cast of characters, quests, and a 
+central emotional narrative.
+
+## Current Build Version
+v0.2 — Core simulation complete, Year 1 playable loop in progress
+
+## Completed Features
+- Full beehive simulation (colony populations, queen behavior, varroa, disease)
+- Hive inspection system (multi-box, frame-by-frame, cell tooltips)
+- Day/night cycle, 8-month calendar, 4 seasons, weather system
+- Equipment shop (Feed & Supply), Saturday Market (sell honey to Frank)
+- Smoker, hive tools, storage chest, hive management
+- Colony installation (package bees and nuc)
+- Varroa treatment (alcohol wash, oxalic/formic acid)
+- American Foulbrood disease model with hive destruction
+- Barrel feeder and feed stores system
+- Quest system with 5 Year-1 quests implemented
+- Knowledge Journal (16 entries + hive records)
+- Character creator (name, appearance, pronouns, backstory)
+- Save/load system
+- 7 exterior zones + 7 interior scenes with transitions
+- Music system (8 seasonal tracks)
+- Seasonal NPC dialogue (Bob, Ellen, Frank)
+- Full flower lifecycle system (7 species, seasonal quality)
+- Modular hive visuals (7 components, build-phase visuals)
+- Community Standing system with price multipliers
+
+## In Progress
+- Harvest pipeline: uncapping mini-game, extraction, moisture grading, bottling
+- Remaining Year-1 quests (Uncle Bob chain — 5 of 8+ complete)
+
+## Known Issues / Not Yet Implemented
+- Harvest pipeline not yet playable end-to-end
+- NPC relationship/friendship system not yet built
+- Bee acquisition ordering flow (Post Office) not yet implemented
+- Swarm management not yet implemented
+- Queen rearing not yet implemented
+- Seasonal and challenge events not yet implemented
+
+## What's Coming Next (public-safe)
+- Honey harvest — uncapping, extracting, grading, and bottling your first harvest
+- Deeper NPC relationships and quest chains
+- Seasonal events in Cedar Bend
+
+## Assets Complete
+- Art: 38 Langstroth UI sprites, 25 item sprites, 42 flower sprites, 
+  7 modular hive sprites, 4 animated character sets, cell atlas (14 states)
+- Audio: 8 seasonal music tracks complete, SFX TBD
+- UI: Core UI complete, polish pass pending
+
+## Playtester Notes
+No external playtesting yet — vertical slice (full Year 1 loop) required 
+before external testing begins. Target Q2-Q3 2026.

@@ -25,6 +25,13 @@ const CATALOGUE := [
 	{"id": "hammer",           "label": "Hammer",        "price": 10, "max_qty":  1},
 	{"id": "smoker",           "label": "Smoker",        "price": 25, "max_qty":  1},
 	{"id": "bee_suit",         "label": "Bee Suit",      "price": 45, "max_qty":  1},
+	# Winterization supplies (Winter Workshop S4)
+	{"id": "entrance_reducer", "label": "Entrance Reducer", "price":  5, "max_qty": 10},
+	{"id": "mouse_guard",      "label": "Mouse Guard",      "price":  8, "max_qty": 10},
+	{"id": "hive_wrap",        "label": "Hive Wrap",        "price": 15, "max_qty": 10},
+	{"id": "top_insulation",   "label": "Top Insulation",   "price":  8, "max_qty": 10},
+	# Equipment maintenance (Winter Workshop S7)
+	{"id": "furniture_polish", "label": "Furniture Polish", "price":  6, "max_qty": 10},
 ]
 
 # -- Layout ---------------------------------------------------------------
