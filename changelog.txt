@@ -1,3 +1,28 @@
+[2026-04-03 CDT] WP6: Custom hive naming + Knowledge Journal
+  scripts/world/hive.gd:
+  - Added hive_name field for custom naming
+  scripts/ui/hive_management.gd:
+  - Replaced static title with editable LineEdit for hive renaming
+  - Name auto-assigned as "Hive #N" if empty
+  scripts/ui/InspectionOverlay.gd:
+  - Header shows custom hive name instead of generic "Hive"
+  - Auto-logs inspection and treatment to KnowledgeLog
+  - Unlocks notebook entries on first inspection/treatment
+  scripts/autoloads/KnowledgeLog.gd (new):
+  - Two-tab journal: Notebook (16 unlockable entries) + Hive Records
+  - Per-hive records with day/action/details/player_note fields
+  - Keen Observer tracking (80%+ notes = bonus)
+  - Full save/load support
+  scripts/ui/knowledge_log_overlay.gd (new):
+  - Tab-based UI with scroll, selection, detail view
+  - J key to open, ESC/J to close, Tab to switch tabs
+  scripts/core/player.gd:
+  - J key opens knowledge journal overlay
+  project.godot:
+  - Registered KnowledgeLog autoload
+  scripts/autoloads/SaveManager.gd:
+  - Save/load hive_name, KnowledgeLog data
+
 [2026-04-03 CDT] WP5: AFB two-state disease system
   scripts/core/HiveSimulation.gd:
   - AFB two-state model: sub-clinical spores -> clinical (visible)

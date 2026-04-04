@@ -198,6 +198,14 @@ func open(hive_node: Node) -> void:
 	# Notify quest system that an inspection was opened
 	QuestManager.notify_event("inspection_opened", {"hive": hive_node})
 
+	# Auto-log inspection to knowledge journal
+	var hive_key: String = _get_hive_key()
+	if KnowledgeLog and KnowledgeLog.has_method("add_hive_record"):
+		KnowledgeLog.add_hive_record(hive_key, "Inspection", "Opened hive for inspection.")
+	# Unlock frame reading entry on first inspection
+	if KnowledgeLog and KnowledgeLog.has_method("unlock_entry"):
+		KnowledgeLog.unlock_entry("frame_reading")
+
 	# AFB warning: foul smell when opening hive with clinical AFB
 	if _sim and _sim.has_clinical_afb():
 		if NotificationManager and NotificationManager.has_method("show_notification"):
@@ -539,6 +547,12 @@ func _on_wash_complete(mites_per_100: float) -> void:
 func _on_wash_cancelled() -> void:
 	pass  # nothing to clean up
 
+## Get display name for the current hive (for journal records).
+func _get_hive_key() -> String:
+	if _hive and "hive_name" in _hive and _hive.hive_name != "":
+		return _hive.hive_name
+	return "Hive"
+
 ## Perform the rope test on a suspicious AFB cell.
 func _on_rope_test_pressed() -> void:
 	if _sim == null:
@@ -592,6 +606,11 @@ func _apply_treatment(item_id: String, reduction: float, label: String) -> void:
 		"mites_before": before,
 		"mites_after": after
 	})
+	# Auto-log treatment to journal
+	if KnowledgeLog and KnowledgeLog.has_method("add_hive_record"):
+		KnowledgeLog.add_hive_record(_get_hive_key(), "Treatment", "%s applied. Mites %.0f -> %.0f" % [label, before, after])
+	if KnowledgeLog and KnowledgeLog.has_method("unlock_entry"):
+		KnowledgeLog.unlock_entry("treatment_options")
 	# Refresh stats display
 	_refresh_stats()
 
@@ -994,7 +1013,10 @@ func _refresh_frame() -> void:
 	if _header_name and _hive:
 		var snap: Dictionary = _sim.last_snapshot
 		var species: String = snap.get("queen_species", "?")
-		_header_name.text = "Hive -- %s colony" % species
+		var display_name: String = "Hive"
+		if "hive_name" in _hive and _hive.hive_name != "":
+			display_name = _hive.hive_name
+		_header_name.text = "%s -- %s colony" % [display_name, species]
 
 # ------------------------------------------------------------------------------
 # Progressive Accumulation -- stats build as you inspect each frame side

@@ -15,6 +15,7 @@ enum BuildState {
 }
 
 var build_state: BuildState = BuildState.STAND_PLACED
+var hive_name: String = ""   # Custom name (default: "Hive #N")
 var frame_count: int = 0
 var has_lid: bool = false
 var colony_installed: bool = false
@@ -601,6 +602,14 @@ func _rebuild_sprite_stack() -> void:
 	# Stand stays at z=0 (same level as player, participates in y-sort).
 	const Z_GROUND := 0
 	const Z_BOXES  := 5
+	# The lid overlaps downward into the top box to cover the open cavity
+	# (dark interior area drawn in the top ~20 source px of draft sprites).
+	const LID_OVERLAP := 12.0  # display px -- covers full 22-row cavity + margin
+	# Both deep and super open-top sprites share the same cavity structure:
+	# 2 bright rim rows + 20 dark interior rows = 22 source rows = 11 display px.
+	# When a box stacks on an open-cavity box, it overlaps into the cavity
+	# so the dark interior is hidden and there is no visible gap.
+	const BOX_CAVITY := 11.0  # display px -- 22 source rows * 0.5 scale
 
 	# Forward offset: how far the first box extends past the stand front (px)
 	const BOX_FRONT_OFFSET := 4.0
@@ -610,10 +619,10 @@ func _rebuild_sprite_stack() -> void:
 	var super_data_idx: int = 0
 
 	if build_state == BuildState.STAND_PLACED:
-		layers.append([_tex_stand, null, false, false])
+		layers.append([_tex_base, null, true, false])
 
 	elif build_state == BuildState.BODY_ADDED:
-		layers.append([_tex_stand, null, false, false])
+		layers.append([_tex_base, null, true, false])
 		var deep_tex: Texture2D = _tex_bottom_deep if _tex_bottom_deep != null else _tex_deep_draft
 		if deep_tex != null:
 			layers.append([deep_tex, null, true, true])
@@ -621,7 +630,7 @@ func _rebuild_sprite_stack() -> void:
 			layers.append([_tex_deep_empty, null, false, true])
 
 	elif build_state == BuildState.FRAMES_PARTIAL:
-		layers.append([_tex_stand, null, false, false])
+		layers.append([_tex_base, null, true, false])
 		var deep_tex: Texture2D = _tex_bottom_deep if _tex_bottom_deep != null else _tex_deep_draft
 		if deep_tex != null and frame_count > 0 and frame_count <= _tex_frames.size():
 			layers.append([deep_tex, _tex_frames[frame_count - 1], true, true])
@@ -632,7 +641,7 @@ func _rebuild_sprite_stack() -> void:
 
 	else:
 		# COMPLETE hive
-		layers.append([_tex_stand, null, false, false])
+		layers.append([_tex_base, null, true, false])
 
 		if simulation:
 			var deep_n: int = 0
@@ -651,8 +660,8 @@ func _rebuild_sprite_stack() -> void:
 						layers.append([_tex_deep, null, false, true])
 					deep_n += 1
 
-			if simulation.has_excluder:
-				layers.append([_tex_excluder, null, false, true])
+			# Queen excluder is data-only (no visual layer in the sprite stack).
+			# Its on/off state is shown in the hive inspection UI instead.
 
 			var super_n: int = 0
 			for i in range(simulation.boxes.size()):
@@ -700,6 +709,7 @@ func _rebuild_sprite_stack() -> void:
 
 	var y_cursor: float = 0.0
 	var is_first_box: bool = true   # first non-stand layer
+	var prev_cavity: float = 0.0    # cavity depth (display px) of previous layer
 	var layer_to_child: Dictionary = {}
 	var child_idx: int = 0
 
@@ -712,9 +722,10 @@ func _rebuild_sprite_stack() -> void:
 		var tex_h: float = float(tex.get_height()) * scale_factor
 		var tex_w: float = float(tex.get_width()) * scale_factor
 
-		if tex == _tex_stand:
-			# Stand: bottom at y=0 (ground), sprite extends upward
+		if tex == _tex_stand or tex == _tex_base:
+			# Base/stand: bottom at y=0 (ground), sprite extends upward
 			y_cursor = -tex_h
+			prev_cavity = 0.0
 		elif is_first_box:
 			# First box on stand: offset forward by BOX_FRONT_OFFSET px.
 			# This makes the stand bottom edge extend past the box by 4px
@@ -722,8 +733,37 @@ func _rebuild_sprite_stack() -> void:
 			y_cursor = y_cursor + BOX_FRONT_OFFSET - tex_h
 			is_first_box = false
 		else:
-			# Flush stack: bottom of this sprite = top of previous
-			y_cursor -= tex_h
+			# Flush stack: bottom of this sprite = top of previous.
+			# If the layer below had an open cavity, overlap into it so
+			# there is no visible gap between stacked boxes.
+			if tex == _tex_lid:
+				# Lid overlaps into the box below to cover the open cavity
+				y_cursor -= (tex_h - LID_OVERLAP)
+			elif prev_cavity > 0.0:
+				# Box-on-box: overlap into the cavity of the box below
+				y_cursor -= (tex_h - prev_cavity)
+			else:
+				y_cursor -= tex_h
+
+		# Track this layer's cavity depth for the next iteration.
+		# All open-top box sprites (deep and super drafts) share the same
+		# 22-row cavity structure, so they all use BOX_CAVITY.
+		if tex == _tex_super_draft or tex == _tex_bottom_deep or tex == _tex_top_mid_deep or tex == _tex_deep_draft:
+			prev_cavity = BOX_CAVITY
+		else:
+			prev_cavity = 0.0
+
+		# DEBUG: trace stacking positions (remove after verifying)
+		var _dbg_name: String = "?"
+		if tex == _tex_base: _dbg_name = "base"
+		elif tex == _tex_stand: _dbg_name = "stand"
+		elif tex == _tex_bottom_deep: _dbg_name = "bottom_deep"
+		elif tex == _tex_top_mid_deep: _dbg_name = "top_mid_deep"
+		elif tex == _tex_deep_draft: _dbg_name = "deep_draft"
+		elif tex == _tex_super_draft: _dbg_name = "super_draft"
+		elif tex == _tex_super_full: _dbg_name = "super_full"
+		elif tex == _tex_lid: _dbg_name = "lid"
+		print("[Hive] Layer %d: %s  tex_h=%.1f  y=%.1f  bottom=%.1f  prev_cav=%.1f" % [i, _dbg_name, tex_h, y_cursor, y_cursor + tex_h, prev_cavity])
 
 		var spr := Sprite2D.new()
 		spr.texture = tex
@@ -731,8 +771,14 @@ func _rebuild_sprite_stack() -> void:
 		if is_draft:
 			spr.scale = Vector2(DRAFT_SCALE, DRAFT_SCALE)
 		spr.position = Vector2(-tex_w / 2.0, y_cursor)
-		# Boxes/lid/excluder render above the player; stand at ground level
-		spr.z_index = Z_BOXES if is_above else Z_GROUND
+		# Lid renders above boxes (it overlaps the top box cavity).
+		# Boxes/excluder render above the player; stand at ground level.
+		if tex == _tex_lid:
+			spr.z_index = Z_BOXES + 2
+		elif is_above:
+			spr.z_index = Z_BOXES
+		else:
+			spr.z_index = Z_GROUND
 		spr.z_as_relative = false
 		_sprite_stack.add_child(spr)
 		layer_to_child[i] = child_idx
@@ -754,7 +800,9 @@ func _rebuild_sprite_stack() -> void:
 			var ov_x: float = -tex_w / 2.0 + (tex_w - ov_ref_w) / 2.0
 			var ov_y: float = y_cursor + 1.0 * DRAFT_SCALE
 			ov_spr.position = Vector2(ov_x, ov_y)
-			ov_spr.z_index = Z_BOXES + 1
+			# Same z as boxes: child insertion order ensures later boxes
+			# (supers) draw over earlier overlays (deep frames).
+			ov_spr.z_index = Z_BOXES
 			ov_spr.z_as_relative = false
 			_sprite_stack.add_child(ov_spr)
 			if is_super_layer:

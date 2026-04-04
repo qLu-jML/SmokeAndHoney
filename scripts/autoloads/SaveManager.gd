@@ -167,6 +167,10 @@ func save() -> bool:
 	if PlayerData and PlayerData.has_method("collect_save_data"):
 		data["player_data"] = PlayerData.collect_save_data()
 
+	# -- Knowledge journal -------------------------------------------------------
+	if KnowledgeLog and KnowledgeLog.has_method("collect_save_data"):
+		data["knowledge_log"] = KnowledgeLog.collect_save_data()
+
 	# -- Write to disk ---------------------------------------------------------
 	var json_text: String = JSON.stringify(data, "\t")
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
@@ -317,6 +321,10 @@ func apply_to_scene(scene_root: Node) -> void:
 	if d.has("player_data") and PlayerData and PlayerData.has_method("apply_save_data"):
 		PlayerData.apply_save_data(d["player_data"])
 
+	# -- Knowledge journal -------------------------------------------------------
+	if d.has("knowledge_log") and KnowledgeLog and KnowledgeLog.has_method("apply_save_data"):
+		KnowledgeLog.apply_save_data(d["knowledge_log"])
+
 	# Clear pending state so a second call is a no-op.
 	has_pending_load = false
 	_pending_data    = {}
@@ -371,6 +379,7 @@ func _collect_hives() -> Array:
 			"sim": _collect_sim(sim),
 			# Hive node visual/build state (needed to rebuild sprite stack on load)
 			"build_state":        int(hive_node.build_state),
+			"hive_name":          hive_node.hive_name,
 			"frame_count":        hive_node.frame_count,
 			"has_lid":            hive_node.has_lid,
 			"colony_installed":   hive_node.colony_installed,
@@ -527,6 +536,7 @@ func _apply_hives(hive_data: Array, world: Node) -> void:
 		# Without this the hive stays at the default STAND_PLACED and the
 		# sprite stack only draws the bare stand (no body, no lid).
 		hive_node.build_state        = int(entry.get("build_state", 3)) as Hive.BuildState
+		hive_node.hive_name          = str(entry.get("hive_name", ""))
 		hive_node.frame_count        = int(entry.get("frame_count", 10))
 		hive_node.has_lid            = bool(entry.get("has_lid", true))
 		hive_node.colony_installed   = bool(entry.get("colony_installed", true))

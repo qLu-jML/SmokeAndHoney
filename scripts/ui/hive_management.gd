@@ -33,6 +33,7 @@ var _btn_remove_super: Button = null
 var _btn_add_excluder: Button = null
 var _btn_rotate:       Button = null
 var _btn_destroy_afb:  Button = null
+var _name_edit:        LineEdit = null
 var _info_lbl:         Label  = null
 var _status_lbl:       Label  = null
 
@@ -85,10 +86,28 @@ func _build_ui() -> void:
 	title_bar.size     = Vector2(PNL_W - 2, 14)
 	add_child(title_bar)
 
-	_make_label("Title", "Hive Management",
-		Vector2(PNL_X + 1, PNL_Y + 2),
-		Vector2(PNL_W - 2, 12),
-		9, C_ACCENT, true)
+	# Hive name (editable) + "Hive Management" label
+	var default_name: String = ""
+	if hive_ref and "hive_name" in hive_ref:
+		default_name = hive_ref.hive_name
+	if default_name == "":
+		# Auto-assign based on hive index
+		var hives: Array = get_tree().get_nodes_in_group("hive")
+		var idx: int = hives.find(hive_ref) + 1
+		default_name = "Hive #%d" % idx
+	_name_edit = LineEdit.new()
+	_name_edit.text = default_name
+	_name_edit.max_length = 24
+	_name_edit.add_theme_font_size_override("font_size", 7)
+	_name_edit.add_theme_color_override("font_color", C_ACCENT)
+	var ne_sb := StyleBoxFlat.new()
+	ne_sb.bg_color = Color(0.20, 0.14, 0.05, 0.70)
+	ne_sb.set_corner_radius_all(1)
+	_name_edit.add_theme_stylebox_override("normal", ne_sb)
+	_name_edit.position = Vector2(PNL_X + 2, PNL_Y + 1)
+	_name_edit.size = Vector2(PNL_W - 4, 13)
+	_name_edit.text_submitted.connect(_on_name_submitted)
+	add_child(_name_edit)
 
 	# Title / info divider
 	var div1: ColorRect = ColorRect.new()
@@ -411,6 +430,14 @@ func _on_rotate() -> void:
 		else:
 			_show_status("Cannot rotate - need 2 deep bodies.")
 	_refresh()
+
+func _on_name_submitted(new_name: String) -> void:
+	if hive_ref and "hive_name" in hive_ref:
+		hive_ref.hive_name = new_name.strip_edges()
+		_show_status("Hive renamed to: %s" % hive_ref.hive_name)
+	# Release focus so keyboard input returns to overlay
+	if _name_edit:
+		_name_edit.release_focus()
 
 func _on_destroy_afb() -> void:
 	var sim_ref = hive_ref.simulation if hive_ref and "simulation" in hive_ref else null

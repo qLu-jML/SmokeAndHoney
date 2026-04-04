@@ -29,6 +29,7 @@ WeatherManager="*res://scripts/autoloads/WeatherManager.gd"
 DialogueUI="*res://scripts/ui/DialogueUI.gd"
 SceneManager="*res://scripts/autoloads/SceneManager.gd"
 MusicManager="*res://scripts/autoloads/MusicManager.gd"
+KnowledgeLog="*res://scripts/autoloads/KnowledgeLog.gd"
 HUD="*res://scripts/ui/hud.gd"
 
 [display]

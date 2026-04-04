@@ -386,6 +386,22 @@ func _input(event: InputEvent) -> void:
 		KEY_7: _set_active_slot(6)
 		KEY_8: _set_active_slot(7)
 		KEY_9: _set_active_slot(8)
+		KEY_J: _open_journal()
+
+# -- Journal -------------------------------------------------------------------
+
+## Open the knowledge log journal overlay.
+func _open_journal() -> void:
+	# Don't open if already open
+	if get_tree().get_nodes_in_group("knowledge_log_overlay").size() > 0:
+		return
+	var script: GDScript = load("res://scripts/ui/knowledge_log_overlay.gd") as GDScript
+	if script == null:
+		return
+	var overlay: CanvasLayer = CanvasLayer.new()
+	overlay.set_script(script)
+	overlay.add_to_group("knowledge_log_overlay")
+	get_tree().current_scene.add_child(overlay)
 
 # -- Actions -------------------------------------------------------------------
 #
