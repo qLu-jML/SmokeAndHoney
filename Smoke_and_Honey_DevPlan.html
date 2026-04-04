@@ -108,7 +108,9 @@
   .tag { display: inline-block; padding: 1px 7px; border-radius: 2px;
          font-size: 10px; font-weight: bold; white-space: nowrap; }
   .tag-exists  { background: #1a3a1a; color: #5acc88; }
+  .tag-done    { background: #1a3a1a; color: #5acc88; }
   .tag-wip     { background: #2a2a1a; color: #ccaa44; }
+  .tag-partial { background: #2a2a1a; color: #ccaa44; }
   .tag-todo    { background: #1a1a2a; color: #668ab4; }
   .tag-art     { background: #2a1a2a; color: #cc88cc; }
   .tag-hard    { background: #3a1a1a; color: #cc5544; }
@@ -155,6 +157,69 @@
   .build-order li .step-title { font-weight: bold; color: var(--text); }
   .build-order li .step-detail { color: var(--muted); font-size: 12px; margin-top: 2px; }
   .build-order li .step-ref { color: #668ab4; font-size: 11px; font-style: italic; }
+
+  /* -- PROGRESS BAR -- */
+  .progress-wrap {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; padding: 20px 24px; margin-bottom: 28px;
+  }
+  .progress-header {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .progress-header h3 {
+    font-size: 13px; color: var(--amber-lt); letter-spacing: 1px;
+    text-transform: uppercase; margin: 0;
+  }
+  .progress-header .progress-pct {
+    font-size: 22px; font-weight: bold; color: var(--amber);
+  }
+  .progress-track {
+    width: 100%; height: 18px; background: #1a1a1a;
+    border-radius: 3px; overflow: hidden; position: relative;
+    border: 1px solid var(--border);
+  }
+  .progress-fill-done {
+    height: 100%; background: linear-gradient(90deg, #2a5a2a, #5acc88);
+    position: absolute; left: 0; top: 0; transition: width 0.4s ease;
+  }
+  .progress-fill-wip {
+    height: 100%; background: linear-gradient(90deg, #5a4a1a, #ccaa44);
+    position: absolute; top: 0; transition: width 0.4s ease, left 0.4s ease;
+  }
+  .progress-stats {
+    display: flex; gap: 24px; margin-top: 10px; font-size: 12px;
+  }
+  .progress-stats .stat { display: flex; align-items: center; gap: 5px; }
+  .progress-stats .dot {
+    width: 8px; height: 8px; border-radius: 2px; display: inline-block;
+  }
+  .progress-stats .dot-done { background: #5acc88; }
+  .progress-stats .dot-wip  { background: #ccaa44; }
+  .progress-stats .dot-todo { background: #668ab4; }
+  .progress-phases {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+    margin-top: 14px;
+  }
+  .progress-phase {
+    background: #1a1a1a; border: 1px solid var(--border);
+    border-radius: 3px; padding: 8px 10px; font-size: 11px;
+  }
+  .progress-phase .phase-name {
+    color: var(--muted); font-size: 10px; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 4px;
+  }
+  .progress-phase .phase-bar {
+    width: 100%; height: 6px; background: #111; border-radius: 2px;
+    overflow: hidden; margin-bottom: 4px;
+  }
+  .progress-phase .phase-bar-fill {
+    height: 100%; background: #5acc88; border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+  .progress-phase .phase-count {
+    color: var(--text); font-size: 11px;
+  }
 </style>
 </head>
 <body>
@@ -179,7 +244,7 @@
     <li class="h2"><a href="#p3-charcreate"><span class="status-wip">~</span> Character Creator</a></li>
     <li class="h2"><a href="#p3-quests"><span class="status-wip">~</span> Quests &amp; Events</a></li>
     <li class="h2"><a href="#p3-npc"><span class="status-todo">[ ]</span> NPC Relationships</a></li>
-    <li class="h2"><a href="#p3-knowledge"><span class="status-todo">[ ]</span> Knowledge Log</a></li>
+    <li class="h2"><a href="#p3-knowledge"><span class="status-done">[x]</span> Knowledge Log</a></li>
     <li class="h2"><a href="#p3-acquire"><span class="status-todo">[ ]</span> Bee Acquisition</a></li>
     <li class="h1"><a href="#phase4"><span class="status-todo">[ ]</span> Phase 4 -- Depth</a></li>
     <li class="h2"><a href="#p4-disease"><span class="status-todo">[ ]</span> Disease Suite</a></li>
@@ -224,12 +289,33 @@
 <div class="doc-header">
   <h1>Smoke &amp; Honey -- Development Plan</h1>
   <p>Phased roadmap from current project state to shippable vertical slice and beyond.</p>
-  <p style="margin-top:4px;color:var(--muted);font-size:12px;">Last updated: March 30, 2026 -- Character Creator system added to Phase 3 (tasks 3.0-3.0e): PlayerData, creator scene, layered portrait system, name injection, pronoun token pass. Business &amp; Funding restructured with Master Priority List.</p>
+  <p style="margin-top:4px;color:var(--muted);font-size:12px;">Last updated: April 3, 2026 -- Year 1 Playable Loop (WP1-WP9): Quest spine (5 Year-1 quests), barrel feeder + feed_stores system, alcohol wash mini-game, oxalic/formic treatment UI, AFB two-state model with rope test + hive destruction, Knowledge Journal (16 entries + hive records), custom hive naming, seasonal NPC dialogue (Bob/Ellen/Frank), winter observation overlay, feed supply pre-orders. All merged to main.</p>
   <p style="margin-top:8px">
     <span class="badge badge-godot">Godot 4.6</span>
     <span class="badge badge-gdscript">GDScript</span>
     <span class="badge badge-phase">5 Phases</span>
   </p>
+</div>
+
+<!-- ================================================================= -->
+<!-- PROGRESS BAR                                                        -->
+<!-- ================================================================= -->
+<div class="progress-wrap" id="progress-bar">
+  <div class="progress-header">
+    <h3>Overall Project Progress</h3>
+    <span class="progress-pct" id="pct-label">---%</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill-done" id="bar-done" style="width:0%"></div>
+    <div class="progress-fill-wip" id="bar-wip" style="width:0%;left:0%"></div>
+  </div>
+  <div class="progress-stats">
+    <div class="stat"><span class="dot dot-done"></span> <span id="stat-done">0</span> Done</div>
+    <div class="stat"><span class="dot dot-wip"></span> <span id="stat-wip">0</span> In Progress</div>
+    <div class="stat"><span class="dot dot-todo"></span> <span id="stat-todo">0</span> Remaining</div>
+    <div class="stat" style="margin-left:auto;color:var(--muted);">Total: <strong id="stat-total" style="margin-left:3px;">0</strong></div>
+  </div>
+  <div class="progress-phases" id="phase-bars"></div>
 </div>
 
 <!-- ================================================================= -->
@@ -830,7 +916,7 @@
       <tr>
         <td>3.2</td>
         <td>Uncle Bob quest chain</td><td><span class="tag tag-todo">TODO</span></td>
-        <td>Tutorial backbone: 8 quests spanning Year 1-3. First quest: "Install your package bees." Progresses through first inspection, first harvest, first winter, first spring evaluation. 75-150 XP each, +30-75 Standing.</td>
+        <td>Full chain: 12 quests (8 core + 4 farewell). Core Q1-Q8 span Year 1-3 as extended tutorial: First Light, Reading the Room, Sugar Water Days, The Girls Are Building, First Pull, Battening Down, Lloyd's Lot, Spring Count. Farewell Arc Q9-Q12 (Year 4-5): The Workshop Key, The Deed and the Lawyer, The Rounds, The Last Inspection. Plus recurring bi-weekly mentorship visits after Q8. 25-200 XP per quest, +15-75 Standing.</td>
       </tr>
       <tr>
         <td>3.3</td>
@@ -845,7 +931,7 @@
       <tr>
         <td>3.5</td>
         <td>Remaining NPC quests</td><td><span class="tag tag-todo">TODO</span></td>
-        <td>Frank: market/honey quality chain (5 quests). Ellen: disease diagnosis chain (5 quests). Darlene: queen management chain (6 quests). Walt &amp; Kacey: farm neighbor chain (6 quests). Cedar Valley BKA: community chain (4 quests). Total: ~34 quests, 3,425 XP, 1,150 Standing.</td>
+        <td>Frank Fischbach: market/honey quality chain (5 quests). Dr. Ellen Harwick: milestone-based veterinary chain (10 quests, triggered by hive count). Darlene: queen management/mentorship chain (10 quests). Carl Tanner: equipment/craft supply chain (10 quests). Rose Delacroix: culinary/honey product chain (10 quests). June Holloway: post office/community connection chain (10 quests). Paul &amp; Kacey Rowland: farm neighbor chain (6 quests). Silas Crenshaw: old-timer wisdom chain (4 quests). Lloyd Petersen: hardware/DIY chain (4 quests). Agnes Pfeiffer: holiday/seasonal chain (3 quests). Cedar Valley BKA: community organization chain (6 quests). Holiday Events: seasonal community quests (4 quests). Total: 97 quests across all NPC chains, approximately 8,200 XP.</td>
       </tr>
       <tr>
         <td>3.6</td>
@@ -855,7 +941,7 @@
       <tr>
         <td>3.7</td>
         <td>Challenge events</td><td><span class="tag tag-todo">TODO</span></td>
-        <td>GDD S8.3: Varroa Outbreak (test/treat in 2 weeks), Colony Starvation (emergency feeding), Robbing Behavior (reduce entrances), AFB Scare (ropiness test, burn/treat decision), Pesticide Event (Harmon farm), Swarm Escaped (check for new queen).</td>
+        <td>GDD S8.3: Varroa Outbreak (test/treat in 2 weeks), Colony Starvation (emergency feeding), Robbing Behavior (reduce entrances), AFB Scare (ropiness test, burn/treat decision), Pesticide Event (Rowland farm), Swarm Escaped (check for new queen).</td>
       </tr>
     </table>
   </div>
@@ -882,22 +968,47 @@
       <tr>
         <td>3.11</td>
         <td>Dr. Ellen Harwick placement</td><td><span class="tag tag-todo">TODO</span></td>
-        <td>Script + sprite done. Place in world (Cedar Bend or home visit). Disease inspection quests. Diagnosis dialogue tree. Friendship speeds diagnosis.</td>
+        <td>Script + sprite done. Place in world (Cedar Bend or home visit). Milestone-based veterinary chain: 10 quests triggered by hive count (M1: First Hive through M10: Tenth Hive). Quests include: First Checkup, The Mite Count, Brood Pattern Reading, Swarm Prevention Talk, The Split Decision, Queen Health Check, Nosema Watch, Integrated Pest Management, The Apiary Audit, Master Beekeeper Certification. Diagnosis dialogue tree. Friendship speeds diagnosis. 25-300 XP per quest, +15-75 Standing.</td>
       </tr>
       <tr>
         <td>3.12</td>
         <td>Darlene (Mentor) -- NEW NPC</td><td><span class="tag tag-todo">TODO</span></td>
-        <td>Needs: 120x120 animated sprite + portrait. Coffee at diner Friday mornings. Teaches inspection technique. Friendship threshold introduces Hartley's Apiary (premium supplier).</td>
+        <td>Needs: 120x120 animated sprite + portrait. Coffee at diner Friday mornings. 10-quest mentorship chain: The Introduction, First Inspection Lesson, Spotting the Queen, Frame Management, Queen Cells, Requeen or Wait, Splits and Nucs, The Mentorship Test, Hartley's Apiary, The Torch Passed. Teaches inspection technique, queen management, and advanced beekeeping. Friendship threshold introduces Hartley's Apiary (premium supplier). 25-250 XP per quest, +15-75 Standing.</td>
       </tr>
       <tr>
         <td>3.13</td>
         <td>June (Postmaster) expansion</td><td><span class="tag tag-todo">TODO</span></td>
-        <td>Post Office interior exists. Add dialogue progression, relationship tracking, package notification system.</td>
+        <td>Post Office interior exists. 10-quest community connection chain: Welcome Package, The Bulletin Board, Pen Pal Program, The Care Package, Lost Mail Mystery, Town Newsletter, The Postcard Wall, Cedar Bend History, June's Garden, The Time Capsule. Tracks community relationships through mail and communication. Delivers Bob's farewell letter as story event. Add dialogue progression, relationship tracking, package notification system. 25-200 XP per quest, +15-60 Standing.</td>
       </tr>
       <tr>
         <td>3.14</td>
-        <td>Walt &amp; Kacey Harmon</td><td><span class="tag tag-todo">TODO</span></td>
-        <td>Sprite files exist as small reference PNGs. Need full 120x120 animated sets. Farmer neighbors. Pesticide event source. Kacey friendship opens Harmon Farm as apiary location.</td>
+        <td>Paul &amp; Kacey Rowland</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Sprite files exist as small reference PNGs. Need full 120x120 animated sets. Farmer neighbors. 6-quest farm neighbor chain covering pesticide conflicts, organic farming advocacy, and eventual cooperation. Pesticide event source. Kacey friendship opens Rowland Farm as apiary location. 50-200 XP per quest, +20-60 Standing.</td>
+      </tr>
+      <tr>
+        <td>3.14b</td>
+        <td>Carl Tanner -- NEW NPC</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Needs: 120x120 animated sprite + portrait. Hardware store owner. 10-quest equipment/craft supply chain: New Customer, The Custom Order, Bulk Discount, The Workshop Tour, Tool Maintenance, The Special Commission, Supply Chain Trouble, The Barter System, Carl's Invention, The Partnership. Provides woodenware, tools, and custom equipment. 25-250 XP per quest, +15-75 Standing.</td>
+      </tr>
+      <tr>
+        <td>3.14c</td>
+        <td>Rose Delacroix -- NEW NPC</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Needs: 120x120 animated sprite + portrait. Diner owner/chef. 10-quest culinary/honey product chain: Honey in the Coffee, The Daily Special, Recipe Development, The Tasting Menu, Catering the Festival, Rose's Secret Recipe, Farm to Table, The Cookbook Project, The Grand Opening, Rose's Legacy. Honey integration into local cuisine. 25-250 XP per quest, +15-75 Standing.</td>
+      </tr>
+      <tr>
+        <td>3.14d</td>
+        <td>Silas Crenshaw -- NEW NPC</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Needs: 120x120 animated sprite + portrait. Retired old-timer beekeeper. 4-quest wisdom chain covering traditional beekeeping knowledge, local flora history, and weather reading. Unlocks heritage beekeeping techniques. 50-150 XP per quest, +20-50 Standing.</td>
+      </tr>
+      <tr>
+        <td>3.14e</td>
+        <td>Lloyd Petersen -- NEW NPC</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Needs: 120x120 animated sprite + portrait. Neighbor/handyman. 4-quest hardware/DIY chain covering property improvements, equipment repairs, and workshop projects. Bob's friend who helps with property maintenance. 50-150 XP per quest, +20-50 Standing.</td>
+      </tr>
+      <tr>
+        <td>3.14f</td>
+        <td>Agnes Pfeiffer -- NEW NPC</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Needs: 120x120 animated sprite + portrait. Town elder/historian. 3-quest chain covering Cedar Bend history, community traditions, and seasonal celebrations. Connects player to town heritage. 50-100 XP per quest, +20-40 Standing.</td>
       </tr>
     </table>
   </div>
@@ -908,17 +1019,17 @@
       <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th></tr>
       <tr>
         <td>3.15</td>
-        <td>Knowledge Log UI panel</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Knowledge Log UI panel</td><td><span class="tag tag-exists">DONE</span></td>
         <td>In-game notebook. Access from PauseMenu or dedicated key. Scrollable entries with 6 categories: Brood, Disease, Forage, Equipment, Queen, Harvest.</td>
       </tr>
       <tr>
         <td>3.16</td>
-        <td>Entry triggers (~16 core entries)</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Entry triggers (~16 core entries)</td><td><span class="tag tag-exists">DONE</span></td>
         <td>Auto-triggered: First Inspection, Reading Brood Pattern, Nectar Flow Begins, Swarm Impulse, Winter Bees, AFB Signs. Action-triggered: Eggs and Their Meaning, The Queen First Contact, Varroa Treatment Windows, Splitting a Hive. Each: +20 XP, tooltip upgrade.</td>
       </tr>
       <tr>
         <td>3.17</td>
-        <td>Late-game entries</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Late-game entries</td><td><span class="tag tag-exists">DONE</span></td>
         <td>Deeper ecology/science/history. Reward for completionists. Makes complete log an effective beekeeping primer.</td>
       </tr>
     </table>
@@ -930,7 +1041,7 @@
       <tr><th>#</th><th>Task</th><th>Status</th><th>Details</th></tr>
       <tr>
         <td>3.18</td>
-        <td>Post Office ordering flow</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Post Office ordering flow</td><td><span class="tag tag-partial">PARTIAL</span></td>
         <td>Colony installation mechanic DONE (Phase 1). Nuc starting state DONE. Post Office has LIVE BEES delivery mechanic. TODO: ordering UI at Post Office, supplier selection, queen grade roll, cost deduction, delivery timing (3-7 days).</td>
       </tr>
       <tr>
@@ -1000,17 +1111,17 @@
       <tr><th>#</th><th>System</th><th>Status</th><th>Details</th></tr>
       <tr>
         <td>4.1</td>
-        <td>Treatment UI</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Treatment UI</td><td><span class="tag tag-exists">DONE</span></td>
         <td>Treatment selection during inspection or from inventory. Show: treatment type, cost, timing window, effectiveness. Track treatment history per hive.</td>
       </tr>
       <tr>
         <td>4.2</td>
-        <td>Varroa treatment mechanics</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>Varroa treatment mechanics</td><td><span class="tag tag-exists">DONE</span></td>
         <td>Varroa simulation DONE (cell state, mite invasion, population tracking). TODO: sugar roll/sticky board test action, mite count display in inspection, treatment application (oxalic $8, formic $15, synthetic $20), threshold 3% = treatment required.</td>
       </tr>
       <tr>
         <td>4.3</td>
-        <td>AFB detection + response</td><td><span class="tag tag-todo">TODO</span></td>
+        <td>AFB detection + response</td><td><span class="tag tag-exists">DONE</span></td>
         <td>AFB cell state DONE (8%/day spread, 35-point health penalty). TODO: visual indicators (sunken caps, ropiness), detection probability (40% L1 to 95% L5), burn/treat decision UI, Dr. Harwick trigger.</td>
       </tr>
       <tr>
@@ -1098,7 +1209,7 @@
       <tr><td>4.17</td><td>Cedar Bend Town Center</td><td>Start</td><td>Town garden, diverse urban flora</td><td>--</td></tr>
       <tr><td>4.18</td><td>County Road</td><td>Start</td><td>Open exposure, variable</td><td>Poor (50%)</td></tr>
       <tr><td>4.19</td><td>Timber &amp; Woodlot</td><td>Trusted (Standing 250+)</td><td>High -- linden, sheltered</td><td>High (80%)</td></tr>
-      <tr><td>4.20</td><td>Harmon Farm</td><td>Trusted + Kacey quest</td><td>Very High -- white clover</td><td>Moderate (65%)</td></tr>
+      <tr><td>4.20</td><td>Rowland Farm</td><td>Trusted + Kacey quest</td><td>Very High -- white clover</td><td>Moderate (65%)</td></tr>
       <tr><td>4.21</td><td>River Bottomland</td><td>Respected (Standing 500+)</td><td>Willows (spring), goldenrod (fall)</td><td>Very High (85%)</td></tr>
       <tr><td>4.22</td><td>Cedar Valley Grange</td><td>Level 3 + Standing 400+</td><td>Queen trades, bulk sales</td><td>--</td></tr>
     </table>
@@ -1874,8 +1985,13 @@
   <tr><td><strong>Reward tiers</strong></td><td>$5 Thank You (name in credits), $15 Digital copy at launch, $30 Digital copy + OST download, $60 Backer Edition (exclusive in-game bee skin + early access), $150 Beekeeper Tier (all above + name an NPC), $500 Apiarist Tier (all above + dev call with Nathan). Keep tiers simple -- fewer is better.</td></tr>
   <tr><td><strong>Fees</strong></td><td>Kickstarter takes 5%. Payment processing ~3-5%. Budget for ~10% total fees on funded amount. Factor into goal calculation.</td></tr>
   <tr><td><strong>Timeline</strong></td><td>Target launch Q4 2026 (Oct-Nov), aligned with Indie Fund application window. Holiday wishlists and gift purchases help.</td></tr>
-  <tr><td><strong>Campaign page needs</strong></td><td>Trailer at top (required), hero image, 3-5 gameplay screenshots, "What is Smoke &amp; Honey?" paragraph, "Who is Nathan / Five Cats Studios?" section, risk and challenges (be honest), reward tier breakdown, stretch goals (if any), FAQ.</td></tr>
+  <tr><td><strong>Campaign page needs</strong></td><td>Trailer at top (required), hero image, 3-5 gameplay screenshots, "What is Smoke &amp; Honey?" paragraph, "Who is Nathan / Five Cats Studios?" section, risk and challenges (be honest), reward tier breakdown, stretch goals, FAQ.</td></tr>
   <tr><td><strong>Promotion</strong></td><td>Reddit: r/indiegaming, r/gamedev, r/farming, r/beekeeping. Twitter/X: #indiedev, #gamedev, #pixelart. Post itch.io link one week before Kickstarter to build credibility. Reach out to 5-10 small YouTube/Twitch channels that cover cozy/farming games.</td></tr>
+  <tr><td><strong>Stretch goals</strong></td><td>Stretch goals unlock if the campaign exceeds the base $10,000 target. Keep them realistic and deliverable -- every stretch goal is a promise. Proposed tiers:<br>
+    <strong>$15,000 -- Original Soundtrack Release:</strong> Professional mastering of all seasonal tracks for standalone OST download (already composed via MusicManager, needs studio-quality mastering).<br>
+    <strong>$20,000 -- Additional Apiary Location:</strong> One extra apiary site with unique flora, bee species, and environmental challenges beyond the base game's planned locations.<br>
+    <strong>$25,000 -- Voice Acting:</strong> Professional voice acting for key NPC dialogue lines (Uncle Bob, Darlene, and main quest conversations). The base game is text-only by design; this stretch goal adds voiced lines for pivotal story moments and mentor conversations while keeping the quiet, reflective tone intact. Scope: major quest dialogue and mentor scenes only -- not full voice-over of all text.<br>
+    Do not announce stretch goals that require hiring additional permanent team members. Each goal should be achievable with contract work or tools within the existing solo-dev workflow.</td></tr>
 </table>
 
 <!-- ================================================================= -->
@@ -2005,6 +2121,72 @@
   Tasks 2.1-2.4 (sleep/day advance, nap, auto-save) are complete. Honey production simulation verified (March 30): a single colony now produces ~80 lbs harvestable per season at peak, enough for 2 supers. Super comb drawing rates are realistic. The simulation is ready to support the harvest pipeline. Next: task 2.5 (weather system). Follow the numbers.
 </div>
 
+<div class="callout" style="margin-top:32px;border-left:3px solid #5acc88;">
+  <strong>Changelog</strong>
+  <ul style="margin:8px 0 0 0;padding-left:20px;font-size:13px;line-height:1.6;">
+    <li><strong>April 3, 2026</strong> -- Year 1 Playable Loop (WP1-WP9): Quest spine (5 Year-1 quests), barrel feeder + feed_stores system, alcohol wash mini-game, oxalic/formic treatment UI, AFB two-state model with rope test + hive destruction, Knowledge Journal (16 entries + hive records), custom hive naming, seasonal NPC dialogue (Bob/Ellen/Frank), winter observation overlay, feed supply pre-orders. Tasks 3.15-3.17 DONE, 4.1-4.3 DONE, 3.18 PARTIAL. All merged to main.</li>
+    <li><strong>April 2, 2026</strong> -- Quest expansion: all NPC chains updated to match GDD (97 total quests, up from ~66). Dr. Harwick restructured to milestone-based (10 quests by hive count). Darlene, Carl, Rose, June expanded to 10 quests each. New NPC entries added: Carl Tanner, Rose Delacroix, Silas Crenshaw, Lloyd Petersen, Agnes Pfeiffer. Walt and Kacey Harmon renamed to Paul and Kacey Rowland.</li>
+  </ul>
+</div>
+
 </main>
+
+<script>
+// Auto-count task statuses and populate progress bar
+(function() {
+  var phases = [
+    {id: 'phase1', name: 'Phase 1: Core Loop'},
+    {id: 'phase2', name: 'Phase 2: Harvest'},
+    {id: 'phase3', name: 'Phase 3: Living World'},
+    {id: 'phase4', name: 'Phase 4: Depth'},
+    {id: 'phase5', name: 'Phase 5: Polish'}
+  ];
+
+  function countTags(root) {
+    var tags = root.querySelectorAll('.tag');
+    var done = 0, wip = 0, todo = 0;
+    for (var i = 0; i < tags.length; i++) {
+      var cl = tags[i].classList;
+      if (cl.contains('tag-done') || cl.contains('tag-exists')) done++;
+      else if (cl.contains('tag-wip') || cl.contains('tag-partial')) wip++;
+      else if (cl.contains('tag-todo')) todo++;
+    }
+    return {done: done, wip: wip, todo: todo, total: done + wip + todo};
+  }
+
+  // Global counts
+  var g = countTags(document);
+  var pct = g.total > 0 ? Math.round((g.done / g.total) * 100) : 0;
+
+  document.getElementById('pct-label').textContent = pct + '%';
+  document.getElementById('stat-done').textContent = g.done;
+  document.getElementById('stat-wip').textContent = g.wip;
+  document.getElementById('stat-todo').textContent = g.todo;
+  document.getElementById('stat-total').textContent = g.total;
+
+  var donePct = g.total > 0 ? (g.done / g.total) * 100 : 0;
+  var wipPct = g.total > 0 ? (g.wip / g.total) * 100 : 0;
+  document.getElementById('bar-done').style.width = donePct + '%';
+  document.getElementById('bar-wip').style.width = wipPct + '%';
+  document.getElementById('bar-wip').style.left = donePct + '%';
+
+  // Per-phase mini bars
+  var container = document.getElementById('phase-bars');
+  for (var p = 0; p < phases.length; p++) {
+    var el = document.getElementById(phases[p].id);
+    if (!el) continue;
+    var c = countTags(el);
+    var phasePct = c.total > 0 ? Math.round((c.done / c.total) * 100) : 0;
+
+    var div = document.createElement('div');
+    div.className = 'progress-phase';
+    div.innerHTML =
+      '<div class="phase-name">' + phases[p].name + '</div>' +
+      '<div class="phase-bar"><div class="phase-bar-fill" style="width:' + phasePct + '%"></div></div>' +
+      '<div class="phase-count">' + c.done + ' / ' + c.total + ' (' + phasePct + '%)</div>';
+    container.appendChild(div);
+  }
+})();
+</script>
 </body>
 </html>
