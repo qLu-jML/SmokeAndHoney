@@ -17,14 +17,14 @@ const MONTH_LENGTH:  int = 28
 const SEASON_LENGTH: int = 56
 
 const MONTH_NAMES: Array = [
-	"Quickening",   # Spring M1 (days 1-28)
-	"Greening",     # Spring M2 (days 29-56)
-	"Wide-Clover",  # Summer M1 (days 57-84)
-	"High-Sun",     # Summer M2 (days 85-112)
-	"Full-Earth",   # Fall M1   (days 113-140)
-	"Reaping",      # Fall M2   (days 141-168)
-	"Deepcold",     # Winter M1 (days 169-196)
-	"Kindlemonth",  # Winter M2 (days 197-224)
+	"Quickening",   # Spring M1, transition (days 1-28)  -- shift from winter
+	"Greening",     # Spring M2, true       (days 29-56) -- true spring
+	"Wide-Clover",  # Summer M1, transition (days 57-84) -- shift from spring
+	"High-Sun",     # Summer M2, true       (days 85-112)-- true summer
+	"Full-Earth",   # Fall M1,   transition (days 113-140)-- shift from summer
+	"Reaping",      # Fall M2,   true       (days 141-168)-- true fall
+	"Deepcold",     # Winter M1, transition (days 169-196)-- shift from fall
+	"Kindlemonth",  # Winter M2, true       (days 197-224)-- true winter
 ]
 
 const SEASON_NAMES: Array = ["Spring", "Summer", "Fall", "Winter"]
@@ -238,6 +238,20 @@ func is_holiday() -> bool:
 func is_summer() -> bool:
 	var m := current_month_index()
 	return m == 2 or m == 3
+
+## Returns true if the current month is a transition month (first month of season).
+## Transition months: Quickening (0), Wide-Clover (2), Full-Earth (4), Deepcold (6).
+## These months carry over qualities from the previous season.
+func is_transition_month() -> bool:
+	return current_month_index() % 2 == 0
+
+## Returns "early" for transition months or "true" for true-season months.
+## Transition months are the first month of each season (shift from previous).
+## True months are the second month (fully characteristic of the season).
+func get_season_phase() -> String:
+	if is_transition_month():
+		return "early"
+	return "true"
 
 # -- Time-of-Day Helpers -------------------------------------------------------
 

@@ -42,7 +42,7 @@ func _ready() -> void:
 	# Keep music playing even when the scene tree is paused (chest, shop, etc.)
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
-	# Ensure Music bus exists and start unmuted (music on by default)
+	# Ensure Music bus exists and start muted (dev default -- unmute in Settings)
 	var mi: int = AudioServer.get_bus_index("Music")
 	if mi == -1:
 		AudioServer.add_bus()
@@ -50,7 +50,7 @@ func _ready() -> void:
 		AudioServer.set_bus_name(mi, "Music")
 		AudioServer.set_bus_send(mi, "Master")
 		AudioServer.set_bus_volume_db(mi, 0.0)
-	AudioServer.set_bus_mute(mi, false)
+	AudioServer.set_bus_mute(mi, true)
 
 	# Create two AudioStreamPlayers for crossfading
 	_player_a = AudioStreamPlayer.new()

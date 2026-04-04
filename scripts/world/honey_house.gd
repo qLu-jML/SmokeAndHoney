@@ -6,8 +6,8 @@
 extends Node2D
 
 # -- Room layout (same interface as generic_interior.gd) -----------------------
-@export var room_width: int = 12
-@export var room_height: int = 10
+@export var room_width: int = 16
+@export var room_height: int = 12
 @export var door_col: int = 5
 @export var zone_name: String = "Honey House"
 @export var scene_id: String = "honey_house"
@@ -26,6 +26,11 @@ enum Station {
 	SPINNER,
 	CANNING,
 	BUCKET,        # Honey bucket on the floor near the spinner
+	WORKBENCH,     # Lumber crafting (frames, boxes, lids)
+	CRAFT_TABLE,   # Candles, infusions, polish, propolis
+	GOODS_SHELF,   # Finished goods display (fills as player crafts)
+	GOAL_BOARD,    # Wall-mounted goal board (empty, populates with goals)
+	MEAD_CORNER,   # Space for mead crocks (purchased from Tanner's)
 }
 
 # Current harvest pipeline data
@@ -80,24 +85,38 @@ var _progress_fill: ColorRect = null
 var _carry_label: Label = null         # Shows "Carrying bucket" when player holds it
 
 # -- Station Rects (tile coordinates) ----------------------------------------
-# Layout (12x10 room):
-#   Row 0: wall
-#   Row 1: Super Prep (cols 1-3) | Frame Holder (cols 5-7)
-#   Row 2-3: (continued)
-#   Row 4: Uncapping Station (cols 1-3)
-#   Row 5-6: Spinner (cols 5-8, larger)
-#   Row 7: Canning Table (cols 1-4) | Honey Shelf (cols 6-10)
-#   Row 8: floor
-#   Row 9: wall + door
+# Layout (16x12 room) -- Bob's inherited Honey House, functional from start.
+#   LEFT WING (extraction pipeline):
+#     Row 1-2: Super Prep (cols 1-3) | Frame Holder (cols 5-7)
+#     Row 4-5: Uncapping Station (cols 1-3) | Spinner (cols 5-8)
+#     Row 6:   (spinner continued)
+#     Row 7:   Canning Table (cols 1-4) | Bucket spot (col 5)
+#   RIGHT WING (workshop + crafting):
+#     Row 1-2: Workbench (cols 10-13) -- lumber crafting
+#     Row 3-4: Craft Table (cols 10-13) -- candles, polish, infusions
+#     Row 5-6: Mead Corner (cols 10-12) -- crock space
+#   SOUTH WALL:
+#     Row 8:   Finished Goods Shelf (cols 1-6) | Goal Board (col 13-14)
+#     Row 9-10: floor / walkway
+#     Row 11:  wall + door
 
+# -- Extraction pipeline (left wing) --
 const PREP_RECT     := Rect2(1, 1, 3, 2)
 const HOLDER_RECT   := Rect2(5, 1, 3, 2)
 const UNCAP_RECT    := Rect2(1, 4, 3, 2)
 const SPINNER_RECT  := Rect2(5, 4, 4, 3)
 const CANNING_RECT  := Rect2(1, 7, 4, 1)
-const SHELF_RECT    := Rect2(6, 7, 5, 1)
-# Tile where the honey bucket rests on the floor (bottom-right of spinner, in aisle)
+const SHELF_RECT    := Rect2(6, 7, 3, 1)
 const BUCKET_TILE   := Vector2(5, 7)
+
+# -- Workshop stations (right wing) --
+const WORKBENCH_RECT := Rect2(10, 1, 4, 2)
+const CRAFT_RECT     := Rect2(10, 3, 4, 2)
+const MEAD_RECT      := Rect2(10, 5, 3, 2)
+
+# -- South wall features --
+const GOODS_RECT     := Rect2(1, 8, 6, 1)
+const GOAL_RECT      := Rect2(13, 8, 2, 1)
 
 # -- Lifecycle ----------------------------------------------------------------
 ## Ready.
@@ -148,13 +167,20 @@ func _draw() -> void:
 			draw_rect(r, fill, true)
 			draw_rect(r, edge_color, false, 0.5)
 
-	# Draw station areas -- spinner uses real sprite, others use colored rect
+	# Draw extraction pipeline stations
 	_draw_station_rect(PREP_RECT, Color(0.52, 0.42, 0.26, 1.0))     # wood brown
 	_draw_station_rect(HOLDER_RECT, Color(0.48, 0.38, 0.22, 1.0))   # darker wood
 	_draw_station_rect(UNCAP_RECT, Color(0.50, 0.40, 0.24, 1.0))    # medium wood
 	# SPINNER_RECT: drawn by _spinner_sprite Sprite2D node (no ColorRect fill)
 	_draw_station_rect(CANNING_RECT, Color(0.58, 0.48, 0.30, 1.0))  # warm wood
 	_draw_station_rect(SHELF_RECT, Color(0.62, 0.48, 0.30, 1.0))    # shelf brown
+	# Draw workshop + crafting stations (right wing)
+	_draw_station_rect(WORKBENCH_RECT, Color(0.45, 0.35, 0.20, 1.0))  # dark workbench
+	_draw_station_rect(CRAFT_RECT, Color(0.55, 0.42, 0.28, 1.0))     # craft table
+	_draw_station_rect(MEAD_RECT, Color(0.40, 0.30, 0.18, 1.0))      # mead corner (dark)
+	# Draw south wall features
+	_draw_station_rect(GOODS_RECT, Color(0.60, 0.50, 0.32, 1.0))     # finished goods shelf
+	_draw_station_rect(GOAL_RECT, Color(0.35, 0.30, 0.22, 1.0))      # goal board (darker)
 
 func _draw_station_rect(tile_rect: Rect2, color: Color) -> void:
 	var px_rect := Rect2(tile_rect.position * TILE, tile_rect.size * TILE)
@@ -169,6 +195,7 @@ func _create_stations() -> void:
 		for child in props.get_children():
 			child.queue_free()
 
+	# -- Extraction pipeline stations --
 	_station_areas[Station.SUPER_PREP]   = Rect2(PREP_RECT.position * TILE, PREP_RECT.size * TILE)
 	_station_areas[Station.FRAME_HOLDER] = Rect2(HOLDER_RECT.position * TILE, HOLDER_RECT.size * TILE)
 	_station_areas[Station.UNCAPPING]    = Rect2(UNCAP_RECT.position * TILE, UNCAP_RECT.size * TILE)
@@ -176,19 +203,33 @@ func _create_stations() -> void:
 	_station_areas[Station.CANNING]      = Rect2(CANNING_RECT.position * TILE, CANNING_RECT.size * TILE)
 	_station_areas[Station.BUCKET]       = Rect2(BUCKET_TILE * TILE, Vector2(TILE, TILE))
 
-	# Create labels for each station
+	# -- Workshop + crafting stations --
+	_station_areas[Station.WORKBENCH]    = Rect2(WORKBENCH_RECT.position * TILE, WORKBENCH_RECT.size * TILE)
+	_station_areas[Station.CRAFT_TABLE]  = Rect2(CRAFT_RECT.position * TILE, CRAFT_RECT.size * TILE)
+	_station_areas[Station.MEAD_CORNER]  = Rect2(MEAD_RECT.position * TILE, MEAD_RECT.size * TILE)
+	_station_areas[Station.GOODS_SHELF]  = Rect2(GOODS_RECT.position * TILE, GOODS_RECT.size * TILE)
+	_station_areas[Station.GOAL_BOARD]   = Rect2(GOAL_RECT.position * TILE, GOAL_RECT.size * TILE)
+
+	# Create labels for extraction stations
 	_add_station_label(Station.SUPER_PREP, "Super Prep", PREP_RECT)
 	_add_station_label(Station.FRAME_HOLDER, "Frame Holder", HOLDER_RECT)
 	_add_station_label(Station.UNCAPPING, "Uncapping", UNCAP_RECT)
 	_add_station_label(Station.SPINNER, "Honey Spinner", SPINNER_RECT)
 	_add_station_label(Station.CANNING, "Canning Table", CANNING_RECT)
-	# Shelf label
+	# Shelf label (extraction side)
 	var shelf_lbl := Label.new()
 	shelf_lbl.text = "Honey Storage"
 	shelf_lbl.add_theme_font_size_override("font_size", 4)
 	shelf_lbl.add_theme_color_override("font_color", Color(0.55, 0.45, 0.30, 1.0))
 	shelf_lbl.position = Vector2(SHELF_RECT.position.x * TILE + 8, SHELF_RECT.position.y * TILE - 12)
 	add_child(shelf_lbl)
+
+	# Create labels for workshop stations
+	_add_station_label(Station.WORKBENCH, "Workbench", WORKBENCH_RECT)
+	_add_station_label(Station.CRAFT_TABLE, "Craft Table", CRAFT_RECT)
+	_add_station_label(Station.MEAD_CORNER, "Mead Crocks", MEAD_RECT)
+	_add_station_label(Station.GOODS_SHELF, "Finished Goods", GOODS_RECT)
+	_add_station_label(Station.GOAL_BOARD, "Goal Board", GOAL_RECT)
 
 	# -- Spinner Sprite2D -------------------------------------------------------
 	var spinner_tex: Texture2D = load("res://assets/sprites/objects/honey_spinner.png") as Texture2D
@@ -878,4 +919,4 @@ func _trigger_exit() -> void:
 		target = "res://scenes/home_property.tscn"
 	TimeManager.came_from_interior = true
 	TimeManager.next_scene = target
-	g
+	get_tree().change_scene_to_file("res://scenes/loading/loading_screen.tscn")

@@ -10,15 +10,12 @@ extends CanvasLayer
 const VP_W    := 320
 const VP_H    := 180
 const PANEL_W := 130
-const PANEL_H := 155
+const PANEL_H := 138
 const PANEL_X: int = (VP_W - PANEL_W) / 2
 const PANEL_Y: int = (VP_H - PANEL_H) / 2
 
 const SETTINGS_W := 150
-const SETTINGS_H := 134
-
-const CONTROLS_W := 190
-const CONTROLS_H := 176
+const SETTINGS_H := 120
 
 const BTN_H := 14
 const BTN_GAP := 3
@@ -52,10 +49,7 @@ var _music_slider: HSlider = null
 var _sfx_slider: HSlider = null
 var _music_pct_label: Label = null
 var _sfx_pct_label: Label = null
-var _master_slider: HSlider = null
 var _mute_checkbox: CheckBox = null
-var _controls_panel: Control = null
-var _controls_open: bool = false
 var _exit_confirm: Control = null
 var _exit_confirm_open: bool = false
 var _music_bus_idx: int = -1
@@ -71,7 +65,6 @@ func _ready() -> void:
 	_ensure_audio_buses()
 	_build_ui()
 	_build_settings_panel()
-	_build_controls_panel()
 	_build_exit_confirm()
 	visible = false
 
@@ -79,15 +72,15 @@ func _ready() -> void:
 ## Disconnects all signals when the node is removed from the scene tree.
 func _exit_tree() -> void:
 	# Disconnect slider signals
-	if _music_slider and _music_slider.value_changed.is_connected(_on_music_vol):
-		_music_slider.value_changed.disconnect(_on_music_vol)
-	if _sfx_slider and _sfx_slider.value_changed.is_connected(_on_sfx_vol):
-		_sfx_slider.value_changed.disconnect(_on_sfx_vol)
-	if _master_slider and _master_slider.value_changed.is_connected(_on_master_vol):
-		_master_slider.value_changed.disconnect(_on_master_vol)
+	if _slider_music and _slider_music.value_changed.is_connected(_on_music_vol):
+		_slider_music.value_changed.disconnect(_on_music_vol)
+	if _slider_sfx and _slider_sfx.value_changed.is_connected(_on_sfx_vol):
+		_slider_sfx.value_changed.disconnect(_on_sfx_vol)
+	if _slider_master and _slider_master.value_changed.is_connected(_on_master_vol):
+		_slider_master.value_changed.disconnect(_on_master_vol)
 	# Disconnect mute toggle
-	if _mute_checkbox and _mute_checkbox.toggled.is_connected(_on_mute):
-		_mute_checkbox.toggled.disconnect(_on_mute)
+	if _check_mute and _check_mute.toggled.is_connected(_on_mute):
+		_check_mute.toggled.disconnect(_on_mute)
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -96,8 +89,6 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				_close_exit_confirm()
 			elif _settings_open:
 				_close_settings()
-			elif _controls_open:
-				_close_controls()
 			elif _open:
 				_close()
 			else:
@@ -112,8 +103,6 @@ func toggle() -> void:
 		_close_exit_confirm()
 	elif _settings_open:
 		_close_settings()
-	elif _controls_open:
-		_close_controls()
 	elif _open:
 		_close()
 	else:
@@ -221,7 +210,6 @@ func _build_ui() -> void:
 	var btn_data: Array = [
 		["Resume", Callable(self, "_on_resume")],
 		["Save", Callable(self, "_on_save")],
-		["Controls", Callable(self, "_on_controls")],
 		["Settings", Callable(self, "_on_settings")],
 		["Exit", Callable(self, "_on_exit")],
 	]
@@ -231,7 +219,7 @@ func _build_ui() -> void:
 		by += BTN_H + BTN_GAP
 
 	# ESC hint well below last button
-	_panel.add_child(_centered_label("[ESC] Close", 4, 143, 8, PANEL_W, C_MUTED))
+	_panel.add_child(_centered_label("[ESC] Close", 4, 126, 8, PANEL_W, C_MUTED))
 
 # -- UI: Settings sub-panel ---------------------------------------------------
 
@@ -295,12 +283,12 @@ func _build_settings_panel() -> void:
 
 	# Master row
 	_settings_panel.add_child(_vlabel("Master", 6, Vector2(lx, ry), Vector2(36, 14)))
-	_master_slider = _make_slider(Vector2(sx, ry + 2), Vector2(sw, 10))
-	_master_slider.value = _db_to_pct(_bus_vol("Master"))
-	_master_slider.value_changed.connect(_on_master_vol)
-	_master_slider.name = "MasterSlider"
-	_settings_panel.add_child(_master_slider)
-	var mp := _vlabel(str(int(_master_slider.value)) + "%", 6, Vector2(px, ry), Vector2(26, 14))
+	var ms := _make_slider(Vector2(sx, ry + 2), Vector2(sw, 10))
+	ms.value = _db_to_pct(_bus_vol("Master"))
+	ms.value_changed.connect(_on_master_vol)
+	ms.name = "MasterSlider"
+	_settings_panel.add_child(ms)
+	var mp := _vlabel(str(int(ms.value)) + "%", 6, Vector2(px, ry), Vector2(26, 14))
 	mp.name = "MasterPctLabel"
 	mp.add_theme_color_override("font_color", C_MUTED)
 	_settings_panel.add_child(mp)
@@ -497,9 +485,6 @@ func _open_menu() -> void:
 	_panel.visible = true
 	_settings_panel.visible = false
 	_settings_open = false
-	_controls_open = false
-	if _controls_panel:
-		_controls_panel.visible = false
 	_exit_confirm_open = false
 	if _exit_confirm:
 		_exit_confirm.visible = false
@@ -513,7 +498,6 @@ func _open_menu() -> void:
 func _close() -> void:
 	_open = false
 	_settings_open = false
-	_controls_open = false
 	_exit_confirm_open = false
 	get_tree().paused = false
 	var tw := create_tween()
@@ -523,8 +507,6 @@ func _close() -> void:
 	await tw.finished
 	visible = false
 	_settings_panel.visible = false
-	if _controls_panel:
-		_controls_panel.visible = false
 	if _exit_confirm:
 		_exit_confirm.visible = false
 
@@ -552,8 +534,9 @@ func _on_settings() -> void:
 		_music_slider.value = _db_to_pct(_bus_vol("Music"))
 	if _sfx_slider:
 		_sfx_slider.value = _db_to_pct(_bus_vol("SFX"))
-	if _master_slider:
-		_master_slider.value = _db_to_pct(_bus_vol("Master"))
+	var ms: HSlider = _settings_panel.get_node_or_null("MasterSlider") as HSlider
+	if ms:
+		ms.value = _db_to_pct(_bus_vol("Master"))
 	var i: int = AudioServer.get_bus_index("Music")
 	if i != -1 and _mute_checkbox:
 		_mute_checkbox.set_pressed_no_signal(AudioServer.is_bus_mute(i))
@@ -562,116 +545,6 @@ func _on_settings() -> void:
 func _close_settings() -> void:
 	_settings_open = false
 	_settings_panel.visible = false
-	_panel.visible = true
-
-# -- UI: Controls reference panel -----------------------------------------------
-
-## Builds the controls/keybindings reference panel.
-func _build_controls_panel() -> void:
-	_controls_panel = Control.new()
-	_controls_panel.name = "ControlsPanel"
-	_controls_panel.size = Vector2(CONTROLS_W, CONTROLS_H)
-	_controls_panel.position = Vector2(
-		(VP_W - CONTROLS_W) / 2.0, (VP_H - CONTROLS_H) / 2.0)
-	_controls_panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	_controls_panel.visible = false
-	add_child(_controls_panel)
-
-	var bg := ColorRect.new()
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.color = C_PANEL
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_controls_panel.add_child(bg)
-	_controls_panel.add_child(
-		_border(Vector2.ZERO, Vector2(CONTROLS_W, CONTROLS_H), C_BORDER))
-
-	# Title bar (compact)
-	var tbg := ColorRect.new()
-	tbg.color = Color(0.14, 0.09, 0.03, 1.0)
-	tbg.size = Vector2(CONTROLS_W, 14)
-	tbg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_controls_panel.add_child(tbg)
-	_controls_panel.add_child(
-		_centered_label("CONTROLS", 7, 1, 12, CONTROLS_W, C_TITLE))
-	_controls_panel.add_child(_hdiv(4, 14, CONTROLS_W - 8, C_BORDER))
-
-	# Two-column layout sized for 320x180 viewport.
-	# Row height 7px, font size 4, tight section gaps.
-	var ry := 17
-	var kx := 6       # key column x
-	var dx := 40      # description column x
-	var rh := 7       # row height
-	var sg := 2       # section gap
-	var fs := 4       # font size for rows
-	var hs := 4       # font size for headers
-
-	# Movement
-	_controls_panel.add_child(_ctrl_label("MOVEMENT", hs, Vector2(kx, ry), C_TITLE))
-	ry += rh + 1
-	ry = _ctrl_row(kx, dx, ry, rh, fs, "WASD", "Move")
-	ry = _ctrl_row(kx, dx, ry, rh, fs, "Shift", "Run")
-	ry = _ctrl_row(kx, dx, ry, rh, fs, "Z", "Sleep / Next day")
-	ry += sg
-
-	# Interaction
-	_controls_panel.add_child(_ctrl_label("INTERACTION", hs, Vector2(kx, ry), C_TITLE))
-	ry += rh + 1
-	ry = _ctrl_row(kx, dx, ry, rh, fs, "E", "Interact / Use / Confirm")
-	ry = _ctrl_row(kx, dx, ry, rh, fs, "R", "Rotate")
-	ry = _ctrl_row(kx, dx, ry, rh, fs, "1-9", "Select inventory slot")
-	ry += sg
-
-	# Menus
-	_controls_panel.add_child(_ctrl_label("MENUS", hs, Vector2(kx, ry), C_TITLE))
-	ry += rh + 1
-	ry = _ctrl_row(kx, dx, ry, rh, fs, "ESC / P", "Pause menu")
-	ry = _ctrl_row(kx, dx, ry, rh, fs, "J", "Knowledge Journal")
-	ry = _ctrl_row(kx, dx, ry, rh, fs, "Tab", "Info panel")
-	ry = _ctrl_row(kx, dx, ry, rh, fs, "M", "Map")
-	ry += sg
-
-	# Hive Inspection
-	_controls_panel.add_child(_ctrl_label("HIVE INSPECTION", hs, Vector2(kx, ry), C_TITLE))
-	ry += rh + 1
-	ry = _ctrl_row(kx, dx, ry, rh, fs, "W / S", "Navigate boxes")
-	ry = _ctrl_row(kx, dx, ry, rh, fs, "A / D", "Switch frames")
-	ry = _ctrl_row(kx, dx, ry, rh, fs, "F", "Flip frame side")
-
-	# Back button at bottom
-	var back: Control = _make_btn("Back",
-		Vector2((CONTROLS_W - 50) / 2.0, CONTROLS_H - 18),
-		Vector2(50, 12), Callable(self, "_close_controls"))
-	_controls_panel.add_child(back)
-
-## Adds one key-description row to the controls panel. Returns next y.
-func _ctrl_row(kx: int, dx: int, y: int, rh: int, fs: int,
-		key: String, desc: String) -> int:
-	_controls_panel.add_child(_ctrl_label(key, fs, Vector2(kx, y), C_BTN_TEXT_H))
-	_controls_panel.add_child(_ctrl_label(desc, fs, Vector2(dx, y), C_TEXT))
-	return y + rh
-
-## Helper: creates a small label for controls panel rows.
-func _ctrl_label(text: String, font_size: int, pos: Vector2, color: Color) -> Label:
-	var l := Label.new()
-	l.text = text
-	l.position = pos
-	l.size = Vector2(150, 10)
-	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	l.add_theme_font_size_override("font_size", font_size)
-	l.add_theme_color_override("font_color", color)
-	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return l
-
-## Opens the controls panel.
-func _on_controls() -> void:
-	_controls_open = true
-	_panel.visible = false
-	_controls_panel.visible = true
-
-## Closes the controls panel.
-func _close_controls() -> void:
-	_controls_open = false
-	_controls_panel.visible = false
 	_panel.visible = true
 
 ## Resumes the game from the pause menu.

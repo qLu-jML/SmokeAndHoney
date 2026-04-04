@@ -182,51 +182,57 @@ const QUESTS: Dictionary = {
 	},
 
 	# =========================================================================
-	# SILAS CRENSHAW CHAIN (Y1 -- Honey House restoration)
+	# SILAS CRENSHAW CHAIN -- DEPRECATED (Winter Workshop spec, Section 2)
+	# =========================================================================
+	# Q1-Q3 eliminated: Honey House is functional from game start (inherited).
+	# Silas's quest chain is being redesigned from "gatekeeper who unlocks
+	# the Honey House" to "craftsman who helps you upgrade it."
+	# These definitions are retained but disabled so save files that reference
+	# them do not break.  The "deprecated" flag prevents QuestManager from
+	# offering or activating them.
 	# =========================================================================
 
-	# -- Silas Q1: The Old Honey House ---------------------------------------
+	# -- Silas Q1: The Old Honey House -- DEPRECATED -------------------------
 	"silas_old_honey_house": {
 		"title": "The Old Honey House",
-		"hint": "Examine the old Honey House, then visit Silas at his workshop.",
-		"description": "There is a dilapidated building behind the property -- the old Honey House. It has not been used in years. Examine it, then find Silas Crenshaw at his workshop behind the hardware store. He built the original. Maybe he can fix it.",
+		"hint": "DEPRECATED -- Honey House is functional from game start.",
+		"description": "DEPRECATED. Honey House no longer requires restoration.",
 		"season": "Spring",
-		"xp_reward": 50,
+		"xp_reward": 0,
 		"completion_event": "silas_honey_house_assessed",
-		"next_quest": "silas_gathering_materials",
+		"next_quest": "",
 		"return_to_bob": false,
 		"chain": "silas",
-		"start_conditions": {
-			"requires_complete": "first_light",
-		},
-	},
-	# -- Silas Q2: Gathering Materials ---------------------------------------
-	"silas_gathering_materials": {
-		"title": "Gathering Materials",
-		"hint": "Collect lumber, nails, roofing felt, and $150 for Silas.",
-		"description": "Silas gave you a materials list: 20 boards of lumber, 5 lbs of nails, 2 rolls of roofing felt, and $150 cash for his labor. Gather everything and deliver it to the Honey House site.",
-		"season": "Summer",
-		"xp_reward": 75,
-		"completion_event": "silas_materials_delivered",
-		"next_quest": "silas_raising_the_roof",
-		"return_to_bob": false,
-		"chain": "silas",
+		"deprecated": true,
 		"start_conditions": {},
 	},
-	# -- Silas Q3: Raising the Roof ------------------------------------------
+	# -- Silas Q2: Gathering Materials -- DEPRECATED -------------------------
+	"silas_gathering_materials": {
+		"title": "Gathering Materials",
+		"hint": "DEPRECATED -- Honey House is functional from game start.",
+		"description": "DEPRECATED. Honey House no longer requires restoration.",
+		"season": "Summer",
+		"xp_reward": 0,
+		"completion_event": "silas_materials_delivered",
+		"next_quest": "",
+		"return_to_bob": false,
+		"chain": "silas",
+		"deprecated": true,
+		"start_conditions": {},
+	},
+	# -- Silas Q3: Raising the Roof -- DEPRECATED ----------------------------
 	"silas_raising_the_roof": {
 		"title": "Raising the Roof",
-		"hint": "Help Silas with the final day of construction.",
-		"description": "Silas has been working on the Honey House for a week. Today is the last day and he needs an extra pair of hands. Help him with three tasks: hold a beam steady, hand up roofing materials, and hang the new door.",
+		"hint": "DEPRECATED -- Honey House is functional from game start.",
+		"description": "DEPRECATED. Honey House no longer requires restoration.",
 		"season": "Summer",
-		"xp_reward": 100,
+		"xp_reward": 0,
 		"completion_event": "honey_house_restored",
 		"next_quest": "",
 		"return_to_bob": false,
 		"chain": "silas",
-		"start_conditions": {
-			"days_after_previous": 7,
-		},
+		"deprecated": true,
+		"start_conditions": {},
 	},
 
 	# =========================================================================
@@ -396,6 +402,9 @@ const CHAINS: Dictionary = {
 ## Returns true if a quest's start_conditions are met right now.
 static func check_start_conditions(quest_id: String) -> bool:
 	if not QUESTS.has(quest_id):
+		return false
+	# Deprecated quests are never startable (Winter Workshop spec, Section 2)
+	if QUESTS[quest_id].get("deprecated", false):
 		return false
 	var conds: Dictionary = QUESTS[quest_id].get("start_conditions", {})
 	if conds.is_empty():

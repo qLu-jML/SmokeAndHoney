@@ -25,7 +25,7 @@ const PROMPT_RADIUS: float = 64.0
 ## Initialize the barrel feeder: sprite, prompt, and day-advance connection.
 func _ready() -> void:
 	if not Engine.is_editor_hint():
-		add_to_group("feeder_bucket")
+		add_to_group("barrel_feeder")
 	z_index = 1
 
 	# Visual sprite
@@ -147,4 +147,41 @@ func try_refill(player: Node2D) -> bool:
 		NotificationManager.show_notification("Feeder refilled -- %d days of syrup." % FEED_DURATION_DAYS)
 	return true
 
-## Check if this feeder can be pick
+## Check if this feeder can be picked up (only when empty).
+func try_pickup() -> bool:
+	if days_remaining > 0:
+		return false  # still has syrup
+	return true
+
+## Remove feeder from world and disconnect signals.
+func remove_feeder() -> void:
+	if TimeManager.has_signal("day_advanced"):
+		TimeManager.day_advanced.disconnect(_on_day_advanced)
+	queue_free()
+
+## Return state dictionary for SaveManager.
+func collect_save_data() -> Dictionary:
+	return {
+		"pos_x": global_position.x,
+		"pos_y": global_position.y,
+		"days_remaining": days_remaining,
+	}
+
+## Restore state from SaveManager data.
+func apply_save_data(data: Dictionary) -> void:
+	global_position = Vector2(
+		float(data.get("pos_x", 0.0)),
+		float(data.get("pos_y", 0.0))
+	)
+	days_remaining = int(data.get("days_remaining", FEED_DURATION_DAYS))
+	_update_prompt_text()
+	if days_remaining <= 0 and _sprite:
+		_sprite.modulate = Color(0.5, 0.5, 0.5, 0.8)
+
+## Disconnect TimeManager signals when leaving the scene tree.
+func _exit_tree() -> void:
+	if Engine.is_editor_hint():
+		return
+	if TimeManager and TimeManager.has_signal("day_advanced"):
+		if TimeManager.day_advanced.is_connected(_on_day_advanced):
+			TimeManager.day_advanced.disconnect(_on_day_advanced)

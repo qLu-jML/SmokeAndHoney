@@ -1,3 +1,21 @@
+[2026-04-04 CDT] Winter Workshop S1: Transition month clarification
+  scripts/autoloads/TimeManager.gd:
+  - Added is_transition_month() -> bool helper (returns true for M1 of each season)
+  - Added get_season_phase() -> String helper (returns "early" or "true")
+  - Updated MONTH_NAMES comments with transition/true labels
+  scripts/autoloads/NotificationManager.gd:
+  - Season change notification now shows "Early [Season] begins" for transition months
+  - Month change notification appends "-- true [Season]" for true-season months
+  Smoke_and_Honey_GDD.html (Section 5.1):
+  - Added Phase column to Eight Months of Cedar Bend table
+  - Updated Seasonal Reference Quick Table with Transition/True month columns
+  - Added design note explaining transition vs true month distinction
+  NPC audit: Existing month references in dialogue are contextually correct as-is.
+  Holiday names (Quickening Morn, Reaping Fire) reference holidays not months.
+  Bob's "Wide-Clover" and "Quickening" dialogue uses month names naturally.
+  No NPC changes needed -- distinction is narrative flavor, not a system gate.
+  All files: ASCII-verified, protected docs intact (700833 + 154172 bytes)
+
 [2026-04-04 CDT] Wave 5: Seasonal holidays, community events, holiday NPC dialogue
   scripts/autoloads/HolidayManager.gd (NEW, registered as autoload):
   - Coordinates all 4 seasonal holiday events

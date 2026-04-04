@@ -224,16 +224,6 @@ func _collect_all_deliveries() -> void:
 			player.add_item(d["item"], d["count"])
 		print("[Post Office] Collected: %d x %s" % [d["count"], d["item"]])
 
-	# Check if any delivery contained bees (for June's Buzzing Box quest)
-	var had_bees: bool = false
-	for d in deliveries:
-		var item_id: String = d.get("item", "")
-		if item_id == "bee_package" or item_id == "nuc_colony":
-			had_bees = true
-			break
-	if had_bees:
-		QuestManager.notify_event("bee_package_collected", {})
-
 	GameData.pending_deliveries.clear()
 	_update_package_visibility()
 

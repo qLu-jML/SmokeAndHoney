@@ -1,109 +1,105 @@
 # frank_fischbach.gd -- Frank Fischbach NPC
 # -----------------------------------------------------------------------------
-# GDD S9 / Story Bible: Frank Fischbach -- the market man.
-#   German-American, mid-50s, always wearing decades-old Cedar Bend Corn
-#   Festival cap. Runs Saturday Market. Cheerful ruthlessness -- direct
-#   feedback, doesn't coddle. Economic realist in a cast of romantics.
-#   His approval matters because he doesn't give it cheaply.
+# GDD S9: Frank Fischbach -- the local honey buyer / general store owner.
+#   He buys honey, sells equipment, and provides market-related tips.
 #
-# Year 1 Quests:
-#   Q1: First Jar -- bring honey to market, sell at least 1 jar
-#   Q2: The Saturday Regulars -- 4 consecutive markets, 2 products, $50
+# Phase 1:
+#   - Static sprite at a fixed position (not yet placed in world)
+#   - Interaction prompt when player is nearby
+#   - Uses DialogueUI autoload for speech bubbles and dialogue boxes
+#   - Hint lines rotate through arrays each visit
+#   - Awards XP for each conversation (GDD S7.1)
 #
-# Dialogue priority:
-#   1. First visit (introduces himself)
-#   2. Post-quest debrief
-#   3. Quest-aware briefing
-#   4. Seasonal rotation
-#   5. Fallback lines
+# Phase 2 (future):
+#   - Honey buying / equipment shop interface
+#   - Price fluctuations tied to season and quality
+#   - Special order quests
 # -----------------------------------------------------------------------------
 extends Node2D
 
+# Interaction radius (pixels)
 const INTERACT_RADIUS := 40.0
 
-# -- First visit dialogue ------------------------------------------------------
-const FIRST_VISIT_LINES: Array = [
-	"Hey there. You're Bob's kid, right? I'm Frank.",
-	"I run the Saturday Market. Been doing it for -- oh, fifteen years now.",
-	"If you've got something to sell, I've got a spot for you.",
-	"Honey, wax, whatever you make. People come here for local, for real.",
-	"But I'll tell you straight: this isn't a hobby market.",
-	"People are spending money. They expect quality. Presentation matters.",
-	"When you've got jars ready, bring them by on Saturday. We'll talk.",
-]
-
-# -- Post-quest debrief lines -------------------------------------------------
-const DEBRIEF_LINES: Dictionary = {
-	"frank_first_jar": [
-		"You sold one. Good start.",
-		"But let me be honest with you. Those labels look like a school project.",
-		"That's not an insult. It's actionable feedback.",
-		"Clean labels. Consistent jars. A name people can remember.",
-		"The honey is good. The packaging needs to catch up.",
-		"Come back next Saturday. And the Saturday after that. And the one after that.",
-		"Consistency is what turns a booth into a business.",
-	],
-	"frank_saturday_regulars": [
-		"Four Saturdays in a row. Two products. Fifty dollars.",
-		"You know what that proves? It proves you'll show up.",
-		"Showing up is ninety percent of this. The other ten is quality.",
-		"People are asking for you now. 'Where's the honey kid?' That's what they say.",
-		"That's worth more than the honey.",
-		"I'm bumping your pricing. You've earned it.",
-	],
-}
-
-# -- Quest-aware briefing lines -----------------------------------------------
-const QUEST_LINES: Dictionary = {
-	"frank_first_jar": [
-		"You've got honey? Good. Bring at least 3 jars to Saturday Market.",
-		"I've got a spot for you. Show up, set up, and sell at least one jar.",
-		"After that, we'll talk about what you're doing right and what needs work.",
-	],
-	"frank_saturday_regulars": [
-		"Here's what I need from you: four Saturdays. In a row. No skipping.",
-		"Sell at least two different products -- honey and something else. Wax, herbs, whatever.",
-		"And hit fifty dollars total. That's not a lot. It's a test.",
-		"I need to know you're serious before I give you better shelf placement.",
-	],
-}
-
-# -- Bubble lines (quick one-liners) -------------------------------------------
+# -- Dialogue content ---------------------------------------------------------
 const BUBBLE_LINES: Array = [
 	"Hey there! Got any honey for me today?",
 	"Wildflower honey's been selling like crazy.",
 	"Quality matters -- the restaurants pay double for the good stuff.",
+	"I just got a new batch of frames in stock.",
 	"Spring honey is lighter. Folks love it on toast.",
 	"Business has been good this season!",
 	"Let me know when you're ready to sell.",
 ]
 
-# -- Holiday dialogue ----------------------------------------------------------
-const HOLIDAY_LINES: Dictionary = {
-	"quickening_morn": [
-		"No market today -- everybody is at the square eating Rose's biscuits.",
-		"Spring is coming. That means Saturday Market starts back up soon.",
-		"Get your jars ready. First spring honey always sells fast.",
+const DIALOGUE_LINES: Array = [
+	[
+		"Name's Frank. I run the general store in town -- been buying local honey for years.",
+		"When you've got jars to sell, bring 'em by. I pay fair prices, especially\nfor the premium stuff.",
+		"Wildflower, clover, goldenrod -- each has its market. People care about flavor now.",
 	],
-	"founders_beam": [
-		"Founder's Beam! Best sales day of the year.",
-		"I doubled the prices. Nobody blinks. They are in a good mood.",
-		"If you brought honey, sell it now. You will not see foot traffic like this again.",
-		"I added 25% to your per-jar price today. Festival premium. Enjoy it.",
+	[
+		"Here's a tip: the restaurants in the city pay top dollar for single-source honey.",
+		"If you can keep your bees near one kind of flower -- clover, say -- that jar\nis worth three times a mixed batch.",
+		"It's not easy, but it's worth planning your forage patches.",
 	],
-	"reaping_fire": [
-		"Market's closed for the fire tonight. But come see me next Saturday.",
-		"Fall honey sells well to the candle makers. Dark and strong is what they want.",
-		"Save some jars for winter. Prices go up when supply goes down.",
+	[
+		"I also stock equipment if you need it. Frames, supers, smokers, the works.",
+		"Prices go up in spring when everyone's buying. Smart beekeepers stock up\nin winter when I'm trying to clear shelves.",
+		"Come by the shop anytime.",
 	],
-	"long_table": [
-		"Market's done for the season. See you in spring.",
-		"Merry Long Table. I left a gift under my table for you -- leftover market signage.",
-		"You did good this year. Better than most first-timers.",
+	[
+		"Wax is an overlooked product. Candles, cosmetics, furniture polish --\npeople will buy it.",
+		"Save your cappings when you extract. Melt 'em down, strain 'em,\nand you've got another revenue stream.",
+		"I'll buy clean wax blocks if you've got 'em.",
 	],
-}
+	[
+		"The farmers' market runs every weekend during the warm months.",
+		"Having a booth there is great exposure. Folks love meeting the beekeeper\nbehind the label.",
+		"Just make sure your jars are labeled right. Health department's been\nchecking lately.",
+	],
+]
 
-# -- Seasonal dialogue pools ---------------------------------------------------
+# -- State ---------------------------------------------------------------------
+var _hint_index:     int  = 0
+var _talking:        bool = false
+var _prompt_label:   Label = null
+var _dialogue_ui:    Node  = null
+
+# -- Lifecycle -----------------------------------------------------------------
+
+## Initialize Frank: set up dialogue UI and add prompt label.
+func _ready() -> void:
+	add_to_group("frank_fischbach")
+	add_to_group("npc")
+
+	_dialogue_ui = get_tree().root.get_node_or_null("DialogueUI")
+
+	_prompt_label = Label.new()
+	_prompt_label.text = "[E] Talk to Frank"
+	_prompt_label.add_theme_font_size_override("font_size", 5)
+	_prompt_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.6, 1.0))
+	_prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_prompt_label.custom_minimum_size = Vector2(96, 8)
+	_prompt_label.position = Vector2(-48, -52)
+	_prompt_label.z_index = 10
+	_prompt_label.visible = false
+	add_child(_prompt_label)
+
+## Check player distance each frame and show/hide interact prompt.
+func _process(_delta: float) -> void:
+	if _prompt_label == null:
+		return
+	var player := get_tree().get_first_node_in_group("player")
+	if player is Node2D:
+		var dist: float = (player as Node2D).global_position.distance_to(global_position)
+		_prompt_label.visible = dist <= INTERACT_RADIUS and not _talking
+	else:
+		_prompt_label.visible = false
+
+# -- Public API ----------------------------------------------------------------
+
+## Trigger dialogue with Frank. Shows dialogue UI or fallback speech bubble.
+## Seasonal market advice from Frank.
 const SEASONAL_LINES: Dictionary = {
 	"Spring": [
 		["Spring honey is light and delicate. Customers pay a premium for it.", "But don't rush the harvest -- reputation is built on quality, not quantity."],
@@ -119,126 +115,66 @@ const SEASONAL_LINES: Dictionary = {
 	],
 	"Winter": [
 		["Market's quiet. Good time to plan next year's lineup.", "Beeswax candles, infused honey, gift sets -- diversify your offerings."],
-		["People buy honey year-round if you make it easy for them.", "Think about labels, packaging, a brand. Make it look like you mean it."],
+		["People buy honey as gifts in winter. Presentation is everything.", "A nice jar with a hand-written label? That's a story they're buying, not just food."],
 	],
 }
-
-# -- Fallback static lines -----------------------------------------------------
-const FALLBACK_LINES: Array = [
-	["Here's a tip: restaurants in the city pay top dollar for single-source honey.", "If you can keep your bees near one kind of flower, that jar is worth three times a mix."],
-	["Wax is an overlooked product. Candles, cosmetics, furniture polish.", "Save your cappings when you extract. Melt, strain, sell. Another revenue stream."],
-	["The farmers' market is great exposure. Folks love meeting the beekeeper.", "Just make sure your jars are labeled right. Health department checks."],
-	["I've been doing this fifteen years. The ones who succeed are the ones who show up.", "Rain or shine. Summer or fall. They show up."],
-]
-
-# -- State ---------------------------------------------------------------------
-var _seasonal_index: int = 0
-var _fallback_index: int = 0
-var _talking: bool = false
-var _prompt_label: Label = null
-var _dialogue_ui: Node = null
-var _pending_debrief: String = ""
-var _first_visit_done: bool = false
-
-# -- Lifecycle -----------------------------------------------------------------
-
-func _ready() -> void:
-	add_to_group("frank_fischbach")
-	add_to_group("npc")
-
-	_dialogue_ui = get_tree().root.get_node_or_null("DialogueUI")
-
-	_prompt_label = Label.new()
-	_prompt_label.text = "[E] Talk to Frank"
-	_prompt_label.add_theme_font_size_override("font_size", 7)
-	_prompt_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.6, 1.0))
-	_prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_prompt_label.custom_minimum_size = Vector2(120, 12)
-	_prompt_label.position = Vector2(-60, -70)
-	_prompt_label.z_index = 10
-	_prompt_label.visible = false
-	add_child(_prompt_label)
-
-	if QuestManager:
-		QuestManager.quest_completed.connect(_on_quest_completed)
-
-func _on_quest_completed(quest_id: String, _xp: int) -> void:
-	if quest_id in ["frank_first_jar", "frank_saturday_regulars"]:
-		_pending_debrief = quest_id
-
-func _process(_delta: float) -> void:
-	if _prompt_label == null:
-		return
-	var player := get_tree().get_first_node_in_group("player")
-	if player is Node2D:
-		var dist: float = (player as Node2D).global_position.distance_to(global_position)
-		_prompt_label.visible = dist <= INTERACT_RADIUS and not _talking
-	else:
-		_prompt_label.visible = false
-
-# -- Public API ----------------------------------------------------------------
 
 func interact() -> void:
 	if _talking:
 		return
-	if _dialogue_ui == null:
-		_dialogue_ui = get_tree().root.get_node_or_null("DialogueUI")
-	if _dialogue_ui == null:
-		return
 	_talking = true
+	_prompt_label.visible = false
 
-	var lines: Array = _pick_lines()
-	_dialogue_ui.show_dialogue("Frank", lines, "frank")
+	var lines: Array = _pick_dialogue()
+	_hint_index += 1
 
-	if GameData:
-		GameData.add_xp(5)
+	GameData.add_xp(2)
 
-	_wait_for_dialogue_close()
+	if _dialogue_ui and _dialogue_ui.has_method("show_dialogue"):
+		_dialogue_ui.show_dialogue("Frank", lines, "frank_fischbach")
+		await _dialogue_ui.dialogue_finished
+		_talking = false
+	else:
+		_show_speech_bubble_fallback(lines[0])
 
-func _pick_lines() -> Array:
-	# Priority 1: First visit
-	if not _first_visit_done and not PlayerData.has_flag("frank_first_visit"):
-		_first_visit_done = true
-		PlayerData.set_flag("frank_first_visit")
-		return FIRST_VISIT_LINES
-
-	# Priority 2: Post-quest debrief
-	if _pending_debrief != "" and DEBRIEF_LINES.has(_pending_debrief):
-		var debrief_id: String = _pending_debrief
-		_pending_debrief = ""
-		return DEBRIEF_LINES[debrief_id]
-
-	# Priority 3: Quest-aware advice
-	if QuestManager:
-		for quest_id in QUEST_LINES.keys():
-			if QuestManager.is_active(quest_id):
-				return QUEST_LINES[quest_id]
-
-	# Priority 3.5: Holiday dialogue
-	if HolidayManager and HolidayManager.current_holiday_key() != "":
-		var hk: String = HolidayManager.current_holiday_key()
-		if HOLIDAY_LINES.has(hk):
-			return HOLIDAY_LINES[hk]
-
-	# Priority 4: Seasonal rotation
-	var season: String = ""
-	if TimeManager and TimeManager.has_method("current_season_name"):
-		season = TimeManager.current_season_name()
+## Pick dialogue based on season.
+func _pick_dialogue() -> Array:
+	var season: String = _get_current_season()
 	if SEASONAL_LINES.has(season):
 		var pool: Array = SEASONAL_LINES[season]
-		if pool.size() > 0:
-			_seasonal_index = _seasonal_index % pool.size()
-			var lines: Array = pool[_seasonal_index]
-			_seasonal_index += 1
-			return lines
+		var idx: int = _hint_index % pool.size()
+		return pool[idx]
+	var idx: int = _hint_index % DIALOGUE_LINES.size()
+	return DIALOGUE_LINES[idx]
 
-	# Priority 5: Fallback
-	_fallback_index = _fallback_index % FALLBACK_LINES.size()
-	var lines: Array = FALLBACK_LINES[_fallback_index]
-	_fallback_index += 1
-	return lines
+func _get_current_season() -> String:
+	if not TimeManager or not TimeManager.has_method("current_month_index"):
+		return "Spring"
+	var month: int = TimeManager.current_month_index()
+	if month <= 1:
+		return "Spring"
+	elif month <= 3:
+		return "Summer"
+	elif month <= 5:
+		return "Fall"
+	else:
+		return "Winter"
 
-func _wait_for_dialogue_close() -> void:
-	while _dialogue_ui and _dialogue_ui.has_method("is_open") and _dialogue_ui.is_open():
-		await get_tree().create_timer(0.2).timeout
-	_talking = false
+## Show a floating label as fallback when DialogueUI is unavailable.
+func _show_speech_bubble_fallback(text: String) -> void:
+	var bubble := Label.new()
+	bubble.text = "Frank: " + text
+	bubble.add_theme_font_size_override("font_size", 5)
+	bubble.add_theme_color_override("font_color", Color(0.95, 0.90, 0.70, 1.0))
+	bubble.position = Vector2(-48, -80)
+	bubble.custom_minimum_size = Vector2(96, 0)
+	bubble.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	bubble.z_index = 20
+	add_child(bubble)
+
+	var timer := get_tree().create_timer(4.0)
+	var cleanup_fn := func():
+		bubble.queue_free()
+		_talking = false
+	timer.timeout.connect(cleanup_fn)
+	# Note: SceneTreeTimer auto-disconnects after firing; no explicit disconnect needed

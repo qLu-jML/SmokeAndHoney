@@ -1964,4 +1964,79 @@ func forecast_tomorrow() -> Dictionary:
 	var avg_nu_per: float = float(ForagerSystem.NU_PER_FORAGER_MIN + ForagerSystem.NU_PER_FORAGER_MAX) / 2.0
 	var avg_pu_per: float = float(ForagerSystem.PU_PER_FORAGER_MIN + ForagerSystem.PU_PER_FORAGER_MAX) / 2.0
 	var raw_nu: int = int(float(forager_count) * avg_nu_per * s_factor * weather_mult)
-	var raw_pu: int = int(float(forager_count) * avg_pu_per * s_factor *
+	var raw_pu: int = int(float(forager_count) * avg_pu_per * s_factor * weather_mult)
+	if int(congestion_state) == 3:
+		raw_nu = int(float(raw_nu) * (1.0 - ForagerSystem.CONGESTION_PENALTY))
+		raw_pu = int(float(raw_pu) * (1.0 - ForagerSystem.CONGESTION_PENALTY))
+	var nu_in: int = mini(raw_nu, my_nu)
+	var pu_in: int = mini(raw_pu, my_pu)
+
+	# -- NU allocation (stores-first, then wax, then storage) ---------------
+	var f_daily_cost: float = _daily_consumption()
+	var f_two_week: float = f_daily_cost * 14.0
+	var f_stores_ok: bool = honey_stores >= f_two_week and f_two_week > 0.0
+	var nu_for_wax: int = 0
+	var nu_for_honey: int = nu_in
+	if f_stores_ok:
+		@warning_ignore("INTEGER_DIVISION")
+		nu_for_wax = nu_in / 2
+		nu_for_honey = nu_in - nu_for_wax
+
+	# -- Wax cells forecast ------------------------------------------------
+	var est_wax: int = 0
+	if nu_for_wax > 0:
+		var draw_rate: int = nu_for_wax * 3
+		var house_factor: float = clampf(float(house_count) / 2000.0, 0.1, 1.5)
+		draw_rate = int(float(draw_rate) * house_factor)
+		var foundation_total: int = boxes[0].count_state(S_EMPTY_FOUNDATION)
+		est_wax = clampi(draw_rate, 0, foundation_total)
+
+	# -- Bee bread forecast ------------------------------------------------
+	# Nurses feed brood first (1 PU per open larva), then store excess as
+	# bee bread.  Each bee bread cell holds 3 PU.
+	var open_larva: int = 0
+	var pre_counts: Dictionary = CellStateTransition.sum_frame_counts(boxes[0].frames)
+	open_larva = pre_counts.get(S_OPEN_LARVA, 0)
+	var pu_for_brood: int = mini(pu_in, open_larva)
+	var pu_leftover: int = maxi(0, pu_in - pu_for_brood)
+	# Net bee bread = stored - consumed from reserves
+	# If incoming PU was enough to feed all brood, no reserves consumed.
+	# If not, reserves are consumed (negative bb delta).
+	var pu_from_reserves: int = 0
+	if pu_for_brood < open_larva:
+		pu_from_reserves = mini(open_larva - pu_for_brood,
+			_count_bee_bread_cells() * NurseSystem.PU_PER_BEE_BREAD_CELL)
+	@warning_ignore("INTEGER_DIVISION")
+	var est_bb_new: int = pu_leftover / NurseSystem.PU_PER_BEE_BREAD_CELL
+	@warning_ignore("INTEGER_DIVISION")
+	var est_bb_consumed: int = pu_from_reserves / NurseSystem.PU_PER_BEE_BREAD_CELL
+	var est_bb_net: int = est_bb_new - est_bb_consumed
+
+	# -- Honey cells forecast ----------------------------------------------
+	# New honey = NU for honey converted to lbs, then to cells.
+	# LBS_PER_NU lbs per NU.  Each honey cell ~ 0.00143 lbs.
+	var new_honey_lbs: float = float(nu_for_honey) * LBS_PER_NU
+	var consumption: float = _daily_consumption()
+	var net_honey_lbs: float = new_honey_lbs - consumption
+	# Approximate cells: 1 cell ~ 0.00143 lbs (from LBS_PER_FULL_SUPER / cells)
+	var est_honey: int = int(net_honey_lbs / 0.00143) if net_honey_lbs > 0.0 else 0
+
+	# -- Eggs forecast -----------------------------------------------------
+	var est_eggs: int = 0
+	var laying_delay: int = queen.get("laying_delay", 0)
+	if laying_delay <= 1 and queen["present"]:
+		var grade_mod: float = _grade_modifier(queen["grade"])
+		var species_mod: float = _species_seasonal_modifier(queen["species"], s_factor)
+		var age_mod: float = QueenBehavior.queen_age_multiplier(queen["age_days"])
+		var total_adults: int = nurse_count + house_count + forager_count
+		var mites_per_100: float = mite_count / maxf(1.0, float(total_adults)) * 100.0
+		var varroa_mod: float = QueenBehavior.varroa_laying_modifier(mites_per_100)
+		var cong_mod: float = maxf(0.80, QueenBehavior.congestion_laying_modifier(int(congestion_state)))
+		est_eggs = int(float(queen["laying_rate"]) * s_factor * species_mod * grade_mod * age_mod * varroa_mod * cong_mod)
+
+	return {
+		"wax_cells": est_wax,
+		"bee_bread_cells": est_bb_net,
+		"honey_cells": est_honey,
+		"eggs_laid": est_eggs,
+	}

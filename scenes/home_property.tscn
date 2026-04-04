@@ -22,8 +22,6 @@
 [ext_resource type="PackedScene" path="res://scenes/world/seasonal_tree.tscn" id="seasonal_tree_scene"]
 [ext_resource type="Script" uid="uid://6dyvoe4x0ot4" path="res://scripts/world/home_property.gd" id="test_env_script"]
 [ext_resource type="Script" uid="uid://5r31c5qdsk1l" path="res://scripts/npc/uncle_bob.gd" id="uncle_bob_script"]
-[ext_resource type="Script" path="res://scripts/npc/darlene_kowalski.gd" id="darlene_script"]
-[ext_resource type="Script" path="res://scripts/world/honey_house_ruin.gd" id="honey_house_ruin_script"]
 [ext_resource type="Script" uid="uid://dspknaehmibx5" path="res://scripts/world/workbench_world.gd" id="workbench_world_script"]
 [ext_resource type="Script" uid="uid://dvuon64bfhqoa" path="res://scripts/world/zone_exit.gd" id="zone_exit_script"]
 
@@ -2611,9 +2609,6 @@ offset_bottom = -80.0
 text = "Press E to Enter"
 horizontal_alignment = 1
 
-[node name="HoneyHouseRuin" type="Node2D" parent="World/Buildings/HoneyHouse"]
-script = ExtResource("honey_house_ruin_script")
-
 [node name="HoneyHouseDoor" type="Area2D" parent="World/Buildings/HoneyHouse" unique_id=1398958666]
 position = Vector2(0, 60)
 collision_layer = 0
@@ -2649,61 +2644,8 @@ theme_override_font_sizes/font_size = 5
 text = "Uncle Bob"
 horizontal_alignment = 1
 
-[node name="DarleneKowalski" type="Node2D" parent="World"]
-position = Vector2(520, 160)
-script = ExtResource("darlene_script")
-
-[node name="DarleneSprite" type="Sprite2D" parent="World/DarleneKowalski"]
-
-[node name="NameLabel" type="Label" parent="World/DarleneKowalski"]
-visible = false
-offset_left = -28.0
-offset_top = -42.0
-offset_right = 28.0
-offset_bottom = -32.0
-theme_override_colors/font_color = Color(0.9, 0.85, 0.55, 0.9)
-theme_override_font_sizes/font_size = 5
-text = "Darlene"
-horizontal_alignment = 1
-
 [node name="FlowerLifecycleManager" type="Node2D" parent="World" unique_id=525000001]
 script = ExtResource("flower_lifecycle_script")
-
-[node name="HarvestYard" type="Node2D" parent="World" unique_id=6564799]
-y_sort_enabled = true
-position = Vector2(480, 350)
-script = ExtResource("harvest_yard_script")
-
-[node name="SuperPallet" type="Node2D" parent="World/HarvestYard" unique_id=1137216728]
-position = Vector2(99, -360)
-
-[node name="ScrapedPallet" type="Node2D" parent="World/HarvestYard" unique_id=975539429]
-position = Vector2(205, -361)
-
-[node name="Extractor" type="Node2D" parent="World/HarvestYard" unique_id=1406362319]
-position = Vector2(317, -380)
-
-[node name="BottlingTable" type="Node2D" parent="World/HarvestYard" unique_id=276811842]
-position = Vector2(415, -376)
-
-[node name="HoneyBucket" type="Node2D" parent="World/HarvestYard" unique_id=114301003]
-position = Vector2(349, -324)
-
-[node name="Workbench" type="Node2D" parent="World" unique_id=954361906]
-z_index = 1
-position = Vector2(520, -20)
-script = ExtResource("workbench_world_script")
-
-[node name="ExitToCountyRoad" type="Area2D" parent="World" unique_id=2006727873]
-position = Vector2(2068, 90)
-collision_layer = 0
-script = ExtResource("zone_exit_script")
-target_scene = "res://scenes/world/county_road.tscn"
-exit_label_text = "-> County Road"
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="World/ExitToCountyRoad" unique_id=1602598698]
-position = Vector2(-3, 27.5)
-shape = SubResource("RectangleShape2D_zone_exit")
 
 [node name="FarmsteadTrees" type="Node2D" parent="World" unique_id=1385987454]
 y_sort_enabled = true
@@ -2726,6 +2668,7 @@ z_index = 1
 position = Vector2(160, -40)
 tree_type = "silver_maple"
 pollen_pu = 5.0
+nectar_nu = 2.0
 
 [node name="WildPlumFence1" parent="World/FarmsteadTrees" unique_id=784304180 instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
@@ -2785,282 +2728,207 @@ tree_type = "sycamore"
 pollen_pu = 2.0
 nectar_nu = 0.0
 forage_month_end = 1
+forage_month_end = 1
 
-[node name="WillowNorthWest" parent="World/FarmsteadTrees" unique_id=76465518 instance=ExtResource("seasonal_tree_scene")]
+[node name="WillowNorthWest" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(-373, -293)
-pollen_pu = 6.25
-nectar_nu = 3.75
 
-[node name="CottonwoodNorthWest" parent="World/FarmsteadTrees" unique_id=799967074 instance=ExtResource("seasonal_tree_scene")]
+[node name="CottonwoodNorthWest" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(-560, -225)
 tree_type = "cottonwood"
-pollen_pu = 3.0
-nectar_nu = 0.0
-forage_month_end = 1
 
-[node name="ElmDeadNorthWest" parent="World/FarmsteadTrees" unique_id=2035900919 instance=ExtResource("seasonal_tree_scene")]
+[node name="ElmDeadNorthWest" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(-354, -71)
 tree_type = "elm_dead"
-pollen_pu = 0.0
-nectar_nu = 0.0
 
-[node name="WillowWest" parent="World/FarmsteadTrees" unique_id=258962014 instance=ExtResource("seasonal_tree_scene")]
+[node name="WillowWest" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(-484, 16)
-pollen_pu = 6.25
-nectar_nu = 3.75
 
-[node name="WildPlumWest" parent="World/FarmsteadTrees" unique_id=1607849277 instance=ExtResource("seasonal_tree_scene")]
+[node name="WildPlumWest" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(-589, 119)
 tree_type = "wild_plum"
 flip = true
-pollen_pu = 2.5
-nectar_nu = 3.0
-forage_month_end = 1
 
-[node name="SilverMapleWest" parent="World/FarmsteadTrees" unique_id=549320858 instance=ExtResource("seasonal_tree_scene")]
+[node name="SilverMapleWest" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(-687, 287)
 tree_type = "silver_maple"
-pollen_pu = 5.0
 
-[node name="WillowSouthWest" parent="World/FarmsteadTrees" unique_id=1272820762 instance=ExtResource("seasonal_tree_scene")]
+[node name="WillowSouthWest" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(-368, 1118)
 flip = true
-pollen_pu = 6.25
-nectar_nu = 3.75
 
-[node name="CottonwoodSouthWest" parent="World/FarmsteadTrees" unique_id=525563500 instance=ExtResource("seasonal_tree_scene")]
+[node name="CottonwoodSouthWest" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(-588, 859)
 tree_type = "cottonwood"
 flip = true
-pollen_pu = 3.0
-nectar_nu = 0.0
-forage_month_end = 1
 
-[node name="SycamoreSouthWest" parent="World/FarmsteadTrees" unique_id=843679560 instance=ExtResource("seasonal_tree_scene")]
+[node name="SycamoreSouthWest" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(-286, 1290)
 tree_type = "sycamore"
-pollen_pu = 2.0
-nectar_nu = 0.0
-forage_month_end = 1
 
-[node name="SilverMapleNorthYard" parent="World/FarmsteadTrees" unique_id=90617033 instance=ExtResource("seasonal_tree_scene")]
+[node name="SilverMapleNorthYard" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(-37, -172)
 tree_type = "silver_maple"
-pollen_pu = 5.0
 
-[node name="CherryTreeNorthYard" parent="World/FarmsteadTrees" unique_id=1494586290 instance=ExtResource("seasonal_tree_scene")]
+[node name="CherryTreeNorthYard" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(84, -311)
 tree_type = "cherry_tree"
-pollen_pu = 3.75
-nectar_nu = 4.5
-forage_month_start = 1
-forage_month_end = 1
 
-[node name="AppleTreeSouthYard" parent="World/FarmsteadTrees" unique_id=239539715 instance=ExtResource("seasonal_tree_scene")]
+[node name="AppleTreeSouthYard" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(152, 509)
 tree_type = "apple_tree"
-pollen_pu = 3.75
-nectar_nu = 5.0
-forage_month_start = 1
-forage_month_end = 1
 
-[node name="WildPlumSouthYard" parent="World/FarmsteadTrees" unique_id=2137050628 instance=ExtResource("seasonal_tree_scene")]
+[node name="WildPlumSouthYard" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(270, 474)
 tree_type = "wild_plum"
-pollen_pu = 2.5
-nectar_nu = 3.0
-forage_month_end = 1
 
-[node name="BasswoodSouthYard" parent="World/FarmsteadTrees" unique_id=1644915455 instance=ExtResource("seasonal_tree_scene")]
+[node name="BasswoodSouthYard" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(187, 680)
 tree_type = "basswood_linden"
 flip = true
-pollen_pu = 3.75
-nectar_nu = 15.0
-forage_month_start = 2
-forage_month_end = 3
 
-[node name="SycamoreFarSouth" parent="World/FarmsteadTrees" unique_id=92669094 instance=ExtResource("seasonal_tree_scene")]
+[node name="SycamoreFarSouth" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(170, 1191)
 tree_type = "sycamore"
-pollen_pu = 2.0
-nectar_nu = 0.0
-forage_month_end = 1
 
-[node name="WildPlumFenceSouth" parent="World/FarmsteadTrees" unique_id=1521057391 instance=ExtResource("seasonal_tree_scene")]
+[node name="WildPlumFenceSouth" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(-129, 646)
 tree_type = "wild_plum"
 flip = true
-pollen_pu = 2.5
-nectar_nu = 3.0
-forage_month_end = 1
 
-[node name="CottonwoodNorthField" parent="World/FarmsteadTrees" unique_id=1507919790 instance=ExtResource("seasonal_tree_scene")]
+[node name="CottonwoodNorthField" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(795, -276)
 tree_type = "cottonwood"
 flip = true
-pollen_pu = 3.0
-nectar_nu = 0.0
-forage_month_end = 1
 
-[node name="SilverMapleNorthField" parent="World/FarmsteadTrees" unique_id=1140406730 instance=ExtResource("seasonal_tree_scene")]
+[node name="SilverMapleNorthField" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(594, -279)
 tree_type = "silver_maple"
-pollen_pu = 5.0
 
-[node name="PearTreeMidField" parent="World/FarmsteadTrees" unique_id=338894340 instance=ExtResource("seasonal_tree_scene")]
+[node name="PearTreeMidField" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(743, 336)
 tree_type = "pear_tree"
 flip = true
-pollen_pu = 3.75
-nectar_nu = 4.5
-forage_month_start = 1
-forage_month_end = 1
 
-[node name="CherryTreeMidField" parent="World/FarmsteadTrees" unique_id=1938590161 instance=ExtResource("seasonal_tree_scene")]
+[node name="CherryTreeMidField" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(749, 531)
 tree_type = "cherry_tree"
-pollen_pu = 3.75
-nectar_nu = 4.5
-forage_month_start = 1
-forage_month_end = 1
 
-[node name="BasswoodSouthField" parent="World/FarmsteadTrees" unique_id=1826546080 instance=ExtResource("seasonal_tree_scene")]
+[node name="BasswoodSouthField" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(725, 775)
 tree_type = "basswood_linden"
 flip = true
-pollen_pu = 3.75
-nectar_nu = 15.0
-forage_month_start = 2
-forage_month_end = 3
 
-[node name="ElmDeadSouthField" parent="World/FarmsteadTrees" unique_id=221170110 instance=ExtResource("seasonal_tree_scene")]
+[node name="ElmDeadSouthField" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(525, 767)
 tree_type = "elm_dead"
-pollen_pu = 0.0
-nectar_nu = 0.0
 
-[node name="CottonwoodSouthField" parent="World/FarmsteadTrees" unique_id=1820783761 instance=ExtResource("seasonal_tree_scene")]
+[node name="CottonwoodSouthField" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(538, 1255)
 tree_type = "cottonwood"
 flip = true
-pollen_pu = 3.0
-nectar_nu = 0.0
-forage_month_end = 1
 
-[node name="SilverMapleEastNorth" parent="World/FarmsteadTrees" unique_id=1397751884 instance=ExtResource("seasonal_tree_scene")]
+[node name="SilverMapleEastNorth" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(1124, -18)
 tree_type = "silver_maple"
 flip = true
-pollen_pu = 5.0
 
-[node name="AppleTreeEastNorth" parent="World/FarmsteadTrees" unique_id=627454399 instance=ExtResource("seasonal_tree_scene")]
+[node name="AppleTreeEastNorth" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(957, -116)
 tree_type = "apple_tree"
 flip = true
-pollen_pu = 3.75
-nectar_nu = 5.0
-forage_month_start = 1
-forage_month_end = 1
 
-[node name="WildPlumEastNorth" parent="World/FarmsteadTrees" unique_id=1502343524 instance=ExtResource("seasonal_tree_scene")]
+[node name="WildPlumEastNorth" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(1223, 60)
 tree_type = "wild_plum"
-pollen_pu = 2.5
-nectar_nu = 3.0
-forage_month_end = 1
 
-[node name="BasswoodEastSouth" parent="World/FarmsteadTrees" unique_id=1949972651 instance=ExtResource("seasonal_tree_scene")]
+[node name="BasswoodEastSouth" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(1116, 1235)
 tree_type = "basswood_linden"
 flip = true
-pollen_pu = 3.75
-nectar_nu = 15.0
-forage_month_start = 2
-forage_month_end = 3
 
-[node name="SycamoreEastSouth" parent="World/FarmsteadTrees" unique_id=946882648 instance=ExtResource("seasonal_tree_scene")]
+[node name="SycamoreEastSouth" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(1222, 517)
 tree_type = "sycamore"
 flip = true
-pollen_pu = 2.0
-nectar_nu = 0.0
-forage_month_end = 1
 
-[node name="CherryTreeEastSouth" parent="World/FarmsteadTrees" unique_id=802242220 instance=ExtResource("seasonal_tree_scene")]
+[node name="CherryTreeEastSouth" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(1305, 1205)
 tree_type = "cherry_tree"
 flip = true
-pollen_pu = 3.75
-nectar_nu = 4.5
-forage_month_start = 1
-forage_month_end = 1
 
-[node name="CottonwoodFarEast" parent="World/FarmsteadTrees" unique_id=1277774213 instance=ExtResource("seasonal_tree_scene")]
+[node name="CottonwoodFarEast" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(1969, -204)
 tree_type = "cottonwood"
-pollen_pu = 3.0
-nectar_nu = 0.0
-forage_month_end = 1
 
-[node name="ElmDeadFarEast" parent="World/FarmsteadTrees" unique_id=1159936816 instance=ExtResource("seasonal_tree_scene")]
+[node name="ElmDeadFarEast" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(1752, 412)
 tree_type = "elm_dead"
 flip = true
-pollen_pu = 0.0
-nectar_nu = 0.0
 
-[node name="WillowFarEast" parent="World/FarmsteadTrees" unique_id=952466980 instance=ExtResource("seasonal_tree_scene")]
+[node name="WillowFarEast" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(1870, -126)
 flip = true
-pollen_pu = 6.25
-nectar_nu = 3.75
 
-[node name="BasswoodFarEastSouth" parent="World/FarmsteadTrees" unique_id=1377952722 instance=ExtResource("seasonal_tree_scene")]
+[node name="BasswoodFarEastSouth" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(1641, 1121)
 tree_type = "basswood_linden"
-pollen_pu = 3.75
-nectar_nu = 15.0
-forage_month_start = 2
-forage_month_end = 3
 
-[node name="SycamoreFarEastSouth" parent="World/FarmsteadTrees" unique_id=2022293054 instance=ExtResource("seasonal_tree_scene")]
+[node name="SycamoreFarEastSouth" parent="World/FarmsteadTrees" instance=ExtResource("seasonal_tree_scene")]
 z_index = 1
 position = Vector2(1548, 712)
 tree_type = "sycamore"
-pollen_pu = 2.0
-nectar_nu = 0.0
-forage_month_end = 1
+
+[node name="HarvestYard" type="Node2D" parent="World" unique_id=6564799]
+y_sort_enabled = true
+position = Vector2(480, 350)
+script = ExtResource("harvest_yard_script")
+
+[node name="Workbench" type="Node2D" parent="World" unique_id=954361906]
+z_index = 1
+position = Vector2(520, -20)
+script = ExtResource("workbench_world_script")
+
+[node name="ExitToCountyRoad" type="Area2D" parent="World" unique_id=2006727873]
+position = Vector2(2068, 90)
+collision_layer = 0
+script = ExtResource("zone_exit_script")
+target_scene = "res://scenes/world/county_road.tscn"
+exit_label_text = "-> County Road"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/ExitToCountyRoad" unique_id=1602598698]
+position = Vector2(-3, 27.5)
+shape = SubResource("RectangleShape2D_zone_exit")

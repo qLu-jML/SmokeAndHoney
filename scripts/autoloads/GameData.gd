@@ -144,6 +144,12 @@ var coffee_until_hour: float = -1.0
 # XP buff from seasonal special: until what game-day does the 5% XP bonus apply?
 var xp_buff_until_day: int = -1
 
+# -- Honey House Upgrade Tier --------------------------------------------------
+# Tier 0: Bob's inherited Honey House (functional from start, no penalty).
+# Tiers 1-4: Future upgrades (PENDING -- Winter Workshop spec).
+# Tracked here so save/load persists the upgrade state.
+var honey_house_tier: int = 0
+
 # -- Persistent Player Inventory -----------------------------------------------
 # Mirrors the player node's inventory array so it survives scene changes.
 # Each entry is null or {"item": String, "count": int}.
@@ -155,7 +161,7 @@ var chest_stocked: bool = false            # true once starting chest items have
 
 # -- Harvested Super Data ------------------------------------------------------
 # When a honey super is removed from a hive, its frame cell data is stored here
-# so the honey house / harvest yard can recreate the exact cell distribution the
+# so the Honey House can recreate the exact cell distribution the
 # player saw during inspection.  Each entry is a dict:
 #   { "cells_a": PackedByteArray, "cells_b": PackedByteArray,
 #     "cols": int, "rows": int }

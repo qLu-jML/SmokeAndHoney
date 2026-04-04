@@ -116,11 +116,22 @@ func _on_xp_gained(amount: int, _total: int) -> void:
 ## Shows a season change notification when the season changes.
 func _on_season_changed(season_name: String) -> void:
 	var emoji := { "Spring": "?", "Summer": "??", "Fall": "?", "Winter": "??" }
-	notify("%s %s begins" % [emoji.get(season_name, ""), season_name], T_INFO, 4.0)
+	# Transition months mark the shift into a new season; true months are peak season.
+	var phase: String = TimeManager.get_season_phase() if TimeManager else "early"
+	var label: String
+	if phase == "early":
+		label = "Early %s begins" % season_name
+	else:
+		label = "%s begins" % season_name
+	notify("%s %s" % [emoji.get(season_name, ""), label], T_INFO, 4.0)
 
 ## Shows a month change notification when the month changes.
 func _on_month_changed(month_name: String) -> void:
-	notify("?  %s" % month_name, T_DEFAULT)
+	var phase: String = TimeManager.get_season_phase() if TimeManager else "early"
+	var suffix: String = ""
+	if phase == "true":
+		suffix = " -- true %s" % TimeManager.current_season_name()
+	notify("?  %s%s" % [month_name, suffix], T_DEFAULT)
 
 ## Show a "Queen confirmed" sighting notification (used by InspectionOverlay).
 func show_queen_sighting(xp_amount: int) -> void:

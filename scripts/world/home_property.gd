@@ -2,8 +2,10 @@ extends Node2D
 
 const HIVE_SCENE   := preload("res://scenes/hive.tscn")
 const FLOWER_SCENE := preload("res://scenes/flowers/flowers.tscn")
-# Trees, HarvestYard, and Workbench are placed in the .tscn scene file
+# Trees and Workbench are placed in the .tscn scene file
 # so they can be dragged in the editor. No scripted spawning needed.
+# NOTE: HarvestYard removed -- all extraction happens in the Honey House
+# interior (Winter Workshop spec, Section 2).
 
 # Building door triggers: node_name -> interior scene path
 var _building_triggers: Dictionary = {}
@@ -115,7 +117,8 @@ func _ready() -> void:
 
 	# -- Workbench: find the editor-placed node and build its visuals ----------
 	_init_workbench()
-	# Trees and HarvestYard are editor-placed in the .tscn -- no spawn needed.
+	# Trees are editor-placed in the .tscn -- no spawn needed.
+	# HarvestYard removed (Winter Workshop S2) -- extraction is in Honey House.
 
 	# -- First-day guidance: show orientation hints for new players -------------
 	_try_first_day_guidance()
@@ -162,10 +165,7 @@ func _register_map_markers() -> void:
 		SceneManager.register_scene_poi(bench.global_position, "Bench", Color(0.55, 0.75, 0.85))
 	# Hive (spawned at fixed position on fresh game)
 	SceneManager.register_scene_poi(Vector2(300, 350), "Hive", Color(0.95, 0.80, 0.25))
-	# Harvest Yard (outdoor processing area) - use editor-placed position
-	var harvest_yard: Node2D = get_node_or_null("World/HarvestYard") as Node2D
-	if harvest_yard:
-		SceneManager.register_scene_poi(harvest_yard.global_position, "Harvest Yard", Color(0.85, 0.65, 0.30))
+	# Harvest Yard removed (Winter Workshop S2) -- extraction in Honey House.
 	print("[HomeProperty] Registered Hive at (300, 350)")
 	# Exits
 	SceneManager.register_scene_exit("right", "County Road")
@@ -283,8 +283,8 @@ func _save_exterior_state() -> void:
 				"pos": child.global_position
 			})
 
-# HarvestYard is placed in the .tscn scene file with its script attached.
-# Open home_property.tscn in the Godot editor to drag/reposition it.
+# HarvestYard removed (Winter Workshop S2) -- all extraction in Honey House.
+# The HarvestYard node in home_property.tscn should be deleted in the editor.
 
 # Trees are placed in the .tscn scene file as SeasonalTree instances.
 # Open home_property.tscn in the Godot editor to drag/reposition them.
@@ -362,7 +362,7 @@ func _close_workbench() -> void:
 		_active_workbench_ui = null
 
 func _setup_exits() -> void:
-	# Right edge -> County Road (pushed further right to make room for harvest yard)
+	# Right edge -> County Road
 	ExitHelper.create_exit(self, "right", "res://scenes/world/county_road.tscn",
 		"-> County Road", 600.0)
 

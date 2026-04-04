@@ -35,10 +35,6 @@ func has_flag(flag_name: String) -> bool:
 func set_flag(flag_name: String) -> void:
     _flags[flag_name] = true
 
-## Clear (remove) a persistent flag.
-func clear_flag(flag_name: String) -> void:
-    _flags.erase(flag_name)
-
 # -- Pronoun Preset Loading ----------------------------------------------------
 
 ## Sets pronouns to they/them.
@@ -104,4 +100,11 @@ func collect_save_data() -> Dictionary:
 ## Applies player identity data from save file.
 func apply_save_data(data: Dictionary) -> void:
     player_name      = data.get("player_name", "Beekeeper")
-    pronoun_they     = data.get("prono
+    pronoun_they     = data.get("pronoun_they", "they")
+    pronoun_them     = data.get("pronoun_them", "them")
+    pronoun_their    = data.get("pronoun_their", "their")
+    pronoun_theirs   = data.get("pronoun_theirs", "theirs")
+    pronoun_themself = data.get("pronoun_themself", "themself")
+    backstory_tag    = data.get("backstory_tag", BACKSTORY_NEWCOMER)
+    character_created = data.get("character_created", false)
+    _flags = data.get("flags", {}).duplicate()

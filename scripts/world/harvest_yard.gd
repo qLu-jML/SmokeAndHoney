@@ -1294,4 +1294,5 @@ func _try_give_beeswax() -> void:
 			player.add_item(GameData.ITEM_BEESWAX, extra)
 		GameData.beeswax_fractional -= float(extra)
 
-# -- Prompt overlay (floating tex
+# -- Prompt overlay (floating text near stations) -------------------------
+var _prompt_label: Label = null

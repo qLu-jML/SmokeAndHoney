@@ -40,9 +40,6 @@ func _ready() -> void:
 		SceneManager.show_zone_name()
 		_register_map_markers()
 	ExitHelper.position_player_from_spawn_side(self)
-	# Holiday event trigger -- plays the holiday experience on first visit
-	if HolidayManager and HolidayManager.is_holiday_pending():
-		call_deferred("_trigger_holiday_event")
 	print("Cedar Bend scene loaded -- Phase 4 build.")
 
 
@@ -157,14 +154,6 @@ func _on_door_entered(body: Node2D, building_name: String) -> void:
 	TimeManager.next_scene = target_scene
 	get_tree().call_deferred("change_scene_to_file", "res://scenes/loading/loading_screen.tscn")
 
-func _trigger_holiday_event() -> void:
-	# Short delay so the scene transition finishes rendering
-	await get_tree().create_timer(0.8).timeout
-	if not is_inside_tree():
-		return
-	if HolidayManager:
-		HolidayManager.try_trigger_holiday_event()
-
 func _try_enter_grange() -> void:
 	# Grange Hall is only open on meeting night -- once per in-game month (day 14 or 15)
 	var day_of_month: int = TimeManager.current_day_of_month()
@@ -254,9 +243,6 @@ func _open_market_sell() -> void:
 	# Apply standing price multiplier (GDD S9)
 	var base_price: int = 10
 	var mult: float = GameData.get_standing_price_mult()
-	# Founder's Beam premium: +25% market prices during the festival
-	if HolidayManager and HolidayManager.current_holiday_key() == "founders_beam":
-		mult *= 1.25
 	var adjusted_price: int = int(float(base_price) * mult)
 	sell_ui.price_per_jar = adjusted_price
 	sell_ui.buyer_name = "Frank"
@@ -264,14 +250,10 @@ func _open_market_sell() -> void:
 
 func _check_saturday_market() -> void:
 	# GDD S13.3: Saturday Market overlay active on spring-fall Saturdays
-	# GDD S5.1: Founder's Beam forces a special all-day market session
 	var is_saturday: bool = _is_saturday()
 	var season: String = TimeManager.current_season_name()
 	var market_season: bool = (season != "Winter")
-	var is_founders_beam: bool = false
-	if HolidayManager and HolidayManager.current_holiday_key() == "founders_beam":
-		is_founders_beam = true
-	var should_show: bool = (is_saturday and market_season) or is_founders_beam
+	var should_show: bool = is_saturday and market_season
 
 	var market_node: Node2D = get_node_or_null("World/SaturdayMarket") as Node2D
 	if market_node:

@@ -437,11 +437,8 @@ const INTERACT_RADIUS := 64.0
 
 ## Execute action in the direction the player is facing (E key).
 func _perform_action() -> void:
-	# -- 0. Harvest Yard Stations (outdoor processing) -------------------------
-	var harvest_yard: Node = get_tree().get_first_node_in_group("harvest_yard")
-	if harvest_yard and harvest_yard.has_method("try_interact"):
-		if harvest_yard.try_interact(self):
-			return
+	# -- 0. Harvest Yard removed (Winter Workshop S2) --------------------------
+	# All extraction now happens inside the Honey House interior scene.
 
 	# -- 1. Merchant -----------------------------------------------------------
 	var nearby_merchant := _closest_in_group("merchant", INTERACT_RADIUS)

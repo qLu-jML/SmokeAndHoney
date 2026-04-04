@@ -698,21 +698,6 @@ func _build_bulletin_ui() -> void:
 	content.add_theme_font_size_override("font_size", 7)
 	bulletin_ui.add_child(content)
 
-	# -- Post Notice button (visible only when carl_bulletin_board quest is active)
-	var post_btn: Button = Button.new()
-	post_btn.name = "PostNoticeBtn"
-	post_btn.text = "Post Swarm-Removal Notice"
-	post_btn.anchor_left = 0; post_btn.anchor_right = 0
-	post_btn.anchor_top = 0; post_btn.anchor_bottom = 0
-	post_btn.offset_left   = 60
-	post_btn.offset_right  = 260
-	post_btn.offset_top    = 134
-	post_btn.offset_bottom = 150
-	post_btn.add_theme_font_size_override("font_size", 7)
-	post_btn.add_theme_color_override("font_color", Color(0.92, 0.88, 0.70, 1))
-	post_btn.pressed.connect(_on_post_notice)
-	bulletin_ui.add_child(post_btn)
-
 	var close_lbl: Label = Label.new()
 	close_lbl.text = "[X] or [ESC] to close"
 	close_lbl.anchor_left = 0; close_lbl.anchor_right = 0
@@ -744,36 +729,7 @@ func _refresh_bulletin() -> void:
 	var season: String = TimeManager.current_season_name()
 	var day: int = TimeManager.current_day_of_month()
 	var notices: String = _generate_bulletin_notices(season, day)
-
-	# If player already posted their notice, show it on the board
-	if PlayerData.has_flag("bulletin_notice_posted"):
-		notices += "\n\n* SWARM REMOVAL -- Free pickup.\n       Contact the beekeeper at Henderson Road."
-
 	content.text = notices
-
-	# Show/hide the Post Notice button based on quest state
-	var post_btn: Button = bulletin_ui.get_node_or_null("PostNoticeBtn") as Button
-	if post_btn:
-		var quest_active: bool = false
-		if QuestManager and QuestManager.is_active("carl_bulletin_board"):
-			quest_active = true
-		var already_posted: bool = PlayerData.has_flag("bulletin_notice_posted")
-		post_btn.visible = quest_active and not already_posted
-
-func _on_post_notice() -> void:
-	# Player posts their swarm-removal notice on the bulletin board
-	PlayerData.set_flag("bulletin_notice_posted")
-	QuestManager.notify_event("bulletin_board_posted", {})
-	_refresh_bulletin()
-	# Show feedback via dialogue
-	var dialogue_ui: Node = get_tree().root.get_node_or_null("DialogueUI")
-	if dialogue_ui and dialogue_ui.has_method("show_dialogue"):
-		dialogue_ui.show_dialogue("", [
-			"You pin a handwritten notice to the board:",
-			"SWARM REMOVAL -- Free pickup. Contact the beekeeper at Henderson Road.",
-			"It looks official enough. Carl nods from behind the counter.",
-		], "")
-	_close_bulletin()
 
 func _generate_bulletin_notices(season: String, day: int) -> String:
 	var lines: Array = []
@@ -867,4 +823,40 @@ func _s_border_rects(x: int, y: int, w: int, h: int) -> Array:
 		r.anchor_left = 0; r.anchor_right = 0
 		r.offset_left   = coords[0]; r.offset_top    = coords[1]
 		r.offset_right  = coords[0] + coords[2]
-		r.offset_bottom = coords[1] + coord
+		r.offset_bottom = coords[1] + coords[3]
+		r.mouse_filter  = Control.MOUSE_FILTER_IGNORE
+		rects.append(r)
+	return rects
+
+func _s_make_btn(label_text: String, x: int, y: int, w: int, h: int) -> Button:
+	var btn := Button.new()
+	btn.text       = label_text
+	btn.clip_text  = true
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.add_theme_font_size_override("font_size", FONT_SM)
+	btn.add_theme_color_override("font_color",          C_TEXT)
+	btn.add_theme_color_override("font_hover_color",    C_ACCENT)
+	btn.add_theme_color_override("font_pressed_color",  Color(1.0, 1.0, 1.0))
+	btn.add_theme_color_override("font_disabled_color", C_MUTED)
+	for state_name in ["normal", "hover", "pressed", "disabled", "focus"]:
+		var sb := StyleBoxFlat.new()
+		if state_name == "normal":
+			sb.bg_color = C_BG_BTN
+		elif state_name == "hover":
+			sb.bg_color = C_BG_HOV
+		elif state_name == "pressed":
+			sb.bg_color = Color(0.12, 0.08, 0.03, 0.97)
+		elif state_name == "disabled":
+			sb.bg_color = Color(0.14, 0.09, 0.04, 0.55)
+		else:
+			sb.bg_color = Color(0, 0, 0, 0)
+		sb.border_color = C_ACCENT
+		sb.set_border_width_all(1)
+		sb.set_content_margin_all(0)
+		btn.add_theme_stylebox_override(state_name, sb)
+	btn.anchor_left = 0; btn.anchor_top = 0
+	btn.anchor_right = 0; btn.anchor_bottom = 0
+	btn.offset_left = x; btn.offset_top = y
+	btn.offset_right = x + w; btn.offset_bottom = y + h
+	btn.z_index = 10
+	return btn
