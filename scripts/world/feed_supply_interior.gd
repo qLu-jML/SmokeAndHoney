@@ -112,6 +112,29 @@ const ALL_ITEMS: Array = [
 		"max_qty": 5,
 		"desc": "Penetrates capped brood.",
 	},
+	# Winter pre-orders (delivered at start of spring)
+	{
+		"key": "preorder_package",
+		"label": "Pre-Order: Bee Package (spring)",
+		"cost": 165.0,
+		"item": "",
+		"qty": 0,
+		"seasons": ["Winter"],
+		"max_qty": 2,
+		"desc": "Reserve bees now. $20 off. Delivered Quickening 1.",
+		"special": "preorder_bees",
+	},
+	{
+		"key": "preorder_nuc",
+		"label": "Pre-Order: Nucleus Colony (spring)",
+		"cost": 220.0,
+		"item": "",
+		"qty": 0,
+		"seasons": ["Winter"],
+		"max_qty": 2,
+		"desc": "Reserve nuc now. $25 off. Delivered Quickening 1.",
+		"special": "preorder_nuc",
+	},
 	{
 		"key": "wash_kit",
 		"label": "Alcohol Wash Kit",
@@ -569,6 +592,21 @@ func _on_buy_selected() -> void:
 	var item_id: String = item_data.get("item", "")
 	var per_qty: int = item_data.get("qty", 1)
 	var total_items: int = per_qty * buy_qty
+
+	# Handle special items (repair kit, pre-orders)
+	var special: String = item_data.get("special", "")
+	if special == "preorder_bees":
+		GameData.pending_deliveries.append({"item": "queen_cage", "count": buy_qty, "deliver_day": 1})
+		_show_shop_err("Pre-ordered %d bee package(s) -- arrives Quickening 1." % buy_qty)
+		_qtys[_sel] = 1
+		_refresh_shop()
+		return
+	elif special == "preorder_nuc":
+		GameData.pending_deliveries.append({"item": "beehive", "count": buy_qty, "deliver_day": 1})
+		_show_shop_err("Pre-ordered %d nuc(s) -- arrives Quickening 1." % buy_qty)
+		_qtys[_sel] = 1
+		_refresh_shop()
+		return
 
 	if item_id != "":
 		GameData.pending_deliveries.append({"item": item_id, "count": total_items})

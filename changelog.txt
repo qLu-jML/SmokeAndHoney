@@ -1,3 +1,11 @@
+[2026-04-03 CDT] WP9: Bee acquisition polish + winter pre-ordering
+  scripts/world/feed_supply_interior.gd:
+  - Winter pre-order items: Bee Package ($165) and Nuc ($220)
+  - Discounted vs in-season price, delivered Quickening 1
+  - Special handling in _on_buy_selected for preorder items
+  scripts/core/player.gd:
+  - Colony installation emits quest event and unlocks journal entries
+
 [2026-04-03 CDT] WP8: Winter activities -- observation + route override
   scripts/ui/winter_observation.gd (new):
   - Passive hive observation: weight (Heavy/Medium/Light),

@@ -520,6 +520,10 @@ func _perform_action() -> void:
 					if consume_item(GameData.ITEM_PACKAGE_BEES, 1):
 						nearby_hive.install_colony()
 						update_hud_inventory()
+						QuestManager.notify_event("colony_installed", {"hive": nearby_hive})
+						if KnowledgeLog and KnowledgeLog.has_method("unlock_entry"):
+							KnowledgeLog.unlock_entry("bee_biology")
+							KnowledgeLog.unlock_entry("hive_components")
 						var nm_c = get_tree().root.get_node_or_null("NotificationManager")
 						if nm_c and nm_c.has_method("notify"):
 							nm_c.notify("Colony installed! Bees are now active in this hive.")
