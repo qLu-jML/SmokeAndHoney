@@ -99,14 +99,33 @@ func _process(_delta: float) -> void:
 # -- Public API ----------------------------------------------------------------
 
 ## Trigger dialogue with Frank. Shows dialogue UI or fallback speech bubble.
+## Seasonal market advice from Frank.
+const SEASONAL_LINES: Dictionary = {
+	"Spring": [
+		["Spring honey is light and delicate. Customers pay a premium for it.", "But don't rush the harvest -- reputation is built on quality, not quantity."],
+		["Folks are buying seeds and garden supplies right now. Good foot traffic.", "If you have any early-spring wildflower honey, that's liquid gold at the market."],
+	],
+	"Summer": [
+		["Saturday Market is packed in summer. Bring your best jars.", "Presentation matters. Clean labels, full jars, a smile. That's the formula."],
+		["Summer honey is darker, stronger. Different customers, same good money.", "Offer samples. Once people taste real local honey, they never go back to store-bought."],
+	],
+	"Fall": [
+		["Fall market slows down, but the buyers who come are serious.", "Bulk honey and beeswax sell well now. Candle makers stock up before the holidays."],
+		["If you've got any premium honey left, hold some back.", "Winter prices go up. Supply goes down. That's just math."],
+	],
+	"Winter": [
+		["Market's quiet. Good time to plan next year's lineup.", "Beeswax candles, infused honey, gift sets -- diversify your offerings."],
+		["People buy honey as gifts in winter. Presentation is everything.", "A nice jar with a hand-written label? That's a story they're buying, not just food."],
+	],
+}
+
 func interact() -> void:
 	if _talking:
 		return
 	_talking = true
 	_prompt_label.visible = false
 
-	var idx := _hint_index % DIALOGUE_LINES.size()
-	var lines: Array = DIALOGUE_LINES[idx]
+	var lines: Array = _pick_dialogue()
 	_hint_index += 1
 
 	GameData.add_xp(2)
@@ -117,6 +136,29 @@ func interact() -> void:
 		_talking = false
 	else:
 		_show_speech_bubble_fallback(lines[0])
+
+## Pick dialogue based on season.
+func _pick_dialogue() -> Array:
+	var season: String = _get_current_season()
+	if SEASONAL_LINES.has(season):
+		var pool: Array = SEASONAL_LINES[season]
+		var idx: int = _hint_index % pool.size()
+		return pool[idx]
+	var idx: int = _hint_index % DIALOGUE_LINES.size()
+	return DIALOGUE_LINES[idx]
+
+func _get_current_season() -> String:
+	if not TimeManager or not TimeManager.has_method("current_month_index"):
+		return "Spring"
+	var month: int = TimeManager.current_month_index()
+	if month <= 1:
+		return "Spring"
+	elif month <= 3:
+		return "Summer"
+	elif month <= 5:
+		return "Fall"
+	else:
+		return "Winter"
 
 ## Show a floating label as fallback when DialogueUI is unavailable.
 func _show_speech_bubble_fallback(text: String) -> void:

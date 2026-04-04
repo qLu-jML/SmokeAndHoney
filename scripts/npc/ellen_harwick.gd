@@ -100,17 +100,42 @@ func _process(_delta: float) -> void:
 # -- Public API ----------------------------------------------------------------
 
 ## Trigger dialogue with Dr. Harwick. Shows dialogue UI or fallback speech bubble.
+## Seasonal dialogue for Dr. Harwick (disease/health focus).
+const SEASONAL_LINES: Dictionary = {
+	"Spring": [
+		["Spring is when colonies are most vulnerable to starvation.", "Check stores weekly. If they're light, feed 1:1 sugar syrup until the nectar flow starts."],
+		["Nosema can flare up in spring -- watch for dysentery streaks on the landing board.", "Strong colonies usually clear it on their own once it warms up."],
+	],
+	"Summer": [
+		["Varroa reproduces inside capped brood cells. Summer is when populations explode.", "An alcohol wash kit is your best diagnostic tool. Test monthly, minimum."],
+		["If you see deformed wings on bees at the entrance, that's DWV -- deformed wing virus.", "The virus rides on varroa mites. Treat the mites, you treat the virus."],
+	],
+	"Fall": [
+		["Fall treatment is critical. You want mites low before the winter bees emerge.", "Winter bees live 4-6 months instead of 4-6 weeks. They cannot afford parasites."],
+		["Oxalic acid is most effective when the colony is broodless -- late fall is ideal.", "One treatment, 90% efficacy. But timing matters."],
+	],
+	"Winter": [
+		["Nothing to treat in winter. The cluster needs to stay undisturbed.", "If a colony is quiet, that's normal. If it's silent... come see me in spring."],
+		["This is a good time to clean equipment and read up.", "Knowledge is the best medicine. Most losses come from what we didn't know to look for."],
+	],
+}
+
 func interact() -> void:
 	if _talking:
 		return
 	_talking = true
 	_prompt_label.visible = false
 
-	var idx := _hint_index % DIALOGUE_LINES.size()
-	var lines: Array = DIALOGUE_LINES[idx]
+	var lines: Array = _pick_dialogue()
 	_hint_index += 1
 
 	GameData.add_xp(2)
+
+	# Teach alcohol wash on first summer/late spring conversation
+	if KnowledgeLog and KnowledgeLog.has_method("unlock_entry"):
+		if not KnowledgeLog.is_unlocked("the_mite_problem"):
+			KnowledgeLog.unlock_entry("the_mite_problem")
+			KnowledgeLog.unlock_entry("alcohol_wash")
 
 	if _dialogue_ui and _dialogue_ui.has_method("show_dialogue"):
 		_dialogue_ui.show_dialogue("Dr. Harwick", lines, "ellen_harwick")
@@ -118,6 +143,29 @@ func interact() -> void:
 		_talking = false
 	else:
 		_show_speech_bubble_fallback(lines[0])
+
+## Pick dialogue based on season.
+func _pick_dialogue() -> Array:
+	var season: String = _get_current_season()
+	if SEASONAL_LINES.has(season):
+		var pool: Array = SEASONAL_LINES[season]
+		var idx: int = _hint_index % pool.size()
+		return pool[idx]
+	var idx: int = _hint_index % DIALOGUE_LINES.size()
+	return DIALOGUE_LINES[idx]
+
+func _get_current_season() -> String:
+	if not TimeManager or not TimeManager.has_method("current_month_index"):
+		return "Spring"
+	var month: int = TimeManager.current_month_index()
+	if month <= 1:
+		return "Spring"
+	elif month <= 3:
+		return "Summer"
+	elif month <= 5:
+		return "Fall"
+	else:
+		return "Winter"
 
 ## Show a floating label as fallback when DialogueUI is unavailable.
 func _show_speech_bubble_fallback(text: String) -> void:

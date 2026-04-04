@@ -124,14 +124,34 @@ func _process(_delta: float) -> void:
 # -- Public API ----------------------------------------------------------------
 
 ## Called by player.gd when E is pressed near Uncle Bob.
+## Seasonal dialogue pools. Keyed by season name from TimeManager.
+const SEASONAL_LINES: Dictionary = {
+	"Spring": [
+		["Colony's building up fast. You'll want to check every week or so.", "If they're packing in pollen, that means the queen is laying well. Good sign."],
+		["Watch for queen cells along the bottom of the frames. That's swarm prep.", "Give them room -- add a super before they feel cramped."],
+	],
+	"Summer": [
+		["Nectar flow is on. The girls are working harder than either of us.", "This is when the supers fill up. Don't pull them too early -- wait for 80% capped."],
+		["Summer is when mites breed fastest. Don't skip your monthly wash.", "Three mites per hundred is your treatment threshold. Don't let it slide."],
+	],
+	"Fall": [
+		["Time to think about winter. How heavy are those hives?", "Lift the back -- if it's light, they need feeding. Sugar syrup, 2:1 ratio."],
+		["Get your mite treatment done before it gets cold. Oxalic works best broodless.", "Sixty pounds of honey minimum going into winter. That's their lifeline."],
+	],
+	"Winter": [
+		["Not much to do now except listen. Put your ear to the hive -- hear that hum?", "A strong hum means they're clustered tight. Silence... that's what worries me."],
+		["Don't open the hive in winter. You'll break the cluster and they'll freeze.", "Check the weight from outside. If it's getting light, you can emergency-feed fondant."],
+	],
+}
+
 func interact() -> void:
 	if _talking:
 		return
 	_talking = true
 	_prompt_label.visible = false
 
-	var idx := _hint_index % DIALOGUE_LINES.size()
-	var lines: Array = DIALOGUE_LINES[idx]
+	# Select dialogue: quest-aware first, then seasonal, then fallback
+	var lines: Array = _pick_dialogue()
 	_hint_index += 1
 
 	# Award XP for the conversation (GDD S7.1)
@@ -144,6 +164,48 @@ func interact() -> void:
 		_talking = false
 	else:
 		_show_speech_bubble_fallback(lines[0])
+
+## Pick dialogue based on quest state and season.
+func _pick_dialogue() -> Array:
+	# Quest-aware: check active quest for relevant hints
+	if QuestManager and QuestManager.has_method("get_active_chain_quest_id"):
+		var quest_id: String = QuestManager.get_active_chain_quest_id()
+		match quest_id:
+			"first_light":
+				return DIALOGUE_LINES[0]  # tutorial: inspection intro
+			"sugar_water_days":
+				return ["Your colony's still getting established. They could use some help.", "Place a barrel feeder near the hive -- sugar syrup, 1:1 ratio. That'll tide them over."]
+			"girls_are_building":
+				return ["See how packed that brood box is? Time to give them room.", "Add a honey super on top. Put the queen excluder under it so she stays in the deeps."]
+			"first_pull":
+				return ["Those supers are looking heavy! Time for your first harvest.", "Mark the capped frames with H, then carry them to the harvest yard."]
+			"battening_down":
+				return ["Winter's coming. Two things matter now: honey stores and mite load.", "You need 60 pounds of honey and a clean mite wash. That's the survival formula."]
+
+	# Seasonal dialogue
+	var season: String = _get_current_season()
+	if SEASONAL_LINES.has(season):
+		var pool: Array = SEASONAL_LINES[season]
+		var idx: int = _hint_index % pool.size()
+		return pool[idx]
+
+	# Fallback to static lines
+	var idx: int = _hint_index % DIALOGUE_LINES.size()
+	return DIALOGUE_LINES[idx]
+
+## Get the current season name.
+func _get_current_season() -> String:
+	if not TimeManager or not TimeManager.has_method("current_month_index"):
+		return "Spring"
+	var month: int = TimeManager.current_month_index()
+	if month <= 1:
+		return "Spring"
+	elif month <= 3:
+		return "Summer"
+	elif month <= 5:
+		return "Fall"
+	else:
+		return "Winter"
 
 ## Show a floating label as fallback when DialogueUI is unavailable.
 func _show_speech_bubble_fallback(text: String) -> void:

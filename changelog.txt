@@ -1,3 +1,14 @@
+[2026-04-03 CDT] WP7: Seasonal NPC dialogue
+  scripts/npc/uncle_bob.gd:
+  - Quest-aware dialogue (matches active Year 1 quest with specific advice)
+  - Seasonal dialogue pools (Spring/Summer/Fall/Winter)
+  - Falls back to original static lines when no season/quest match
+  scripts/npc/ellen_harwick.gd:
+  - Seasonal health/disease dialogue (varroa, DWV, oxalic timing)
+  - Unlocks "The Mite Problem" and "Alcohol Wash" notebook entries
+  scripts/npc/frank_fischbach.gd:
+  - Seasonal market advice (pricing, presentation, product diversification)
+
 [2026-04-03 CDT] WP6: Custom hive naming + Knowledge Journal
   scripts/world/hive.gd:
   - Added hive_name field for custom naming
