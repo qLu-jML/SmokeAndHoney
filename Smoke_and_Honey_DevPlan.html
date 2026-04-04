@@ -235,19 +235,19 @@
     <li class="h2"><a href="#p1-inspect"><span class="status-done">+</span> Inspection &amp; Rendering</a></li>
     <li class="h2"><a href="#p1-world"><span class="status-done">+</span> World &amp; Characters</a></li>
     <li class="h2"><a href="#p1-infra"><span class="status-done">+</span> Infrastructure</a></li>
-    <li class="h1"><a href="#phase2"><span class="status-wip">~</span> Phase 2 -- Harvest Loop (50% complete)</a></li>
+    <li class="h1"><a href="#phase2"><span class="status-wip">~</span> Phase 2 -- Harvest Loop (~73% complete)</a></li>
     <li class="h2"><a href="#p2-day"><span class="status-done">+</span> Day Cycle &amp; Weather</a></li>
     <li class="h2"><a href="#p2-harvest"><span class="status-todo">[ ]</span> Harvest System</a></li>
     <li class="h2"><a href="#p2-economy"><span class="status-done">+</span> Economy &amp; Market</a></li>
     <li class="h2"><a href="#p2-smoke"><span class="status-done">+</span> Smoke &amp; Stings</a></li>
-    <li class="h1"><a href="#phase3"><span class="status-wip">~</span> Phase 3 -- Living World (15% complete)</a></li>
+    <li class="h1"><a href="#phase3"><span class="status-wip">~</span> Phase 3 -- Living World (~42% complete)</a></li>
     <li class="h2"><a href="#p3-charcreate"><span class="status-wip">~</span> Character Creator</a></li>
     <li class="h2"><a href="#p3-quests"><span class="status-wip">~</span> Quests &amp; Events</a></li>
     <li class="h2"><a href="#p3-npc"><span class="status-todo">[ ]</span> NPC Relationships</a></li>
     <li class="h2"><a href="#p3-knowledge"><span class="status-done">[x]</span> Knowledge Log</a></li>
     <li class="h2"><a href="#p3-acquire"><span class="status-todo">[ ]</span> Bee Acquisition</a></li>
-    <li class="h1"><a href="#phase4"><span class="status-todo">[ ]</span> Phase 4 -- Depth</a></li>
-    <li class="h2"><a href="#p4-disease"><span class="status-todo">[ ]</span> Disease Suite</a></li>
+    <li class="h1"><a href="#phase4"><span class="status-partial">~</span> Phase 4 -- Depth (~5% complete)</a></li>
+    <li class="h2"><a href="#p4-disease"><span class="status-partial">~</span> Disease Suite (3 of 6 done)</a></li>
     <li class="h2"><a href="#p4-queen"><span class="status-todo">[ ]</span> Queen Rearing</a></li>
     <li class="h2"><a href="#p4-swarm"><span class="status-todo">[ ]</span> Swarm Management</a></li>
     <li class="h2"><a href="#p4-locations"><span class="status-todo">[ ]</span> Multi-Apiary</a></li>
@@ -324,10 +324,10 @@
 <h2 class="section" id="current">Current Project State</h2>
 
 <div class="callout callout-red">
-  <strong>Audit Note (March 28, 2026)</strong>
-  This plan has been fully reset based on a codebase audit. All status markers now reflect what actually exists in working code --
-  not what has stubs, skeletons, or design docs. If code compiles and runs, it is DONE. If a variable exists but the feature
-  does not function in-game, it is TODO.
+  <strong>Audit Note (April 3, 2026)</strong>
+  Status markers reflect what actually exists in working code.
+  If code compiles and runs, it is DONE. If a variable exists but the feature
+  does not function in-game, it is TODO. Last full audit: April 3, 2026.
 </div>
 
 <div class="state-banner">
@@ -337,13 +337,13 @@
   </div>
   <div class="state-item">
     <h4>Scripts</h4>
-    <p class="val">61</p>
-    <p>GDScript files across autoloads (9), simulation (10), UI (11), world (22), NPC (4), core (3), tools (2). All ASCII-clean, Godot 4.6 compatible. MusicManager added March 28.</p>
+    <p class="val">88</p>
+    <p>GDScript files across autoloads (12), simulation (11), UI (23), world (33), NPC (4), core (3), quests (1), debug (1). All ASCII-clean, Godot 4.6 compatible.</p>
   </div>
   <div class="state-item">
     <h4>Scenes</h4>
-    <p class="val">29</p>
-    <p>home_property (main), player, hive, cedar_bend, 7 exterior zones, 5 interiors, 4 NPC prefabs, inspection overlay, hive management, chest storage, 2 menus, map, shop, loading.</p>
+    <p class="val">32</p>
+    <p>home_property (main), player, hive, cedar_bend, 7 exterior zones, 7 interiors, 4 NPC prefabs, CharacterCreator, inspection overlay, hive management, chest storage, sell screen, 2 menus, map, shop, loading.</p>
   </div>
   <div class="state-item">
     <h4>Art</h4>
@@ -352,19 +352,31 @@
 </div>
 
 <div class="callout callout-green">
-  <strong>What is fully working (verified March 30, 2026)</strong>
+  <strong>What is fully working (verified April 3, 2026)</strong>
   Full 10-script simulation pipeline with two-sided frames (70,000 cells per hive). 3D ellipsoid geometry for comb drawing and queen laying. Forage-dependent comb drawing rate. Walled-in hex adjacency constraint. Science-calibrated populations (24k bees), exponential varroa model, corrected nurse ratios.
   Honeycomb hex-grid renderer with cell atlas (blend_rect compositing), LOD palette, dirty-flag cache.
-  Multi-box inspection overlay: W/S navigate boxes, A/D frames, F flip Side A/B, cell tooltips (tier-gated), queen sighting (+15 XP, 60%+1%/level), energy cost (10/inspection). 5-tier Knowledge system. Dev mode +Day/+Month buttons in inspection overlay.
+  Multi-box inspection overlay: W/S navigate boxes, A/D frames, F flip Side A/B, cell tooltips (tier-gated), queen sighting (+15 XP, 60%+1%/level), energy cost (10/inspection). 5-tier Knowledge system. Dev mode +Day/+Month buttons. Item-gated tool buttons: alcohol wash kit, oxalic/formic treatment, AFB rope test.
   Colony installation: Package Bees (4-6 day laying delay, 7-day lockout, progressive comb drawing) and Nuc (10,200 bees, immediate ticking).
-  Hive Tool, Gloves, HiveManagementUI (add deep/super/excluder, rotate deeps, R key). Storage Chest (50-slot).
+  Hive Tool, Gloves, HiveManagementUI (add deep/super/excluder, rotate deeps, R key, custom hive naming, AFB destroy). Storage Chest (50-slot).
   Modular hive sprites (7 components, build-phase visuals). 25 item sprites in 10-slot hotbar. Context-sensitive prompts.
   FlowerLifecycleManager: 7 types, 42 sprites, seasonal quality S-F, bloom windows, spread mechanics, no-spawn mask, grid-cell distribution.
-  Player: 8-way walk/run, 4 modes (NORMAL/TILL/PLANT/HIVE). Current sprite is fixed beekeeper-gear character (correct for gameplay -- all customization hidden under gear). Character creator system (name, appearance, pronouns, backstory) is Phase 3 TODO -- no PlayerData fields, no creator scene, no pronoun tokens in dialogue yet. Uncle Bob placed with 6 dialogue sets (need pronoun token retrofit in Phase 3). Ellen + Frank scripts/sprites ready.
-  Interiors: Diner (5 meals, energy restore), Feed &amp; Supply (11 items, seasonal stock), Post Office (LIVE BEES delivery).
-  Infrastructure: SaveManager (JSON + base64), TimeManager (224-day calendar, 8 months, 4 seasons), GameData ($500 start, energy, XP, levels), HiveManager, ForageManager, QuestManager (skeleton), NotificationManager (toasts), DialogueUI (bubbles + portrait box), HUD (signal-driven), MainMenu + PauseMenu.
-  MusicManager autoload (March 28): 8 seasonal tracks (1 per month), crossfade over 2s on month change, loops, -6dB default.
-  Honey simulation verified (March 30): LBS_PER_NU corrected to 0.005. Peak summer ~1.5 lbs/day net, ~80 lbs harvestable over season. Super comb draw rate corrected (0.80/house bee, 8000 cell/day cap). Thresholds lowered to 1.0 lbs stores + 60% brood drawn.
+  Player: 8-way walk/run, 4 modes (NORMAL/TILL/PLANT/HIVE). Fixed beekeeper-gear sprite (all customization hidden under gear).
+  PlayerData singleton: name, pronouns (they/she/he with full token set), backstory_tag, appearance. Character Creator scene runs on New Game. DialogueUI resolves pronoun tokens in all NPC dialogue.
+  WeatherManager: daily weather rolls (Sunny/Overcast/Rainy/Cold/Windy), season-weighted probabilities, forager gating, inspection safety modifiers, weather HUD icon, serialization.
+  Smoker &amp; sting system: 25% base sting chance per frame, weather/suit/smoke modifiers (suit x0.20, smoker x0.85), energy cost per sting, notification feedback.
+  Saturday Market: Fairgrounds scene (Saturdays), Frank NPC sells honey, transaction UI with grade/quantity/price, earnings toast. Community Standing: 5 tiers (Newcomer-Beloved), price multipliers (x1.00-x1.15), standing gain from sales.
+  Interiors: Diner (5 meals, energy restore), Feed &amp; Supply (13+ items, seasonal stock, alcohol wash kit, winter pre-orders), Post Office (LIVE BEES delivery).
+  QuestManager: full event bus, quest type tracking, reward dispatch, deadline logic, daily task rotation (3 dailies), Year 1 chain (5 quests auto-chaining), quest_defs.gd with static definitions.
+  Knowledge Journal (J key): KnowledgeLog autoload with 16 notebook entries across 5 categories + hive records tab with per-hive management logs. Unlocked through gameplay discovery. Keen Observer tracking.
+  Barrel feeder: placeable syrup feeder item, feed_stores tracking in HiveSimulation (separate from sellable honey_stores), sugar syrup refill, 10-day duration.
+  Alcohol wash mini-game: 5-step procedure (frame select, queen check, scoop, shake, count). First-wash tutorial with mentor warning. Mite threshold color coding.
+  Treatment UI: oxalic acid (90% mite reduction) and formic acid (70%, temp-dependent) buttons in inspection overlay, item-gated, item consumption.
+  AFB two-state model: sub-clinical spore progression, clinical threshold, rope test, hive destruction path. Integrated into daily tick.
+  Winter observation overlay: passive hive monitoring (weight/sound/entrance), auto-logged to Knowledge Journal.
+  Seasonal NPC dialogue: Uncle Bob, Ellen Harwick, Frank Fischbach all have season-aware + quest-aware dialogue.
+  Infrastructure: SaveManager (JSON + base64), TimeManager (224-day calendar, 8 months, 4 seasons), GameData ($500 start, energy, XP, levels), HiveManager, ForageManager, NotificationManager (toasts), DialogueUI (bubbles + portrait box + pronoun tokens), HUD (signal-driven), SceneManager, MainMenu + PauseMenu.
+  MusicManager autoload: 8 seasonal tracks (1 per month), crossfade over 2s on month change, loops, -6dB default.
+  Honey simulation: LBS_PER_NU = 0.005. Peak summer ~1.5 lbs/day net, ~80 lbs harvestable per season. Super comb draw rate corrected. Beeswax tracking + winter reserve warnings.
 </div>
 
 <div class="callout callout-amber">
@@ -372,7 +384,7 @@
   The simulation runs, inspection works, flowers grow, bees do their thing. What is missing is the player's reason to care:
   harvest the honey, grade it, sell it at market, buy supplies, and repeat. This is the farm-sim loop that turns observation into gameplay.
   <br><br>
-  <strong>Phase 2 progress: Steps 1-4, 6-7 complete (50% of Phase 2 tasks done).</strong>
+  <strong>Phase 2 progress: Steps 1-4, 6-7 complete (~73% of Phase 2 tasks done).</strong>
   Sleep/nap/auto-save fully wired (2.1-2.4). Weather system complete end-to-end (2.5-2.10). Equipment shop wired (2.11-2.12) with smoker and bee suit. Smoker &amp; sting system (2.13-2.16): 25% base sting chance, weather/suit/smoke modifiers, notification feedback. Saturday Market (2.25-2.27) wired with transaction UI. Community Standing tier system (2.28-2.30): 5 tiers (Stranger-Respected) with price multipliers. PlayerData singleton created with character fields and pronoun system. Character Creator scene and QuestManager expanded.<br><br>
   <strong>Remaining for Phase 2:</strong> Harvest pipeline (Step 5): harvest decision UI (2.17), super collection (2.18), uncapping (2.19), extraction + grading (2.20), bottling (2.21), post-harvest frame state (2.24).
   Partial harvest: beeswax tracking (2.22) and winter reserve warning (2.23) are done.
@@ -512,7 +524,7 @@
       <tr><td>GameData.gd</td><td><span class="tag tag-exists">DONE</span></td><td>Dollars, energy, XP, level thresholds, items, meals, buffs, reputation float, XP reward constants.</td></tr>
       <tr><td>HiveManager.gd</td><td><span class="tag tag-exists">DONE</span></td><td>Hive registry, daily tick broadcaster.</td></tr>
       <tr><td>ForageManager.gd</td><td><span class="tag tag-exists">DONE</span></td><td>Integrated with FlowerLifecycleManager. Month-indexed levels.</td></tr>
-      <tr><td>QuestManager.gd</td><td><span class="tag tag-exists">DONE</span></td><td>Skeleton: start/complete/fail API, signals. Zero quest definitions (Phase 3).</td></tr>
+      <tr><td>QuestManager.gd</td><td><span class="tag tag-exists">DONE</span></td><td>Full quest engine: event bus, quest type tracking, reward dispatch, deadline logic, daily task rotation (3 dailies), Year 1 chain (5 quests auto-chaining), quest_defs.gd with static definitions (282 lines).</td></tr>
       <tr><td>DialogueUI.gd</td><td><span class="tag tag-exists">DONE</span></td><td>MODE_BUBBLE (world-space) + MODE_BOX (portrait). Full implementation.</td></tr>
       <tr><td>NotificationManager.gd</td><td><span class="tag tag-exists">DONE</span></td><td>Layer 50, max 5 stacked toasts, typed with color themes.</td></tr>
       <tr><td>HUD</td><td><span class="tag tag-exists">DONE</span></td><td>Signal-driven, programmatic bars, energy + XP fill bars.</td></tr>
@@ -532,7 +544,7 @@
       <div class="phase-title">Harvest &amp; Economy Loop -- "Something to Sell"</div>
       <div class="phase-subtitle">Goal: harvest honey, grade it, sell it at market, buy supplies. The core farm-sim loop becomes functional.</div>
     </div>
-    <div class="phase-tag"><span class="badge badge-phase">NEXT UP -- 0% complete</span></div>
+    <div class="phase-tag"><span class="badge badge-phase">IN PROGRESS -- ~73% complete</span></div>
   </div>
 
   <div class="milestones">
@@ -540,13 +552,13 @@
       <h4>Exit Criteria (all must work in-game)</h4>
       <ul>
         <li>[x] Player can sleep to advance the day and restore energy</li>
-        <li>[ ] Weather rolls daily and visibly affects foraging + inspection safety</li>
+        <li>[x] Weather rolls daily and visibly affects foraging + inspection safety</li>
         <li>[ ] Player harvests honey from capped super frames</li>
         <li>[ ] Honey graded by moisture (Premium / Standard / Economy)</li>
-        <li>[ ] Frank buys honey at Saturday Market, player earns dollars</li>
-        <li>[ ] Player buys equipment at Feed &amp; Supply with real transactions</li>
-        <li>[ ] Smoker modulates bee defensiveness, stings cost energy</li>
-        <li>[ ] Community Standing tracks reputation with price multipliers</li>
+        <li>[x] Frank buys honey at Saturday Market, player earns dollars</li>
+        <li>[x] Player buys equipment at Feed &amp; Supply with real transactions</li>
+        <li>[x] Smoker modulates bee defensiveness, stings cost energy</li>
+        <li>[x] Community Standing tracks reputation with price multipliers</li>
         <li>[ ] One full season playable start to finish</li>
       </ul>
     </div>
@@ -554,12 +566,12 @@
       <h4>Build Order (sequential -- do not skip ahead)</h4>
       <ul>
         <li><s>1. Sleep / day-advance (unlocks daily cycle)</s> DONE</li>
-        <li>2. Weather system (gates foraging + inspections)</li>
-        <li>3. Equipment shop wiring (enables purchases)</li>
-        <li>4. Smoke &amp; sting system (inspection risk/reward)</li>
+        <li><s>2. Weather system (gates foraging + inspections)</s> DONE</li>
+        <li><s>3. Equipment shop wiring (enables purchases)</s> DONE</li>
+        <li><s>4. Smoke &amp; sting system (inspection risk/reward)</s> DONE</li>
         <li>5. Harvest pipeline (uncap - extract - grade - bottle)</li>
-        <li>6. Saturday Market (sell to Frank)</li>
-        <li>7. Community Standing (tier + price multiplier)</li>
+        <li><s>6. Saturday Market (sell to Frank)</s> DONE</li>
+        <li><s>7. Community Standing (tier + price multiplier)</s> DONE</li>
       </ul>
     </div>
   </div>
@@ -823,20 +835,20 @@
       <div class="phase-title">Living World -- "People &amp; Purpose"</div>
       <div class="phase-subtitle">Goal: quests give direction, NPCs build relationships, events create surprises. The world feels alive and responsive.</div>
     </div>
-    <div class="phase-tag"><span class="badge badge-phase">Depends on Phase 2</span></div>
+    <div class="phase-tag"><span class="badge badge-phase">IN PROGRESS -- ~42% complete</span></div>
   </div>
 
   <div class="milestones">
     <div class="milestone">
       <h4>Exit Criteria</h4>
       <ul>
-        <li>[ ] Character creator runs at new game start (name, appearance, pronouns, backstory)</li>
-        <li>[ ] Player name appears in Knowledge Log header, market nameplate, Bob dialogue</li>
-        <li>[ ] All NPC dialogue uses pronoun tokens -- no hardcoded he/she/him/her</li>
+        <li>[x] Character creator runs at new game start (name, appearance, pronouns, backstory)</li>
+        <li>[x] Player name appears in Knowledge Log header, market nameplate, Bob dialogue</li>
+        <li>[x] All NPC dialogue uses pronoun tokens -- no hardcoded he/she/him/her</li>
         <li>[ ] Daily tasks and seasonal goals generate play variety</li>
         <li>[ ] Uncle Bob tutorial quest chain playable start to finish</li>
-        <li>[ ] Knowledge Log fills as player discovers phenomena</li>
-        <li>[ ] Player can order package bees or nucs via Post Office</li>
+        <li>[x] Knowledge Log fills as player discovers phenomena</li>
+        <li>[~] Player can order package bees or nucs (pre-orders at Feed Supply; Post Office delivery exists)</li>
         <li>[ ] At least 2 seasonal events fire (dandelion eval, honey competition)</li>
         <li>[ ] At least 1 challenge event surprises the player (varroa spike)</li>
       </ul>
@@ -844,13 +856,13 @@
     <div class="milestone">
       <h4>Build Order</h4>
       <ul>
-        <li>1. Character creator scene + PlayerData persistence</li>
-        <li>2. Pronoun token pass on all existing NPC dialogue</li>
-        <li>3. Quest system engine (definitions, tracking, rewards)</li>
+        <li><s>1. Character creator scene + PlayerData persistence</s> DONE</li>
+        <li><s>2. Pronoun token pass on all existing NPC dialogue</s> DONE</li>
+        <li><s>3. Quest system engine (definitions, tracking, rewards)</s> DONE</li>
         <li>4. Uncle Bob tutorial quest chain (5-8 quests)</li>
         <li>5. Daily tasks + seasonal goals</li>
         <li>6. NPC friendship system + remaining NPC quest chains</li>
-        <li>7. Knowledge Log UI panel + entry triggers</li>
+        <li><s>7. Knowledge Log UI panel + entry triggers</s> DONE</li>
         <li>8. Bee acquisition ordering flow (Post Office)</li>
         <li>9. Seasonal events + challenge events</li>
       </ul>
@@ -1117,12 +1129,12 @@
       <tr>
         <td>4.2</td>
         <td>Varroa treatment mechanics</td><td><span class="tag tag-exists">DONE</span></td>
-        <td>Varroa simulation DONE (cell state, mite invasion, population tracking). TODO: sugar roll/sticky board test action, mite count display in inspection, treatment application (oxalic $8, formic $15, synthetic $20), threshold 3% = treatment required.</td>
+        <td>Varroa simulation (cell state, mite invasion, population tracking). Alcohol wash mini-game (5-step: frame select, queen check, scoop, shake, count). Treatment buttons in inspection overlay (oxalic 90% reduction, formic 70% temp-dependent). Threshold color coding. First-wash tutorial with mentor warning.</td>
       </tr>
       <tr>
         <td>4.3</td>
         <td>AFB detection + response</td><td><span class="tag tag-exists">DONE</span></td>
-        <td>AFB cell state DONE (8%/day spread, 35-point health penalty). TODO: visual indicators (sunken caps, ropiness), detection probability (40% L1 to 95% L5), burn/treat decision UI, Dr. Harwick trigger.</td>
+        <td>AFB two-state model: sub-clinical spore progression, clinical threshold, foul smell notification on inspection open. Rope test button (item-gated) with positive/negative result. "Destroy Hive (AFB)" button in hive management. Integrated into daily tick. Dr. Harwick trigger still TODO.</td>
       </tr>
       <tr>
         <td>4.4</td>
@@ -2098,18 +2110,18 @@
   <tr><td>--</td><td>3D ellipsoid comb drawing, forage-dependent rates</td><td>+</td><td>1</td></tr>
   <tr><td>--</td><td>25 item sprites (32x32) + context-sensitive prompts</td><td>+</td><td>1</td></tr>
   <tr style="background:#1a2a1a"><td>2.1</td><td>Sleep / day advance + nap + auto-save (2.1-2.4)</td><td>[x]</td><td>2</td></tr>
-  <tr style="background:#1a1a2a"><td>2.5</td><td>Weather system (gates foraging &amp; inspections)</td><td>[ ]</td><td>2</td></tr>
-  <tr style="background:#1a1a2a"><td>2.11</td><td>Equipment shop wired (real purchases)</td><td>[ ]</td><td>2</td></tr>
-  <tr style="background:#1a1a2a"><td>2.13</td><td>Smoke &amp; sting system</td><td>[ ]</td><td>2</td></tr>
+  <tr style="background:#1a2a1a"><td>2.5</td><td>Weather system (gates foraging &amp; inspections)</td><td>[x]</td><td>2</td></tr>
+  <tr style="background:#1a2a1a"><td>2.11</td><td>Equipment shop wired (real purchases)</td><td>[x]</td><td>2</td></tr>
+  <tr style="background:#1a2a1a"><td>2.13</td><td>Smoke &amp; sting system</td><td>[x]</td><td>2</td></tr>
   <tr style="background:#1a1a2a"><td>2.17</td><td>Harvest honey (uncap - extract - grade - bottle)</td><td>[ ]</td><td>2</td></tr>
-  <tr style="background:#1a1a2a"><td>2.25</td><td>Saturday Market -- sell to Frank (wire player_name to nameplate during build)</td><td>[ ]</td><td>2</td></tr>
-  <tr style="background:#1a1a2a"><td>2.28</td><td>Community Standing (5 tiers, price multipliers)</td><td>[ ]</td><td>2</td></tr>
+  <tr style="background:#1a2a1a"><td>2.25</td><td>Saturday Market -- sell to Frank</td><td>[x]</td><td>2</td></tr>
+  <tr style="background:#1a2a1a"><td>2.28</td><td>Community Standing (5 tiers, price multipliers)</td><td>[x]</td><td>2</td></tr>
   <tr style="background:#1a1a2a"><td>--</td><td>One full season playable start to finish</td><td>[ ]</td><td>2</td></tr>
-  <tr style="background:#1a2015"><td>3.0</td><td>PlayerData singleton -- player_name, pronouns, backstory_tag, appearance fields</td><td>[ ]</td><td>3</td></tr>
-  <tr style="background:#1a2015"><td>3.0a</td><td>Character creator scene (name, pronouns, backstory, appearance -- runs before opening cutscene)</td><td>[ ]</td><td>3</td></tr>
+  <tr style="background:#1a2a1a"><td>3.0</td><td>PlayerData singleton -- player_name, pronouns, backstory_tag, appearance fields</td><td>[x]</td><td>3</td></tr>
+  <tr style="background:#1a2a1a"><td>3.0a</td><td>Character creator scene (name, pronouns, backstory, appearance -- runs before opening cutscene)</td><td>[x]</td><td>3</td></tr>
   <tr style="background:#1a2015"><td>3.0b</td><td>Layered portrait system (title card, journal header, cutscene frames)</td><td>[ ]</td><td>3</td></tr>
-  <tr style="background:#1a2015"><td>3.0c</td><td>Name injection -- Knowledge Log header, market nameplate, Bob dialogue</td><td>[ ]</td><td>3</td></tr>
-  <tr style="background:#1a2015"><td>3.0d</td><td>Pronoun token pass -- all NPC dialogue strings use {they}/{them}/{their} tokens</td><td>[ ]</td><td>3</td></tr>
+  <tr style="background:#1a2a1a"><td>3.0c</td><td>Name injection -- Knowledge Log header, market nameplate, Bob dialogue</td><td>[x]</td><td>3</td></tr>
+  <tr style="background:#1a2a1a"><td>3.0d</td><td>Pronoun token pass -- all NPC dialogue strings use {they}/{them}/{their} tokens</td><td>[x]</td><td>3</td></tr>
 </table>
 
 <div class="callout callout-amber" style="margin-top:32px">
@@ -2118,7 +2130,7 @@
   harvest-sell loop. Do not skip ahead -- a working economy loop with weather and day advance gives every future system a reason to exist.
   Art can lag behind code; use colored rectangles as placeholders for any missing sprites.
   <br><br>
-  Tasks 2.1-2.4 (sleep/day advance, nap, auto-save) are complete. Honey production simulation verified (March 30): a single colony now produces ~80 lbs harvestable per season at peak, enough for 2 supers. Super comb drawing rates are realistic. The simulation is ready to support the harvest pipeline. Next: task 2.5 (weather system). Follow the numbers.
+  Tasks 2.1-2.16, 2.22-2.23, 2.25-2.30 are complete. Honey production simulation verified: ~80 lbs harvestable per season at peak, enough for 2 supers. Weather, equipment shop, smoke/sting, Saturday Market, and Community Standing all wired. Next: harvest pipeline (tasks 2.17-2.21, 2.24). Follow the numbers.
 </div>
 
 <div class="callout" style="margin-top:32px;border-left:3px solid #5acc88;">
