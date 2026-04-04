@@ -32,6 +32,7 @@ var _btn_add_super:    Button = null
 var _btn_remove_super: Button = null
 var _btn_add_excluder: Button = null
 var _btn_rotate:       Button = null
+var _btn_destroy_afb:  Button = null
 var _info_lbl:         Label  = null
 var _status_lbl:       Label  = null
 
@@ -127,12 +128,14 @@ func _build_ui() -> void:
 	_btn_remove_super = _make_button("BtnRemoveSuper", BX, BY + (BH+GAP)*2,BW, BH)
 	_btn_add_excluder = _make_button("BtnAddExcluder", BX, BY + (BH+GAP)*3,BW, BH)
 	_btn_rotate       = _make_button("BtnRotate",      BX, BY + (BH+GAP)*4,BW, BH)
+	_btn_destroy_afb  = _make_button("BtnDestroyAFB",  BX, BY + (BH+GAP)*5,BW, BH)
 
 	_btn_add_deep.pressed.connect(_on_add_deep)
 	_btn_add_super.pressed.connect(_on_add_super)
 	_btn_remove_super.pressed.connect(_on_remove_super)
 	_btn_add_excluder.pressed.connect(_on_add_excluder)
 	_btn_rotate.pressed.connect(_on_rotate)
+	_btn_destroy_afb.pressed.connect(_on_destroy_afb)
 
 	# Status label
 	_status_lbl = _make_label("StatusLbl", "",
@@ -288,6 +291,13 @@ func _refresh() -> void:
 	else:
 		_set_btn(_btn_rotate, "Rotate Deeps", false)
 
+	# Destroy Hive (AFB) -- only visible when clinical AFB detected
+	var sim_ref = hive_ref.simulation if hive_ref and "simulation" in hive_ref else null
+	var show_destroy: bool = sim_ref != null and sim_ref.has_method("has_clinical_afb") and sim_ref.has_clinical_afb()
+	_btn_destroy_afb.visible = show_destroy
+	if show_destroy:
+		_set_btn(_btn_destroy_afb, "DESTROY HIVE (AFB -- burn it)", false)
+
 func _set_btn(btn: Button, text_val: String, disabled_val: bool) -> void:
 	btn.text = text_val
 	btn.disabled = disabled_val
@@ -400,6 +410,17 @@ func _on_rotate() -> void:
 			_show_status("Deeps rotated - bottom box moved to top!")
 		else:
 			_show_status("Cannot rotate - need 2 deep bodies.")
+	_refresh()
+
+func _on_destroy_afb() -> void:
+	var sim_ref = hive_ref.simulation if hive_ref and "simulation" in hive_ref else null
+	if sim_ref == null or not sim_ref.has_method("destroy_for_afb"):
+		return
+	sim_ref.destroy_for_afb()
+	_show_status("Hive destroyed to contain AFB. The colony is lost.")
+	QuestManager.notify_event("hive_destroyed_afb", {})
+	if NotificationManager and NotificationManager.has_method("show_notification"):
+		NotificationManager.show_notification("You burned the infected hive to protect the apiary.")
 	_refresh()
 
 # - Helpers -----------------------------------------------------------------

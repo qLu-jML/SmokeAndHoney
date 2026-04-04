@@ -340,6 +340,15 @@ var stunted_brood_count: int = 0
 # -- Disease Flags -------------------------------------------------------------
 var disease_flags: Array = []   # String list: "AFB", "EFB", "SHB", etc.
 
+# -- AFB Two-State Model -------------------------------------------------------
+# State 1 (sub-clinical): spores present but invisible. Strong colony can clear.
+# State 2 (clinical): visible during inspection -- sunken cappings, foul smell.
+var afb_spore_level: float = 0.0   # 0.0 = clean, 1.0 = clinical threshold
+var afb_clinical: bool = false     # true when visually detectable
+const AFB_CLINICAL_THRESHOLD: float = 1.0
+const AFB_SPORE_GROWTH_PER_DAY: float = 0.025  # ~40 days to clinical if unchecked
+const AFB_STRONG_CLEARANCE: float = 0.02        # strong colony clears ~15%/week
+
 # -- State ---------------------------------------------------------------------
 var days_elapsed:           int = 0
 var congestion_state:       CongestionState = CongestionState.NORMAL
@@ -968,6 +977,9 @@ func tick() -> void:
 	var brood_avail := clampf(float(capped_brood) / 16000.0, 0.0, 1.0)
 	mite_count += mite_count * 0.017 * brood_avail
 	mite_count  = minf(mite_count, 5000.0)
+
+	# -- AFB spore progression ---------------------------------------------------
+	_tick_afb_progression()
 
 	# -- Step 7: CongestionDetector --
 	var brood_cells: int = (post_counts[S_EGG] + post_counts[S_OPEN_LARVA]
@@ -1801,6 +1813,63 @@ func get_sample_mite_count(sample_size: int = 300) -> int:
 ## Apply a mite treatment that reduces mite_count by the given fraction (0.0-1.0).
 func treat_mites(reduction: float) -> void:
 	mite_count = maxf(0.0, mite_count * (1.0 - reduction))
+
+# -- AFB Disease System --------------------------------------------------------
+
+## Daily AFB spore progression. Sub-clinical spores grow toward clinical;
+## strong colonies can clear sub-clinical infections.
+func _tick_afb_progression() -> void:
+	if afb_spore_level <= 0.0:
+		return
+	var total_adults: int = nurse_count + house_count + forager_count
+	var is_strong: bool = total_adults > 15000
+	if afb_clinical:
+		# Clinical AFB: no recovery, colony weakens. Spread happens in CellStateTransition.
+		return
+	# Sub-clinical: spores grow but strong colony fights back
+	if is_strong:
+		afb_spore_level -= AFB_STRONG_CLEARANCE
+		if afb_spore_level <= 0.0:
+			afb_spore_level = 0.0
+			return
+	else:
+		afb_spore_level += AFB_SPORE_GROWTH_PER_DAY
+	# Check for clinical transition
+	if afb_spore_level >= AFB_CLINICAL_THRESHOLD:
+		afb_clinical = true
+		afb_spore_level = AFB_CLINICAL_THRESHOLD
+		if not disease_flags.has("AFB"):
+			disease_flags.append("AFB")
+
+## Introduce AFB spores (e.g. from robbing a dead hive or contaminated equipment).
+func introduce_afb_spores(amount: float = 0.3) -> void:
+	afb_spore_level = minf(afb_spore_level + amount, AFB_CLINICAL_THRESHOLD)
+
+## Check if this hive has clinical (visible) AFB.
+func has_clinical_afb() -> bool:
+	return afb_clinical
+
+## Perform the rope test on a suspicious cell. Returns true if positive.
+func rope_test() -> bool:
+	return afb_clinical
+
+## Destroy a hive due to AFB (burn it). Resets all colony data.
+func destroy_for_afb() -> void:
+	queen = {"present": false, "grade": "C", "age_days": 0, "species": "Italian", "laying_delay": 0}
+	nurse_count = 0
+	house_count = 0
+	forager_count = 0
+	honey_stores = 0.0
+	pollen_stores = 0.0
+	mite_count = 0.0
+	feed_stores = 0.0
+	afb_spore_level = 0.0
+	afb_clinical = false
+	disease_flags.clear()
+	for box in boxes:
+		for frame in box.frames:
+			for i in range(frame.cells.size()):
+				frame.cells[i] = S_EMPTY_FOUNDATION
 
 # -- Helpers -------------------------------------------------------------------
 

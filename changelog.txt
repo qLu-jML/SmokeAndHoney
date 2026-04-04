@@ -1,3 +1,19 @@
+[2026-04-03 CDT] WP5: AFB two-state disease system
+  scripts/core/HiveSimulation.gd:
+  - AFB two-state model: sub-clinical spores -> clinical (visible)
+  - Strong colonies (15k+ adults) clear sub-clinical at ~15%/week
+  - Weak colonies progress to clinical in ~40 days
+  - introduce_afb_spores(), has_clinical_afb(), rope_test(), destroy_for_afb()
+  - Daily _tick_afb_progression() in tick pipeline
+  scripts/ui/InspectionOverlay.gd:
+  - "Test Cell" rope test button (visible only with clinical AFB)
+  - Foul smell notification when opening AFB-infected hive
+  scripts/ui/hive_management.gd:
+  - "DESTROY HIVE (AFB)" button (visible only with clinical AFB)
+  - Calls destroy_for_afb() to burn hive and reset all colony data
+  scripts/autoloads/SaveManager.gd:
+  - Save/load afb_spore_level, afb_clinical, feed_stores
+
 [2026-04-03 CDT] WP4: Disease treatment application (item-based)
   scripts/ui/InspectionOverlay.gd:
   - Added "Oxalic" and "Formic" treatment buttons (item-gated)

@@ -369,6 +369,12 @@ func _collect_hives() -> Array:
 			"position_x": pos.x,
 			"position_y": pos.y,
 			"sim": _collect_sim(sim),
+			# Hive node visual/build state (needed to rebuild sprite stack on load)
+			"build_state":        int(hive_node.build_state),
+			"frame_count":        hive_node.frame_count,
+			"has_lid":            hive_node.has_lid,
+			"colony_installed":   hive_node.colony_installed,
+			"colony_install_day": hive_node.colony_install_day,
 		}
 		# tile_coords is set by player.gd on hives placed via HIVE mode.
 		# It's needed for the 5x5 spacing check when the player places new hives.
@@ -396,9 +402,14 @@ func _collect_sim(sim: HiveSimulation) -> Dictionary:
 		# -- Health / disease --------------------------------------------------
 		"mite_count":             sim.mite_count,
 		"disease_flags":          sim.disease_flags.duplicate(),
+		"afb_spore_level":        sim.afb_spore_level,
+		"afb_clinical":           sim.afb_clinical,
+		"feed_stores":            sim.feed_stores,
 		# -- Congestion --------------------------------------------------------
 		"congestion_state":       int(sim.congestion_state),
 		"consecutive_congestion": sim.consecutive_congestion,
+		# -- Equipment ---------------------------------------------------------
+		"has_excluder":           sim.has_excluder,
 		# -- Queen (species, grade, age_days, laying_rate, etc.) ---------------
 		"queen":                  sim.queen.duplicate(),
 		# -- Physical frame cell data ------------------------------------------
@@ -512,10 +523,26 @@ func _apply_hives(hive_data: Array, world: Node) -> void:
 			hive_node.set_meta("tile_coords", Vector2i(
 				int(entry["tile_x"]), int(entry["tile_y"])
 			))
+		# Restore hive node visual/build state before applying sim data.
+		# Without this the hive stays at the default STAND_PLACED and the
+		# sprite stack only draws the bare stand (no body, no lid).
+		hive_node.build_state        = int(entry.get("build_state", 3)) as Hive.BuildState
+		hive_node.frame_count        = int(entry.get("frame_count", 10))
+		hive_node.has_lid            = bool(entry.get("has_lid", true))
+		hive_node.colony_installed   = bool(entry.get("colony_installed", true))
+		hive_node.colony_install_day = int(entry.get("colony_install_day", 0))
+
 		if entry.has("sim"):
 			var sim: HiveSimulation = hive_node.get_node_or_null("HiveSimulation")
 			if sim:
 				_apply_sim(entry["sim"], sim)
+
+		# Rebuild visuals + start simulation now that both hive state and
+		# sim data are restored.  activate_simulation() gates on
+		# build_state == COMPLETE && colony_installed so it is safe to call
+		# even for partially-built hives.
+		if hive_node.has_method("activate_simulation"):
+			hive_node.activate_simulation()
 
 
 ## Applies simulation state to a HiveSimulation instance.
@@ -532,6 +559,10 @@ func _apply_sim(sd: Dictionary, sim: HiveSimulation) -> void:
 	sim.consecutive_congestion = int(sd.get("consecutive_congestion", 0))
 	sim.congestion_state       = int(sd.get("congestion_state", 0)) as HiveSimulation.CongestionState
 	sim.disease_flags          = (sd.get("disease_flags", []) as Array).duplicate()
+	sim.afb_spore_level        = float(sd.get("afb_spore_level", 0.0))
+	sim.afb_clinical           = bool(sd.get("afb_clinical", false))
+	sim.feed_stores            = float(sd.get("feed_stores", 0.0))
+	sim.has_excluder           = bool(sd.get("has_excluder", false))
 
 	# -- Queen dictionary ------------------------------------------------------
 	if sd.has("queen"):

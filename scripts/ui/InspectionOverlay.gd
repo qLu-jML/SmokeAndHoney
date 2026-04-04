@@ -128,6 +128,7 @@ var _is_super_display: bool      = false   # tracks current display mode
 var _wash_btn:      Button = null
 var _treat_oxalic_btn: Button = null
 var _treat_formic_btn: Button = null
+var _rope_test_btn: Button = null
 
 # -- Dev advance buttons (visible only in dev mode) ----------------------------
 var _dev_day_btn:   Button = null
@@ -196,6 +197,11 @@ func open(hive_node: Node) -> void:
 
 	# Notify quest system that an inspection was opened
 	QuestManager.notify_event("inspection_opened", {"hive": hive_node})
+
+	# AFB warning: foul smell when opening hive with clinical AFB
+	if _sim and _sim.has_clinical_afb():
+		if NotificationManager and NotificationManager.has_method("show_notification"):
+			NotificationManager.show_notification("A foul smell hits you as you open this hive. Something is very wrong.")
 
 # ------------------------------------------------------------------------------
 # Lifecycle
@@ -482,6 +488,14 @@ func _build_tool_buttons(bg: Control) -> void:
 		_treat_formic_btn.position = Vector2(VP_W - 52, btn_y)
 		_treat_formic_btn.pressed.connect(_on_treat_formic_pressed)
 		bg.add_child(_treat_formic_btn)
+		btn_y += 14
+
+	# Rope test button -- only if hive has clinical AFB (visible suspicious cells)
+	if _sim and _sim.has_clinical_afb():
+		_rope_test_btn = _make_tool_btn("Test Cell", Color(0.50, 0.15, 0.10, 0.90), Color(0.65, 0.25, 0.15, 0.95))
+		_rope_test_btn.position = Vector2(VP_W - 52, btn_y)
+		_rope_test_btn.pressed.connect(_on_rope_test_pressed)
+		bg.add_child(_rope_test_btn)
 
 ## Create a styled tool button for the inspection overlay.
 func _make_tool_btn(label: String, bg_col: Color, hover_col: Color) -> Button:
@@ -524,6 +538,19 @@ func _on_wash_complete(mites_per_100: float) -> void:
 
 func _on_wash_cancelled() -> void:
 	pass  # nothing to clean up
+
+## Perform the rope test on a suspicious AFB cell.
+func _on_rope_test_pressed() -> void:
+	if _sim == null:
+		return
+	var positive: bool = _sim.rope_test()
+	if positive:
+		if NotificationManager and NotificationManager.has_method("show_notification"):
+			NotificationManager.show_notification("ROPE TEST POSITIVE. The cell contents are ropy and stringy. This is AFB.")
+		QuestManager.notify_event("afb_confirmed", {})
+	else:
+		if NotificationManager and NotificationManager.has_method("show_notification"):
+			NotificationManager.show_notification("Rope test negative -- cells look normal.")
 
 ## Apply oxalic acid treatment: 90% mite reduction, best when broodless.
 func _on_treat_oxalic_pressed() -> void:
