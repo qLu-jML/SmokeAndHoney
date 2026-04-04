@@ -185,6 +185,7 @@ func _load_item_textures() -> void:
 		GameData.ITEM_HAMMER: "hammer.png",
 		GameData.ITEM_BEE_SUIT: "bee_suit.png",
 		GameData.ITEM_PROPOLIS: "propolis.png",
+		GameData.ITEM_WASH_KIT: "wash_kit.png",
 	}
 	for item_id in ITEM_SPRITE_MAP:
 		var p: String = "res://assets/sprites/items/%s" % ITEM_SPRITE_MAP[item_id]

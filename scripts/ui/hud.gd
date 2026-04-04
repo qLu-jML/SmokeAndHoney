@@ -76,7 +76,7 @@ var _dev_weather_prob_lbl: Label = null
 # Dev-mode widget refs
 var _dev_panel: ColorRect = null
 var _dev_day_btn: Button = null
-var _dev_adv_panel: Node = null  # bare Node container (no layout)
+var _dev_adv_panel: Control = null  # Control container for dev buttons
 var _dev_month_advancing: bool = false
 var _dev_month_days_left: int = 0
 var _dev_month_start_day: int = 0
@@ -642,8 +642,10 @@ func _build_dev_level_widget() -> void:
 	var gap: int = 3
 	var base_y: int = 20  # just below energy bar
 
-	_dev_adv_panel = Node.new()
+	_dev_adv_panel = Control.new()
 	_dev_adv_panel.name = "DevAdvPanel"
+	_dev_adv_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_dev_adv_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(_dev_adv_panel)
 
 	# Helper: create a fixed-size dev button as a ColorRect + Label combo
@@ -1097,6 +1099,7 @@ func _load_item_textures() -> void:
 		GameData.ITEM_HAMMER: "hammer.png",
 		GameData.ITEM_BEE_SUIT: "bee_suit.png",
 		GameData.ITEM_PROPOLIS: "propolis.png",
+		GameData.ITEM_WASH_KIT: "wash_kit.png",
 	}
 	for item_id in ITEM_SPRITE_MAP:
 		var p = "res://assets/sprites/items/%s" % ITEM_SPRITE_MAP[item_id]
@@ -1181,7 +1184,11 @@ func _refresh_date() -> void:
 	if _day_lbl2:
 		_day_lbl2.text = "Day %d" % TimeManager.current_day_of_month()
 	if day_label:
-		day_label.text = "Day %d  %s  Y%d" % [TimeManager.current_day_of_month(), TimeManager.current_month_name(), TimeManager.current_year()]
+		var date_text: String = "Day %d  %s  Y%d" % [TimeManager.current_day_of_month(), TimeManager.current_month_name(), TimeManager.current_year()]
+		var holiday: String = TimeManager.get_holiday_name()
+		if holiday != "":
+			date_text += "  -- %s --" % holiday
+		day_label.text = date_text
 
 
 func _refresh_time() -> void:
@@ -1453,10 +1460,19 @@ func _show_daily_summary() -> void:
 	date_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	panel.add_child(date_lbl)
 
+	# Holiday banner (if today is a holiday)
+	var holiday_name: String = TimeManager.get_holiday_name()
+	var _holiday_y_offset: int = 0
+	if holiday_name != "":
+		var h_lbl = _make_lbl("-- %s --" % holiday_name, 7, Vector2(10, 33), Vector2(160, 12), Color(0.95, 0.70, 0.20, 1.0))
+		h_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		panel.add_child(h_lbl)
+		_holiday_y_offset = 14
+
 	var div = ColorRect.new()
 	div.color = Color(0.75, 0.60, 0.25, 0.40)
 	div.size = Vector2(160, 1)
-	div.position = Vector2(10, 35)
+	div.position = Vector2(10, 35 + _holiday_y_offset)
 	panel.add_child(div)
 
 	var hive_nodes = get_tree().get_nodes_in_group("hive")

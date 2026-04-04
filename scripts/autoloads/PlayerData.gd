@@ -24,6 +24,17 @@ var backstory_tag: String = BACKSTORY_NEWCOMER
 # -- Setup State ---------------------------------------------------------------
 var character_created: bool = false   # False until character creator is completed
 
+# -- Persistent Flags (one-time events like tutorials) -------------------------
+var _flags: Dictionary = {}
+
+## Check if a persistent flag has been set.
+func has_flag(flag_name: String) -> bool:
+    return _flags.has(flag_name)
+
+## Set a persistent flag (survives save/load).
+func set_flag(flag_name: String) -> void:
+    _flags[flag_name] = true
+
 # -- Pronoun Preset Loading ----------------------------------------------------
 
 ## Sets pronouns to they/them.
@@ -83,6 +94,7 @@ func collect_save_data() -> Dictionary:
         "pronoun_themself": pronoun_themself,
         "backstory_tag": backstory_tag,
         "character_created": character_created,
+        "flags": _flags.duplicate(),
     }
 
 ## Applies player identity data from save file.
@@ -95,3 +107,4 @@ func apply_save_data(data: Dictionary) -> void:
     pronoun_themself = data.get("pronoun_themself", "themself")
     backstory_tag    = data.get("backstory_tag", BACKSTORY_NEWCOMER)
     character_created = data.get("character_created", false)
+    _flags = data.get("flags", {}).duplicate()

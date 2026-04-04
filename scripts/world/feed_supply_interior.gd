@@ -112,6 +112,16 @@ const ALL_ITEMS: Array = [
 		"max_qty": 5,
 		"desc": "Penetrates capped brood.",
 	},
+	{
+		"key": "wash_kit",
+		"label": "Alcohol Wash Kit",
+		"cost": 15.0,
+		"item": "wash_kit",
+		"qty": 1,
+		"seasons": [],
+		"max_qty": 1,
+		"desc": "Test mite levels. Reusable.",
+	},
 	# Fall / winter prep
 	{
 		"key": "queen_cage",

@@ -1783,6 +1783,21 @@ func add_disease(flag: String) -> void:
 func clear_disease(flag: String) -> void:
 	disease_flags.erase(flag)
 
+## Simulate an alcohol wash sample: return the number of mites found in a
+## sample of `sample_size` bees (typically 300). Uses binomial-style random
+## draw from the colony's actual mite infestation rate.
+func get_sample_mite_count(sample_size: int = 300) -> int:
+	var total_adults: int = nurse_count + house_count + forager_count
+	if total_adults <= 0:
+		return 0
+	var infestation_rate: float = mite_count / float(total_adults)
+	# Each sampled bee has infestation_rate chance of carrying a mite.
+	# For performance, use normal approximation of binomial.
+	var expected: float = float(sample_size) * infestation_rate
+	var std_dev: float = sqrt(expected * (1.0 - minf(infestation_rate, 1.0)))
+	var result: float = expected + randf_range(-1.0, 1.0) * std_dev
+	return clampi(roundi(result), 0, sample_size)
+
 ## Apply a mite treatment that reduces mite_count by the given fraction (0.0-1.0).
 func treat_mites(reduction: float) -> void:
 	mite_count = maxf(0.0, mite_count * (1.0 - reduction))

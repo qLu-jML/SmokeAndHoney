@@ -124,6 +124,9 @@ var _lug_rects:        Array     = []   # [lug, lug_hi] pairs
 var _wire_rects:       Array     = []
 var _is_super_display: bool      = false   # tracks current display mode
 
+# -- Tool action buttons (visible when player has item) -----------------------
+var _wash_btn:      Button = null
+
 # -- Dev advance buttons (visible only in dev mode) ----------------------------
 var _dev_day_btn:   Button = null
 var _dev_month_btn: Button = null
@@ -423,6 +426,9 @@ func _ready() -> void:
 		5, Vector2(2, VP_H - FOOTER_H + 2), Vector2(VP_W - 4, 8), C_MUTED)
 	bg.add_child(_footer_label)
 
+	# -- Tool action buttons (wash kit, treatment) -- item-gated ---------------
+	_build_tool_buttons(bg)
+
 	# -- Dev mode advance buttons (top-right of stats panel) -------------------
 	_build_dev_advance_buttons(bg)
 
@@ -443,6 +449,57 @@ func _exit_tree() -> void:
 		_dev_day_btn.pressed.disconnect(_on_dev_advance_day_inspection)
 	if _dev_month_btn and _dev_month_btn.pressed.is_connected(_on_dev_advance_month_inspection):
 		_dev_month_btn.pressed.disconnect(_on_dev_advance_month_inspection)
+
+## Builds item-gated tool buttons (wash kit, treatment).
+func _build_tool_buttons(bg: Control) -> void:
+	# Check player inventory for wash kit
+	var player: Node2D = null
+	if get_tree():
+		player = get_tree().get_first_node_in_group("player") as Node2D
+	var has_wash: bool = player != null and player.has_method("has_item") and player.has_item(GameData.ITEM_WASH_KIT)
+
+	if has_wash:
+		_wash_btn = Button.new()
+		_wash_btn.text = "Wash Kit"
+		_wash_btn.add_theme_font_size_override("font_size", 5)
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color(0.20, 0.35, 0.55, 0.90)
+		sb.set_corner_radius_all(2)
+		_wash_btn.add_theme_stylebox_override("normal", sb)
+		var sb_h := StyleBoxFlat.new()
+		sb_h.bg_color = Color(0.30, 0.50, 0.70, 0.95)
+		sb_h.set_corner_radius_all(2)
+		_wash_btn.add_theme_stylebox_override("hover", sb_h)
+		_wash_btn.add_theme_color_override("font_color", Color(0.95, 0.92, 0.85))
+		_wash_btn.position = Vector2(VP_W - 52, HEADER_H + 2)
+		_wash_btn.size = Vector2(50, 12)
+		_wash_btn.pressed.connect(_on_wash_kit_pressed)
+		bg.add_child(_wash_btn)
+
+## Open the alcohol wash mini-game overlay.
+func _on_wash_kit_pressed() -> void:
+	if _sim == null:
+		return
+	var sim: HiveSimulation = _sim
+	var wash_script: GDScript = load("res://scripts/ui/alcohol_wash_overlay.gd") as GDScript
+	if wash_script == null:
+		return
+	var overlay: CanvasLayer = CanvasLayer.new()
+	overlay.set_script(wash_script)
+	# Check if this is the player's first wash
+	var first_wash: bool = not PlayerData.has_flag("alcohol_wash_done") if PlayerData and PlayerData.has_method("has_flag") else false
+	overlay.open(sim, first_wash)
+	overlay.wash_complete.connect(_on_wash_complete)
+	overlay.wash_cancelled.connect(_on_wash_cancelled)
+	get_tree().current_scene.add_child(overlay)
+
+func _on_wash_complete(mites_per_100: float) -> void:
+	if PlayerData and PlayerData.has_method("set_flag"):
+		PlayerData.set_flag("alcohol_wash_done")
+	QuestManager.notify_event("mite_wash_result", {"mites_per_100": mites_per_100})
+
+func _on_wash_cancelled() -> void:
+	pass  # nothing to clean up
 
 ## Builds the development mode day/month advance buttons.
 func _build_dev_advance_buttons(bg: Control) -> void:

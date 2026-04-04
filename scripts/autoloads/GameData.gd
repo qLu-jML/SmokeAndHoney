@@ -151,6 +151,7 @@ var xp_buff_until_day: int = -1
 # Read by player._ready() to restore inventory when entering a new scene.
 var player_inventory: Array = []
 var player_inventory_valid: bool = false   # true once a player has synced at least once
+var chest_stocked: bool = false            # true once starting chest items have been added
 
 # -- Harvested Super Data ------------------------------------------------------
 # When a honey super is removed from a hive, its frame cell data is stored here
@@ -206,6 +207,7 @@ const ITEM_HAMMER            := "hammer"           # Tool: required for workbenc
 const ITEM_SMOKER            := "smoker"           # Tool: reduces bee defensiveness during inspection
 const ITEM_BEE_SUIT          := "bee_suit"         # Protective gear: reduces sting energy damage
 const ITEM_PROPOLIS          := "propolis"         # Collected during inspection, used in crafting
+const ITEM_WASH_KIT          := "wash_kit"         # Alcohol wash kit for mite monitoring
 
 # -- Crafting Recipes (lumber costs) -----------------------------------------
 # Each recipe: {"result": item_id, "result_count": N, "lumber_cost": N, "label": "..."}

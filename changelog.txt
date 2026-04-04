@@ -1,3 +1,24 @@
+[2026-04-03 CDT] WP3: Alcohol wash mite monitoring mini-game
+  scripts/ui/alcohol_wash_overlay.gd (new):
+  - 5-step mini-game: Select Frame -> Queen Check -> Scoop -> Shake -> Count
+  - First-wash tutorial: scripted queen-on-frame moment with Ellen's warning
+  - Mite dots on white panel; player clicks to count; color-coded threshold
+  - Reports mites_per_100 to QuestManager for battening_down check
+  scripts/core/HiveSimulation.gd:
+  - Added get_sample_mite_count(sample_size) -- binomial-style mite sampling
+  scripts/ui/InspectionOverlay.gd:
+  - Added "Wash Kit" button (item-gated: only visible with ITEM_WASH_KIT)
+  - Button opens alcohol_wash_overlay as CanvasLayer
+  scripts/autoloads/GameData.gd:
+  - Added ITEM_WASH_KIT constant
+  scripts/autoloads/PlayerData.gd:
+  - Added persistent _flags dictionary with has_flag()/set_flag()
+  - Flags saved/loaded with game state (tracks first-wash tutorial)
+  scripts/world/feed_supply_interior.gd:
+  - Added Alcohol Wash Kit to shop ($15, always in stock, max 1)
+  scripts/ui/hud.gd, chest_storage.gd:
+  - Added wash_kit icon mapping
+
 [2026-04-03 CDT] WP2: Scene-wide feeder system -- feed_stores separation
   scripts/core/HiveSimulation.gd:
   - Added feed_stores field (consumed before honey_stores daily)
