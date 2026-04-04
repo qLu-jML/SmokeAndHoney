@@ -3,7 +3,7 @@
 # --------------------------------------------------------------------------
 # Place near hives to supply 100 NU per day for 10 days.
 # Connects to TimeManager.day_advanced to tick daily.
-# NU is injected directly into the nearest hive's honey_stores.
+# NU is injected into the nearest hive's feed_stores (not sellable honey).
 # After 10 days the feeder is empty and can be picked up (returns item).
 # --------------------------------------------------------------------------
 extends Node2D
@@ -83,8 +83,8 @@ func _on_day_advanced(_new_day: int) -> void:
 		for hive in hives_in_range:
 			if hive.has_method("get") and hive.get("simulation"):
 				var sim = hive.simulation
-				if sim != null and "honey_stores" in sim:
-					sim.honey_stores += lbs_per_hive
+				if sim != null and "feed_stores" in sim:
+					sim.feed_stores += lbs_per_hive
 	else:
 		# No hives nearby -- NU is wasted (syrup evaporates)
 		pass
@@ -94,9 +94,10 @@ func _on_day_advanced(_new_day: int) -> void:
 
 	if days_remaining <= 0:
 		print("Barrel feeder empty at %s" % str(global_position))
-		# Visual indication: darken sprite
 		if _sprite:
 			_sprite.modulate = Color(0.5, 0.5, 0.5, 0.8)
+		if NotificationManager and NotificationManager.has_method("show_notification"):
+			NotificationManager.show_notification("Feeder empty -- refill with sugar syrup or pick up.")
 
 ## Update the prompt label text based on remaining days.
 func _update_prompt_text() -> void:
@@ -105,7 +106,7 @@ func _update_prompt_text() -> void:
 	if days_remaining > 0:
 		_prompt_label.text = "Feeder: %d days left" % days_remaining
 	else:
-		_prompt_label.text = "[E] Pick Up (empty)"
+		_prompt_label.text = "[E] Refill / Pick Up"
 
 ## Update prompt visibility each frame based on player proximity.
 func _process(_delta: float) -> void:
@@ -121,6 +122,30 @@ func _process(_delta: float) -> void:
 		_prompt_label.visible = dist < PROMPT_RADIUS
 	else:
 		_prompt_label.visible = false
+
+## Notify quest system that a feeder was placed (call after adding to scene).
+func notify_placed() -> void:
+	QuestManager.notify_event("feeder_placed", {})
+
+## Attempt to refill an empty feeder using sugar syrup from player inventory.
+## Returns true if refilled successfully.
+func try_refill(player: Node2D) -> bool:
+	if days_remaining > 0:
+		return false  # still has syrup
+	if not player or not player.has_method("has_item"):
+		return false
+	if not player.has_item(GameData.ITEM_SUGAR_SYRUP):
+		if NotificationManager and NotificationManager.has_method("show_notification"):
+			NotificationManager.show_notification("Need sugar syrup to refill the feeder.")
+		return false
+	player.remove_item(GameData.ITEM_SUGAR_SYRUP, 1)
+	days_remaining = FEED_DURATION_DAYS
+	if _sprite:
+		_sprite.modulate = Color.WHITE
+	_update_prompt_text()
+	if NotificationManager and NotificationManager.has_method("show_notification"):
+		NotificationManager.show_notification("Feeder refilled -- %d days of syrup." % FEED_DURATION_DAYS)
+	return true
 
 ## Check if this feeder can be picked up (only when empty).
 func try_pickup() -> bool:

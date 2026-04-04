@@ -332,6 +332,7 @@ var drone_count:   int = 200
 var honey_stores:  float = 8.0    # ~1.5 lbs per nuc frame
 var pollen_stores: float = 2.0
 var mite_count:    float = 50.0   # lower mite load in a fresh nuc
+var feed_stores:   float = 0.0    # sugar syrup stores (lbs) -- NOT sellable as honey
 
 # Stunted brood tracking -- brood not fed PU last night get priority next night
 var stunted_brood_count: int = 0
@@ -649,37 +650,55 @@ func init_as_package(p_species: String = "Carniolan") -> void:
 func init_as_fall_harvest(p_species: String = "Carniolan",
 		p_grade: String = "A") -> void:
 
-	# -- Brood box (drawn comb, mixed brood nest + honey arc) ------------------
+	# -- Two brood/deep boxes (drawn comb, mixed brood nest + honey arc) ------
 	boxes = []
-	var bb: HiveBox = HiveBox.new(false)
-	for f_idx in bb.frames.size():
-		var frm: HiveFrame = bb.frames[f_idx]
-		var is_center: bool = (f_idx >= 2 and f_idx <= 7)
-		for side in [frm.cells, frm.cells_b]:
-			for i in frm.grid_size:
-				var x: int = i % frm.grid_cols
-				var y: int = i / frm.grid_cols
-				var cx: float = abs(float(x) - float(frm.grid_cols) / 2.0) / (float(frm.grid_cols) / 2.0)
-				var cy: float = abs(float(y) - float(frm.grid_rows) / 2.0) / (float(frm.grid_rows) / 2.0)
-				var dist: float = cx * cx + cy * cy
-				if is_center:
-					if dist < 0.25:
-						side[i] = S_CAPPED_BROOD
-					elif dist < 0.50:
-						side[i] = S_DRAWN_EMPTY
-					elif dist < 0.80:
-						side[i] = S_CAPPED_HONEY
+	for deep_idx in range(2):
+		var bb: HiveBox = HiveBox.new(false)
+		for f_idx in bb.frames.size():
+			var frm: HiveFrame = bb.frames[f_idx]
+			var is_center: bool = (f_idx >= 2 and f_idx <= 7)
+			for side in [frm.cells, frm.cells_b]:
+				for i in frm.grid_size:
+					var x: int = i % frm.grid_cols
+					var y: int = int(float(i) / float(frm.grid_cols))
+					var cx: float = abs(float(x) - float(frm.grid_cols) / 2.0) / (float(frm.grid_cols) / 2.0)
+					var cy: float = abs(float(y) - float(frm.grid_rows) / 2.0) / (float(frm.grid_rows) / 2.0)
+					var dist: float = cx * cx + cy * cy
+					if deep_idx == 0:
+						# Bottom deep: primary brood nest
+						if is_center:
+							if dist < 0.25:
+								side[i] = S_CAPPED_BROOD
+							elif dist < 0.50:
+								side[i] = S_DRAWN_EMPTY
+							elif dist < 0.80:
+								side[i] = S_CAPPED_HONEY
+							else:
+								side[i] = S_DRAWN_EMPTY
+						else:
+							if randf() < 0.68:
+								side[i] = S_CAPPED_HONEY
+							elif randf() < 0.50:
+								side[i] = S_BEE_BREAD
+							else:
+								side[i] = S_DRAWN_EMPTY
 					else:
-						side[i] = S_DRAWN_EMPTY
-				else:
-					# Outer frames: mostly winter honey and bee bread
-					if randf() < 0.68:
-						side[i] = S_CAPPED_HONEY
-					elif randf() < 0.50:
-						side[i] = S_BEE_BREAD
-					else:
-						side[i] = S_DRAWN_EMPTY
-	boxes.append(bb)
+						# Top deep: mostly honey stores + some bee bread
+						if is_center:
+							if dist < 0.15:
+								side[i] = S_DRAWN_EMPTY
+							elif dist < 0.65:
+								side[i] = S_CAPPED_HONEY
+							else:
+								side[i] = S_DRAWN_EMPTY
+						else:
+							if randf() < 0.75:
+								side[i] = S_CAPPED_HONEY
+							elif randf() < 0.40:
+								side[i] = S_BEE_BREAD
+							else:
+								side[i] = S_DRAWN_EMPTY
+		boxes.append(bb)
 
 	# -- Two honey supers (both filled with capped honey) ----------------------
 	for _s in range(2):
@@ -697,9 +716,9 @@ func init_as_fall_harvest(p_species: String = "Carniolan",
 	drone_count   = 200   # few drones remain in early fall
 
 	# -- Stores ----------------------------------------------------------------
-	# 2 full supers (~8 lbs) + winter stores building in brood box (~16 lbs)
-	honey_stores  = 24.0
-	pollen_stores = 180.0
+	# 2 full supers (~8 lbs) + winter stores in 2 deeps (~24 lbs)
+	honey_stores  = 32.0
+	pollen_stores = 220.0
 
 	# -- Mite load (post midsummer treatment, manageable) ----------------------
 	mite_count = 45.0
@@ -874,10 +893,15 @@ func tick() -> void:
 	# comb (if any foundation remains) or overflows into more honey.
 	# =========================================================================
 	var daily_cost: float = _daily_consumption()
+	# Consume feed_stores (sugar syrup) first, then honey_stores
+	if feed_stores > 0.0:
+		var from_feed: float = minf(feed_stores, daily_cost)
+		feed_stores -= from_feed
+		daily_cost -= from_feed
 	honey_stores = maxf(0.0, honey_stores - daily_cost)
 
-	var two_week_need: float = daily_cost * 14.0
-	var stores_secure: bool = honey_stores >= two_week_need and two_week_need > 0.0
+	var two_week_need: float = _daily_consumption() * 14.0
+	var stores_secure: bool = (honey_stores + feed_stores) >= two_week_need and two_week_need > 0.0
 
 	var nu_for_wax: int = 0
 	var nu_for_honey: int = 0
@@ -1355,11 +1379,9 @@ func _get_zone_nu() -> int:
 			if tree_node.has_method("get_forage_contribution"):
 				var contrib: Dictionary = tree_node.get_forage_contribution(month)
 				total += int(contrib.get("nectar", 0.0))
-	# Add barrel feeder NU (feeders inject directly into zone pool)
-	var feeders = get_tree().get_nodes_in_group("barrel_feeder")
-	for feeder in feeders:
-		if "days_remaining" in feeder and feeder.days_remaining > 0:
-			total += 100  # FEED_NU_PER_DAY
+	# Barrel feeders inject directly into feed_stores via their own daily tick.
+	# They are NOT added to the zone NU pool to avoid double-counting and
+	# to keep feed separate from sellable honey.
 	# Ambient forage hack removed -- real SeasonalTree nodes on home_property
 	# now provide proper NU through the "trees" group forage system above.
 	return maxi(0, total)

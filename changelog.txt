@@ -1,3 +1,404 @@
+[2026-04-03 CDT] WP2: Scene-wide feeder system -- feed_stores separation
+  scripts/core/HiveSimulation.gd:
+  - Added feed_stores field (consumed before honey_stores daily)
+  - Removed feeder NU from _get_zone_nu() to prevent double-counting
+  - Stores security check now includes feed_stores
+  scripts/world/barrel_feeder.gd:
+  - Changed daily injection from honey_stores to feed_stores (not sellable)
+  - Added notify_placed() for quest event emission
+  - Added try_refill() -- player uses sugar syrup on empty feeder to refill
+  - Empty feeder notification via NotificationManager
+  - Prompt shows "[E] Refill / Pick Up" when empty
+  scripts/core/player.gd:
+  - Feeder placement calls notify_placed() for quest system
+  - Empty feeder interaction: refill if player has sugar syrup, else pick up
+
+[2026-04-03 CDT] WP1: Quest engine with Year 1 chain and event hooks
+  scripts/quests/quest_defs.gd (new):
+  - 5 Year 1 quests: First Light, Sugar Water Days, Girls Are Building,
+    First Pull, Battening Down -- each auto-starts the next on completion
+  - Static data class with start_conditions (month gating) and chain ordering
+  scripts/autoloads/QuestManager.gd:
+  - Added notify_event() bus for game systems to report actions
+  - Year 1 chain quests auto-start on day 1, chain forward on completion
+  - Deferred start for month-gated quests (checked each day_advanced)
+  - Compound winter-ready check for Battening Down (60+ lbs honey + mite wash)
+  - Preserved existing daily quests and complete_objective() system
+  scripts/ui/InspectionOverlay.gd, hive_management.gd, harvest_yard.gd, honey_house.gd:
+  - Added QuestManager.notify_event() calls for inspection_opened, super_added,
+    harvest_complete
+
+[2026-04-03 CDT] Fix settings menu layout -- Mute checkbox overlapped by Back button
+  scripts/ui/PauseMenu.gd:
+  - Increased SETTINGS_H from 120 to 134 so the Mute Music checkbox and
+    Back button no longer overlap; Back button repositions automatically
+    via SETTINGS_H - 22
+
+[2026-04-03 CDT] Fix PauseMenu _exit_tree() wrong variable names
+  scripts/ui/PauseMenu.gd:
+  - _exit_tree() referenced nonexistent vars: _slider_music, _slider_sfx,
+    _slider_master, _check_mute -- fixed to _music_slider, _sfx_slider,
+    _master_slider, _mute_checkbox
+  - Promoted local master slider var (ms) to member var (_master_slider)
+    so _exit_tree and _on_settings can reference it directly
+
+[2026-04-03 CDT] Fall harvest start: 2D/2S hive, full honey, inventory rework
+  scripts/core/HiveSimulation.gd -- init_as_fall_harvest() expanded:
+  - Now creates 2 deep boxes (bottom: brood nest, top: mostly honey stores)
+    plus 2 supers filled with S_CAPPED_HONEY
+  - Honey stores bumped to 32 lbs, pollen to 220 for 2-deep colony
+  - Fixed integer division (i / grid_cols -> int(float(i) / float(grid_cols)))
+  scripts/world/home_property.gd -- Dev bypass updated:
+  - Inventory: gloves, bucket grip, comb scraper only (3 slots)
+  - new_game_mode=1, current_day=113 (fall start)
+  scripts/core/player.gd -- Starting inventory + chest:
+  - Player gets: gloves, bucket grip, comb scraper
+  - Chest gets: axe, hammer, hive tool, 5 deep bodies, 5 supers, 20 frames,
+    1 queen excluder
+
+[2026-04-03 CDT] Rearrange starting inventory: tools in inventory, hive parts in chest
+  scripts/core/player.gd:
+  - Player inventory: axe, gloves, hammer, hive tool, bucket grip (5 tools)
+  - _stock_starting_chest() now adds 5 deep bodies, 5 supers, 20 frames,
+    1 queen excluder to the storage chest on fresh games
+  - Added chest_stocked guard to prevent re-stocking on scene changes
+  scripts/world/home_property.gd:
+  - Dev bypass inventory updated to match (5 tools, no hive parts)
+  scripts/autoloads/GameData.gd:
+  - Added chest_stocked flag
+
+[2026-04-03 CDT] Expand starting inventory with hive components
+  scripts/core/player.gd + scripts/world/home_property.gd:
+  - Added to starting inventory: 5 deep bodies, 20 frames, 1 honey bucket, 1 queen excluder
+  - Updated both player._ready() defaults and home_property dev bypass to match
+  - Existing items unchanged (axe, gloves, hammer, hive tool, 5 super boxes)
+
+[2026-04-03 CDT] Fix honey super stacking gap (v3) + overlay z-index
+  scripts/world/hive.gd -- Two fixes for super stacking visual:
+  - Frame overlay z_index lowered from Z_BOXES+1 to Z_BOXES so that later-added
+    boxes (supers) naturally draw over earlier overlays (deep frames). Previously
+    the deep's frame overlay at z=6 bled through supers at z=5, causing a visible
+    artifact/gap between the deep and first super.
+  - BOX_CAVITY remains 11.0 (correct for the 22-row cavity shared by all boxes)
+  - Added temporary debug prints for stacking position verification
+
+[2026-04-03 CDT] Fix honey super stacking gap (v2)
+  scripts/world/hive.gd -- Box-on-box visual stacking overlap fix:
+  - Added BOX_CAVITY constant (11.0 display px = 22 source rows * 0.5 scale)
+  - Both deep and super open-top sprites share the same cavity structure:
+    2 bright rim rows + 20 dark interior rows = 22 source rows
+  - Stacking loop tracks prev_cavity; each box overlaps into the cavity of the
+    box below it, hiding the dark interior gap
+  - v1 used SUPER_CAVITY=6.5 (based on 41-28 sprite size diff) which was too
+    small -- left 4.5px of dark cavity visible. v2 uses the actual 22-row cavity
+  - Verified math for 1D/3S and 2D/3S: all supers get 9.5px visible front face,
+    deeps get 19px visible front face, lid unchanged at 12px overlap
+
+[2026-04-02 CDT] DevPlan Updated with Quest Expansion Changes
+  Smoke_and_Honey_DevPlan.html -- Phase 3 quest/NPC sections updated:
+  - Task 3.2 (Bob): updated from 8 quests to 12 (8 core + 4 farewell arc)
+  - Task 3.5 (Remaining NPC quests): rewritten with all expanded chains and 97 total quest count
+  - Task 3.11 (Dr. Harwick): updated to milestone-based veterinary chain (10 quests by hive count)
+  - Task 3.12 (Darlene): expanded to 10-quest mentorship chain with all quest names
+  - Task 3.13 (June): expanded to 10-quest community connection chain with all quest names
+  - Task 3.14: renamed Walt & Kacey Harmon to Paul & Kacey Rowland, added 6-quest chain description
+  - New NPC entries added: Carl Tanner (3.14b, 10 quests), Rose Delacroix (3.14c, 10 quests),
+    Silas Crenshaw (3.14d, 4 quests), Lloyd Petersen (3.14e, 4 quests), Agnes Pfeiffer (3.14f, 3 quests)
+  - All "Harmon" references updated to "Rowland" (challenge events, apiary locations)
+  - Last updated note revised with April 2 quest expansion summary
+
+[2026-04-02 CDT] Quest Summaries Added to Story Bible + GDD Quest Chains Expanded
+  story_bible.html -- Part VI (Quest Chains -- Complete Reference) updated:
+  - Every quest in the game now has an individual summary (1-2 sentences each)
+  - Bob: 12 quests (Q1-Q8 core + Q9-Q12 farewell) all with summaries
+  - Darlene: expanded from 6 to 10 quests (added Q7-Q10: Story, Third Generation, Last Stand, Cedar Bend Beekeeper)
+  - Dr. Harwick: expanded from 5 to 10 milestone-based quests (M1-M10, triggered by hive count)
+  - Carl: expanded from 4 to 10 quests (added Q5-Q10: Custom Order, Broken Extractor, Bee Package Day, Seasonal Display, Old Supply Ledger, Honey Corner)
+  - Rose: expanded from 4 to 10 quests (added Q5-Q10: Short-Handed Morning, Wildflower Order, Beeswax Candles, Honey Pie, County Food Festival, Honey Wall)
+  - June: expanded from 3 to 10 quests (added Q4-Q10: Lost Order, Rural Route 4, Sticky Letter, Swarm in Mailbox, Special Delivery, Garden, Annual Report)
+  - Frank (5), Rowlands (6), CVBA (4), Silas (4), Lloyd (4): summaries added, counts unchanged
+  - Sidebar navigation updated with new quest counts
+  Smoke_and_Honey_GDD.html (675,996 -> 698,092 bytes) -- Section 8.4 updated:
+  - Overview paragraph and Quest Chain Overview table updated with new counts
+  - Darlene, Dr. Harwick, Carl, Rose, June chains expanded with full GDD-style entries
+  - Dr. Harwick restructured from event-triggered to milestone-based (hive count triggers)
+  - Design notes updated for Rose, June, and Carl to reflect expanded chains
+  - Quest Interconnection Map updated for June's new quest structure
+  Total quest count: 97 quests across all NPC chains
+
+[2026-04-02 CDT] Asset Audit Cross-Reference + Shadow/Lighting Systems Approved
+  Smoke_and_Honey_GDD.html (666,855 -> 675,996 bytes) --
+  Shadow System (S10.1.5) added to GDD - APPROVED:
+  - 12 shadow assets: character blob, hive shadows (Langstroth + Warre),
+    building shadow atlas (14 buildings), 5 tree shadow types (round, wide,
+    orchard, weeping, bare/winter), prop shadow atlas (8 generic shapes),
+    fence line shadow, interior object shadows
+  - Implementation: CanvasLayer below sprites, NW light source, SE shadows
+  - Shadow color: deep warm brown #1A0E06 at 25-35% opacity (never pure black)
+  Lighting System (S10.1.6) added to GDD - APPROVED:
+  - 16 lighting assets: 4 seasonal palette reference cards, 7-period
+    time-of-day color tint reference, 5 point light sprites (window glow,
+    lamp post, player lantern, fireplace flicker, diner neon sign),
+    candle/lantern small, 7 interior ambient overlays, window daylight
+    spill (4 variants), moonlight tint, overcast tint, golden hour rays,
+    smoker smoke glow, bee swarm glow, snow reflection boost
+  - Time-of-day system: 7 periods from dawn (#FFE8C0 15%) to night (#4060A0 35%)
+  - Seasonal palettes: spring/summer/fall/winter base tone shifts
+  - Interior lighting: baked ambient layers per scene, window daylight spill
+  Asset Audit cross-referenced from Five Cats Studios report:
+  - 67 gap assets identified and approved (missing from registry)
+  - 28 shadow/lighting assets approved (new visual systems)
+  - Registry totals: 203 existing + 67 gap + 28 shadow/light = 298 total
+  - Phase breakdown: P1: 76 (was 61), P2: 104 (was 72), P3: 76 (was 40), P4: 42 (was 30)
+  Smoke_and_Honey_Art_Assets.xlsx updated with 4 new audit sheets:
+  - "Audit - Gap Assets (67)": all 67 missing assets with phase/priority
+  - "Audit - Shadows (12)": shadow system asset table
+  - "Audit - Lighting (16)": lighting system asset table
+  - "Audit - Combined Totals": 23-category breakdown with running totals
+  GDD table of contents updated with S10.1.5 and S10.1.6 entries
+  Shadow system tech spec row updated to reference new section
+
+[2026-04-02 CDT] Master Art Asset Spreadsheet Created
+  Smoke_and_Honey_Art_Assets.xlsx (NEW) --
+  5-sheet Excel workbook as master art asset reference:
+  - "Existing Assets": 957 assets catalogued with category, path, GDD section,
+    lighting/shadow status
+  - "Required - Not Created": 53 required assets from GDD/Story Bible not yet
+    in project, prioritized by phase (Phase 1-4)
+  - "Phase Summary": Overview of 4-phase art production pipeline
+  - "Art Style Reference": All GDD visual specifications in one table
+  - "Website Cross-Reference": Placeholder for Five Cats Studios asset audit
+    cross-reference (requires mounting Five Cats project folder)
+  NOTE: SmokeAndHoney_AssetAudit_Report.html from Five Cats Studios project
+  is not accessible from this session. Mount that project folder to complete
+  the cross-reference and verify 4-phase art table with lighting/shadows.
+
+[2026-04-02 CDT] Story Bible Created + GDD Cohesiveness Pass
+  story_bible.html (NEW, root directory) --
+  Standalone narrative reference document restructured from Complete Story:
+  - All name changes applied: Whitfield->Baker, Marshalltown->Albion,
+    Walmart->ShopMart, Harmon->Rowland, Walt->Paul, Dorothy->Gloria
+  - Ellen Harwick: PhD from University of Iowa (not Iowa State), from Iowa City
+  - Rose Delacroix: culinary school in Winston-Salem NC (not Des Moines),
+    engaged to man from Marion
+  - June Wellman: mother married man from Waterloo
+  - Darlene taught Mae Wellman to pickle beets
+  - Paul Rowland: intimidation/toilet story, secret kindness
+  - Ellen/Kacey Iowa State vs Iowa rivalry added
+  - Bandit the Cat added (Bob's gray tabby)
+  - Agnes Pfeiffer 3-quest chain (Study Break, Ride to Waterloo, Application)
+  - Pastor Jim Henning memorial scene
+  - Mead-making winter crafting chain confirmed
+  - Player Journal confirmed
+  - Family visits confirmed (3 visit events across Years 2-4)
+  - Part VIII restructured: Confirmed Additions vs Things to Consider
+  - Part IX added: Things to Consider (rival beekeeper, winter content, etc.)
+  Smoke_and_Honey_GDD.html (654,221 -> 666,855 bytes) --
+  Cohesiveness pass syncing GDD with Story Bible:
+  - All name changes applied throughout GDD (batch Python replacements,
+    verified 0 remaining stale references)
+  - Agnes Pfeiffer NPC added to NPC table with full quest chain summary
+  - Agnes 3-quest chain added to quest section (Study Break, Ride to
+    Waterloo, The Application: +150 XP, +50 Standing)
+  - Bandit the Cat added to NPC table and "After Bob" section
+  - Pastor Jim Henning added to NPC table (memorial scene only)
+  - Paul Rowland NPC entry expanded: intimidation/toilet story, 12% speech,
+    connections to Bob pesticide argument
+  - Ellen Harwick NPC entry expanded: Iowa PhD, Iowa/Iowa State rivalry with
+    Kacey, sentinel hive program, memorial appearance
+  - Player Journal section added (7.x) with year-by-year tone table
+  - Mead narrative arc design note added (Bob teaches Y2, Long Table Y3,
+    Frank's market Y4+, Rose's toddy menu)
+  - Family Visits section added to hospice arc (3 visits: parents Y2,
+    sibling Y3, family holiday Y4)
+  - Quest economy updated: 66->69 quests, 6,125->6,275 XP, 2,210->2,260
+    Standing
+
+[2026-04-02 CDT] GDD Major Update: Story Pass Content + Age-Agnostic Revisions
+  Smoke_and_Honey_GDD.html (631,628 -> 654,221 bytes) --
+  Age-agnostic revisions:
+  - Removed all "twelve-year-old", "twelve years old", "Age 12-17" references
+    from both GDD and Complete Story HTML
+  - Player character profile no longer specifies age; works for any character
+  - Bob's "at twelve" reference removed; Eli's age mentions replaced with
+    age-neutral language throughout
+  Uncle Bob profile overhaul:
+  - Changed "Late 50s" to "Early 60s" with full Vietnam veteran backstory
+  - Added Agent Orange / liver failure cause of death (was cardiac event)
+  - Added wife name "Sandy" throughout
+  - Added "What Cedar Bend knows about Bob" community knowledge block
+  - Updated Q7 dialogue: "My liver says maybe not even that" (was heart)
+  - Updated mom's phone call: "His liver" (was heart trouble)
+  New quest content added to GDD:
+  - Bob Farewell Quest Chain (Q9-Q12): The Workshop Key, The Deed and the
+    Lawyer, The Rounds, The Last Inspection (475 XP, 195 Standing)
+  - Telling the Bees quest with three-beat foreshadowing design notes
+    (100 XP, 50 Standing)
+  - 4 Holiday Quests: Quickening Gift, Beam Day Booth, Fire Keeper,
+    A Place at the Table (250 XP, 120 Standing)
+  - 4 Community Quests: Cribbage Lesson, Casserole Circuit, County Fair
+    Day, Bob's Memorial Service (225 XP, 120 Standing)
+  Quest economy updated:
+  - Total quests: 53 -> 66
+  - Total XP: 5,075 -> 6,125 (26% of Master Beekeeper requirement)
+  - Total Standing: 1,725 -> 2,210
+  - Quest chain overview table expanded with new quest categories
+  NPC profiles updated with relationship web connections:
+  - Bob, Darlene, Rose, Lloyd, Carl, Frank, Silas, June all have
+    documented cross-NPC connections and memorial roles
+  New section 9b: The Hospice Arc
+  - Bob's health decline by year (Year 1-5 progression table)
+  - Death scene design (peaceful, off-screen, hospice philosophy)
+  - "After Bob" section: inheritance, Sandy's smoker, permanent hive,
+    the chair that's never moved, the final inspection beat
+  - Design note on Nathan's real uncle and hospice chaplain background
+  research/design/Smoke_and_Honey_Complete_Story.html --
+  - All age-specific references removed (twelve-year-old, Age 12-17,
+    Sixteen years old, etc.) replaced with age-neutral language
+  Smoke_and_Honey_DevPlan.html -- Verified unchanged (140,938 bytes)
+
+[2026-04-02 CDT] Story Pass: Add "Telling the Bees" tradition to hospice arc
+  research/design/Smoke_and_Honey_Complete_Story.html --
+  - Added "Telling the Bees" as emotional climax of Bob's death sequence:
+    player knocks on every hive and tells the bees their keeper has died
+  - Three foreshadowing beats planted across Years 1-3:
+    Year 1: Darlene mentions "old Polish superstition" during Q1
+    Year 2: Bob confesses on porch he told bees when Helen died
+    Year 3: Bob's letter (delivered by June) contains explicit instruction
+  - Darlene's backstory updated: she told her bees when Teddy died
+  - "Telling the Bees" quest added to community quest chain (required,
+    triggers immediately after death, unlocks Memorial Service)
+  - Real beekeeping tradition dating back centuries; perfect thematic fit
+
+[2026-04-02 CDT] Major Story Pass: Complete Narrative Design Document
+  research/design/Smoke_and_Honey_Complete_Story.html -- Full-length narrative
+  design report in S&H visual style covering:
+  - Uncle Bob redesigned as Vietnam veteran with liver failure (Agent Orange)
+    as homage to Nathan's real uncle Bob
+  - Player character made creator-agnostic (character creator at start,
+    all references use "the player" not fixed "Eli" name)
+  - All 11 NPCs deepened with backstories, cross-relationships, and
+    Midwestern cultural detail (casserole economy, gossip networks, etc.)
+  - Relationship web: 10 documented NPC-to-NPC connections (Bob/Lloyd
+    mushroom walks, Rose/Darlene pie rivalry, Carl/Frank cribbage nights,
+    Silas's wordless bench for Bob, Rose's 8-year Tuesday pecan pie ritual)
+  - Small-town drama arcs: Harmon pesticide rift, post office closure
+    fight, diner's quiet financial struggles, Lloyd vs county road
+  - Hospice questline (Bob Q9-Q12): The Workshop Key, The Deed and the
+    Lawyer, The Rounds, The Last Inspection -- peaceful death after Year 5
+  - 4 holiday quests woven into story (Quickening Gift, Beam Day Booth,
+    Fire Keeper, A Place at the Table)
+  - 4 community quests (Cribbage Lesson, Casserole Circuit, County Fair
+    Day, Bob's Memorial Service)
+  - Year-by-year story arc (Years 1-5+) with emotional progression
+  - 7 suggestions for added depth: Family Visits, Rival Beekeeper, Agnes
+    the Waitress, Church/Spiritual, Mead Crafting, Bob's Dog, Player Journal
+  Protected files verified unchanged (631628 + 140938 bytes).
+
+[2026-04-02 CDT] Add 4 seasonal holidays (Dark Tower tone, original names)
+  TimeManager.gd -- HOLIDAYS constant array with 4 entries:
+    The Quickening Morn (Greening 12, Spring) -- Easter/renewal analog
+    Founder's Beam (High-Sun 19, Summer) -- Independence Day/heritage analog
+    The Reaping Fire (Full-Earth 7, Fall) -- Halloween/bonfire night analog
+    The Long Table (Deepcold 21, Winter) -- Christmas/solstice analog
+  TimeManager.gd -- holiday_started signal, get_todays_holiday(),
+    get_holiday_name(), is_holiday() helpers; wired into advance_day()
+  hud.gd -- HUD date label appends "-- Holiday Name --" on holiday days
+  hud.gd -- Daily summary shows golden holiday banner when applicable
+  GDD S5.1 -- new "Seasonal Holidays" subsection with full table and
+    design note; TOC updated with anchor link
+  Names carry the tone of Dark Tower mythic Americana without directly
+  lifting series terminology.
+
+[2026-04-02 CDT] GDD: Update Carl Tanner and June Wellman character descriptions
+  Carl Tanner -- updated to Black man, added detail about being one of the
+  first Black-owned businesses in Millhaven County (grandfather opened 1952).
+  June Wellman -- changed from mid-60s to late-20s Asian American woman who
+  inherited the post office from her grandmother Mae Wellman (31-year veteran).
+  Updated all quest dialogue to reflect younger age and family legacy angle.
+
+[2026-04-02 CDT] GDD: Add 5 new NPCs with full profiles and quest chains
+  Section 9 NPC table -- added Carl Tanner (Feed & Supply Owner), Rose
+  Delacroix (Diner Owner), June Wellman (Postmaster), Lloyd Petersen
+  (Woodlot Manager) with backstories, descriptions, and relationship arcs.
+  Section 8.4 Quest Chains -- added 4 new quest chain sections:
+    Carl Tanner: 4 quests (supply relationship, wholesale account, retail shelf)
+    Rose Delacroix: 4 quests (honey menu, pie case, potluck community arc)
+    June Wellman: 3 quests (mail-order, post office preservation, Bob's letter)
+    Lloyd Petersen: 4 quests (timber walk, linden season, co-stewardship)
+  Quest Chain Overview table updated (53 total quests, 5,075 XP, 1,725 Standing).
+  Quest Interconnection Map -- 9 new cross-NPC dependencies added.
+  Quest Economy totals recalculated to include new chains.
+
+[2026-04-02 CDT] Document: game is text-only, no voice acting
+  GDD S10.2 Sound Design -- added Voice Acting row clarifying all dialogue
+  is text-only by design. No voice acting in the base game.
+  DevPlan Kickstarter section -- added Stretch Goals row with three tiers:
+  $15k OST mastering, $20k additional apiary location, $25k voice acting
+  for key NPC dialogue (Uncle Bob, Darlene, main quest scenes).
+
+[2026-04-02 CDT] Fix hive lid + add base board layer
+  hive.gd -- lid now overlaps 12px downward into the top box so the dark
+  open-cavity area is hidden beneath it (LID_OVERLAP constant, z_index +2
+  so lid draws above box and frame overlays)
+  hive.gd -- added _tex_base (hive_base.png, 54x26) as a layer between
+  stand and first deep box in BODY_ADDED, FRAMES_PARTIAL, and COMPLETE
+  build states; lid reverted to hive_lid.png
+
+[2026-04-02 CDT] Queen excluder is now data-only (no visual sprite in hive stack)
+  hive.gd -- removed _tex_excluder layer from _rebuild_sprite_stack()
+  - Excluder on/off status already shown in inspection UI info line and button
+
+[2026-04-02 CDT] Fix hive roof not showing after loading a save
+  SaveManager.gd -- hive visual state now saved and restored:
+  - _collect_hives() now saves build_state, frame_count, has_lid,
+    colony_installed, colony_install_day alongside simulation data
+  - _apply_hives() restores these fields before rebuilding the sprite stack
+  - Calls activate_simulation() after restore so sprite stack, labels,
+    bee swarm cloud, and buzz audio all reinitialize correctly
+  - _collect_sim() / _apply_sim() now include has_excluder field
+  - Backward compatible: old saves without these fields default to
+    COMPLETE state with colony installed (matches existing hive behavior)
+
+[2026-04-02 CDT] Forage tier system: calibrated for 2-hive full production at B-tier
+  ForageManager.gd -- scene-wide forage level with hive-count scaling:
+  - Replaced local 5x5 tile sampling (get_forage_at) with scene-wide totals
+    (get_total_zone_nectar/pollen) so indicator reflects full map resources
+  - Forage level divided by colony count (HiveManager.hive_count()) so adding
+    a second hive correctly shows reduced per-hive resource availability
+  - Removed old _get_tree_forage() helper; tree iteration done inline
+  - Normalization ceiling calibrated at 700.0 via full production chain sim:
+    B-tier 2 hives peak = Abundant (0.86) = full honey production
+    S-tier 2 hives peak = Abundant (1.00) = max build speed + overflowing honey
+    F-tier 2 hives peak = Dearth (0.16)   = hives starving
+  FlowerLifecycleManager.gd -- season ranking enabled:
+  - RANK_WEIGHTS now symmetric bell curve centered on B:
+    S=10%, A=20%, B=35%, C=20%, D=10%, F=5%
+  - Enabled random season ranking roll (was hardcoded S for dev tuning)
+  - NU_SCALE reverted to 250, AREA_SCALE=4 for expanded grass area
+
+[2026-04-02 CDT] Add jarring table sprite, replace bottling table placeholder
+  - New Leonardo art: assets/sprites/objects/jarring_table.png (96x72, transparent bg)
+  - _create_bottling_sprite() loads and parents sprite under BottlingTable marker
+  - Removed _draw_station_box placeholder for bottling table
+  - Editor _draw() now shows faint outlines for all 4 stations
+
+[2026-04-02 CDT] Ungroup harvest yard stations for independent editor positioning
+  - Added 5 child marker nodes under HarvestYard in home_property.tscn:
+    SuperPallet, ScrapedPallet, Extractor, BottlingTable, HoneyBucket
+  - Refactored harvest_yard.gd: STATION_POS and BUCKET_OFFSET are now
+    runtime vars populated from child node positions (was hardcoded consts)
+  - Each station can now be dragged independently in the Godot editor
+  - Falls back to original positions if marker nodes are missing
+  - All gameplay logic (collisions, interactions, minigames) unchanged
+
+[2026-04-02 CDT] Spread TileMap flower tiles across full grass area
+  - TileMap layer 3 (flowers_forage) expanded from 151 tiles to 588 tiles
+  - Flower tiles now cover entire grass map (tile x -23..67, y -12..43)
+  - Even quadrant distribution: NW 22%, NE 28%, SW 27%, SE 22%
+  - Avoids paths, buildings, harvest yard, and hive area
+  - Clover dominant (326), aster (143), coneflower (119)
+
 [2026-04-02 CDT] Spread trees and flowers across full property, scale PU/NU
   Trees expanded from 10 to 44 across the full grass area (~2900x1800 px):
   - 34 new SeasonalTree instances placed as editor-draggable scene nodes

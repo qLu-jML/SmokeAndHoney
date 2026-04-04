@@ -64,12 +64,10 @@ func _ready():
 		for i in range(mini(GameData.player_inventory.size(), INVENTORY_SIZE)):
 			inventory[i] = GameData.player_inventory[i]
 	else:
-		# Starting inventory: essential tools + honey supers for harvest testing
-		add_item(GameData.ITEM_AXE,        1)
-		add_item(GameData.ITEM_GLOVES,     1)
-		add_item(GameData.ITEM_HAMMER,     1)
-		add_item(GameData.ITEM_HIVE_TOOL,  1)
-		add_item(GameData.ITEM_SUPER_BOX, 5)
+		# Starting inventory: harvest tools only (everything else in chest)
+		add_item(GameData.ITEM_GLOVES,          1)
+		add_item(GameData.ITEM_BUCKET_GRIP,     1)
+		add_item(GameData.ITEM_COMB_SCRAPER,    1)
 		# First sync so future scene changes preserve this inventory
 		sync_inventory_to_gamedata()
 	# Deferred: stock the storage chest with remaining items after scene loads
@@ -119,13 +117,26 @@ func _grab_window_focus() -> void:
 	_update_mode_label()
 
 # -- Pre-stock the storage chest with overflow starting items ------------------
-## Stock the storage chest with overflow items (currently none, empty start).
+## Stock the storage chest with hive components for testing.
 func _stock_starting_chest() -> void:
 	var chest: Node = get_tree().get_first_node_in_group("chest")
 	if chest == null or not chest.has_method("add_item"):
 		return
-	# Chest starts empty -- player crafts and earns everything
-	print("[Player] Storage chest ready (empty start).")
+	# Only stock on a fresh game (no prior inventory synced)
+	if GameData.chest_stocked:
+		print("[Player] Storage chest already stocked, skipping.")
+		return
+	# Tools
+	chest.add_item(GameData.ITEM_AXE,             1)
+	chest.add_item(GameData.ITEM_HAMMER,          1)
+	chest.add_item(GameData.ITEM_HIVE_TOOL,       1)
+	# Hive components
+	chest.add_item(GameData.ITEM_DEEP_BODY,       5)
+	chest.add_item(GameData.ITEM_SUPER_BOX,       5)
+	chest.add_item(GameData.ITEM_FRAMES,         20)
+	chest.add_item(GameData.ITEM_QUEEN_EXCLUDER,  1)
+	GameData.chest_stocked = true
+	print("[Player] Storage chest stocked with hive components.")
 
 # -- Modes ----------------------------------------------------------------------
 
@@ -420,6 +431,10 @@ func _perform_action() -> void:
 	# -- 1d. Pick up empty barrel feeder or place new one ---------------------
 	var nearby_feeder := _closest_in_group("barrel_feeder", INTERACT_RADIUS)
 	if nearby_feeder and nearby_feeder.has_method("try_pickup") and nearby_feeder.try_pickup():
+		# Try refill first if player has sugar syrup
+		if has_item(GameData.ITEM_SUGAR_SYRUP) and nearby_feeder.has_method("try_refill"):
+			nearby_feeder.try_refill(self)
+			return
 		add_item(GameData.ITEM_BARREL_FEEDER, 1)
 		nearby_feeder.remove_feeder()
 		update_hud_inventory()
@@ -719,6 +734,7 @@ func _action_place_barrel_feeder() -> void:
 	feeder_node.set_script(_barrel_feeder_script)
 	get_parent().add_child(feeder_node)
 	feeder_node.global_position = tilemap.to_global(tilemap.map_to_local(map_coords))
+	feeder_node.notify_placed()
 	update_hud_inventory()
 	var nm_bf2 = get_tree().root.get_node_or_null("NotificationManager")
 	if nm_bf2 and nm_bf2.has_method("notify"):
