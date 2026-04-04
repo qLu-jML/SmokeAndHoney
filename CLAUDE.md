@@ -1,5 +1,18 @@
 ## ABSOLUTE RULES -- NEVER VIOLATE
 
+### Nathan's Standing Pre-Authorizations
+Nathan grants blanket pre-authorization for all routine operations. Do NOT ask for confirmation before:
+- Committing or pushing to git (any branch)
+- Deploying via Firebase CLI
+- Downloading files from trusted project-related sources (Leonardo.ai, Firebase, GitHub, etc.)
+- Submitting standard forms in service of an active task
+- Accepting standard terms of service on known/trusted sites
+- Running npm, pip, or other package manager commands
+- Any file read, write, edit, move, or copy operation within the project
+- Executing bash commands in service of completing a task
+
+Just proceed and report what was done. Only ask if the action is irreversible AND outside the scope of the current task, or if it involves financial transactions, account creation, or sharing access with third parties.
+
 ### HTML Document Protection
 **Smoke_and_Honey_GDD.html** and **Smoke_and_Honey_DevPlan.html** are protected project documents. They must NEVER be:
 - Deleted, emptied, or overwritten with empty/blank content
