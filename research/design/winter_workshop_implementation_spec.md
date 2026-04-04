@@ -10,6 +10,13 @@
 
 Each section has a status: SETTLED (implement now) or PENDING (do not implement). Cowork should work through SETTLED items in the order listed. Each item includes the specific files/systems affected and the expected behavior.
 
+**CRITICAL: Every code change must be accompanied by updates to the three guiding documents.** After implementing each section, update the relevant portions of:
+1. `Smoke_and_Honey_GDD.html` - game systems, mechanics, item tables, quest definitions
+2. `story_bible.html` - NPC quest chains, dialogue references, narrative beats
+3. The art asset spreadsheet in the project root - new sprites, UI elements, animation states
+
+See Section 8 below for specific documentation requirements per section.
+
 ---
 
 ## 1. SETTLED - Transition month clarification
@@ -221,6 +228,43 @@ Every Kindlemonth, June delivers the annual catalogue. Player has 7 days to orde
 
 ---
 
+## 8. REQUIRED - Documentation updates per section
+
+Every code change from this spec MUST be accompanied by updates to the guiding documents. These are NOT optional. The game's documentation must stay in sync with the implementation.
+
+### GDD updates (Smoke_and_Honey_GDD.html)
+
+| Section implemented | GDD sections to update |
+|--------------------|----------------------|
+| 1. Transition months | Section 5.1 (calendar/months table): Add transition/true column. Update month descriptions. Update the "Seasonal Reference Quick Table" to note which month is transition vs true. |
+| 2. Honey House open | Section 1.3 (Starting Conditions): Remove "dilapidated" language, state Honey House is functional from start. Section 6.6 (Harvest System): Remove Tier 0 outdoor harvest yard entirely. Update Extraction Facilities table to start at the Honey House (Tier 0 = Bob's inherited Honey House, no penalty). Section 6.6.2-6.6.5: Update all harvest flow descriptions to reference the Honey House interior, not outdoor stations. Section 7.2 (Apiary Structures): Update Honey House entries from "dilapidated/visible from start" to "functional from start, upgradeable." Section 8.4 (NPC Quest Chains): Remove or mark Silas Q1-Q3 as deprecated. Note Silas chain is being redesigned. |
+| 3. Energy bar removal | Section 5.4 (Player Energy System): Rewrite to describe the invisible fatigue system. Remove references to the visible bar, color states (green/yellow/orange/red). Replace with the fatigue animation threshold table. Keep all energy cost tables unchanged. Update the "Energy Bar Properties" subsection title to "Fatigue System." |
+| 4. Winterization | Section 2.3-2.4 (Fall/Winter tasks): Add winterization components to the Fall task table. Add winterization equipment to Winter prep checklist. Section 3.1 (Hive-Level Properties): Add winterization state (which components applied). Add new subsection under Section 6 or 3: "Winterization Equipment System" with the full component table, tier system, and survival modifiers. Section 6.7 (Resource & Economy): Add winterization items to the Purchase Prices table. |
+| 5. Safety nets | Section 8.4 (NPC Quest Chains): Add Dr. Harwick research nuc as a conditional quest/event under her chain. Update Carl Tanner's chain notes to reference the credit tab system. Add new subsection: "Safety Net Systems" describing all three mechanisms (research nuc, Carl's tab, equipment floor). |
+| 6. Catalogue | Section 6.3 (Bee Acquisition System): Add the Annual Catalogue as a bee acquisition method alongside Tanner's and Post Office. Add new subsection: "Annual Beekeeping Catalogue" with trigger timing, ordering window, item table, and early-order bonus. Section 6.7 (Resource & Economy): Add catalogue-exclusive items to Purchase Prices table. Section 8.4: Add Bob's Y1 catalogue teaching moment to his quest/mentorship notes. |
+| 7. Equipment degradation | Section 3.1 (Equipment Condition): Verify existing degradation table matches. Add the condition floor (minimum 5). Add furniture polish as a maintenance item. Ensure the visual state descriptions are documented. |
+
+### Story Bible updates (story_bible.html)
+
+| Section implemented | Story Bible sections to update |
+|--------------------|-------------------------------|
+| 2. Honey House open | Section VI, Silas Crenshaw chain: Mark Q1-Q3 as deprecated/redesigned. Note that the Honey House is functional from game start. Silas's relationship arc is being reworked from "gatekeeper" to "craftsman who helps you upgrade." |
+| 4. Winterization | Section IV, Year arcs: Add winterization as a Deepcold activity across all years. Mention Bob Q6 teaches it in Year 1. |
+| 5. Safety nets | Section II, Dr. Harwick: Add the research nuc offer as a conditional event. Note her periodic apiary visits (3-4/year). Section II, Carl Tanner: Add the credit tab as a character moment — "Your uncle was good for it." Section IV, Year arcs: Note safety nets activate in any year where conditions are met. |
+| 6. Catalogue | Section II, June Wellman: Add the annual catalogue delivery as a recurring Kindlemonth event in her role description. Section II, Uncle Bob: Add the Y1 catalogue teaching moment to his mentorship arc. Section IV, Year 1: Add the catalogue arrival as a Kindlemonth beat. |
+
+### Art asset spreadsheet updates
+
+| Section implemented | New art assets needed |
+|--------------------|----------------------|
+| 2. Honey House open | Honey House interior scene: workbench station sprite, craft table sprite, finished goods shelf (empty + states for filling), goal board sprite, mead corner with crocks. If any of these already exist, note them as "repurpose" not "new." |
+| 3. Energy bar removal | Player character fatigue animations: stretch idle (50-69 energy), yawn idle (25-49), rubbing eyes idle (10-24), sit-down idle (0-9), hunched walk cycle. Screen edge softening shader/overlay (may already exist). |
+| 4. Winterization | Item sprites: entrance reducer, mouse guard, moisture quilt box, hive wrap/insulation, top insulation board, candy board/fondant, ventilation shim. Hive overworld: winterized hive states (wrapped, with mouse guard visible). Spring damage visuals: mouse-damaged frames, moisture-damaged inner cover. |
+| 6. Catalogue | Catalogue UI: browsable page layout, item thumbnails for each catalogue item. June delivery notification sprite/icon. |
+| 7. Equipment degradation | Hive overworld condition states: clean (100-80), weathered (59-40), warped (39-20), failing (19-5). Furniture polish item sprite (if not already existing). |
+
+---
+
 ## PENDING - Do not implement yet
 
 1. **Silas quest chain redesign** - 4 quests being reworked. Content not finalized.
@@ -231,7 +275,7 @@ Every Kindlemonth, June delivers the annual catalogue. Player has 7 days to orde
 6. **Dynamic spring vignette** - Art and animation specs needed.
 7. **Apiary capacity analysis** - NU/PU consequences for over-placing hives.
 8. **Economy rebalance pass** - New items need pricing validation.
-9. **Art asset audit** - New sprites needed for winterization, catalogue UI, degraded equipment.
+9. **Art asset audit (comprehensive)** - Full project-wide audit of all art needs. The per-section art notes in Section 8 above cover only the items from this spec.
 10. **Tiered suggestion system** - General/struggling/diligent player suggestions.
 
 ---
@@ -260,3 +304,6 @@ Every Kindlemonth, June delivers the annual catalogue. Player has 7 days to orde
 | New: Catalogue UI | Create | 6 |
 | SaveManager | Track orders, states | 6, 7 |
 | Silas Q1-Q3 | DISABLE | 2 |
+| `Smoke_and_Honey_GDD.html` | Updates per Section 8 | ALL |
+| `story_bible.html` | Updates per Section 8 | 2,4,5,6 |
+| Art asset spreadsheet | Updates per Section 8 | 2,3,4,6,7 |
