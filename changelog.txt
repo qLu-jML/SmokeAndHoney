@@ -1,3 +1,13 @@
+[2026-04-03 CDT] WP8: Winter activities -- observation + route override
+  scripts/ui/winter_observation.gd (new):
+  - Passive hive observation: weight (Heavy/Medium/Light),
+    sound (Strong hum/Faint buzz/Silence), entrance activity
+  - Color-coded thresholds with contextual advice
+  - Auto-logs to Knowledge Journal, unlocks winter_prep entry
+  scripts/world/hive.gd:
+  - open_inspection() routes to winter_observation in Deepcold/Kindlemonth
+  - _is_winter_month() and _open_winter_observation() helpers
+
 [2026-04-03 CDT] WP7: Seasonal NPC dialogue
   scripts/npc/uncle_bob.gd:
   - Quest-aware dialogue (matches active Year 1 quest with specific advice)

@@ -1129,7 +1129,31 @@ func open_inspection() -> void:
 	if get_tree().get_first_node_in_group("inspection_overlay"):
 		push_warning("Hive.open_inspection: overlay already open")
 		return
+
+	# Winter: route to passive observation instead of full inspection
+	if _is_winter_month():
+		_open_winter_observation()
+		return
+
 	var overlay = INSPECTION_SCENE.instantiate()
+	overlay.add_to_group("inspection_overlay")
+	get_tree().current_scene.add_child(overlay)
+	overlay.open(self)
+
+## Check if current month is a winter month (Deepcold or Kindlemonth).
+func _is_winter_month() -> bool:
+	if not TimeManager or not TimeManager.has_method("current_month_index"):
+		return false
+	return TimeManager.current_month_index() >= 6
+
+## Open the winter observation overlay (passive monitoring).
+func _open_winter_observation() -> void:
+	var script: GDScript = load("res://scripts/ui/winter_observation.gd") as GDScript
+	if script == null:
+		push_warning("Hive: could not load winter_observation.gd")
+		return
+	var overlay: CanvasLayer = CanvasLayer.new()
+	overlay.set_script(script)
 	overlay.add_to_group("inspection_overlay")
 	get_tree().current_scene.add_child(overlay)
 	overlay.open(self)
